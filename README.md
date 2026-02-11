@@ -30,21 +30,30 @@ dotfiles/
 
 ## 설치
 
-### 심볼릭 링크 (권장)
-
 ```bash
-# 홈 디렉토리에 심볼릭 링크
-ln -sf ~/dotfiles/.claude ~/.claude
-ln -sf ~/dotfiles/.codex ~/.codex
-ln -sf ~/dotfiles/.agents ~/.agents
+git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
+~/dotfiles/install.sh
 ```
 
-이렇게 하면:
-- `~/.claude/CLAUDE.md` → Claude Code 전역 자동 인식
-- `~/.codex/AGENTS.md` → Codex 전역 자동 인식
-- `~/.agents/skills/` → Open Agent Skills 표준 경로
-- `~/.claude/rules/`, `skills/`, `agents/` → 모든 프로젝트에서 공유
-- `~/.codex/skills/`, `~/.agents/skills/` → `.claude/skills`의 심볼릭 링크 (동일 스킬 공유)
+`--dry-run` 옵션으로 변경 사항을 미리 확인할 수 있습니다:
+
+```bash
+~/dotfiles/install.sh --dry-run
+```
+
+스크립트가 생성하는 심볼릭 링크:
+
+| 링크 | → 원본 | 용도 |
+|------|--------|------|
+| `~/.claude/CLAUDE.md` | `~/dotfiles/.claude/CLAUDE.md` | Claude Code 전역 지침 |
+| `~/.claude/agents/` | `~/dotfiles/.claude/agents/` | 서브에이전트 정의 |
+| `~/.claude/commands/` | `~/dotfiles/.claude/commands/` | 슬래시 커맨드 |
+| `~/.claude/rules/` | `~/dotfiles/.claude/rules/` | 코딩/보안/통신 규칙 |
+| `~/.claude/skills/` | `~/dotfiles/.claude/skills/` | 재사용 스킬 (원본) |
+| `~/.codex/AGENTS.md` | `~/dotfiles/.codex/AGENTS.md` | Codex 전역 지침 |
+| `~/.agents/skills/` | `~/.claude/skills/` | Open Agent Skills 표준 경로 |
+
+Claude Code / Codex 런타임 데이터(`projects/`, `settings.json` 등)는 건드리지 않습니다.
 
 ### 새 프로젝트 초기화
 
