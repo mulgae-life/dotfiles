@@ -26,7 +26,7 @@ error() { printf "${RED}[ERROR]${RESET} %s\n" "$*" >&2; }
 # ── safe_link ───────────────────────────────
 # 심볼릭 링크를 안전하게 생성한다.
 #   - 이미 올바른 링크  → [SKIP]
-#   - 다른 링크         → ln -sf로 교체 [UPDATE]
+#   - 다른 링크         → ln -sfn으로 교체 [UPDATE]
 #   - 실제 파일/디렉토리 → 백업 후 링크 [BACKUP]
 #   - 없음              → 새로 생성 [CREATE]
 
@@ -44,7 +44,7 @@ safe_link() {
       warn "[UPDATE] $dst → $src (현재: $current) (dry-run)"
       return
     fi
-    ln -sf "$src" "$dst"
+    ln -sfn "$src" "$dst"
     ok "[UPDATE] $dst → $src (이전: $current)"
   elif [ -e "$dst" ]; then
     local backup="${dst}.backup.$(date +%Y%m%d-%H%M%S)"
@@ -55,14 +55,14 @@ safe_link() {
     fi
     mv "$dst" "$backup"
     warn "[BACKUP] $dst → $backup"
-    ln -sf "$src" "$dst"
+    ln -sfn "$src" "$dst"
     ok "[CREATE] $dst → $src"
   else
     if $DRY_RUN; then
       info "[CREATE] $dst → $src (dry-run)"
       return
     fi
-    ln -sf "$src" "$dst"
+    ln -sfn "$src" "$dst"
     ok "[CREATE] $dst → $src"
   fi
 }
