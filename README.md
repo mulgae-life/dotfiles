@@ -32,6 +32,8 @@ dotfiles/
 
 ```bash
 git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
+```
+```bash
 ~/dotfiles/install.sh
 ```
 
