@@ -18,14 +18,16 @@ Codex는 `.claude/rules/*.md`를 자동 로드하지 않는다.
 | 파일 | 내용 |
 |------|------|
 | `~/.claude/rules/communication.md` | 한국어 응답, 변경 이유 설명, 에러 설명 형식 |
-| `~/.claude/rules/coding-style.md` | 범위 준수, 최소 diff, 에러 처리, 리소스 수명주기 |
-| `~/.claude/rules/security.md` | 시크릿 관리, 입력 검증, SQL 인젝션/XSS 방지 |
+| `~/.claude/rules/architecture.md` | 기존 구조 파악, 단일 역할 원칙, 의존성 단방향, Co-location |
+| `~/.claude/rules/coding-style.md` | 범위 준수, 최소 diff, 에러 처리, 리소스 수명주기, 언어별 패턴 |
+| `~/.claude/rules/security.md` | 시크릿 관리, 입력 검증, SQL 인젝션/XSS/CSRF 방지 |
 | `~/.claude/rules/agents.md` | 에이전트 위임 트리거, 우선순위, 체이닝 절차 |
 
 > 아래는 파일 접근 불가 시 최소 기준선이다.
 
 - **언어**: 모든 응답과 설명은 **한국어**로 작성. 영어 기술 용어는 한국어 설명과 병기.
 - **변경 설명**: 코드 변경 시 **이유를 상세히 설명**. 에러는 원인과 해결책을 함께 제시.
+- **구조**: 기존 프로젝트 패턴 우선. 파일당 단일 역할. UI→로직→데이터→타입 단방향 의존.
 - **보안**: 하드코딩 시크릿 **절대 금지**. 모든 사용자 입력 검증. SQL 인젝션/XSS 방지.
 - **범위**: 요청 범위 밖 리팩토링 **금지**. 최소 diff 원칙. 경계 검증 필수.
 
