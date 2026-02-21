@@ -150,6 +150,12 @@ main() {
   safe_mkdir "$HOME/.agents"
   safe_link "$HOME/.claude/skills" "$HOME/.agents/skills"
 
+  # 4. .gemini 전역 설정 링크 (런타임 데이터 보존)
+  safe_mkdir "$HOME/.gemini"
+  safe_link "$DOTFILES_DIR/.gemini/GEMINI.md" "$HOME/.gemini/GEMINI.md"
+  safe_mkdir "$HOME/.gemini/antigravity"
+  safe_link "$DOTFILES_DIR/.gemini/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
+
   # ── 검증 ──────────────────────────────────
   echo ""
   info "검증 중..."
@@ -163,6 +169,8 @@ main() {
     "$HOME/.claude/skills"
     "$HOME/.codex/AGENTS.md"
     "$HOME/.agents/skills"
+    "$HOME/.gemini/GEMINI.md"
+    "$HOME/.gemini/antigravity/global_workflows"
   )
 
   for target in "${targets[@]}"; do

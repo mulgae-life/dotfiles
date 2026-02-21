@@ -1,6 +1,6 @@
 # dotfiles
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) / Codex 전역 설정을 관리하는 레포.
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code) / Codex / Antigravity 전역 설정을 관리하는 레포.
 
 여러 프로젝트, 여러 PC/서버에서 **동일한 AI 에이전트 설정**을 공유한다.
 한 번 설치하면 어떤 프로젝트에서든 동일한 규칙·에이전트·스킬이 자동 적용된다.
@@ -18,6 +18,9 @@ dotfiles/
 ├── .codex/
 │   ├── AGENTS.md          # Codex 전역 지침 (~/.codex/AGENTS.md)
 │   └── skills → ../.claude/skills   # 기존 호환
+├── .gemini/
+│   ├── GEMINI.md          # Antigravity 전역 지침 (~/.gemini/GEMINI.md)
+│   └── global_workflows/  # Antigravity 전역 워크플로우
 └── .agents/
     └── skills → ../.claude/skills   # 새 표준 경로 (Open Agent Skills)
 ```
@@ -35,7 +38,7 @@ dotfiles/
 
 | 범위 | 파일 | 관리 위치 |
 |------|------|----------|
-| **전역** | `.claude/` (CLAUDE.md 포함), `.codex/` (AGENTS.md 포함) | 이 레포 (dotfiles) |
+| **전역** | `.claude/`, `.codex/`, `.gemini/` | 이 레포 (dotfiles) |
 | **프로젝트별** | `agent-guide/GUIDE.md`, `PROJECT.md`, `SESSION.md` | 각 프로젝트 레포 |
 
 ## 설치
@@ -64,8 +67,10 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `~/.claude/skills/` | `~/dotfiles/.claude/skills/` | 재사용 스킬 (원본) |
 | `~/.codex/AGENTS.md` | `~/dotfiles/.codex/AGENTS.md` | Codex 전역 지침 |
 | `~/.agents/skills/` | `~/.claude/skills/` | Open Agent Skills 표준 경로 |
+| `~/.gemini/GEMINI.md` | `~/dotfiles/.gemini/GEMINI.md` | Antigravity 전역 지침 |
+| `~/.gemini/antigravity/global_workflows` | `~/dotfiles/.gemini/global_workflows` | Antigravity 전역 워크플로우 |
 
-Claude Code / Codex 런타임 데이터(`projects/`, `settings.json` 등)는 건드리지 않습니다.
+Claude Code / Codex / Antigravity 런타임 데이터(`projects/`, `settings.json` 등)는 건드리지 않습니다.
 
 ## 사용법
 
