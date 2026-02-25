@@ -141,6 +141,7 @@ main() {
   safe_link "$DOTFILES_DIR/.claude/commands"  "$HOME/.claude/commands"
   safe_link "$DOTFILES_DIR/.claude/rules"     "$HOME/.claude/rules"
   safe_link "$DOTFILES_DIR/.claude/skills"    "$HOME/.claude/skills"
+  safe_link "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
 
   # 2. .codex AGENTS.md만 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.codex"
@@ -167,6 +168,7 @@ main() {
     "$HOME/.claude/commands"
     "$HOME/.claude/rules"
     "$HOME/.claude/skills"
+    "$HOME/.claude/settings.json"
     "$HOME/.codex/AGENTS.md"
     "$HOME/.agents/skills"
     "$HOME/.gemini/GEMINI.md"
