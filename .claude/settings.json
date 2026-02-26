@@ -1,6 +1,7 @@
 {
   "language": "한국어",
   "permissions": {
+    "defaultMode": "plan",
     "allow": [
       "WebSearch",
       "WebFetch",
