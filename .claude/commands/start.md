@@ -14,7 +14,7 @@ description: 새 세션 시작 시 프로젝트를 파악하고 현재 상태를
 1. `agent-guide/GUIDE.md` 읽기 → 작업 원칙 파악
 2. `agent-guide/PROJECT.md` 읽기 → 프로젝트 구조 파악
 3. `agent-guide/SESSION.md` 읽기 → 현재 상태 확인
-4. 교훈 파일 검토 → memory `lessons.md` 또는 `tasks/lessons.md`가 있으면 읽고 반영
+4. 교훈 파일 검토 → memory `lessons.md`가 있으면 읽고 반영
 5. (MCP 가능 시) 작업 관리 도구에서 백로그 조회
 
 ## 출력

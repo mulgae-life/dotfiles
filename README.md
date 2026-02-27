@@ -11,7 +11,7 @@
 dotfiles/
 ├── .claude/
 │   ├── CLAUDE.md          # Claude Code 전역 진입점 (~/.claude/CLAUDE.md)
-│   ├── rules/             # 코딩/보안/구조/통신/에이전트 규칙 (5개)
+│   ├── rules/             # 코딩/보안/구조/통신/에이전트/컨텍스트 규칙 (6개)
 │   ├── agents/            # 서브에이전트 정의 (4개)
 │   ├── commands/          # 슬래시 커맨드 (/start)
 │   └── skills/            # 재사용 스킬 (13개) ← 원본

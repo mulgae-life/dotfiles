@@ -261,13 +261,6 @@ last-updated: {{date}}
 
 ---
 
-## 최근 완료
-
-### {{date}}
-- **프로젝트 초기화**: agent-guide 3종 파일 생성 (GUIDE.md, PROJECT.md, SESSION.md)
-
----
-
 ## 다음 작업
 
 | 우선순위 | 작업 | 상태 |
@@ -282,4 +275,27 @@ last-updated: {{date}}
 ## 기타 이슈
 
 없음
+
+---
+
+## 최근 세션
+
+### {{date}}
+
+#### 세션 목표
+- 프로젝트 초기화: agent-guide 3종 파일 생성
+
+#### 변경 파일
+| 파일 | 변경 유형 | 요약 |
+|------|----------|------|
+| `agent-guide/GUIDE.md` | 추가 | 작업 원칙, 세션 체크리스트 |
+| `agent-guide/PROJECT.md` | 추가 | 프로젝트 개요, 기술 스택 |
+| `agent-guide/SESSION.md` | 추가 | 세션 상태 초기화 |
+
+#### 결정 사항
+- agent-guide 3종 파일 구조 확정
+
+#### 현재 상태
+- 프로젝트 초기화 완료, 첫 구현 작업 대기
+
 ```
