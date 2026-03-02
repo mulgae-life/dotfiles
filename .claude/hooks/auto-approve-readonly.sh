@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Claude Code PreToolUse 훅: 읽기 전용 Bash 명령어 자동 승인
 # 위험 패턴(파일 수정/삭제, 네트워크 쓰기 등)이 없으면 자동 승인
-# 위험 패턴이 감지되면 기본 동작(사용자 확인)으로 넘김
+# 위험 패턴이 감지되면 "ask" 반환 (settings.json allow 패턴도 무시하고 사용자 확인 강제)
 set -euo pipefail
 
 INPUT=$(cat)
@@ -25,9 +25,23 @@ COMMAND=$(parse_command)
 
 # ── 1단계: 리다이렉션 체크 ──────────────────────────────
 # 안전한 리다이렉션(/dev/null, 파일디스크립터 복제) 제거 후 잔여 > >> 검사
+# "ask" 반환 헬퍼: settings.json allow 패턴을 무시하고 사용자 확인 강제
+ask_user() {
+  cat <<'ASKEOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "ask",
+    "permissionDecisionReason": "State-changing command detected"
+  }
+}
+ASKEOF
+  exit 0
+}
+
 REDIR_CHECK=$(echo "$COMMAND" | sed 's|[0-9]*>/dev/null||g; s|[0-9]*>&[0-9]*||g')
 if [[ "$REDIR_CHECK" == *'>>'* ]] || [[ "$REDIR_CHECK" == *'>'* ]]; then
-  exit 0
+  ask_user
 fi
 
 # ── 2단계: 위험 명령어 패턴 체크 ─────────────────────────
@@ -71,10 +85,11 @@ DANGEROUS_PATTERNS=(
   '\bgit\s+(add|push|reset|checkout|switch|restore|rebase|merge|commit)\b'
   '\bgit\s+stash\s+(save|push|drop|pop|clear|apply)\b'
   '\bgit\s+stash\s*([;&|]|$)'
-  '\bgit\s+branch\s+-[dD]\b'
+  '\bgit\s+branch\s+(-[dD]|--delete)\b'
   '\bgit\s+(clean|cherry-pick|revert|am|apply)\b'
   '\bgit\s+tag\s+[A-Za-z0-9]'
-  '\bgit\s+tag\s+-[daf]\b'
+  '\bgit\s+tag\s+(-[daf]|--delete)\b'
+  '\bgit\s+-C\s+\S+\s+(add|push|reset|checkout|switch|restore|rebase|merge|commit|clean|cherry-pick|revert)\b'
 
   # ── Docker 쓰기 ──
   '\bdocker\s+(run|exec|rm|rmi|stop|kill|start|restart|build|push|pull|create|tag|login|logout|commit)\b'
@@ -89,11 +104,20 @@ DANGEROUS_PATTERNS=(
 
   # ── 크론 ──
   '\bcrontab\s+-[er]\b'
+
+  # ── 네트워크 인터페이스 쓰기 ──
+  '\bip\s+(addr|route|link|neigh|rule)\s+(add|del|delete|flush|set)\b'
+
+  # ── GitHub CLI 쓰기 ──
+  '\bgh\s+(pr|issue|release|repo)\s+(create|close|delete|merge|edit|comment)\b'
+  '\bgh\s+api\s+-X\b'
+  '\bgh\s+api\b.*\s-[fF]\b'
+  '\bgh\s+auth\s+(login|logout)\b'
 )
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
   if [[ "$COMMAND" =~ $pattern ]]; then
-    exit 0
+    ask_user
   fi
 done
 
