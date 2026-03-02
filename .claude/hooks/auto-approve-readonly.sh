@@ -68,15 +68,17 @@ DANGEROUS_PATTERNS=(
   '\beval\b'      '\bexec\b'      '\bsource\b'
 
   # ── Git 쓰기 ──
-  '\bgit\s+(add|push|reset|checkout|rebase|merge|commit)\b'
-  '\bgit\s+stash\s+(drop|pop|clear)\b'
+  '\bgit\s+(add|push|reset|checkout|switch|restore|rebase|merge|commit)\b'
+  '\bgit\s+stash\s+(save|push|drop|pop|clear|apply)\b'
+  '\bgit\s+stash\s*([;&|]|$)'
   '\bgit\s+branch\s+-[dD]\b'
   '\bgit\s+(clean|cherry-pick|revert|am|apply)\b'
-  '\bgit\s+tag\s+-[da]\b'
+  '\bgit\s+tag\s+[A-Za-z0-9]'
+  '\bgit\s+tag\s+-[daf]\b'
 
   # ── Docker 쓰기 ──
-  '\bdocker\s+(run|exec|rm|rmi|stop|kill|start|restart|build|push|pull)\b'
-  '\bdocker\s+compose\s+(up|down|rm|build|create)\b'
+  '\bdocker\s+(run|exec|rm|rmi|stop|kill|start|restart|build|push|pull|create|tag|login|logout|commit)\b'
+  '\bdocker\s+compose\s+(up|down|rm|build|create|pull|restart|stop|kill|start)\b'
 
   # ── 서비스/시스템 ──
   '\bsystemctl\s+(start|stop|restart|enable|disable)\b'
