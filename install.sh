@@ -134,6 +134,28 @@ main() {
   # 부트스트랩 (dotfiles 없으면 clone)
   bootstrap "$@"
 
+  # 0. 필수 의존성 설치
+  if ! command -v jq &>/dev/null; then
+    info "jq가 설치되어 있지 않습니다. 설치를 시도합니다..."
+    if $DRY_RUN; then
+      info "jq 설치 (dry-run)"
+    elif command -v apt-get &>/dev/null; then
+      sudo apt-get update -qq && sudo apt-get install -y -qq jq && ok "jq 설치 완료 (apt)"
+    elif command -v yum &>/dev/null; then
+      sudo yum install -y -q jq && ok "jq 설치 완료 (yum)"
+    elif command -v dnf &>/dev/null; then
+      sudo dnf install -y -q jq && ok "jq 설치 완료 (dnf)"
+    elif command -v brew &>/dev/null; then
+      brew install jq && ok "jq 설치 완료 (brew)"
+    elif command -v apk &>/dev/null; then
+      sudo apk add --quiet jq && ok "jq 설치 완료 (apk)"
+    else
+      warn "jq 자동 설치 실패. 훅 스크립트가 python3 폴백을 사용합니다."
+    fi
+  else
+    ok "jq 이미 설치됨"
+  fi
+
   # 1. .claude 개별 항목 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.claude"
   safe_link "$DOTFILES_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
