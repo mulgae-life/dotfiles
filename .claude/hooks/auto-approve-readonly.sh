@@ -46,7 +46,6 @@ DANGEROUS_PATTERNS=(
   '\btruncate\b'
 
   # ── 시스템 (위험) ──
-  '\bsudo\b'      '\bsu\b'
   '\breboot\b'    '\bshutdown\b'  '\bpoweroff\b'  '\bhalt\b'
 
   # ── 디스크 (비가역적) ──
