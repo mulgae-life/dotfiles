@@ -14,6 +14,8 @@ dotfiles/
 │   ├── rules/             # 코딩/보안/구조/통신/에이전트/컨텍스트 규칙 (6개)
 │   ├── agents/            # 서브에이전트 정의 (4개)
 │   ├── commands/          # 슬래시 커맨드 (/start)
+│   ├── hooks/             # PreToolUse 훅 (읽기 전용 명령어 자동 승인)
+│   ├── settings.json      # 전역 설정 (권한, 훅, 언어)
 │   └── skills/            # 재사용 스킬 (13개) ← 원본
 ├── .codex/
 │   ├── AGENTS.md          # Codex 전역 지침 (~/.codex/AGENTS.md)
@@ -33,6 +35,7 @@ dotfiles/
 | `agents/` | 빌드 에러·보안 점검 등 **특정 상황에서 자동 위임**되는 서브에이전트 | 조건 충족 시 자동 위임 (`rules/agents.md`에 정의) |
 | `skills/` | 코드 리뷰·프롬프트 작성 등 **슬래시 커맨드로 호출**하는 전문 가이드 | `/skill-name`으로 수동 호출 |
 | `commands/` | 세션 시작 등 **사용자 정의 슬래시 커맨드** | `/command-name`으로 수동 호출 |
+| `hooks/` | 읽기 전용 Bash 명령어 **자동 승인** (PreToolUse 훅) | 매 도구 호출 시 자동 실행 |
 
 ## 전역 vs 프로젝트별
 
@@ -65,12 +68,14 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `~/.claude/commands/` | `~/dotfiles/.claude/commands/` | 슬래시 커맨드 |
 | `~/.claude/rules/` | `~/dotfiles/.claude/rules/` | 코딩/보안/통신 규칙 |
 | `~/.claude/skills/` | `~/dotfiles/.claude/skills/` | 재사용 스킬 (원본) |
+| `~/.claude/hooks/` | `~/dotfiles/.claude/hooks/` | PreToolUse 훅 |
+| `~/.claude/settings.json` | `~/dotfiles/.claude/settings.json` | 전역 설정 (권한, 훅, 언어) |
 | `~/.codex/AGENTS.md` | `~/dotfiles/.codex/AGENTS.md` | Codex 전역 지침 |
 | `~/.agents/skills/` | `~/.claude/skills/` | Open Agent Skills 표준 경로 |
 | `~/.gemini/GEMINI.md` | `~/dotfiles/.gemini/GEMINI.md` | Antigravity 전역 지침 |
 | `~/.gemini/antigravity/global_workflows` | `~/dotfiles/.gemini/global_workflows` | Antigravity 전역 워크플로우 |
 
-Claude Code / Codex / Antigravity 런타임 데이터(`projects/`, `settings.json` 등)는 건드리지 않습니다.
+Claude Code / Codex / Antigravity 런타임 데이터(`projects/` 등)는 건드리지 않습니다. `jq`가 미설치된 경우 자동으로 설치를 시도합니다.
 
 ## 사용법
 

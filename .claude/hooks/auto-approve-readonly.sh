@@ -64,8 +64,11 @@ DANGEROUS_PATTERNS=(
   '\bpnpm\s+(install|add|remove)\b'
   '\byarn\s+(add|remove)\b'
 
+  # ── 임의 코드 실행 ──
+  '\beval\b'      '\bexec\b'      '\bsource\b'
+
   # ── Git 쓰기 ──
-  '\bgit\s+(push|reset|checkout|rebase|merge|commit)\b'
+  '\bgit\s+(add|push|reset|checkout|rebase|merge|commit)\b'
   '\bgit\s+stash\s+(drop|pop|clear)\b'
   '\bgit\s+branch\s+-[dD]\b'
   '\bgit\s+(clean|cherry-pick|revert|am|apply)\b'
