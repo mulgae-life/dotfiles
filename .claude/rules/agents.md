@@ -15,7 +15,7 @@ alwaysApply: true
 | 1 | `build-resolver` | 빌드 실패 (`npm run build`, `tsc`, `pnpm build` 에러) |
 | 2 | `security-reviewer` | 보안 민감 코드 (auth/login/session/token, API 엔드포인트, 암호화, 시크릿) |
 | 3 | `planner` | 복잡한 요청 (파일 3개+ 수정 예상, 아키텍처 결정 필요). **초안만 작성** → 사용자와 논의 후 확정 |
-| 4 | `verifier` | 코드 작성/수정 완료 후, 또는 "점검해줘/확인해줘" 요청 |
+| 4 | `verifier` | 작업(코드/문서/리포트/계획서) 완료 후, 또는 "점검해줘/확인해줘" 요청 |
 
 일반 흐름: planner(초안) → 사용자 논의 → 구현 → verifier → (보안 시) security-reviewer → (빌드 에러 시) build-resolver
 

@@ -41,14 +41,14 @@ Claude Code의 자동 위임을 Antigravity에서는 절차형으로 대응한�
 | `~/.claude/agents/planner.md` | 계획 초안 작성 절차, 분석 프로세스, 출력 형식 |
 | `~/.claude/agents/build-resolver.md` | 빌드 에러 해결 프로세스, 최소 diff 원칙, 에러 패턴 |
 | `~/.claude/agents/security-reviewer.md` | OWASP Top 10 분석, 취약점 분류, 보안 체크리스트 |
-| `~/.claude/agents/verifier.md` | 코딩 완료 후 점검 절차, 자동 수정 범위 |
+| `~/.claude/agents/verifier.md` | 작업 완료 후 점검 절차, 자동 수정 범위 |
 
 > 아래는 파일 접근 불가 시 최소 기준선이다.
 
 - **planner**: 복잡한 요청(파일 3개 이상) → 계획 먼저 정리
 - **build-resolver**: 빌드/타입 에러 → 최우선, 최소 변경 해결
 - **security-reviewer**: 보안 민감 코드 → OWASP 점검 강화
-- **verifier**: 구현 완료 후 → 기본 점검 수행
+- **verifier**: 작업 완료 후 (코드/문서/리포트/계획서) → 기본 점검 수행
 
 ## 스킬 활용
 
@@ -60,7 +60,7 @@ Claude Code의 자동 위임을 Antigravity에서는 절차형으로 대응한�
 ```
 
 예: React 성능 최적화 → `react-best-practices/SKILL.md`,
-코드 리뷰 → `code-review/SKILL.md`, 보안 점검 → `code-verify/SKILL.md`
+코드 리뷰 → `code-review/SKILL.md`, 작업 점검 → `code-verify/SKILL.md`
 
 ## 워크플로우
 

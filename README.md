@@ -99,7 +99,7 @@ Claude Code / Codex / Antigravity 런타임 데이터(`projects/` 등)는 건드
 |------|------|------|
 | code-review | `/code-review` | 심각도 등급별 코드 리뷰 |
 | code-simplifier | `/code-simplifier` | 코드 명확성/유지보수성 개선 |
-| code-verify | `/code-verify` | 작업 후 점검 |
+| code-verify | `/code-verify` | 작업 후 점검 (코드/문서/리포트/계획서) |
 | feedback-analysis | `/feedback-analysis` | 피드백 분석 |
 | frontend-design | `/frontend-design` | 프론트엔드 UI 제작 |
 | init-project | `/init-project` | 새 프로젝트 agent-guide 자동 생성 |
