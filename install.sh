@@ -141,6 +141,11 @@ main() {
   safe_link "$DOTFILES_DIR/.claude/commands"  "$HOME/.claude/commands"
   safe_link "$DOTFILES_DIR/.claude/rules"     "$HOME/.claude/rules"
   safe_link "$DOTFILES_DIR/.claude/skills"    "$HOME/.claude/skills"
+  safe_link "$DOTFILES_DIR/.claude/hooks"    "$HOME/.claude/hooks"
+  # 훅 스크립트 실행 권한 보장 (git pull 시 fileMode 설정에 따라 누락 가능)
+  if [ -d "$DOTFILES_DIR/.claude/hooks" ] && ! $DRY_RUN; then
+    chmod +x "$DOTFILES_DIR/.claude/hooks"/*.sh 2>/dev/null || true
+  fi
   safe_link "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
 
   # 2. .codex AGENTS.md만 링크 (런타임 데이터 보존)
@@ -168,6 +173,7 @@ main() {
     "$HOME/.claude/commands"
     "$HOME/.claude/rules"
     "$HOME/.claude/skills"
+    "$HOME/.claude/hooks"
     "$HOME/.claude/settings.json"
     "$HOME/.codex/AGENTS.md"
     "$HOME/.agents/skills"
