@@ -53,12 +53,12 @@ DANGEROUS_PATTERNS=(
   '\bdd\b'        '\bmkfs\b'      '\bfdisk\b'     '\bparted\b'
 
   # ── Git 쓰기 (비가역적/공유 영향) ──
-  '\bgit\s+(push|reset|commit)\b'
-  '\bgit\s+(clean|rebase|merge|cherry-pick|revert|am|apply)\b'
-  '\bgit\s+branch\s+(-[dD]|--delete)\b'
-  '\bgit\s+stash\s+(drop|clear)\b'
-  '\bgit\s+tag\s+(-[daf]|--delete)\b'
-  '\bgit\s+-C\s+\S+\s+(push|reset|commit|clean|rebase|merge|cherry-pick|revert)\b'
+  # (\S+\s+)* 로 글로벌 옵션(-c, --no-pager, -C path 등) 우회 방지
+  '\bgit\s+(\S+\s+)*(push|reset|commit)\b'
+  '\bgit\s+(\S+\s+)*(clean|rebase|merge|cherry-pick|revert|am|apply)\b'
+  '\bgit\s+(\S+\s+)*branch\s+(-[dD]|--delete)\b'
+  '\bgit\s+(\S+\s+)*stash\s+(drop|clear)\b'
+  '\bgit\s+(\S+\s+)*tag\s+(-[df]|--delete)\b'
 
   # ── GitHub CLI 쓰기 ──
   '\bgh\s+(pr|issue|release|repo)\s+(create|close|delete|merge|edit|comment)\b'
@@ -68,7 +68,7 @@ DANGEROUS_PATTERNS=(
 
   # ── Docker 삭제 ──
   '\bdocker\s+(rm|rmi)\b'
-  '\bdocker\s+compose\s+(down|rm)\b'
+  '\bdocker(-|\s+)compose\s+(down|rm)\b'
 )
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
