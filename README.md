@@ -15,7 +15,7 @@ dotfiles/
 │   ├── agents/            # 서브에이전트 정의 (4개)
 │   ├── commands/          # 슬래시 커맨드 (/start)
 │   ├── hooks/             # PreToolUse 훅 (읽기 전용 명령어 자동 승인)
-│   ├── settings.json      # 전역 설정 (권한, 훅, 언어)
+│   ├── settings.json      # 전역 설정 (권한, 훅, 언어, Agent Teams 활성화)
 │   └── skills/            # 재사용 스킬 (13개) ← 원본
 ├── .codex/
 │   ├── AGENTS.md          # Codex 전역 지침 (~/.codex/AGENTS.md)
@@ -23,8 +23,14 @@ dotfiles/
 ├── .gemini/
 │   ├── GEMINI.md          # Antigravity 전역 지침 (~/.gemini/GEMINI.md)
 │   └── global_workflows/  # Antigravity 전역 워크플로우
-└── .agents/
-    └── skills → ../.claude/skills   # 새 표준 경로 (Open Agent Skills)
+├── .agents/
+│   └── skills → ../.claude/skills   # 새 표준 경로 (Open Agent Skills)
+└── reference/
+    ├── agent-teams-guide/    # Agent Teams 가이드
+    ├── claude-prompt-guide/  # Claude 프롬프트 엔지니어링
+    ├── openai-api-guide/     # OpenAI API 가이드
+    ├── openai-prompt-guide/  # OpenAI 프롬프트 가이드
+    └── skills-guide/         # Agent Skills 가이드
 ```
 
 ### 구성요소
@@ -69,7 +75,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `~/.claude/rules/` | `~/dotfiles/.claude/rules/` | 코딩/보안/통신 규칙 |
 | `~/.claude/skills/` | `~/dotfiles/.claude/skills/` | 재사용 스킬 (원본) |
 | `~/.claude/hooks/` | `~/dotfiles/.claude/hooks/` | PreToolUse 훅 |
-| `~/.claude/settings.json` | `~/dotfiles/.claude/settings.json` | 전역 설정 (권한, 훅, 언어) |
+| `~/.claude/settings.json` | `~/dotfiles/.claude/settings.json` | 전역 설정 (권한, 훅, 언어, Agent Teams 활성화) |
 | `~/.codex/AGENTS.md` | `~/dotfiles/.codex/AGENTS.md` | Codex 전역 지침 |
 | `~/.agents/skills/` | `~/.claude/skills/` | Open Agent Skills 표준 경로 |
 | `~/.gemini/GEMINI.md` | `~/dotfiles/.gemini/GEMINI.md` | Antigravity 전역 지침 |
