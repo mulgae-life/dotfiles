@@ -1,10 +1,8 @@
 {
-  "language": "한국어",
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
   "permissions": {
-    "defaultMode": "plan",
     "allow": [
       "WebSearch",
       "WebFetch",
@@ -73,6 +71,9 @@
       "Bash(jq *)",
       "Bash(yq *)",
       "Bash(diff *)",
+      "Bash(mv *)",
+      "Bash(cp *)",
+      "Bash(mkdir *)",
       "Bash(basename *)",
       "Bash(dirname *)",
       "Bash(sha256sum *)",
@@ -125,7 +126,8 @@
       "Bash(docker compose ps*)",
       "Bash(docker compose logs*)",
       "Bash(bash *.sh --dry-run)"
-    ]
+    ],
+    "defaultMode": "plan"
   },
   "hooks": {
     "PreToolUse": [
@@ -139,5 +141,7 @@
         ]
       }
     ]
-  }
+  },
+  "language": "한국어",
+  "effortLevel": "high"
 }
