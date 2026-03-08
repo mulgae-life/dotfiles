@@ -1,4 +1,5 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
   },
@@ -137,6 +138,27 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/auto-approve-readonly.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '\"Claude Code: \" + (.title // \"알림\") + \" - \" + (.message // \"\")' | xargs -0 notify-send 'Claude Code' 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '리마인더: 한국어 응답 유지. 변경 이유 설명 필수. 현재 작업 상태를 먼저 확인하세요.'"
           }
         ]
       }
