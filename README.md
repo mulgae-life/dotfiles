@@ -1,125 +1,167 @@
-# dotfiles
+# 🛠 dotfiles
 
-[Claude Code](https://docs.anthropic.com/en/docs/claude-code) / Codex / Antigravity 전역 설정을 관리하는 레포.
+AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-code) / Codex / Antigravity)의 전역 설정을 관리하는 레포.
 
-여러 프로젝트, 여러 PC/서버에서 **동일한 AI 에이전트 설정**을 공유한다.
-한 번 설치하면 어떤 프로젝트에서든 동일한 규칙·에이전트·스킬이 자동 적용된다.
+한 번 설치하면 어떤 프로젝트에서든 동일한 **규칙 · 에이전트 · 스킬 · 훅**이 자동 적용된다.
 
-## 구조
+## 🔄 어떻게 동작하나?
 
 ```
-dotfiles/
-├── .claude/
-│   ├── CLAUDE.md          # Claude Code 전역 진입점 (~/.claude/CLAUDE.md)
-│   ├── rules/             # 코딩/보안/구조/통신/에이전트/컨텍스트 규칙 (6개)
-│   ├── agents/            # 서브에이전트 정의 (4개)
-│   ├── commands/          # 슬래시 커맨드 (/start)
-│   ├── hooks/             # PreToolUse 훅 (읽기 전용 명령어 자동 승인)
-│   ├── settings.json      # 전역 설정 (권한, 훅, 알림, 언어, Agent Teams 활성화)
-│   └── skills/            # 재사용 스킬 (15개) ← 원본
-├── .codex/
-│   ├── AGENTS.md          # Codex 전역 지침 (~/.codex/AGENTS.md)
-│   └── skills → ../.claude/skills   # 기존 호환
-├── .gemini/
-│   ├── GEMINI.md          # Antigravity 전역 지침 (~/.gemini/GEMINI.md)
-│   └── global_workflows/  # Antigravity 전역 워크플로우
-├── .agents/
-│   └── skills → ../.claude/skills   # 새 표준 경로 (Open Agent Skills)
-└── reference/
-    ├── agent-teams-guide/           # Agent Teams 가이드
-    ├── claude-prompt-guide/         # Claude 프롬프트 엔지니어링
-    ├── langchain-langgraph-guide/   # LangChain/LangGraph 레퍼런스
-    ├── openai-api-guide/            # OpenAI API 가이드
-    ├── openai-prompt-guide/         # OpenAI 프롬프트 가이드
-    └── skills-guide/                # Agent Skills 가이드
+설치 (심볼릭 링크)
+  ↓
+세션 시작 시 자동 로드
+  ├── rules/        6개 규칙이 항상 적용 (코딩 스타일, 보안, 한국어 응답 등)
+  ├── agents/       조건 충족 시 서브에이전트가 자동 위임 (빌드 에러, 보안 등)
+  ├── hooks/        Bash 명령어 자동 승인, 알림, compact 리마인더
+  └── settings.json 권한, 언어, Agent Teams 등 전역 설정
+  ↓
+사용자가 필요할 때 호출
+  └── skills/       /code-review, /writing-prompts 등 15개 전문 스킬
 ```
 
-### 구성요소
-
-| 디렉토리 | 역할 | 로드 방식 |
-|----------|------|----------|
-| `rules/` | 코딩 스타일·보안·커뮤니케이션 등 **항상 적용되는 규칙** | `alwaysApply: true` — 매 세션 자동 로드 |
-| `agents/` | 빌드 에러·보안 점검 등 **특정 상황에서 자동 위임**되는 서브에이전트 | 조건 충족 시 자동 위임 (`rules/agents.md`에 정의) |
-| `skills/` | 코드 리뷰·프롬프트 작성 등 **슬래시 커맨드로 호출**하는 전문 가이드 | `/skill-name`으로 수동 호출 |
-| `commands/` | 세션 시작 등 **사용자 정의 슬래시 커맨드** | `/command-name`으로 수동 호출 |
-| `hooks/` | 비가역적 명령만 차단, 나머지 **자동 승인** (PreToolUse 훅). Notification/compact 리마인더 훅 포함 | 매 도구 호출/이벤트 시 자동 실행 |
-
-## 전역 vs 프로젝트별
-
-| 범위 | 파일 | 관리 위치 |
-|------|------|----------|
-| **전역** | `.claude/`, `.codex/`, `.gemini/` | 이 레포 (dotfiles) |
-| **프로젝트별** | `agent-guide/GUIDE.md`, `PROJECT.md`, `SESSION.md` | 각 프로젝트 레포 |
-
-## 설치
+## 📦 설치
 
 ```bash
 git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
-```
-```bash
 ~/dotfiles/install.sh
 ```
 
-`--dry-run` 옵션으로 변경 사항을 미리 확인할 수 있습니다:
+`--dry-run`으로 변경 사항을 미리 확인할 수 있다:
 
 ```bash
 ~/dotfiles/install.sh --dry-run
 ```
 
-스크립트가 생성하는 심볼릭 링크:
+설치 스크립트는 `~/dotfiles/` → `~/` 로 심볼릭 링크만 생성한다. 런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
 
-| 링크 | → 원본 | 용도 |
-|------|--------|------|
-| `~/.claude/CLAUDE.md` | `~/dotfiles/.claude/CLAUDE.md` | Claude Code 전역 지침 |
-| `~/.claude/agents/` | `~/dotfiles/.claude/agents/` | 서브에이전트 정의 |
-| `~/.claude/commands/` | `~/dotfiles/.claude/commands/` | 슬래시 커맨드 |
-| `~/.claude/rules/` | `~/dotfiles/.claude/rules/` | 코딩/보안/통신 규칙 |
-| `~/.claude/skills/` | `~/dotfiles/.claude/skills/` | 재사용 스킬 (원본) |
-| `~/.claude/hooks/` | `~/dotfiles/.claude/hooks/` | PreToolUse 훅 |
-| `~/.claude/settings.json` | `~/dotfiles/.claude/settings.json` | 전역 설정 (권한, 훅, 알림, 언어, Agent Teams 활성화) |
-| `~/.codex/AGENTS.md` | `~/dotfiles/.codex/AGENTS.md` | Codex 전역 지침 |
-| `~/.agents/skills/` | `~/.claude/skills/` | Open Agent Skills 표준 경로 |
-| `~/.gemini/GEMINI.md` | `~/dotfiles/.gemini/GEMINI.md` | Antigravity 전역 지침 |
-| `~/.gemini/antigravity/global_workflows` | `~/dotfiles/.gemini/global_workflows` | Antigravity 전역 워크플로우 |
-
-Claude Code / Codex / Antigravity 런타임 데이터(`projects/` 등)는 건드리지 않습니다. `jq`가 미설치된 경우 자동으로 설치를 시도합니다.
-
-## 사용법
+## 🚀 사용법
 
 설치 후 별도 설정 없이 바로 사용할 수 있다.
 
-**세션 시작:** 프로젝트 디렉토리에서 Claude Code를 열고 `시작`이라고 입력하면 프로젝트 파악 후 현재 상태를 요약한다.
+### ⚡ 자동으로 일어나는 것
 
-**자동 적용:** `rules/`의 규칙(코딩 스타일, 보안, 한국어 응답 등)은 모든 세션에 자동 적용된다.
+| 기능 | 설명 |
+|------|------|
+| 규칙 적용 | 코딩 스타일, 보안, 한국어 응답 등 `rules/` 규칙이 매 세션 자동 적용 |
+| 명령어 자동 승인 | 위험한 명령(`rm`, `git push` 등)만 확인 요청, 나머지는 자동 승인 → 장기 작업이 중단 없이 진행 |
+| 에이전트 위임 | 빌드 실패 → `build-resolver`, 보안 민감 코드 → `security-reviewer` 등 자동 위임 |
+| 데스크톱 알림 | Claude가 입력 대기 중일 때 `notify-send`로 알림 |
+| compact 리마인더 | 긴 세션에서 컨텍스트 압축 후 핵심 규칙(한국어, 변경 이유 설명 등) 자동 재주입 |
 
-**명령어 자동 승인:** `hooks/`의 PreToolUse 훅이 Bash 명령어를 실행 전에 검사한다. 비가역적/파괴적 명령(`rm`, `git push/commit` 등)만 사용자 확인을 요청하고, 나머지는 자동 승인하여 자율 코딩·검증 작업이 중단 없이 진행되도록 한다.
+### 🎯 사용자가 호출하는 것
 
-**데스크톱 알림:** Notification 훅이 Claude가 입력 대기 중일 때 `notify-send`로 알림을 보낸다.
+| 명령 | 설명 |
+|------|------|
+| `시작` | 프로젝트 파악 후 현재 상태 요약 |
+| `/init-project` | 새 프로젝트에 `agent-guide/` 3종 파일 자동 생성 |
+| `/code-review` | 심층 코드 리뷰 리포트 |
+| `/writing-prompts` | LLM 프롬프트 작성 |
+| ... | 아래 스킬 목록 참고 |
 
-**compact 리마인더:** 긴 세션에서 컨텍스트 압축 후 한국어 응답/변경 이유 설명 등 핵심 규칙을 자동 재주입한다.
+## 🧩 구성요소
 
-**에이전트 위임:** 빌드 실패, 보안 민감 코드 등 특정 조건에서 서브에이전트가 자동으로 작업을 넘겨받는다.
+### 📏 Rules (6개) — 매 세션 자동 적용
 
-**스킬 호출:** 심층 코드 리뷰(`/code-review`), 프롬프트 작성(`/writing-prompts`) 등 전문 작업은 슬래시 커맨드로 호출한다.
+| 파일 | 역할 |
+|------|------|
+| `coding-style.md` | 코딩 스타일, 에러 처리, 리소스 관리 |
+| `security.md` | 시크릿 관리, 입력 검증, 취약점 방지 |
+| `architecture.md` | 파일 구조, 단일 역할, 의존성 방향 |
+| `communication.md` | 한국어 응답, 변경 이유 설명, 용어 병기 |
+| `context-management.md` | 컨텍스트 절약, 스크래치패드, 메모리 계층 |
+| `agents.md` | 에이전트 자동 위임 조건과 우선순위 |
 
-**새 프로젝트 초기화:** 프로젝트에서 기획 대화 후 `/init-project`을 실행하면 `agent-guide/` 3종 파일(`GUIDE.md`, `PROJECT.md`, `SESSION.md`)이 자동 생성된다.
+### 🤖 Agents (4개) — 조건 충족 시 자동 위임
 
-## 포함된 스킬
+| 에이전트 | 트리거 |
+|----------|--------|
+| `build-resolver` | 빌드/타입 에러 발생 시 |
+| `security-reviewer` | 인증/인가, API, 시크릿 관련 코드 작성 시 |
+| `planner` | 파일 3개 이상 수정 예상되는 복잡한 작업 |
+| `verifier` | 작업 완료 후 자동 점검 |
 
-| 스킬 | 호출 | 용도 |
-|------|------|------|
-| code-review | `/code-review` | 심각도 등급별 코드 리뷰 |
-| code-simplifier | `/code-simplifier` | 코드 명확성/유지보수성 개선 |
-| code-verify | `/code-verify` | 작업 후 점검 (코드/문서/리포트/계획서) |
-| feedback-analysis | `/feedback-analysis` | 피드백 분석 |
-| frontend-design | `/frontend-design` | 프론트엔드 UI 제작 |
-| init-project | `/init-project` | 새 프로젝트 agent-guide 자동 생성 |
-| llm-api-guide | `/llm-api-guide` | OpenAI/Anthropic API 연동 |
-| postgres-best-practices | `/postgres-best-practices` | Postgres 최적화 |
-| react-best-practices | `/react-best-practices` | React/Next.js 성능 최적화 |
-| skill-creator | `/skill-creator` | 새 스킬 생성 가이드 |
-| update-docs | `/update-docs` | 프로젝트 문서 업데이트 |
-| web-design-guidelines | `/web-design-guidelines` | UI/UX 접근성 리뷰 |
-| langchain-guide | `/langchain-guide` | LangChain/LangGraph 에이전트·워크플로우 |
-| start | `/start` | 세션 시작 시 프로젝트 파악·상태 요약 |
-| writing-prompts | `/writing-prompts` | LLM 프롬프트 작성 |
+### 🪝 Hooks — 이벤트 기반 자동 실행
+
+| 훅 | 이벤트 | 동작 |
+|----|--------|------|
+| `auto-approve-readonly.sh` | PreToolUse (Bash) | 위험 명령만 차단, 나머지 자동 승인 |
+| Notification | 알림 발생 시 | `notify-send`로 데스크톱 알림 |
+| SessionStart (compact) | 컨텍스트 압축 후 | 핵심 규칙 리마인더 재주입 |
+
+### ⚙️ Skills (15개) — `/skill-name`으로 호출
+
+**코드 품질**
+
+| 스킬 | 용도 |
+|------|------|
+| `/code-review` | 심각도 등급별 심층 코드 리뷰 |
+| `/code-verify` | 작업 후 빠른 점검 (코드/문서/리포트) |
+| `/code-simplifier` | 코드 명확성/유지보수성 개선 |
+| `/feedback-analysis` | 사용자 피드백 분석 및 우선순위 정리 |
+
+**프론트엔드**
+
+| 스킬 | 용도 |
+|------|------|
+| `/frontend-design` | 프로덕션 수준 UI 제작 |
+| `/react-best-practices` | React/Next.js 성능 최적화 |
+| `/web-design-guidelines` | UI/UX 접근성 리뷰 |
+
+**백엔드/데이터**
+
+| 스킬 | 용도 |
+|------|------|
+| `/postgres-best-practices` | Postgres 쿼리/스키마 최적화 |
+| `/llm-api-guide` | OpenAI/Anthropic API 연동 |
+| `/langchain-guide` | LangChain/LangGraph 에이전트/워크플로우 |
+
+**프롬프트/문서**
+
+| 스킬 | 용도 |
+|------|------|
+| `/writing-prompts` | LLM 프롬프트 작성 |
+| `/update-docs` | 프로젝트 문서 업데이트 |
+
+**프로젝트 관리**
+
+| 스킬 | 용도 |
+|------|------|
+| `/start` | 세션 시작 시 프로젝트 파악/상태 요약 |
+| `/init-project` | 새 프로젝트 agent-guide 자동 생성 |
+| `/skill-creator` | 새 스킬 생성 가이드 |
+
+## 🌐 전역 vs 프로젝트별
+
+| 범위 | 내용 | 관리 위치 |
+|------|------|----------|
+| **전역** (이 레포) | rules, agents, skills, hooks, settings | `~/dotfiles/` → `~/` 심볼릭 링크 |
+| **프로젝트별** | `agent-guide/GUIDE.md`, `PROJECT.md`, `SESSION.md` | 각 프로젝트 레포 |
+
+## 📁 디렉토리 구조
+
+```
+dotfiles/
+├── .claude/
+│   ├── CLAUDE.md              # 전역 진입점
+│   ├── rules/                 # 규칙 (6개)
+│   ├── agents/                # 서브에이전트 (4개)
+│   ├── commands/              # 슬래시 커맨드
+│   ├── hooks/                 # 이벤트 훅
+│   ├── skills/                # 스킬 (15개)
+│   └── settings.json          # 전역 설정
+├── .codex/
+│   ├── AGENTS.md              # Codex 지침
+│   └── skills → ../.claude/skills
+├── .gemini/
+│   ├── GEMINI.md              # Antigravity 지침
+│   └── global_workflows/
+├── .agents/
+│   └── skills → ../.claude/skills
+└── reference/                 # 레퍼런스 자료
+    ├── agent-teams-guide/
+    ├── claude-prompt-guide/
+    ├── langchain-langgraph-guide/
+    ├── openai-api-guide/
+    ├── openai-prompt-guide/
+    └── skills-guide/
+```
