@@ -1,24 +1,11 @@
 ---
 name: react-best-practices
-description: Vercel Engineering의 React/Next.js 성능 최적화 가이드. React 컴포넌트, Next.js 페이지, 데이터 페칭, 번들 최적화, 성능 개선 작업 시 트리거됨.
-license: MIT
-metadata:
-  author: vercel
-  version: "1.0.0"
+description: Vercel Engineering의 React/Next.js 성능 최적화 가이드. React 컴포넌트, Next.js 페이지, 데이터 페칭, 번들 최적화, 리렌더링 개선 작업 시 사용. "컴포넌트 최적화해줘", "번들 사이즈 줄여줘", "리렌더링 줄여줘", "Next.js 성능 개선해줘" 등의 요청에 트리거. React/Next.js 코드를 작성하거나 수정할 때 성능을 명시적으로 언급하지 않더라도 이 스킬을 참조하세요.
 ---
 
 # React Best Practices
 
 Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 카테고리, 45개 이상의 룰을 우선순위별로 정리했습니다.
-
-## 적용 시점
-
-다음 작업 시 이 가이드라인을 참조하세요:
-- React 컴포넌트 또는 Next.js 페이지 작성
-- 데이터 페칭 구현 (클라이언트/서버)
-- 성능 이슈 코드 리뷰
-- 기존 React/Next.js 코드 리팩토링
-- 번들 사이즈 또는 로드 시간 최적화
 
 ## 카테고리별 우선순위
 

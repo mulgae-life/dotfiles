@@ -1,25 +1,11 @@
 ---
 name: postgres-best-practices
-description: Supabase의 Postgres 성능 최적화 및 모범 사례 가이드. Postgres 쿼리 작성, 검토, 최적화, 스키마 설계, 데이터베이스 설정 시 사용. SQL 쿼리, 인덱스, RLS, 커넥션 풀링 관련 작업 시 트리거됨.
-license: MIT
-metadata:
-  author: supabase
-  version: "1.0.0"
+description: Supabase의 Postgres 성능 최적화 및 모범 사례 가이드. Postgres 쿼리 작성, 검토, 최적화, 스키마 설계, 데이터베이스 설정 시 사용. "쿼리 최적화해줘", "인덱스 추가해줘", "RLS 정책 작성해줘", "DB 성능 개선해줘" 등의 요청에 트리거. SQL 쿼리, 인덱스, RLS, 커넥션 풀링, 파티셔닝 관련 작업이면 명시적으로 요청하지 않더라도 이 스킬을 참조하세요.
 ---
 
 # Supabase Postgres 모범 사례
 
 Supabase에서 관리하는 Postgres 성능 최적화 가이드. 8개 카테고리, 30개 규칙으로 구성되며 영향도 순으로 정렬되어 쿼리 최적화와 스키마 설계를 안내함.
-
-## 적용 시점
-
-다음 작업 시 이 가이드라인을 참조:
-- SQL 쿼리 작성 또는 스키마 설계
-- 인덱스 구현 또는 쿼리 최적화
-- 데이터베이스 성능 이슈 검토
-- 커넥션 풀링 또는 스케일링 설정
-- Postgres 고유 기능 최적화
-- Row-Level Security (RLS) 작업
 
 ## 규칙 카테고리 (우선순위순)
 

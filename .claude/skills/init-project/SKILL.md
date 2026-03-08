@@ -1,9 +1,6 @@
 ---
 name: init-project
-description: >
-  새 프로젝트의 agent-guide 3종 파일(GUIDE.md, PROJECT.md, SESSION.md)을
-  자동 생성합니다. 기획 대화 후 "/init-project" 명령으로 트리거.
-  "프로젝트 초기화해줘", "agent-guide 만들어줘", "새 프로젝트 세팅해줘" 등의 요청에도 트리거.
+description: 새 프로젝트의 agent-guide 3종 파일(GUIDE.md, PROJECT.md, SESSION.md)을 자동 생성합니다. 새 프로젝트를 시작하거나, 프로젝트 구조를 잡거나, AI 에이전트 가이드 문서가 필요할 때 사용합니다. "프로젝트 초기화해줘", "agent-guide 만들어줘", "새 프로젝트 세팅해줘", "프로젝트 구조 잡아줘", "가이드 문서 만들어줘" 등의 요청에 트리거.
 ---
 
 # init-project

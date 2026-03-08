@@ -1,5 +1,16 @@
 # Prefilling (Anthropic Claude 특화)
 
+## 목차
+- [개요](#개요)
+- [사용 방법](#사용-방법)
+- [활용 사례](#활용-사례)
+- [공통 Prefilling 패턴](#공통-prefilling-패턴)
+- [모범 사례](#모범-사례)
+- [사용 시기](#사용-시기)
+- [OpenAI 대안](#openai-대안)
+- [요약](#요약)
+
+
 Anthropic Claude만의 고유 기능으로, `assistant` 메시지를 미리 채워 출력을 제어합니다.
 
 ## 개요

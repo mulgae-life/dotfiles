@@ -1,5 +1,21 @@
 # OpenAI Responses API 상세 가이드
 
+## 목차
+- [API 선택](#api-선택)
+- [기본 사용법](#기본-사용법)
+- [Message Roles](#message-roles)
+- [Reasoning 파라미터](#reasoning-파라미터)
+- [Verbosity (GPT-5.2+)](#verbosity-gpt-52)
+- [대화 이력 관리](#대화-이력-관리)
+- [Tool Calling (Function Calling)](#tool-calling-function-calling)
+- [스트리밍](#스트리밍)
+- [Incomplete Response 처리](#incomplete-response-처리)
+- [Usage 정보](#usage-정보)
+- [GPT-5.2 특화 기능](#gpt-52-특화-기능)
+- [마이그레이션 가이드](#마이그레이션-가이드)
+- [참고 자료](#참고-자료)
+
+
 Responses API는 OpenAI의 최신 API로, Reasoning 모델과 Tool Calling에 최적화되어 있습니다.
 Chat Completions API 대비 CoT(Chain of Thought) 유지, 더 나은 성능을 제공합니다.
 

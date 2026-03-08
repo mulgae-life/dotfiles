@@ -1,10 +1,6 @@
 ---
 name: web-design-guidelines
-description: Web Interface Guidelines 준수 여부 UI 코드 리뷰. "UI 리뷰해줘", "접근성 체크", "디자인 검토", "UX 리뷰", "모범 사례 확인" 요청 시 사용.
-metadata:
-  author: vercel
-  version: "1.0.0"
-  argument-hint: <file-or-pattern>
+description: Web Interface Guidelines 준수 여부 UI/UX 디자인 패턴 검토. 컴포넌트 스타일링, 반응형 디자인, 접근성(a11y), 인터랙션 패턴 등 웹 인터페이스의 디자인 품질을 점검합니다. "UI 리뷰해줘", "접근성 체크", "디자인 검토", "UX 리뷰", "모범 사례 확인" 요청 시 사용. frontend-design(UI 제작)과 달리 기존 UI 코드의 가이드라인 준수 여부를 검토하는 스킬입니다.
 ---
 
 # Web Interface Guidelines
