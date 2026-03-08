@@ -176,6 +176,53 @@ certainty, which is invaluable for such a crucial financial milestone.
 4. **사고 단계 안내** - Claude가 무엇을 고려해야 할지 명시
 5. **다른 기법과 결합** - XML 태그, 예시 등과 함께 사용
 
+---
+
+## CoT 분기: 모델 유형별 주의사항 (2025~2026)
+
+> **핵심**: CoT는 죽지 않았지만, 모든 모델에 동일하게 적용할 수 없습니다.
+
+### 모델 유형별 CoT 전략
+
+| 모델 유형 | CoT 효과 | 권장 전략 |
+|-----------|---------|----------|
+| 표준 모델 (GPT-4, Claude 3.5 등) | ✅ 20~40% 정확도 향상 | Structured CoT (XML 태그) 사용 |
+| Frontier (GPT-5, Claude 4.5+) | ⚠️ 제한적 향상 | 복잡한 작업에만 선택적 사용 |
+| Reasoning (o1, o3, DeepSeek-R1) | ❌ **성능 저하** | CoT 프롬프팅 금지. 내장 추론 사용 |
+| Extended Thinking (Claude) | ⚠️ 중복 | thinking 파라미터 사용, 수동 CoT 불필요 |
+
+### Reasoning 모델에서 CoT가 유해한 이유
+
+Reasoning 모델(o1, o3, DeepSeek-R1 등)은 **내부적으로 CoT를 수행**합니다:
+- "Think step by step"을 명시하면 내부 추론과 외부 CoT가 **충돌**
+- 불필요한 추론 라우팅이 발생하여 성능 하락
+- **간결한 Zero-shot 프롬프트**가 최적
+
+```yaml
+# ❌ Reasoning 모델에서 비권장
+system_prompt: |
+  Think step by step before answering.
+
+# ✅ Reasoning 모델에서 권장
+system_prompt: |
+  다음 문제를 풀어주세요.
+  # reasoning_effort 파라미터로 추론 깊이 제어
+```
+
+### Extended Thinking 모델과의 관계
+
+Claude의 Extended Thinking이 활성화된 경우:
+- 모델이 자동으로 구조적 추론을 수행
+- 수동 CoT 프롬프팅보다 **Extended Thinking이 선호**됨
+- 단, 투명한 추론 감사(audit)가 필요한 경우 수동 CoT가 유효
+
+### 2026년 CoT 사용 가이드라인
+
+1. **먼저 모델 유형 확인** — Reasoning 모델이면 CoT 프롬프팅 생략
+2. **API 파라미터 우선** — `reasoning_effort`, Extended Thinking 등 내장 기능 활용
+3. **표준 모델에서만 CoT 적용** — 복잡한 작업(수학, 다단계 분석)에 한정
+4. **CoT + Few-shot 조합 주의** — 최신 모델에서는 Zero-shot CoT로 충분
+
 ## 참고 자료
 
 - [Anthropic 공식 가이드](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/chain-of-thought)

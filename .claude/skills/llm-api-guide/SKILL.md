@@ -39,7 +39,7 @@ Anthropic
 | **엔드포인트** | `/v1/responses` | `/v1/messages` |
 | **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
 | **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
-| **Reasoning** | `reasoning: {effort: "medium"}` | 모델 자체 기능 (extended thinking) |
+| **Reasoning** | `reasoning: {effort}` (모델별 기본값 상이) | 모델 자체 기능 (extended thinking) |
 | **스트리밍** | `stream: true` | `stream: True` |
 | **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 |
 
@@ -147,7 +147,7 @@ response = client.messages.create(
 
 ## 3. Reasoning 파라미터
 
-### OpenAI GPT-5
+### OpenAI GPT-5 / 5.4
 
 ```python
 response = client.responses.create(
@@ -163,11 +163,28 @@ response = client.responses.create(
     text={"verbosity": "low"},  # 응답 길이
     input="..."
 )
+
+# GPT-5.4 (reasoning effort 기본값: none)
+response = client.responses.create(
+    model="gpt-5.4",
+    reasoning={"effort": "none"},  # GPT-5.4 기본값
+    input="..."
+)
+
+# GPT-5.4 phase 파라미터 (다단계 워크플로우)
+response = client.responses.create(
+    model="gpt-5.4",
+    input=[
+        {"role": "user", "content": "분석해주세요"},
+        {"role": "assistant", "phase": "commentary", "content": "로그를 확인하겠습니다."},
+        {"role": "user", "content": "계속"},
+    ]
+)
 ```
 
 | effort | 용도 |
 |--------|------|
-| `none` | 빠른 응답, 단순 질문 (GPT-5.2 기본값) |
+| `none` | 빠른 응답, 단순 질문 (GPT-5.2/5.4 기본값) |
 | `low` | 기본적인 추론 |
 | `medium` | 균형 (GPT-5 기본값) |
 | `high` | 복잡한 문제 |
@@ -432,6 +449,7 @@ for block in response.content:
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
+- [GPT-5.4 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/)
 
 ### Anthropic
 

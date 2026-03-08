@@ -8,6 +8,8 @@
 - [5. 비동기 패턴](#5-비동기-패턴)
 - [6. 타임아웃 설정](#6-타임아웃-설정)
 - [7. 환경변수 검증](#7-환경변수-검증)
+- [8. 프롬프트 캐싱](#8-프롬프트-캐싱)
+- [9. 구조화 출력 (Structured Output)](#9-구조화-출력-structured-output)
 - [참고 자료](#참고-자료)
 
 
@@ -472,6 +474,152 @@ client = OpenAI(
     max_retries=settings.max_retries
 )
 ```
+
+---
+
+## 8. 프롬프트 캐싱
+
+### 캐싱 친화 프롬프트 레이아웃
+
+**핵심 원칙**: 정적 콘텐츠를 앞(prefix), 동적 콘텐츠를 뒤(suffix)에 배치.
+
+```
+┌──────────────────────────────┐
+│ 정적 prefix (캐시 대상)       │  ← 시스템 프롬프트, few-shot 예시
+│ - system instructions        │
+│ - few-shot examples          │
+│ - tool definitions           │
+├──────────────────────────────┤
+│ 동적 suffix (매 요청 변경)    │  ← 사용자 입력, 컨텍스트
+│ - user message               │
+│ - retrieved documents (RAG)  │
+└──────────────────────────────┘
+```
+
+### Anthropic (수동 캐싱)
+
+```python
+response = client.messages.create(
+    model="claude-sonnet-4-5",
+    system=[
+        {
+            "type": "text",
+            "text": "You are a helpful assistant...(긴 시스템 프롬프트)",
+            "cache_control": {"type": "ephemeral"}  # 캐시 명시
+        }
+    ],
+    messages=[{"role": "user", "content": "질문"}],
+    max_tokens=1024
+)
+```
+
+- 캐시 히트 시 비용 90% 절감, 레이턴시 85% 절감
+- 캐시 읽기 토큰: 기본 입력의 **0.1배** 가격
+- 최소 1024 토큰 이상의 prefix에서 효과적
+
+### OpenAI (자동 캐싱)
+
+```python
+# OpenAI는 자동 캐싱 — 별도 설정 불필요
+# 동일한 prefix를 반복 사용하면 자동으로 캐시 적용
+response = client.responses.create(
+    model="gpt-5.4",
+    instructions="...(긴 시스템 프롬프트, 자동 캐시)",
+    input="질문"
+)
+
+# 캐시 히트 확인
+print(response.usage.input_tokens_details.cached_tokens)
+```
+
+- Cached input: 기본 입력의 **0.5배** 가격
+- Batch + Caching 조합: 최대 75% 비용 절감
+
+### 비용 비교
+
+| 제공자 | 캐싱 방식 | 캐시 할인 | 레이턴시 절감 |
+|--------|----------|----------|-------------|
+| Anthropic | 수동 (`cache_control`) | 90% | 85% |
+| OpenAI | 자동 | 50% | 상당 |
+| Google | 토큰 저장 기간 기반 | 상당 | 상당 |
+
+**실제 사례**: PDF 50문서 반복 분석 — 쿼리당 $3 → 캐싱 적용 후 $0.15 (95% 절감)
+
+---
+
+## 9. 구조화 출력 (Structured Output)
+
+### 왜 구조화 출력인가?
+
+| 방식 | 스키마 준수율 | 파싱 실패율 |
+|------|-------------|-----------|
+| 자유형 프롬프트 | ~80% | 15~20% |
+| JSON 스키마 지정 | **99%+** | <1% |
+
+### OpenAI Structured Output
+
+```python
+from pydantic import BaseModel
+
+class WeatherResponse(BaseModel):
+    location: str
+    temperature: float
+    unit: str
+    description: str
+
+response = client.responses.parse(
+    model="gpt-5.4",
+    input="서울 날씨 알려줘",
+    text_format=WeatherResponse
+)
+
+weather = response.output_parsed  # WeatherResponse 인스턴스
+print(weather.temperature)
+```
+
+### Anthropic Structured Output (Tool Use 패턴)
+
+```python
+import json
+
+tools = [
+    {
+        "name": "format_weather",
+        "description": "Format weather data as structured output",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "location": {"type": "string"},
+                "temperature": {"type": "number"},
+                "unit": {"type": "string"},
+                "description": {"type": "string"}
+            },
+            "required": ["location", "temperature", "unit", "description"]
+        }
+    }
+]
+
+response = client.messages.create(
+    model="claude-sonnet-4-5",
+    messages=[{"role": "user", "content": "서울 날씨 알려줘"}],
+    tools=tools,
+    tool_choice={"type": "tool", "name": "format_weather"},
+    max_tokens=1024
+)
+
+# tool_use 블록에서 구조화된 데이터 추출
+for block in response.content:
+    if block.type == "tool_use":
+        weather = block.input  # dict
+```
+
+### 포맷별 특성
+
+| 포맷 | 강점 | 약점 | 권장 용도 |
+|------|------|------|----------|
+| JSON | 높은 정확도, 타입 안전 | 중복 키/괄호로 토큰 소모 | 복잡 데이터, API 응답 |
+| YAML | 가독성, 효율 균형 | 들여쓰기 민감 | 설정, 가독성 중시 |
+| CSV/Prefix | 토큰/시간 효율 | 중첩 불가 | 플랫 데이터 |
 
 ---
 

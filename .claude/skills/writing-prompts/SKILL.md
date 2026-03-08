@@ -27,7 +27,7 @@ few-shot → chain-of-thought → templates
 platform-differences → reasoning-params
     ↓
 [고급 - 범용]
-security → self-correction → vision-prompting
+security → self-correction → vision-prompting → context-engineering
     ↓
 [모델 특화 - 선택]
 OpenAI: optimization
@@ -58,7 +58,7 @@ Anthropic: prefilling, long-context
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
 | **Examples** | 3-5개 권장 | Few-shot | Multishot (동일 개념) |
 | **XML 태그** | ✅ 권장 | ✅ | ✅ |
-| **특화 파라미터** | - | `reasoning_effort`, `verbosity` | - |
+| **특화 파라미터** | - | `reasoning_effort`, `verbosity`, `phase` | - |
 | **Prefilling** | - | ❌ | ✅ (JSON/캐릭터 강제) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
@@ -121,7 +121,7 @@ Few-shot learning 예시 3-5개
 
 ### 4. 플랫폼별 특화 기능
 
-#### OpenAI (GPT-5)
+#### OpenAI (GPT-5 / 5.4)
 
 **파라미터**:
 ```python
@@ -130,6 +130,23 @@ response = client.responses.create(
     reasoning={"effort": "high"},  # 추론 깊이
     text={"verbosity": "low"},     # 응답 길이
     instructions="...",
+    input="..."
+)
+```
+
+**GPT-5.4: phase + 계약 패턴**:
+```python
+# GPT-5.4: phase + 계약 패턴
+response = client.responses.create(
+    model="gpt-5.4",
+    reasoning={"effort": "none"},   # GPT-5.4 기본값
+    text={"verbosity": "low"},
+    instructions="""
+    <output_contract>
+    - Return exactly the sections requested, in the requested order.
+    - If a format is required (JSON, Markdown), output only that format.
+    </output_contract>
+    """,
     input="..."
 )
 ```
@@ -214,7 +231,7 @@ system_prompt: |
 - [ ] 구조: Identity → Instructions → Examples → Context
 - [ ] 격식체 명시 (한국어 톤 가이드 참조)
 - [ ] XML 태그 사용
-- [ ] Few-shot 예시 3-5개
+- [ ] Few-shot 예시: Frontier 모델은 포맷 정렬용 0~2개, 소형 모델은 3-5개 → [few-shot.md](references/few-shot.md)
 - [ ] 제약 명시 ("~하지 마세요")
 - [ ] 모순 제거
 
@@ -260,11 +277,14 @@ system_prompt: |
 - **[security.md](references/security.md)** 🔴 Prompt Injection 방어, 입력/출력 검증 🆕
 - **[self-correction.md](references/self-correction.md)** 🔴 자기수정 체인 (생성→검토→개선) 🆕
 - **[vision-prompting.md](references/vision-prompting.md)** 🔴 이미지/차트 분석 프롬프트 🆕
+- **[context-engineering.md](references/context-engineering.md)** ⭐ Context Engineering 개념과 실무 적용
+- **[prompt-trends-2026.md](references/prompt-trends-2026.md)** 🆕 2026 프로덕션 전략, 자동 최적화 도구
 
 ### OpenAI (GPT) 특화
 
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
 - **[gpt5-params.md](references/gpt5-params.md)** - GPT-5 API 파라미터 (`reasoning`, `verbosity` 코드 예시)
+- **[gpt54-patterns.md](references/gpt54-patterns.md)** ⭐ GPT-5.4 프롬프트 패턴 (출력 계약, 도구 지속성, 검증 루프)
 - **[optimization.md](references/optimization.md)** - GPT-5 최적화 팁
 
 ### Anthropic (Claude) 특화
@@ -293,6 +313,7 @@ system_prompt: |
 ### OpenAI
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
 - [GPT-5 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5_prompting_guide)
+- [GPT-5.4 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/)
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
 ### Anthropic
