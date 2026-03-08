@@ -15,8 +15,8 @@ dotfiles/
 │   ├── agents/            # 서브에이전트 정의 (4개)
 │   ├── commands/          # 슬래시 커맨드 (/start)
 │   ├── hooks/             # PreToolUse 훅 (읽기 전용 명령어 자동 승인)
-│   ├── settings.json      # 전역 설정 (권한, 훅, 언어, Agent Teams 활성화)
-│   └── skills/            # 재사용 스킬 (13개) ← 원본
+│   ├── settings.json      # 전역 설정 (권한, 훅, 알림, 언어, Agent Teams 활성화)
+│   └── skills/            # 재사용 스킬 (15개) ← 원본
 ├── .codex/
 │   ├── AGENTS.md          # Codex 전역 지침 (~/.codex/AGENTS.md)
 │   └── skills → ../.claude/skills   # 기존 호환
@@ -26,11 +26,12 @@ dotfiles/
 ├── .agents/
 │   └── skills → ../.claude/skills   # 새 표준 경로 (Open Agent Skills)
 └── reference/
-    ├── agent-teams-guide/    # Agent Teams 가이드
-    ├── claude-prompt-guide/  # Claude 프롬프트 엔지니어링
-    ├── openai-api-guide/     # OpenAI API 가이드
-    ├── openai-prompt-guide/  # OpenAI 프롬프트 가이드
-    └── skills-guide/         # Agent Skills 가이드
+    ├── agent-teams-guide/           # Agent Teams 가이드
+    ├── claude-prompt-guide/         # Claude 프롬프트 엔지니어링
+    ├── langchain-langgraph-guide/   # LangChain/LangGraph 레퍼런스
+    ├── openai-api-guide/            # OpenAI API 가이드
+    ├── openai-prompt-guide/         # OpenAI 프롬프트 가이드
+    └── skills-guide/                # Agent Skills 가이드
 ```
 
 ### 구성요소
@@ -41,7 +42,7 @@ dotfiles/
 | `agents/` | 빌드 에러·보안 점검 등 **특정 상황에서 자동 위임**되는 서브에이전트 | 조건 충족 시 자동 위임 (`rules/agents.md`에 정의) |
 | `skills/` | 코드 리뷰·프롬프트 작성 등 **슬래시 커맨드로 호출**하는 전문 가이드 | `/skill-name`으로 수동 호출 |
 | `commands/` | 세션 시작 등 **사용자 정의 슬래시 커맨드** | `/command-name`으로 수동 호출 |
-| `hooks/` | 비가역적 명령만 차단, 나머지 **자동 승인** (PreToolUse 훅) | 매 도구 호출 시 자동 실행 |
+| `hooks/` | 비가역적 명령만 차단, 나머지 **자동 승인** (PreToolUse 훅). Notification/compact 리마인더 훅 포함 | 매 도구 호출/이벤트 시 자동 실행 |
 
 ## 전역 vs 프로젝트별
 
@@ -75,7 +76,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `~/.claude/rules/` | `~/dotfiles/.claude/rules/` | 코딩/보안/통신 규칙 |
 | `~/.claude/skills/` | `~/dotfiles/.claude/skills/` | 재사용 스킬 (원본) |
 | `~/.claude/hooks/` | `~/dotfiles/.claude/hooks/` | PreToolUse 훅 |
-| `~/.claude/settings.json` | `~/dotfiles/.claude/settings.json` | 전역 설정 (권한, 훅, 언어, Agent Teams 활성화) |
+| `~/.claude/settings.json` | `~/dotfiles/.claude/settings.json` | 전역 설정 (권한, 훅, 알림, 언어, Agent Teams 활성화) |
 | `~/.codex/AGENTS.md` | `~/dotfiles/.codex/AGENTS.md` | Codex 전역 지침 |
 | `~/.agents/skills/` | `~/.claude/skills/` | Open Agent Skills 표준 경로 |
 | `~/.gemini/GEMINI.md` | `~/dotfiles/.gemini/GEMINI.md` | Antigravity 전역 지침 |
@@ -91,7 +92,11 @@ Claude Code / Codex / Antigravity 런타임 데이터(`projects/` 등)는 건드
 
 **자동 적용:** `rules/`의 규칙(코딩 스타일, 보안, 한국어 응답 등)은 모든 세션에 자동 적용된다.
 
-**명령어 자동 승인:** `hooks/`의 PreToolUse 훅이 Bash 명령어를 실행 전에 검사한다. 비가역적/파괴적 명령(`rm`, `git push/commit`, `sudo` 등)만 사용자 확인을 요청하고, 나머지는 자동 승인하여 자율 코딩·검증 작업이 중단 없이 진행되도록 한다.
+**명령어 자동 승인:** `hooks/`의 PreToolUse 훅이 Bash 명령어를 실행 전에 검사한다. 비가역적/파괴적 명령(`rm`, `git push/commit` 등)만 사용자 확인을 요청하고, 나머지는 자동 승인하여 자율 코딩·검증 작업이 중단 없이 진행되도록 한다.
+
+**데스크톱 알림:** Notification 훅이 Claude가 입력 대기 중일 때 `notify-send`로 알림을 보낸다.
+
+**compact 리마인더:** 긴 세션에서 컨텍스트 압축 후 한국어 응답/변경 이유 설명 등 핵심 규칙을 자동 재주입한다.
 
 **에이전트 위임:** 빌드 실패, 보안 민감 코드 등 특정 조건에서 서브에이전트가 자동으로 작업을 넘겨받는다.
 
@@ -115,4 +120,6 @@ Claude Code / Codex / Antigravity 런타임 데이터(`projects/` 등)는 건드
 | skill-creator | `/skill-creator` | 새 스킬 생성 가이드 |
 | update-docs | `/update-docs` | 프로젝트 문서 업데이트 |
 | web-design-guidelines | `/web-design-guidelines` | UI/UX 접근성 리뷰 |
+| langchain-guide | `/langchain-guide` | LangChain/LangGraph 에이전트·워크플로우 |
+| start | `/start` | 세션 시작 시 프로젝트 파악·상태 요약 |
 | writing-prompts | `/writing-prompts` | LLM 프롬프트 작성 |
