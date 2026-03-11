@@ -67,7 +67,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `coding-style.md` | 코딩 스타일, 에러 처리, 리소스 관리 |
 | `security.md` | 시크릿 관리, 입력 검증, 취약점 방지 |
 | `architecture.md` | 파일 구조, 단일 역할, 의존성 방향 |
-| `communication.md` | 한국어 응답, 변경 이유 설명, 용어 병기 |
+| `communication.md` | 한국어 응답, 변경 이유 설명, 용어 병기, 이모지 활용 |
 | `context-management.md` | 컨텍스트 절약, 스크래치패드, 메모리 계층 |
 | `agents.md` | 에이전트 자동 위임 조건과 우선순위 |
 
