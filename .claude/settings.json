@@ -131,6 +131,7 @@
     "defaultMode": "plan"
   },
   "model": "opus",
+  "effortLevel": "high",
   "hooks": {
     "PreToolUse": [
       {
