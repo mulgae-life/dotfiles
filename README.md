@@ -7,16 +7,17 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
 ## 🔄 어떻게 동작하나?
 
 ```
-설치 (심볼릭 링크)
+설치 (심볼릭 링크 + 일부 복사)
   ↓
 세션 시작 시 자동 로드
-  ├── rules/        6개 규칙이 항상 적용 (코딩 스타일, 보안, 한국어 응답 등)
-  ├── agents/       조건 충족 시 서브에이전트가 자동 위임 (빌드 에러, 보안 등)
-  ├── hooks/        Bash 명령어 자동 승인, 알림, compact 리마인더
-  └── settings.json 권한, 언어, Agent Teams 등 전역 설정
+  ├── rules/         6개 규칙이 항상 적용 (코딩 스타일, 보안, 한국어 응답 등)
+  ├── agents/        조건 충족 시 서브에이전트가 자동 위임 (빌드 에러, 보안 등)
+  ├── hooks/         Bash 명령어 자동 승인, 알림, compact 리마인더
+  ├── settings.json  권한, 언어, 모델 등 전역 설정 (복사)
+  └── config.toml    Codex 모델, 커뮤니케이션 규칙 (복사)
   ↓
 사용자가 필요할 때 호출
-  └── skills/       /code-review, /writing-prompts 등 15개 전문 스킬
+  └── skills/        /code-review, /writing-prompts 등 15개 전문 스킬
 ```
 
 ## 📦 설치
@@ -32,7 +33,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 ~/dotfiles/install.sh --dry-run
 ```
 
-설치 스크립트는 `~/dotfiles/` → `~/` 로 심볼릭 링크만 생성한다. 런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
+설치 스크립트는 `~/dotfiles/` → `~/` 로 심볼릭 링크를 생성한다. 단, 도구가 런타임에 수정하는 파일(`settings.json`, `config.toml`)은 복사로 설치하여 레포 원본을 보호한다. 런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
 
 ## 🚀 사용법
 
@@ -134,7 +135,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 | 범위 | 내용 | 관리 위치 |
 |------|------|----------|
-| **전역** (이 레포) | rules, agents, skills, hooks, settings | `~/dotfiles/` → `~/` 심볼릭 링크 |
+| **전역** (이 레포) | rules, agents, skills, hooks, settings | `~/dotfiles/` → `~/` 심볼릭 링크 (일부 복사) |
 | **프로젝트별** | `agent-guide/GUIDE.md`, `PROJECT.md`, `SESSION.md` | 각 프로젝트 레포 |
 
 ## 📁 디렉토리 구조
@@ -151,6 +152,7 @@ dotfiles/
 │   └── settings.json          # 전역 설정
 ├── .codex/
 │   ├── AGENTS.md              # Codex 지침
+│   ├── config.toml            # Codex 설정 (모델, 커뮤니케이션 규칙)
 │   └── skills → ../.claude/skills
 ├── .gemini/
 │   ├── GEMINI.md              # Antigravity 지침
