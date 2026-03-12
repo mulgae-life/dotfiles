@@ -7,6 +7,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
 plan_mode_reasoning_effort = "xhigh"
 personality = "pragmatic"
+model_context_window = 1000000
+model_auto_compact_token_limit = 900000
 
 # ── 커뮤니케이션 핵심 규칙 ──────────────────
 # AGENTS.md보다 먼저 주입되므로 잘릴 위험 없음
