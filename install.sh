@@ -170,9 +170,10 @@ main() {
   fi
   safe_link "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
 
-  # 2. .codex AGENTS.md만 링크 (런타임 데이터 보존)
+  # 2. .codex 설정 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.codex"
   safe_link "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+  safe_link "$DOTFILES_DIR/.codex/config.toml" "$HOME/.codex/config.toml"
 
   # 3. .agents/skills → .claude/skills 연결
   safe_mkdir "$HOME/.agents"
@@ -198,6 +199,7 @@ main() {
     "$HOME/.claude/hooks"
     "$HOME/.claude/settings.json"
     "$HOME/.codex/AGENTS.md"
+    "$HOME/.codex/config.toml"
     "$HOME/.agents/skills"
     "$HOME/.gemini/GEMINI.md"
     "$HOME/.gemini/antigravity/global_workflows"
