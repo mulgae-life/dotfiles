@@ -67,6 +67,38 @@ safe_link() {
   fi
 }
 
+# ── safe_copy ─────────────────────────────
+# 런타임에 도구가 수정하는 파일은 심볼릭 링크 대신 복사한다.
+# 레포 원본이 오염되지 않도록 보호하면서, install.sh 재실행으로 최신화.
+#   - 내용 동일      → [SKIP]
+#   - 내용 다름/없음 → 레포 버전으로 덮어쓰기 [COPY]
+#   - 기존 심볼릭 링크 → 제거 후 복사 [COPY]
+
+safe_copy() {
+  local src="$1" dst="$2"
+
+  # 기존 심볼릭 링크가 있으면 제거 (링크→복사 전환)
+  if [ -L "$dst" ]; then
+    if $DRY_RUN; then
+      info "[COPY]   $dst ← $src (심볼릭→복사 전환) (dry-run)"
+      return
+    fi
+    rm "$dst"
+  fi
+
+  if [ -f "$dst" ] && diff -q "$src" "$dst" &>/dev/null; then
+    ok "[SKIP]   $dst ← $src (동일)"
+    return
+  fi
+
+  if $DRY_RUN; then
+    info "[COPY]   $dst ← $src (dry-run)"
+    return
+  fi
+  cp "$src" "$dst"
+  ok "[COPY]   $dst ← $src"
+}
+
 # ── safe_mkdir ──────────────────────────────
 
 safe_mkdir() {
@@ -168,12 +200,14 @@ main() {
   if [ -d "$DOTFILES_DIR/.claude/hooks" ] && ! $DRY_RUN; then
     chmod +x "$DOTFILES_DIR/.claude/hooks"/*.sh 2>/dev/null || true
   fi
-  safe_link "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
+  # settings.json은 Claude Code가 런타임에 수정하므로 복사 (레포 보호)
+  safe_copy "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
 
   # 2. .codex 설정 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.codex"
   safe_link "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
-  safe_link "$DOTFILES_DIR/.codex/config.toml" "$HOME/.codex/config.toml"
+  # config.toml은 Codex가 런타임에 trust 항목을 추가하므로 복사 (레포 보호)
+  safe_copy "$DOTFILES_DIR/.codex/config.toml" "$HOME/.codex/config.toml"
 
   # 3. .agents/skills → .claude/skills 연결
   safe_mkdir "$HOME/.agents"
@@ -190,28 +224,45 @@ main() {
   info "검증 중..."
 
   local has_error=false
-  local targets=(
+
+  # 심볼릭 링크로 설치되는 파일
+  local link_targets=(
     "$HOME/.claude/CLAUDE.md"
     "$HOME/.claude/agents"
     "$HOME/.claude/commands"
     "$HOME/.claude/rules"
     "$HOME/.claude/skills"
     "$HOME/.claude/hooks"
-    "$HOME/.claude/settings.json"
     "$HOME/.codex/AGENTS.md"
-    "$HOME/.codex/config.toml"
     "$HOME/.agents/skills"
     "$HOME/.gemini/GEMINI.md"
     "$HOME/.gemini/antigravity/global_workflows"
   )
 
-  for target in "${targets[@]}"; do
+  # 복사로 설치되는 파일 (런타임 수정 보호)
+  local copy_targets=(
+    "$HOME/.claude/settings.json"
+    "$HOME/.codex/config.toml"
+  )
+
+  for target in "${link_targets[@]}"; do
     if [ -L "$target" ]; then
       ok "$target → $(readlink "$target")"
     elif $DRY_RUN; then
       info "$target (dry-run이므로 검증 건너뜀)"
     else
       error "$target 링크가 존재하지 않습니다!"
+      has_error=true
+    fi
+  done
+
+  for target in "${copy_targets[@]}"; do
+    if [ -f "$target" ]; then
+      ok "$target (복사됨)"
+    elif $DRY_RUN; then
+      info "$target (dry-run이므로 검증 건너뜀)"
+    else
+      error "$target 파일이 존재하지 않습니다!"
       has_error=true
     fi
   done
