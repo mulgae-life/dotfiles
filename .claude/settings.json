@@ -5,6 +5,9 @@
   },
   "permissions": {
     "allow": [
+      "Read",
+      "Glob",
+      "Grep",
       "Edit",
       "Write",
       "NotebookEdit",
