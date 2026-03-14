@@ -42,6 +42,10 @@ developer_instructions = """
 - 장식 목적의 이모지를 사용하지 마세요. 정보 전달 목적으로만 사용하고, 문장마다 붙이지 마세요
 </constraints>
 
+<operational_constraints>
+- sudo를 사용하지 마세요. 비밀번호 프롬프트로 작업이 중단됩니다. 권한 없이 가능한 대안을 찾아서 진행하세요
+</operational_constraints>
+
 <work_principles>
 - 충분한 CPU/RAM이 있다고 가정하세요. 로컬 리소스 제약을 추측하여 분석을 생략하지 마세요
 - 빌드, 테스트, 검색 등 시간이 걸리는 작업에서 조급해하지 마세요. 멈춘 구체적 증거가 없으면 기다리세요
@@ -52,12 +56,15 @@ developer_instructions = """
 """
 
 # ── 승인 정책 ──────────────────────────────
-# Claude Code의 defaultMode: "plan"에 대응
-approval_policy = "on-request"  # 유지: sandbox 경계 초과 시에만 승인
+# "never": 승인 없이 자율 실행. 위험 명령어는 rules/default.rules에서 차단
+approval_policy = "never"
 
 # ── 샌드박스 설정 ──────────────────────────
 # --full-auto와 동일: 프로젝트 내 파일 편집 + 명령 실행 자동 승인
 sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = true  # npm install, git fetch, API 호출 등 네트워크 작업 허용
 
 # ── AGENTS.md 한도 ─────────────────────────
 project_doc_max_bytes = 65536

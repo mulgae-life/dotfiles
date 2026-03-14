@@ -206,6 +206,7 @@ main() {
   # 2. .codex 설정 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.codex"
   safe_link "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
+  safe_link "$DOTFILES_DIR/.codex/rules" "$HOME/.codex/rules"
   # config.toml은 Codex가 런타임에 trust 항목을 추가하므로 복사 (레포 보호)
   safe_copy "$DOTFILES_DIR/.codex/config.toml" "$HOME/.codex/config.toml"
 
@@ -234,6 +235,7 @@ main() {
     "$HOME/.claude/skills"
     "$HOME/.claude/hooks"
     "$HOME/.codex/AGENTS.md"
+    "$HOME/.codex/rules"
     "$HOME/.agents/skills"
     "$HOME/.gemini/GEMINI.md"
     "$HOME/.gemini/antigravity/global_workflows"

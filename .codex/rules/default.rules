@@ -1,0 +1,237 @@
+# ─────────────────────────────────────────────
+# Codex 실행 정책 (Execution Policy)
+# full-auto 모드에서 위험 명령어만 차단
+# Claude Code의 auto-approve-readonly.sh에 대응
+# ─────────────────────────────────────────────
+
+# ── 파일 삭제/파괴 (비가역적) ──
+prefix_rule(
+    pattern = ["rm"],
+    decision = "forbidden",
+    justification = "파일 삭제 명령어 차단"
+)
+
+prefix_rule(
+    pattern = ["rmdir"],
+    decision = "forbidden",
+    justification = "디렉토리 삭제 명령어 차단"
+)
+
+prefix_rule(
+    pattern = ["unlink"],
+    decision = "forbidden",
+    justification = "파일 삭제 명령어 차단"
+)
+
+prefix_rule(
+    pattern = ["shred"],
+    decision = "forbidden",
+    justification = "파일 파쇄 명령어 차단"
+)
+
+prefix_rule(
+    pattern = ["truncate"],
+    decision = "forbidden",
+    justification = "파일 절단 명령어 차단"
+)
+
+# ── 시스템 (위험) ──
+prefix_rule(
+    pattern = ["reboot"],
+    decision = "forbidden",
+    justification = "시스템 재부팅 차단"
+)
+
+prefix_rule(
+    pattern = ["shutdown"],
+    decision = "forbidden",
+    justification = "시스템 종료 차단"
+)
+
+prefix_rule(
+    pattern = ["poweroff"],
+    decision = "forbidden",
+    justification = "시스템 종료 차단"
+)
+
+prefix_rule(
+    pattern = ["halt"],
+    decision = "forbidden",
+    justification = "시스템 정지 차단"
+)
+
+# ── 프로세스 종료 ──
+prefix_rule(
+    pattern = ["kill"],
+    decision = "forbidden",
+    justification = "프로세스 강제 종료 차단"
+)
+
+prefix_rule(
+    pattern = ["pkill"],
+    decision = "forbidden",
+    justification = "프로세스 강제 종료 차단"
+)
+
+prefix_rule(
+    pattern = ["killall"],
+    decision = "forbidden",
+    justification = "프로세스 강제 종료 차단"
+)
+
+# ── 디스크 (비가역적) ──
+prefix_rule(
+    pattern = ["dd"],
+    decision = "forbidden",
+    justification = "디스크 직접 쓰기 차단"
+)
+
+prefix_rule(
+    pattern = ["mkfs"],
+    decision = "forbidden",
+    justification = "파일시스템 포맷 차단"
+)
+
+prefix_rule(
+    pattern = ["fdisk"],
+    decision = "forbidden",
+    justification = "디스크 파티션 조작 차단"
+)
+
+prefix_rule(
+    pattern = ["parted"],
+    decision = "forbidden",
+    justification = "디스크 파티션 조작 차단"
+)
+
+# ── Git 쓰기 (비가역적/공유 영향) ──
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "forbidden",
+    justification = "원격 푸시 차단 — 수동으로 실행"
+)
+
+prefix_rule(
+    pattern = ["git", "commit"],
+    decision = "forbidden",
+    justification = "커밋 차단 — 수동으로 실행"
+)
+
+prefix_rule(
+    pattern = ["git", "reset"],
+    decision = "forbidden",
+    justification = "커밋 리셋 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "forbidden",
+    justification = "untracked 파일 삭제 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "rebase"],
+    decision = "forbidden",
+    justification = "리베이스 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "merge"],
+    decision = "forbidden",
+    justification = "머지 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "cherry-pick"],
+    decision = "forbidden",
+    justification = "체리픽 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "revert"],
+    decision = "forbidden",
+    justification = "리버트 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "am"],
+    decision = "forbidden",
+    justification = "패치 적용 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "apply"],
+    decision = "forbidden",
+    justification = "패치 적용 차단"
+)
+
+# ── Git 삭제 (비가역적) ──
+# 삭제 플래그만 차단, 읽기(git branch -a, git tag -l 등)는 허용
+# forbidden > allow 우선이므로, allow와 forbidden이 동시 매칭되면 forbidden 적용
+prefix_rule(
+    pattern = ["git", "branch", ["-d", "-D", "--delete"]],
+    decision = "forbidden",
+    justification = "브랜치 삭제 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "stash", ["drop", "clear"]],
+    decision = "forbidden",
+    justification = "stash 데이터 삭제 차단"
+)
+
+prefix_rule(
+    pattern = ["git", "tag", ["-d", "-f", "--delete"]],
+    decision = "forbidden",
+    justification = "태그 삭제/덮어쓰기 차단"
+)
+
+# ── Git 읽기 명령은 허용 ──
+prefix_rule(
+    pattern = ["git", ["status", "diff", "log", "show", "blame", "fetch", "remote", "stash", "branch", "tag"]],
+    decision = "allow"
+)
+
+# ── GitHub CLI 쓰기 ──
+prefix_rule(
+    pattern = ["gh", ["pr", "issue", "release", "repo"], ["create", "close", "delete", "merge", "edit", "comment"]],
+    decision = "forbidden",
+    justification = "GitHub 리소스 변경 차단"
+)
+
+prefix_rule(
+    pattern = ["gh", "auth", ["login", "logout"]],
+    decision = "forbidden",
+    justification = "GitHub 인증 변경 차단"
+)
+
+prefix_rule(
+    pattern = ["gh", "api"],
+    decision = "forbidden",
+    justification = "GitHub API 직접 호출 차단 — 쓰기 작업 가능하므로 차단"
+)
+
+# ── GitHub CLI 읽기는 허용 ──
+prefix_rule(
+    pattern = ["gh", ["pr", "issue", "release", "repo"], ["list", "view", "status", "checks", "diff"]],
+    decision = "allow"
+)
+
+# ── Docker 삭제 ──
+prefix_rule(
+    pattern = ["docker", ["rm", "rmi"]],
+    decision = "forbidden",
+    justification = "Docker 리소스 삭제 차단"
+)
+
+prefix_rule(
+    pattern = ["docker-compose", ["down", "rm"]],
+    decision = "forbidden",
+    justification = "Docker Compose 리소스 삭제 차단"
+)
+
+prefix_rule(
+    pattern = ["docker", "compose", ["down", "rm"]],
+    decision = "forbidden",
+    justification = "Docker Compose 리소스 삭제 차단"
+)
