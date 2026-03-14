@@ -79,6 +79,12 @@ which claude && echo "claude OK" || echo "claude NOT FOUND"
 
 `{agent}`는 응답한 모델명 (`codex` 또는 `claude`)을 넣습니다.
 
+> **대상 문서 버전 관리**: `.collab-loop/`는 토론 산출물(packet/reply/log)을 저장합니다.
+> 토론 대상 문서 자체는 원래 위치에서 `_v1`, `_v2` 접미사로 버전을 관리합니다.
+> - v1: Mode 1 초안 또는 루프 진입 시점의 원본
+> - v2+: 라운드 수정 반영본 (라운드마다 새 버전을 만들 필요는 없고, 수정 규모에 따라 판단)
+> - 최종본 경로는 decision_log.md에 기록합니다.
+
 ### Packet Header
 
 모든 packet 상단에 아래 메타데이터를 넣습니다. `from`, `to`, `type`은 호출 방향에 따라 변경합니다.
@@ -140,6 +146,14 @@ claude -p \
 - `--tools ""`: 모든 도구 비활성화 (reply-only 보장)
 - `--output-format text`: 순수 텍스트 출력
 - `< "$PACKET"`: stdin으로 packet 전달
+
+> **CLI 버전 호환**: `codex exec`와 `claude -p`의 플래그 체계는 버전에 따라 달라질 수 있습니다.
+> 루프 시작 전 `codex exec --help` / `claude --help`로 플래그를 확인하세요.
+
+> **대형 문서 전달**: 기본은 packet에 파일 경로를 명시하고 상대 모델이 직접 읽게 합니다.
+> 상대 모델이 경로 기반 읽기를 안정적으로 수행하지 못할 때,
+> fallback으로 `cat "$PACKET" "$DOCUMENT" | codex exec -s read-only -o "$OUT" -`처럼
+> stdin concatenate로 문서를 함께 전달합니다.
 
 ### Recursion Guard
 
@@ -212,7 +226,7 @@ claude -p \
 2. **Claude가** 산출물의 독자와 목적을 명확히 합니다.
 3. **Claude가** 문서 구조를 먼저 잡습니다.
 4. **Claude가** 초안을 작성합니다.
-5. **Codex 검토를 위한 review packet**을 만듭니다 (→ Mode 2).
+5. **Codex 검토를 위한 packet**을 만듭니다 (→ Mode 2).
 
 ### Mode 2. Packet
 
@@ -263,6 +277,10 @@ packet 끝에 §Reply Contract 형식을 포함합니다. `.collab-loop/세션/p
 
 이 단계의 핵심: **충돌 지점을 드러내고, 처리한 뒤 더 강한 버전으로 수렴**.
 
+> **실무 노트**: Mode 3(판정)과 Mode 4(수정)는 실전에서 하나의 스텝으로 합쳐도 무방합니다.
+> 판정표 작성 시 조치(Action) 열에 수정 방향까지 기재하면, 별도 Mode 4 단계 없이
+> 판정 직후 바로 수정을 적용할 수 있습니다.
+
 ### Mode 4. Revision
 
 판정표 기반으로 **작문 담당(Claude)**이 수정. 우선순위:
@@ -274,6 +292,11 @@ packet 끝에 §Reply Contract 형식을 포함합니다. `.collab-loop/세션/p
 5. 문장 다듬기
 
 문체만 바꾸는 얕은 수정으로 끝내지 않습니다.
+
+> **대규모 수정 (5건 이상, 다수 섹션 분산)**:
+> - 부분 Edit보다 **전체 재작성(v1→v2 별도 파일)**이 효율적일 수 있습니다.
+> - Claude 호스트에서는 에이전트 위임으로 수정을 병렬 처리할 수 있습니다.
+> - 원본(v1)은 삭제하지 않고 보존하여 diff 비교를 가능하게 합니다.
 
 > 아이데이션 수정 우선순위는 `references/ideation.md` 참조.
 
