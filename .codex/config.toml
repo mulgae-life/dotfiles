@@ -66,5 +66,15 @@ sandbox_mode = "workspace-write"
 [sandbox_workspace_write]
 network_access = true  # npm install, git fetch, API 호출 등 네트워크 작업 허용
 
+# ── 실험적 기능 ──────────────────────────────
+[features]
+multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agent, send_input, wait 등)
+
+# ── 멀티 에이전트 설정 ──────────────────────
+[agents]
+max_threads = 6             # 동시 에이전트 수
+max_depth = 1               # 에이전트 중첩 깊이
+job_max_runtime_seconds = 1800  # 워커 타임아웃 (30분)
+
 # ── AGENTS.md 한도 ─────────────────────────
 project_doc_max_bytes = 65536
