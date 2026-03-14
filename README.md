@@ -155,6 +155,7 @@ dotfiles/
 ├── .codex/
 │   ├── AGENTS.md              # Codex 지침
 │   ├── config.toml            # Codex 설정 (모델, 커뮤니케이션 규칙)
+│   ├── rules/                 # 실행 정책 (위험 명령어 차단)
 │   └── skills → ../.claude/skills
 ├── .gemini/
 │   ├── GEMINI.md              # Antigravity 지침
