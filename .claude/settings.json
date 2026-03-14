@@ -191,7 +191,6 @@
       "Bash(pyenv *)"
     ]
   },
-  "model": "opus",
   "effortLevel": "high",
   "hooks": {
     "PreToolUse": [
