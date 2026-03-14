@@ -17,7 +17,7 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
   └── config.toml    Codex 모델, 커뮤니케이션 규칙 (복사)
   ↓
 사용자가 필요할 때 호출
-  └── skills/        /code-review, /writing-prompts 등 15개 전문 스킬
+  └── skills/        /code-review, /writing-prompts 등 16개 전문 스킬
 ```
 
 ## 📦 설치
@@ -90,7 +90,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | Notification | 알림 발생 시 | `notify-send`로 데스크톱 알림 |
 | SessionStart (compact) | 컨텍스트 압축 후 | 핵심 규칙 리마인더 재주입 |
 
-### ⚙️ Skills (15개) — `/skill-name`으로 호출
+### ⚙️ Skills (16개) — `/skill-name`으로 호출
 
 **코드 품질**
 
@@ -117,12 +117,13 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `/llm-api-guide` | OpenAI/Anthropic API 연동 |
 | `/langchain-guide` | LangChain/LangGraph 에이전트/워크플로우 |
 
-**프롬프트/문서**
+**프롬프트/문서/협업**
 
 | 스킬 | 용도 |
 |------|------|
 | `/writing-prompts` | LLM 프롬프트 작성 |
 | `/update-docs` | 프로젝트 문서 업데이트 |
+| `/recursive-discussion` | Claude↔Codex 왕복 토론으로 결과물 개선 |
 
 **프로젝트 관리**
 
@@ -149,7 +150,7 @@ dotfiles/
 │   ├── agents/                # 서브에이전트 (4개)
 │   ├── commands/              # 슬래시 커맨드
 │   ├── hooks/                 # 이벤트 훅
-│   ├── skills/                # 스킬 (15개)
+│   ├── skills/                # 스킬 (16개)
 │   └── settings.json          # 전역 설정
 ├── .codex/
 │   ├── AGENTS.md              # Codex 지침
