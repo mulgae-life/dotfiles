@@ -13,10 +13,10 @@ description: Claude와 Codex(GPT)가 대등한 지적 파트너로 왕복 토론
 
 ## 핵심 원칙
 
-- **Claude가 시작하고 Claude가 마무리**합니다. 이는 호스팅 환경이 아닌 **작문 역할** — 어느 CLI에서 실행하든, 초안 작성과 최종 통합은 Claude가 수행합니다.
-- **Codex는 대등한 지적 파트너**입니다. 상하 관계 없이 분석·반론·검증으로 결과물을 함께 끌어올립니다.
-- 두 모델의 주장 모두 자동 정답이 아닙니다. 가능한 경우 **코드, 데이터, 논문 원문, 실험 결과**로 검증합니다. 초기 아이데이션에서는 가정과 불확실성을 명시합니다.
-- 기본 운영은 **5라운드 왕복 토론**입니다. 1라운드 = packet 전송 → 상대 응답 수신 → 판정. 핵심 쟁점이 모두 해소된 경우에만 조기 종료합니다.
+- **Claude와 Codex 모두 분석·반론·검증을 수행**합니다. Codex만 비판하고 Claude가 수용/거부하는 구조가 아닙니다. 양쪽이 근거를 들고 적극적으로 토론합니다.
+- **Claude가 초안을 쓰고 최종본을 정리**합니다. 이는 **작문 역할**이지 지적 우위가 아닙니다. 어느 CLI에서 실행하든 동일합니다.
+- 두 모델의 주장 모두 자동 정답이 아닙니다. 가능한 경우 **코드, 데이터, 논문 원문, 실험 결과**로 검증합니다. 필요 시 **웹 검색으로 외부 문헌·사례·데이터를 능동적으로 확보**하여 레퍼런스로 제시합니다. 초기 아이데이션에서는 가정과 불확실성을 명시합니다.
+- **합의에 도달할 때까지 토론**합니다. 기본 5라운드이되, 미합의 쟁점이 남아 있으면 연장합니다. 시간이 걸려도 충분히 토론하는 것이 빠르게 끝내는 것보다 중요합니다.
 - 장황한 초안보다, **논리적 구멍을 줄이고 근거를 강화하는 것**이 우선입니다.
 - 이 스킬은 **Claude/Codex 어느 쪽에서든** 사용 가능합니다. 상대 CLI가 설치되어 있으면 실제 호출하고, 없으면 packet-only fallback.
 
@@ -24,7 +24,7 @@ description: Claude와 Codex(GPT)가 대등한 지적 파트너로 왕복 토론
 
 ```
 초안이 있는가?
-├─ YES → Mode 2 (Packet) → Mode 3 → Mode 4 → Mode 5
+├─ YES → Mode 2 (Packet) → Mode 3 → Mode 4
 ├─ NO, 방향은 확정 → Mode 1 (Draft) → Mode 2 → ...
 └─ NO, 아이디어 단계 → Mode 0 (Ideation) → Mode 1 → ...
 ```
@@ -37,186 +37,18 @@ description: Claude와 Codex(GPT)가 대등한 지적 파트너로 왕복 토론
 
 | 역할 | 담당 | 책임 |
 |------|------|------|
-| 시작 / 초안 / 1차 서사 | Claude | 문제 정의, 초안 작성, 문장 흐름 구성 |
-| 분석 / 반론 / 검증 | Codex | 구멍, 과장, 반례, 코드/데이터/문헌 정합성 점검 |
-| 통합 / 최종본 | Claude | 토론 결과 반영, 구조 재정리, 최종 문장화 |
-| 라운드 판정 | 오케스트레이터 | 판정표 작성, 다음 라운드 진행 여부 결정 |
+| 초안 작성 / 최종 문장화 | Claude | 구조 설계, 문장 흐름, 최종 통합 |
+| 분석 / 반론 / 검증 | **양쪽 모두** | 근거 기반 비판, 반례 제시, 데이터 검증, 재반론 |
+| 라운드 관리 | 오케스트레이터 | 토론 상태 추적, 합의/미합의 항목 관리 |
 | 최종 승인 | user | 종료본 수용/수정 요청/추가 루프 지시 |
 
-핵심은 **Claude가 전개를 리드하고, Codex가 강하게 압박하며, Claude가 다시 통합**하는 구조입니다.
+핵심은 **Claude가 초안을 리드하고, 양쪽이 근거 기반으로 토론하며, 합의점을 찾아 Claude가 통합**하는 구조입니다.
 오케스트레이터(호스트 모델)가 라운드를 자율 진행하고, user는 최종본에 대해 승인합니다.
 
 ## Runtime / CLI Invocation
 
-### Preflight Check
-
-루프 시작 전 **상대 모델 CLI**가 설치되어 있는지 확인합니다.
-
-```bash
-# Claude 호스트 시
-which codex && echo "codex OK" || echo "codex NOT FOUND"
-
-# Codex 호스트 시
-which claude && echo "claude OK" || echo "claude NOT FOUND"
-```
-
-상대 CLI가 없으면 §Fallback으로 전환합니다.
-
-### Working Directory
-
-토론 산출물은 `.collab-loop/`에 저장합니다.
-
-```text
-.collab-loop/
-  YYYYMMDD-작업slug/
-    packet_round1.md          # 호출자 → 응답자 요청
-    reply_round1_{agent}.md   # 응답 (codex 또는 claude)
-    packet_round2.md
-    reply_round2_{agent}.md
-    ...                       (최대 round5까지)
-    decision_log.md
-```
-
-`{agent}`는 응답한 모델명 (`codex` 또는 `claude`)을 넣습니다.
-
-> **대상 문서 버전 관리**: `.collab-loop/`는 토론 산출물(packet/reply/log)을 저장합니다.
-> 토론 대상 문서 자체는 원래 위치에서 `_v1`, `_v2` 접미사로 버전을 관리합니다.
-> - v1: Mode 1 초안 또는 루프 진입 시점의 원본
-> - v2+: 라운드 수정 반영본 (라운드마다 새 버전을 만들 필요는 없고, 수정 규모에 따라 판단)
-> - 최종본 경로는 decision_log.md에 기록합니다.
-
-### Packet Header
-
-모든 packet 상단에 아래 메타데이터를 넣습니다. `from`, `to`, `type`은 호출 방향에 따라 변경합니다.
-
-```text
----
-from: {호출자}          # claude 또는 codex
-to: {응답자}            # codex 또는 claude
-round: 1
-type: {요청 유형}       # critique / ideation-critique / draft-request / integration-request
-instruction: respond-only, do-not-call-back
----
-```
-
-주요 type 값:
-- `critique`: 초안에 대한 비판적 검토 요청 (→ Codex)
-- `ideation-critique`: 아이디어 후보에 대한 비판적 검토 요청 (→ Codex)
-- `draft-request`: 초안 작성 요청 (→ Claude)
-- `integration-request`: 피드백 반영 통합 요청 (→ Claude)
-
-### CLI Commands
-
-세션 디렉토리는 첫 호출 시 생성합니다.
-
-```bash
-SESSION_DIR=".collab-loop/YYYYMMDD-작업slug"
-mkdir -p "$SESSION_DIR"
-```
-
-#### Claude 호스트 → Codex 호출 (critique 요청)
-
-```bash
-PACKET="$SESSION_DIR/packet_round1.md"
-OUT="$SESSION_DIR/reply_round1_codex.md"
-
-codex exec \
-  -s read-only \
-  -o "$OUT" \
-  - < "$PACKET"
-```
-
-- `-s read-only`: shell command를 읽기 전용으로 샌드박싱
-- `-o "$OUT"`: 최종 응답만 파일로 저장 (진행 출력 제외)
-- `- < "$PACKET"`: stdin으로 packet 전달
-
-#### Codex 호스트 → Claude 호출 (초안/통합 요청)
-
-```bash
-PACKET="$SESSION_DIR/packet_round1.md"
-OUT="$SESSION_DIR/reply_round1_claude.md"
-
-claude -p \
-  --output-format text \
-  --tools "" \
-  < "$PACKET" > "$OUT"
-```
-
-- `-p`: 비대화형 단발 응답
-- `--tools ""`: 모든 도구 비활성화 (reply-only 보장)
-- `--output-format text`: 순수 텍스트 출력
-- `< "$PACKET"`: stdin으로 packet 전달
-
-> **CLI 버전 호환**: `codex exec`와 `claude -p`의 플래그 체계는 버전에 따라 달라질 수 있습니다.
-> 루프 시작 전 `codex exec --help` / `claude --help`로 플래그를 확인하세요.
-
-> **대형 문서 전달**: 기본은 packet에 파일 경로를 명시하고 상대 모델이 직접 읽게 합니다.
-> 상대 모델이 경로 기반 읽기를 안정적으로 수행하지 못할 때,
-> fallback으로 `cat "$PACKET" "$DOCUMENT" | codex exec -s read-only -o "$OUT" -`처럼
-> stdin concatenate로 문서를 함께 전달합니다.
-
-### Recursion Guard
-
-각 round 종료 후, 오케스트레이터가 판정표를 작성하고 다음 round 진행 여부를 판단합니다. 상한은 **round 5**입니다.
-
-**조기 종료 조건** (아래를 모두 만족할 때만 허용):
-- 신규 핵심 쟁점이 없음
-- 기존 쟁점에 대한 판정(수용/부분 수용/반박/보류)이 완료됨
-- 다음 round가 결과물을 실질적으로 개선하지 못한다고 판단됨
-
-**재호출 방지:**
-- Codex 측: `-s read-only` 샌드박스가 shell command를 읽기 전용으로 제한하여 비파괴 실행을 보장합니다.
-- Claude 측: `--tools ""`가 모든 도구를 비활성화하여 CLI 호출 자체를 차단합니다.
-- 양측 공통: packet header의 `instruction: respond-only, do-not-call-back`이 프롬프트 수준 방어선입니다.
-
-### Reply Contract
-
-상대 모델 응답은 아래 형식을 요구합니다:
-
-```text
-[Summary]
-- 한 줄 요약
-
-[Findings]
-- 핵심 지적 3~7개
-
-[Disposition Hint]
-- 유지 / 수정 / 삭제 권장
-
-[Open Questions]
-- 추가 검증 필요 항목
-```
-
-자유 산문으로 길게 쓰지 않게 합니다. 다음 round에서 바로 판정 가능한 형태로 받아야 합니다.
-
-### Fallback (CLI 미설치 시)
-
-1. packet 파일만 생성
-2. `decision_log.md`에 `CLI unavailable` 기록
-3. user에게 packet 전달 → 수동으로 상대 모델 응답 확보
-4. 응답을 파일로 저장 → 다음 Mode로 진행
-
-워크플로우 자체는 동일하게 유지합니다.
-
-### 호스트별 실행 흐름
-
-#### Claude 호스트
-
-1. Claude가 초안 작성 (첫 라운드만)
-2. Claude가 packet 작성 → `codex exec`로 critique 요청
-3. Codex 응답 수신 → Claude가 판정표 작성 + 반론/통합
-4. 조기 종료 조건 확인 → 미충족 시 2로 복귀
-5. Claude가 최종 통합본 작성
-
-#### Codex 호스트
-
-1. Codex가 packet 작성 → `claude -p`로 초안 요청 (첫 라운드만)
-2. Claude 응답 수신 → Codex가 critique 수행
-3. Codex가 critique packet 작성 → `claude -p`로 반론/통합 요청
-4. 조기 종료 조건 확인 → 미충족 시 2로 복귀
-5. Claude의 마지막 출력이 최종본
-
-> 어느 호스트든 2~4를 기본 5라운드 반복하며, 조기 종료 조건(§Recursion Guard)을 만족할 때만 종료합니다. Codex 호스트에서도 초안 작성과 최종 통합은 Claude가 수행합니다.
+> 디렉토리 구조, CLI 명령어, 재귀 방어, Reply Contract(유형별 3종), Fallback, 호스트별 실행 흐름 등
+> 실행 세부사항은 `references/runtime.md` 참조.
 
 ## 워크플로우
 
@@ -235,7 +67,7 @@ claude -p \
 **critique / ideation-critique** (→ Codex):
 - **작업 목표**: 이 문서가 무엇을 달성하려 하는지
 - **검토 대상**: 문서 전체 또는 특정 섹션
-- **핵심 주장 3~5개**: Codex가 공격할 타깃
+- **핵심 주장 3~5개**: 상대가 검토할 논점
 - **근거 경로**: 데이터/코드/문헌 파일 경로
 - **중점 검토 포인트**: 과장, 논리 점프, 데이터 없는 추론 등
 
@@ -247,43 +79,63 @@ claude -p \
 
 **integration-request** (→ Claude):
 - **현재 초안**: 수정 대상 문서 또는 경로
-- **판정표**: 이번 round의 수용/반박 결과
+- **토론 상태표**: 이번 round의 합의/미합의 결과
 - **수정 지시**: 무엇을 어떻게 반영할지
 
 > packet 예시는 `references/examples.md` 참조.
 
-packet 끝에 §Reply Contract 형식을 포함합니다. `.collab-loop/세션/packet_round{N}.md`에 저장한 뒤 CLI로 상대 모델을 호출합니다.
+#### 후속 라운드 맥락 누적 (Round 2+)
 
-### Mode 3. Debate / Integration
+상대 모델은 매 호출마다 **이전 라운드 기억이 없습니다**. Round 2+ packet에는 아래를 반드시 포함하여 자기완결적(self-contained)으로 만듭니다.
 
-상대 모델 응답을 받으면, 오케스트레이터가 항목별로 4분류 판정합니다:
+| 항목 | 내용 | 포함 방식 |
+|------|------|----------|
+| 현재 문서 | 최신 수정본 | 파일 경로 (또는 핵심 섹션 발췌) |
+| 토론 상태표 | 이전 라운드까지의 합의/미합의 현황 | packet 본문에 직접 포함 |
+| 미합의 쟁점 | 양쪽 근거 요약 | 각 쟁점별 A측/B측 주장 1-2문장 |
+| 이번 라운드 초점 | 미합의 항목 중 집중할 쟁점 | "중점 검토 포인트" 대체 |
 
-- **critique 응답(Codex → 오케스트레이터)**: 판정표를 작성하고 수용/반박을 결정
-- **draft/integration 응답(Claude → 오케스트레이터)**: 초안/통합본을 검토하고 critique를 생성
+> Round 1의 "중점 검토 포인트"는 Round 2+에서 "미합의 쟁점"으로 자연스럽게 대체됩니다.
+> packet이 너무 길어지면 `references/session-management.md`의 packet 크기 가이드를 참조하세요.
 
-| 판정 | 의미 |
+packet 끝에 Reply Contract 형식(`references/runtime.md` §Reply Contract 참조)을 포함합니다. `.collab-loop/세션/packet_round{N}.md`에 저장한 뒤 CLI로 상대 모델을 호출합니다.
+
+### Mode 3. Debate & Revision
+
+상대 모델 응답을 받으면 **양방향 토론**을 진행합니다. 일방적 판정이 아니라, 양쪽이 근거를 들고 합의점을 찾습니다.
+
+#### 토론 흐름
+
+1. **상대 피드백 수신**: Codex의 critique 또는 Claude의 초안/통합본
+2. **레퍼런스 확보**: 반론이나 주장에 필요한 근거를 **웹 검색, 파일 읽기, 데이터 확인** 등으로 능동적으로 수집. 호스트·상대 모델 모두 자기 턴에서 검색 가능. 단, 상대 모델의 도구 접근 범위는 CLI 호출 설정에 따라 다르므로, 핵심 레퍼런스는 packet에도 포함하는 것을 권장
+3. **항목별 응답**: 각 지적에 대해 근거를 들어 수용, 반론, 또는 대안 제시
+4. **반론 시 근거 의무**: "반박"할 때는 **왜 틀렸는지** 코드·데이터·문헌·외부 레퍼런스로 뒷받침
+5. **합의 상태 추적**: 각 항목이 합의/미합의인지 명시
+6. **미합의 항목은 다음 라운드에서 계속 토론**
+
+#### 토론 상태 분류
+
+| 상태 | 의미 |
 |------|------|
-| **수용(Accept)** | 지적이 맞고 바로 반영 |
-| **부분 수용(Partial)** | 문제의식은 맞지만 해법은 수정 |
-| **반박(Reject)** | 근거상 틀림 또는 과도한 공격 |
-| **보류(Defer)** | 추가 검증 필요 |
+| **합의(Agreed)** | 양쪽이 동의. 바로 반영 |
+| **부분 합의(Partial)** | 문제의식은 공유하나 해법이 다름. 절충안 도출 |
+| **미합의(Disputed)** | 양쪽 근거가 대립. 다음 라운드에서 추가 논증 필요 |
+| **보류(Deferred)** | 현재 데이터로 판단 불가. 검증 방법을 합의하고 보류 |
 
-판정표 형식:
+#### 토론 상태표 형식
 
-| # | 상대 피드백 요지 | 판정 | 근거 | 조치 |
-|---|-----------------|------|------|------|
-| 1 | 제안 방법론의 결론이 과장됨 | 수용 | 표 수치 재확인 | 톤 다운 |
-| 2 | 비용 우위 단정 불가 | 반박 | 실험 조건 차이 | 표현 완화 |
+| # | 쟁점 | A측 주장 | B측 주장 | 상태 | 조치 |
+|---|------|---------|---------|------|------|
+| 1 | 결론이 과장됨 | 표 수치가 뒷받침 안 됨 | 조건부 표현으로 수정 가능 | 합의 | 톤 다운 |
+| 2 | 비용 우위 단정 | 비교 실험 부재 | 실험 조건이 달라 직접 비교 유효 | 미합의 | 다음 라운드 |
 
-이 단계의 핵심: **충돌 지점을 드러내고, 처리한 뒤 더 강한 버전으로 수렴**.
+> A/B는 호출 순서가 아닌 해당 쟁점에서의 대립 위치. Claude가 A일 수도, Codex가 A일 수도 있습니다.
 
-> **실무 노트**: Mode 3(판정)과 Mode 4(수정)는 실전에서 하나의 스텝으로 합쳐도 무방합니다.
-> 판정표 작성 시 조치(Action) 열에 수정 방향까지 기재하면, 별도 Mode 4 단계 없이
-> 판정 직후 바로 수정을 적용할 수 있습니다.
+이 단계의 핵심: **충돌 지점을 드러내고, 양쪽이 근거로 토론한 뒤, 합의된 부분만 반영**.
 
-### Mode 4. Revision
+#### 수정 적용
 
-판정표 기반으로 **작문 담당(Claude)**이 수정. 우선순위:
+토론 후 합의된 항목을 **작문 담당(Claude)**이 반영. 수정 우선순위:
 
 1. 사실 오류 수정
 2. 논리 점프 제거
@@ -291,7 +143,7 @@ packet 끝에 §Reply Contract 형식을 포함합니다. `.collab-loop/세션/p
 4. 구조/흐름 개선
 5. 문장 다듬기
 
-문체만 바꾸는 얕은 수정으로 끝내지 않습니다.
+문체만 바꾸는 얕은 수정으로 끝내지 않습니다. **미합의 항목은 수정하지 않고 다음 라운드로 넘깁니다.**
 
 > **대규모 수정 (5건 이상, 다수 섹션 분산)**:
 > - 부분 Edit보다 **전체 재작성(v1→v2 별도 파일)**이 효율적일 수 있습니다.
@@ -300,13 +152,14 @@ packet 끝에 §Reply Contract 형식을 포함합니다. `.collab-loop/세션/p
 
 > 아이데이션 수정 우선순위는 `references/ideation.md` 참조.
 
-**다음 라운드**: 조기 종료 조건(§Recursion Guard)을 만족하지 않으면, 수정본을 기반으로 Mode 2 → Mode 3 → Mode 4를 반복합니다. 각 round의 산출물은 `packet_round{N}.md`, `reply_round{N}_{agent}.md`로 저장합니다.
+**다음 라운드**: 미합의 항목이 남아 있으면, 수정본 + 미합의 쟁점을 기반으로 Mode 2 → Mode 3을 반복합니다. 종료 조건은 `references/runtime.md` §Recursion Guard 참조. 각 round의 산출물은 `packet_round{N}.md`, `reply_round{N}_{agent}.md`로 저장합니다.
 
-### Mode 5. Close
+### Mode 4. Close
 
-루프 종료 시 아래 3가지를 `decision_log.md`에 남깁니다:
+루프 종료 시 아래를 `decision_log.md`에 남깁니다:
 
 - 이번 루프에서 바뀐 핵심 내용
+- 보류(Deferred) 항목과 검증 계획
 - 아직 남은 리스크
 - 추가 루프 필요 여부
 
@@ -332,7 +185,7 @@ Claude의 문장도 Codex의 분석도, 위 1~4와 충돌하면 수용하지 않
 
 **1. 현재 버전 요약** — 무엇을 주장하는 문서인지 / 이번 루프 목적
 
-**2. 피드백 판정표** — 항목별 수용/부분 수용/반박/보류 + 근거 + 충돌 지점
+**2. 토론 상태표** — 항목별 합의/부분 합의/미합의/보류 + 양쪽 근거 + 조치
 
 **3. 수정 결과** — 실제 변경 내용 / 남은 리스크 / 다음 루프 필요 여부
 
@@ -344,11 +197,12 @@ Claude의 문장도 Codex의 분석도, 위 1~4와 충돌하면 수용하지 않
 - 큰 문서는 **섹션 단위**로 돌립니다 (Introduction → Methods → Results → Discussion).
 - 아이데이션은 먼저 넓게 발산한 뒤, 두 번째 루프에서 빠르게 좁힙니다.
 - 문서 작업과 아이데이션이 섞이면, **아이디어 수렴 후 문서화** 순서를 우선합니다.
+- 세션 중단/재개 및 대형 문서 분할 전략은 `references/session-management.md` 참조.
 
 ## 금지 사항
 
 - Codex가 최종 저자처럼 초안 전체를 다시 쓰는 구조로 바꾸지 않습니다.
 - Claude 초안이나 Codex 반론을 **근거 검증 없이** 수용하지 않습니다.
-- 루프를 **5라운드 초과** 반복하지 않습니다. 합의된 항목을 재논의하지 않습니다.
+- 합의된 항목을 재논의하지 않습니다. 미합의 항목이 없는데 라운드를 연장하지 않습니다.
 - 데이터가 없는 해석을 "그럴듯하다"는 이유로 결론에 넣지 않습니다.
 - 아이데이션에서 멋있어 보이는 표현만 남기고 검증 계획 없이 끝내지 않습니다.
