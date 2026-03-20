@@ -17,36 +17,6 @@ OpenAI GPT와 Anthropic Claude 공식 가이드 기반. **범용 원칙 우선, 
 2. **Few-shot 예시** 추가 → [few-shot.md](references/few-shot.md)
 3. 필요 시 플랫폼 특화 기능 적용
 
-### 학습 경로
-
-```
-[기초 - 범용]
-few-shot → chain-of-thought → templates
-    ↓
-[플랫폼 이해]
-platform-differences → reasoning-params
-    ↓
-[고급 - 범용]
-security → self-correction → vision-prompting → context-engineering
-    ↓
-[모델 특화 - 선택]
-OpenAI: optimization
-Anthropic: prefilling, long-context
-```
-
-### 핵심 원칙
-
-```
-┌─────────────────────────────────────┐
-│  범용 원칙 (모든 LLM 공통)          │  ← 메인
-│  - Few-shot, CoT, XML 태그 등       │
-├─────────────────────────────────────┤
-│  모델별 팁 (선택적)                 │  ← 보조
-│  - "Claude에서는 Prefilling 활용"   │
-│  - "GPT-5에서는 reasoning_effort"   │
-└─────────────────────────────────────┘
-```
-
 ---
 
 ## TL;DR
@@ -66,29 +36,7 @@ Anthropic: prefilling, long-context
 
 ## 빠른 참조
 
-### 1. 프롬프트 구조 (공통)
-
-```yaml
-# Identity (정체성)
-목적, 역할, 고수준 목표
-
-# Instructions (지침)
-규칙, 스타일, 출력 형식, 제약
-
-# Examples (예시)
-Few-shot learning 예시 3-5개
-
-# Context (맥락)
-외부 데이터, 참조 정보
-```
-
-**왜 이 순서?**
-- Identity: 역할/목표 먼저 정의
-- Instructions: 행동 규칙
-- Examples: 기대 출력 명확화
-- Context: 마지막 (프롬프트 캐싱 최적화)
-
-### 2. 격식체 규칙 (한국어 특화)
+### 1. 격식체 규칙 (한국어 특화)
 
 ```yaml
 # Instructions
@@ -109,7 +57,7 @@ Few-shot learning 예시 3-5개
 ✅ "이것은 좋은 아이디어입니다"
 ```
 
-### 3. XML 태그
+### 2. XML 태그
 
 | 태그 | 용도 |
 |------|------|
@@ -119,69 +67,12 @@ Few-shot learning 예시 3-5개
 | `<constraints>` | 제약/금지 사항 |
 | `<examples>` | 예시 |
 
-### 4. 플랫폼별 특화 기능
+### 3. 플랫폼별 특화 기능
 
-#### OpenAI (GPT-5 / 5.4)
-
-**파라미터**:
-```python
-response = client.responses.create(
-    model="gpt-5",
-    reasoning={"effort": "high"},  # 추론 깊이
-    text={"verbosity": "low"},     # 응답 길이
-    instructions="...",
-    input="..."
-)
-```
-
-**GPT-5.4: phase + 계약 패턴**:
-```python
-# GPT-5.4: phase + 계약 패턴
-response = client.responses.create(
-    model="gpt-5.4",
-    reasoning={"effort": "none"},   # GPT-5.4 기본값
-    text={"verbosity": "low"},
-    instructions="""
-    <output_contract>
-    - Return exactly the sections requested, in the requested order.
-    - If a format is required (JSON, Markdown), output only that format.
-    </output_contract>
-    """,
-    input="..."
-)
-```
-
-#### Anthropic (Claude)
-
-**Prefilling** (JSON 강제):
-```python
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    messages=[
-        {"role": "user", "content": "Extract as JSON"},
-        {"role": "assistant", "content": "{"}  # Prefill
-    ]
-)
-```
-
-**Long Context** (문서 맨 위 배치 → 30%↑):
-```xml
-<documents>{{LONG_DOCS}}</documents>
-
-위 문서를 분석하세요.
-```
-
-### 5. 모순 제거
-
-```yaml
-# ❌ 나쁜 예 (모순)
-- 간결하게 답변하세요
-- 상세하게 설명하세요
-
-# ✅ 좋은 예 (명확)
-- 핵심을 1-2문단으로 간결하게 답변하세요
-- 필요한 경우에만 추가 설명을 제공하세요
-```
+| 플랫폼 | 핵심 기능 | 상세 가이드 |
+|--------|----------|------------|
+| OpenAI | Predicted Outputs, 구조화 출력 | `references/gpt5-params.md`, `references/gpt54-patterns.md` |
+| Anthropic | Prefilling, 긴 컨텍스트 최적화 | `references/prefilling.md`, `references/long-context.md` |
 
 ## 기본 템플릿
 
@@ -292,21 +183,6 @@ system_prompt: |
 - **[prefilling.md](references/prefilling.md)** ⭐ Prefilling (JSON/캐릭터 강제)
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
 - **[claude-4-specifics.md](references/claude-4-specifics.md)** ⭐ Claude 4.x 베스트 프랙티스
-
-## 프로젝트별 적용
-
-### 사용 중인 플랫폼 확인
-
-```
-프로젝트 코드 확인:
-- `import openai` 또는 `openai` 패키지? → OpenAI 섹션 적용
-- `import anthropic` 또는 `anthropic` 패키지? → Anthropic 섹션 적용
-- 둘 다? → 공통 섹션 + 각 API별 특화 기능
-```
-
-### 공통 기법 우선 적용
-
-플랫폼에 관계없이 **공통 기법**(XML 태그, Examples, 명확한 지시, 모순 제거)을 먼저 적용하고, 필요 시 **특화 기능** 추가.
 
 ## 참고 자료
 

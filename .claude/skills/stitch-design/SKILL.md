@@ -1,6 +1,6 @@
 ---
 name: stitch-design
-description: Google Stitch MCP를 활용한 AI UI 디자인 통합 스킬. 프롬프트 최적화(UI/UX 키워드, 분위기 설정), 디자인 시스템 합성(.stitch/DESIGN.md), Stitch MCP를 통한 고품질 스크린 생성/편집을 처리합니다. "Stitch에서 디자인해줘", "UI 만들어줘", "디자인 시스템 만들어줘", "DESIGN.md 생성해줘", "프롬프트 다듬어줘", "React로 변환해줘", "사이트 빌드 루프" 등의 요청에 트리거.
+description: Stitch MCP를 사용하여 AI로 UI 디자인을 생성하는 스킬. 프롬프트 최적화, 디자인 시스템 합성(.stitch/DESIGN.md), 스크린 생성/편집을 처리합니다. "Stitch로 디자인해줘", "Stitch 스크린 만들어줘", "디자인 시스템 만들어줘", "DESIGN.md 생성해줘", "Stitch 프롬프트 다듬어줘" 등의 요청에 트리거. 코드로 직접 UI를 구현하려면 frontend-design 스킬을 사용하세요.
 allowed-tools:
   - "stitch*:*"
   - "chrome*:*"

@@ -1,9 +1,10 @@
 ---
 name: code-simplifier
-description: 기능을 유지하면서 코드의 명확성, 일관성, 유지보수성을 개선합니다. 별도 지시가 없으면 최근 수정된 코드에 집중합니다. 코드 복잡도를 줄이거나 중복을 제거하려는 모든 상황에서 사용하세요. "코드 정리해줘", "코드 깔끔하게 해줘", "리팩토링해줘", "가독성 개선해줘", "코드 단순화해줘" 등의 요청에 트리거.
+description: 기능을 보존하면서 코드의 구조와 가독성을 개선합니다. 복잡도 감소, 중복 제거, 네이밍/구조 정리에 집중하며, 별도 지시가 없으면 최근 수정된 코드를 대상으로 합니다. "코드 정리해줘", "리팩토링해줘", "가독성 개선해줘", "코드 단순화해줘" 요청에 트리거. code-review(심층 품질 리포트)와 달리 코드를 직접 수정하는 스킬입니다.
 ---
 
-당신은 코드의 명확성, 일관성, 유지보수성을 향상시키는 코드 단순화 전문가입니다.
+# 코드 단순화 가이드
+
 코드의 동작은 절대 변경하지 않으며, 오직 구조와 가독성만 개선합니다.
 
 ---
@@ -22,182 +23,94 @@ description: 기능을 유지하면서 코드의 명확성, 일관성, 유지보
 
 ---
 
-## Python 코딩 표준
+## 단순화 판단 기준
 
-### 클래스 vs 함수
-```python
-# 상태(state)가 필요하면 → 클래스
-class HistoryManager:
-    def __init__(self, ttl: int = 3600):
-        self._sessions: dict[str, Session] = {}
-        self._ttl = ttl
+다음 복잡도 지표를 기반으로 단순화 대상을 판단합니다:
 
-# 상태가 없으면 → 함수
-def sanitize_text(text: str) -> str:
-    return text.strip().lower()
-```
+| 지표 | 임계값 | 조치 |
+|------|--------|------|
+| 중첩 깊이(Nesting Depth) | 3단계 이상 | early return, guard clause로 flatten |
+| 함수 길이 | 40줄 이상 | 하위 함수로 분리 |
+| 매개변수 수 | 5개 이상 | 옵션 객체/config 객체로 통합 |
+| 순환 복잡도(Cyclomatic Complexity) | 10 이상 | 분기 정리, 전략 패턴 검토 |
+| 중복 코드 | 3회 이상 반복 | 공통 함수/유틸로 추출 |
 
-### 타입 힌트
-- 모든 함수의 매개변수와 반환값에 타입 명시
-- 복잡한 타입은 `TypeAlias` 또는 `TypedDict` 활용
-```python
-# Good
-def fetch_events(region: str, limit: int = 10) -> list[Event]:
-    ...
+### 단순화하지 말아야 할 경우
 
-# Bad
-def fetch_events(region, limit=10):
-    ...
-```
-
-### Docstring (Google 스타일)
-```python
-def translate_text(text: str, target_lang: str) -> TranslateResult:
-    """텍스트를 지정된 언어로 번역합니다.
-
-    Args:
-        text: 번역할 원본 텍스트
-        target_lang: 목표 언어 코드 (예: 'en', 'ko', 'ja')
-
-    Returns:
-        번역 결과. 원본과 번역문 포함.
-
-    Raises:
-        ValueError: 지원하지 않는 언어 코드
-        APIError: LLM API 호출 실패
-    """
-```
-
-### Import 정렬
-```python
-# 1. 표준 라이브러리
-import asyncio
-from datetime import datetime
-
-# 2. 서드파티
-from fastapi import FastAPI, HTTPException
-from openai import AsyncOpenAI
-
-# 3. 로컬
-from app.services import HistoryManager
-from app.models import Session
-```
-
-### 에러 처리
-- 복구 가능한 에러만 try/except
-- 광범위한 `except Exception` 지양
-- 에러 메시지에 컨텍스트 포함
-```python
-# Good
-try:
-    response = await client.chat.completions.create(...)
-except openai.RateLimitError as e:
-    raise APIError(f"Rate limit 초과: {e}") from e
-
-# Bad
-try:
-    response = await client.chat.completions.create(...)
-except Exception:
-    pass
-```
+- **성능 크리티컬 최적화**: 의도적으로 최적화된 코드 (캐싱, 메모이제이션, 배치 처리 등)
+- **도메인 특화 알고리즘**: 수학/암호학/ML 등 도메인 전문가가 작성한 핵심 알고리즘
+- **외부 API 계약**: 외부 시스템과의 인터페이스 형태를 맞추기 위한 구조
+- **테스트 코드의 명시적 반복**: 테스트의 독립성을 위해 의도적으로 반복된 setup/assertion
 
 ---
 
-## TypeScript/React 코딩 표준
+## 작업 범위
 
-### 함수 선언
-- 최상위 함수는 `function` 키워드 사용
-- 콜백/인라인은 화살표 함수 허용
-```typescript
-// 최상위 함수
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('ko-KR');
-}
-
-// 콜백은 화살표 함수 OK
-const doubled = numbers.map((n) => n * 2);
-```
-
-### React 컴포넌트
-```typescript
-// Props 타입 명시적 정의
-interface EventCardProps {
-  event: Event;
-  onSelect: (id: string) => void;
-}
-
-// 함수 선언 + 명시적 반환 타입
-function EventCard({ event, onSelect }: EventCardProps): JSX.Element {
-  return (
-    <div onClick={() => onSelect(event.id)}>
-      {event.title}
-    </div>
-  );
-}
-```
-
-### Next.js (App Router)
-- 서버 컴포넌트 우선 (데이터 fetching, 정적 콘텐츠)
-- 상호작용 필요 시 `'use client'` 명시 (useState, onClick 등)
-- Tailwind CSS로 스타일링
+- **기본**: `git diff --name-only`로 최근 수정된 파일을 식별하여 해당 코드만 개선
+- **명시적 요청 시**: 사용자가 지정한 파일/디렉토리로 범위 확장
 
 ---
 
-## 코드 개선 체크리스트
+## 개선 프로세스
 
-### 구조
-- [ ] 불필요한 중첩 제거
-- [ ] 관련 로직 그룹화
-- [ ] 함수/클래스 단일 책임 원칙
+### 1단계: 대상 식별
+- `git diff --name-only` 또는 사용자가 지정한 파일 목록 확인
+- 변경된 함수/클래스 단위로 범위 특정
 
-### 가독성
-- [ ] 명확한 변수/함수 이름
-- [ ] 매직 넘버 → 상수로 추출
-- [ ] 복잡한 조건문 → 설명적 변수로 분리
-```python
-# Before
-if user.age >= 18 and user.verified and not user.banned:
-    ...
+### 2단계: 복잡도 진단
+- 위 판단 기준 지표를 기반으로 문제 파일/함수 식별
+- 각 문제에 해당하는 지표와 현재 값을 기록
 
-# After
-is_eligible = user.age >= 18 and user.verified and not user.banned
-if is_eligible:
-    ...
-```
+### 3단계: 개선 우선순위 결정
+1. **중복 제거** — 가장 높은 ROI, 유지보수 비용 직접 감소
+2. **과도한 중첩 해소** — 가독성에 즉각적 영향
+3. **네이밍 개선** — 코드 의도 명확화
+4. **구조 정리** — 함수 분리, 관심사 분리
 
-### 제거 대상
-- [ ] 죽은 코드 (사용되지 않는 변수, 함수)
-- [ ] 명백한 내용을 설명하는 주석
-- [ ] 중복 로직
+### 4단계: 변경 적용
+- **한 번에 하나의 개선만** 적용하여 변경 추적 용이하게 유지
+- 각 변경 후 기능 보존 여부 확인
+- 체크리스트:
+  - [ ] 불필요한 중첩 제거
+  - [ ] 관련 로직 그룹화
+  - [ ] 함수/클래스 단일 책임 원칙
+  - [ ] 명확한 변수/함수 이름
+  - [ ] 매직 넘버 → 상수로 추출
+  - [ ] 복잡한 조건문 → 설명적 변수로 분리
+  - [ ] 죽은 코드, 명백한 주석, 중복 로직 제거
+
+### 5단계: 변경 설명
+- 각 변경의 **이유를 구체적으로** 설명
+- 예시: "SRP를 지키고 테스트 용이성을 위해 분리. 기존 함수는 페칭+렌더링 혼재로 side effect 위험"
+- 단순히 "함수를 분리했습니다" 같은 설명 금지
 
 ---
 
 ## 과도한 단순화 방지
 
 다음은 피해야 합니다:
-- 이해하기 어려운 "영리한" 코드
-- 여러 관심사를 하나의 함수에 결합
-- 코드 구성을 개선하는 유용한 추상화 제거
-- 디버깅/확장을 어렵게 만드는 최적화
+
+- **"영리한" 코드**: 이해하기 어려운 원라이너, 과도한 함수 체이닝
+- **관심사 결합**: 여러 관심사를 하나의 함수에 병합
+- **유용한 추상화 제거**: 코드 구성을 개선하는 추상화까지 제거
+- **과도한 최적화**: 디버깅/확장을 어렵게 만드는 조기 최적화
+- **과도한 DRY**: 맥락이 다른 유사 코드를 억지로 통합 (2회 반복은 허용, 3회부터 추출 검토)
 
 ---
 
-## 작업 범위
+## 언어별 코딩 표준
 
-- 기본: 현재 세션에서 수정된 코드만 개선
-- 명시적 요청 시: 더 넓은 범위 검토 가능
+대상 언어에 맞는 표준 파일을 읽고 적용합니다:
 
----
-
-## 개선 프로세스
-
-1. 최근 수정된 코드 섹션 식별
-2. 우아함과 일관성 개선 기회 분석
-3. 프로젝트 코딩 표준 적용
-4. 모든 기능이 변경되지 않았는지 확인
-5. 개선된 코드가 더 단순하고 유지보수하기 쉬운지 검증
-6. 중요한 변경 사항만 문서화
+- **Python**: `references/python-standards.md`
+- **TypeScript/React**: `references/typescript-standards.md`
 
 ---
 
-목표는 완전한 기능을 보존하면서 모든 코드가 명확성과 유지보수성의 최고 수준을 충족하도록 보장하는 것입니다.
+## 출력 형식
+
+변경 사항을 다음 구조로 보고합니다:
+
+1. **진단 요약**: 발견된 복잡도 문제와 해당 지표
+2. **변경 내역**: 각 변경과 그 이유
+3. **영향 범위**: 변경이 미치는 파일/함수 목록

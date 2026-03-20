@@ -105,10 +105,10 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 | 스킬 | 용도 |
 |------|------|
-| `/frontend-design` | 프로덕션 수준 UI 제작 |
+| `/frontend-design` | 코드 기반 프로덕션 UI 제작 |
 | `/stitch-design` | Google Stitch MCP 기반 AI UI 디자인 (7개 서브스킬 포함) |
 | `/react-best-practices` | React/Next.js 성능 최적화 |
-| `/web-design-guidelines` | UI/UX 접근성 리뷰 |
+| `/web-design-guidelines` | 웹 인터페이스 가이드라인 준수 리뷰 |
 
 **백엔드/데이터**
 
