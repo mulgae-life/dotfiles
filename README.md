@@ -17,7 +17,7 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
   └── config.toml    Codex 모델, 커뮤니케이션 규칙 (복사)
   ↓
 사용자가 필요할 때 호출
-  └── skills/        /code-review, /writing-prompts 등 16개 전문 스킬
+  └── skills/        /code-review, /writing-prompts 등 17개 전문 스킬
 ```
 
 ## 📦 설치
@@ -90,7 +90,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | Notification | 알림 발생 시 | `notify-send`로 데스크톱 알림 |
 | SessionStart (compact) | 컨텍스트 압축 후 | 핵심 규칙 리마인더 재주입 |
 
-### ⚙️ Skills (16개) — `/skill-name`으로 호출
+### ⚙️ Skills (17개) — `/skill-name`으로 호출
 
 **코드 품질**
 
@@ -106,6 +106,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 스킬 | 용도 |
 |------|------|
 | `/frontend-design` | 프로덕션 수준 UI 제작 |
+| `/stitch-design` | Google Stitch MCP 기반 AI UI 디자인 (7개 서브스킬 포함) |
 | `/react-best-practices` | React/Next.js 성능 최적화 |
 | `/web-design-guidelines` | UI/UX 접근성 리뷰 |
 
@@ -150,8 +151,9 @@ dotfiles/
 │   ├── agents/                # 서브에이전트 (4개)
 │   ├── commands/              # 슬래시 커맨드
 │   ├── hooks/                 # 이벤트 훅
-│   ├── skills/                # 스킬 (16개)
+│   ├── skills/                # 스킬 (17개)
 │   └── settings.json          # 전역 설정
+├── .mcp.json                    # MCP 서버 설정 (gitignored, API 키 포함)
 ├── .codex/
 │   ├── AGENTS.md              # Codex 지침
 │   ├── config.toml            # Codex 설정 (모델, 커뮤니케이션 규칙)
@@ -163,10 +165,12 @@ dotfiles/
 ├── .agents/
 │   └── skills → ../.claude/skills
 └── reference/                 # 레퍼런스 자료
+    ├── Agent-Coding-Guide/    # 에이전트 코딩 가이드 (팀 교육용)
     ├── agent-teams-guide/
     ├── claude-prompt-guide/
     ├── langchain-langgraph-guide/
     ├── openai-api-guide/
     ├── openai-prompt-guide/
-    └── skills-guide/
+    ├── skills-guide/
+    └── stitch-guide/          # Google Stitch MCP 참조 문서
 ```
