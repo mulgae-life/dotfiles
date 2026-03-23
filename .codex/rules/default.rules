@@ -106,6 +106,12 @@ prefix_rule(
 
 # ── Git 쓰기 (비가역적/공유 영향) ──
 prefix_rule(
+    pattern = ["git", "rm"],
+    decision = "forbidden",
+    justification = "파일 삭제 차단 — git rm 경로"
+)
+
+prefix_rule(
     pattern = ["git", "push"],
     decision = "forbidden",
     justification = "원격 푸시 차단 — 수동으로 실행"

@@ -19,7 +19,7 @@ alwaysApply: true
 - **범위 준수**: 요청 범위 밖 리포맷/리네이밍/리팩토링 금지 (필요하면 먼저 합의)
 - **최소 Diff**: 불필요한 파일 이동/스타일 변경 금지
 - **경계 검증**: 외부 입력(HTTP/env/파일/DB/LLM 출력)은 초기에 validate/normalize (보안 검증은 `security.md` 참조)
-- **에러 처리**: 예외를 삼키지 않기. `except: pass` 금지, 타입별 catch + 로그 + 사용자 메시지 분리
+- **에러 처리**: 예외를 삼키지 않기. `except: pass` 금지, 타입별 catch + 로그 + 사용자 메시지 분리. **Fail-fast 원칙** — 동작해야 할 코드가 실패하면 에러를 표면화하여 제대로 고쳐야 한다. 폴백/기본값으로 에러를 흡수하면 근본 원인이 묻힌다
 - **리소스 수명주기**: HTTP client/DB pool/모델/토크나이저는 요청마다 생성 금지, 앱 수명주기로 관리
 - **설정 분리**: 하드코딩 대신 env/설정 파일. 안전한 기본값 + 명확한 실패 (시크릿 관리는 `security.md` 참조)
 
@@ -32,6 +32,7 @@ alwaysApply: true
 ## AVOID
 
 - **에러 뭉개기**: "그냥 500"으로 뭉개기 금지. 검증 실패(400)/권한(401)/외부 장애(502) 구분
+- **과도한 방어적 코딩**: `?? defaultValue`, `.catch(() => fallback)`, `try/catch → return default` 등으로 실패를 숨기는 패턴 금지. 값이 없거나 호출이 실패하면 그 자체가 버그 — 에러를 내야 원인을 추적하고 제대로 고칠 수 있다. 폴백은 최상위 에러 경계(global error handler, error boundary)에서만 최후 방어로 허용
 - **느슨한 계약**: dict/str 기반 지양. API/LLM 출력은 Pydantic/Zod 등 스키마 사용
 
 ## 언어별
