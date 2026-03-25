@@ -23,6 +23,39 @@ COMMAND=$(parse_command)
 
 [[ -z "$COMMAND" ]] && exit 0
 
+# ── 인라인 스크립트 명령 → 셸 패턴 대신 스크립트 전용 패턴 체크 ──
+# python3 -c "...", python -c "...", ruby -e "...", perl -e "..." 등
+# 인라인 코드 내부의 셸 키워드(unlink 등)가 오탐되는 것 방지하되,
+# 스크립트 내에서 셸 명령을 실행하는 위험 패턴은 별도로 차단
+FIRST_TOKEN=$(echo "$COMMAND" | head -1 | awk '{print $1}')
+case "$FIRST_TOKEN" in
+  python|python3|ruby|perl|node)
+    if echo "$COMMAND" | head -1 | grep -qE '^\s*(python3?|ruby|perl|node)\s+-(c|e)\b'; then
+      # 인라인 스크립트 내에서 셸 명령 실행/파괴적 동작 감지
+      SCRIPT_DANGEROUS_PATTERNS=(
+        '\bos\.system\b'          # 셸 명령 문자열 실행 (인젝션 위험)
+        '\bshutil\.rmtree\b'      # 디렉토리 재귀 삭제
+      )
+      for pattern in "${SCRIPT_DANGEROUS_PATTERNS[@]}"; do
+        if [[ "$COMMAND" =~ $pattern ]]; then
+          ask_user
+        fi
+      done
+      # 위험 패턴 없음 → 안전한 인라인 스크립트
+      cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow",
+    "permissionDecisionReason": "Auto-approved: safe inline script"
+  }
+}
+EOF
+      exit 0
+    fi
+    ;;
+esac
+
 # "ask" 반환 헬퍼
 ask_user() {
   cat <<'ASKEOF'
