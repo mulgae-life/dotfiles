@@ -23,6 +23,20 @@ COMMAND=$(parse_command)
 
 [[ -z "$COMMAND" ]] && exit 0
 
+# "ask" 반환 헬퍼
+ask_user() {
+  cat <<'ASKEOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "ask",
+    "permissionDecisionReason": "State-changing command detected"
+  }
+}
+ASKEOF
+  exit 0
+}
+
 # ── 인라인 스크립트 명령 → 셸 패턴 대신 스크립트 전용 패턴 체크 ──
 # python3 -c "...", python -c "...", ruby -e "...", perl -e "..." 등
 # 인라인 코드 내부의 셸 키워드(unlink 등)가 오탐되는 것 방지하되,
@@ -55,20 +69,6 @@ EOF
     fi
     ;;
 esac
-
-# "ask" 반환 헬퍼
-ask_user() {
-  cat <<'ASKEOF'
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "ask",
-    "permissionDecisionReason": "State-changing command detected"
-  }
-}
-ASKEOF
-  exit 0
-}
 
 # ── 위험 명령어 패턴 체크 ─────────────────────────────────
 # \b = 단어 경계 (GNU regex). "firmware"의 "rm" 등 오탐 방지
@@ -103,8 +103,12 @@ DANGEROUS_PATTERNS=(
   '\bdocker(-|\s+)compose\s+(down|rm)\b'
 )
 
+# 따옴표 내부 문자열 제거 (echo "reboot" 같은 오탐 방지)
+# 큰따옴표/작은따옴표 내용을 빈 문자열로 치환 후 패턴 매칭
+COMMAND_STRIPPED=$(echo "$COMMAND" | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g')
+
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
-  if [[ "$COMMAND" =~ $pattern ]]; then
+  if [[ "$COMMAND_STRIPPED" =~ $pattern ]]; then
     ask_user
   fi
 done
