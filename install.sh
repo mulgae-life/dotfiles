@@ -202,6 +202,8 @@ main() {
   fi
   # settings.json은 Claude Code가 런타임에 수정하므로 복사 (레포 보호)
   safe_copy "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
+  # statusline-command.sh: 런타임에 수정되지 않으므로 심볼릭 링크로 관리
+  safe_link "$DOTFILES_DIR/.claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
 
   # 2. .codex 설정 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.codex"
@@ -234,6 +236,7 @@ main() {
     "$HOME/.claude/rules"
     "$HOME/.claude/skills"
     "$HOME/.claude/hooks"
+    "$HOME/.claude/statusline-command.sh"
     "$HOME/.codex/AGENTS.md"
     "$HOME/.codex/rules"
     "$HOME/.agents/skills"

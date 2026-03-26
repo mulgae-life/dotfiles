@@ -240,5 +240,10 @@
       }
     ]
   },
-  "language": "한국어"
+  "autoDreamEnabled": true,
+  "language": "한국어",
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline-command.sh"
+  }
 }
