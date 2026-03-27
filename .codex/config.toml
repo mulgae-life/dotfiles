@@ -84,7 +84,6 @@ job_max_runtime_seconds = 1800  # 워커 타임아웃 (30분)
 status_line = [
   "current-dir",
   "model-with-reasoning",
-  "fast-mode",
   "context-remaining",
   "weekly-limit",
 ]
