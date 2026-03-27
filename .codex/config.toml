@@ -78,3 +78,13 @@ multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agent, send_in
 max_threads = 6             # 동시 에이전트 수
 max_depth = 1               # 에이전트 중첩 깊이
 job_max_runtime_seconds = 1800  # 워커 타임아웃 (30분)
+
+# ── 상태줄 설정 ──────────────────────────────
+[tui]
+status_line = [
+  "current-dir",
+  "model-with-reasoning",
+  "fast-mode",
+  "context-remaining",
+  "weekly-limit",
+]
