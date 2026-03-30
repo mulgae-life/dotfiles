@@ -1,7 +1,5 @@
 ---
-name: coding-style
 description: 코딩 스타일 규칙. 프로젝트 공통 품질 기준, 언어별 코딩 패턴을 정의합니다.
-alwaysApply: true
 ---
 
 # 코딩 스타일 규칙

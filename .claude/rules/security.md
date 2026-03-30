@@ -1,7 +1,5 @@
 ---
-name: security
 description: 보안 규칙. 시크릿 관리, 입력 검증, 취약점 방지에 대한 필수 규칙을 정의합니다.
-alwaysApply: true
 ---
 
 # 보안 규칙

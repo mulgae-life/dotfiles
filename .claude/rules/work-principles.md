@@ -1,7 +1,5 @@
 ---
-name: work-principles
 description: 작업 원칙. 모든 작업 유형(코딩, 분석, 리뷰, 문서 등)에 적용되는 태도와 접근법을 정의합니다.
-alwaysApply: true
 ---
 
 # 작업 원칙

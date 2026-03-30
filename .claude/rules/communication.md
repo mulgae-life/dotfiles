@@ -1,7 +1,5 @@
 ---
-name: communication
 description: 커뮤니케이션 규칙. 모든 응답의 언어, 설명 방식, 용어 사용 규칙을 정의합니다.
-alwaysApply: true
 ---
 
 # 커뮤니케이션 규칙

@@ -1,7 +1,5 @@
 ---
-name: context-management
 description: 컨텍스트 관리 규칙. 장기 세션 품질 유지, 파일시스템 활용, 메모리 계층을 정의합니다.
-alwaysApply: true
 ---
 
 # 컨텍스트 관리 규칙

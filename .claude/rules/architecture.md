@@ -1,7 +1,5 @@
 ---
-name: architecture
 description: 코드 구조 규칙. 파일 분리, 관심사 분리, 의존성 방향 등 코드를 어디에·어떻게 배치할지 정의합니다.
-alwaysApply: true
 ---
 
 # 코드 구조 규칙
