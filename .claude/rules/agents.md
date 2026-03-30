@@ -51,7 +51,7 @@ description: 에이전트 자동 위임 오케스트레이션 규칙. 언제 어
 | **task** | O | 수행할 작업 (1문장) |
 | **context_files** | O | 관련 파일 경로 목록 |
 | **constraints** | O | 제약 조건 (변경 범위, API 호환성 등) |
-| **acceptance_criteria** | O (verifier) | 사용자가 제시한 성공 기준. 리뷰 리포트·개선 계획·명세서 등 **원본 파일 경로**를 전달. 파일이 없으면 핵심 기준을 요약하여 전달 |
+| **acceptance_criteria** | verifier 필수 | 사용자가 제시한 성공 기준. 리뷰 리포트·개선 계획·명세서 등 **원본 파일 경로**를 전달. 파일이 없으면 핵심 기준을 요약하여 전달 |
 | **expected_output** | - | 기대 출력 형식 |
 | **scope_limit** | - | 변경 허용 범위 ("이 파일만" 등) |
 
