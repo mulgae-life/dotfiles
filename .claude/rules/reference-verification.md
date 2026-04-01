@@ -1,18 +1,21 @@
 # 레퍼런스 검증 규칙
 
-> 논문·기술 문서·공식 레퍼런스를 인용할 때 적용. 학습 데이터의 "느낌"으로 내용을 재구성하는 할루시네이션을 차단한다.
+> 학술 논문·연구 보고서·기술 사양서(RFC 등)를 인용할 때 적용. 학습 데이터의 "느낌"으로 내용을 재구성하는 할루시네이션을 차단한다.
+> 라이브러리/프레임워크 공식 문서(React docs, Python docs 등)는 이 규칙의 대상이 아니다 — 해당 문서는 필요 시 WebFetch로 최신 버전을 확인하면 충분하다.
 
 ## MUST
 
 - **원문 확인 없이 구체적 내용 언급 금지**: 논문의 방법론, 수치, 실험 결과, 결론을 말하려면 **반드시 원문을 먼저 읽어야** 한다. "아마 ~일 것이다", "~로 알고 있다" 식의 추측 답변 금지
 - **Abstract만으로 답변 금지**: Abstract는 검색·식별 용도일 뿐이다. 구체적 내용을 논하려면 해당 섹션(Methods, Results, Discussion 등)의 본문까지 읽어야 한다
+- **사용자 제공 자료 우선**: 사용자가 대화에서 파일 경로·URL·PDF를 직접 제공한 경우 해당 자료를 먼저 읽는다. 웹 검색은 그 이후에 보충용으로 사용
 - **전문(Full text) 확보에 모든 수단 동원**: 아래 순서로 시도하고, 하나가 막히면 다음으로 넘어간다:
-  1. **WebSearch**로 논문 제목 + "pdf" / "full text" 검색
-  2. **arXiv** (arxiv.org/abs/ID → arxiv.org/pdf/ID) — 프리프린트 직접 접근
-  3. **Semantic Scholar API** (api.semanticscholar.org) — 메타데이터 + Open Access PDF 링크
-  4. **PubMed Central** (ncbi.nlm.nih.gov/pmc/) — 오픈 액세스 전문
-  5. **저자 홈페이지 / 기관 레포지토리** — WebSearch로 "저자명 + 논문 제목 + pdf" 검색
-  6. **WebFetch**로 HTML 버전 페이지 직접 읽기 (ACL Anthology, OpenReview 등)
+  1. **사용자 제공 자료** — 대화에서 공유된 파일 경로(Read) 또는 URL(WebFetch)
+  2. **ar5iv** (ar5iv.labs.arxiv.org/html/ID) — arXiv 논문의 **HTML 변환 버전**. WebFetch로 본문 읽기 가능. `arxiv.org/pdf/`는 바이너리 PDF라 읽을 수 없으므로 반드시 ar5iv 사용
+  3. **WebSearch**로 논문 제목 + "full text" / "html" 검색
+  4. **Semantic Scholar API** (api.semanticscholar.org) — 메타데이터 + Open Access PDF 링크
+  5. **PubMed Central** (ncbi.nlm.nih.gov/pmc/) — 오픈 액세스 전문 (HTML)
+  6. **저자 홈페이지 / 기관 레포지토리** — WebSearch로 "저자명 + 논문 제목" 검색
+  7. **HTML 버전 페이지** — ACL Anthology, OpenReview, NBER 등에서 WebFetch로 직접 읽기
 - **접근 실패 시 솔직하게 고백**: 모든 수단을 시도해도 전문을 확보하지 못하면:
   - 어디까지 읽었는지 명시 (예: "Abstract와 Introduction만 확인")
   - 확인된 내용과 미확인 내용을 명확히 구분
@@ -22,8 +25,8 @@
 
 ```
 1. 사용자가 논문/레퍼런스 관련 질문
-2. WebSearch로 논문 검색 → 전문 접근 가능한 링크 확보
-3. WebFetch로 전문 읽기 (PDF 링크, HTML 페이지 등)
+2. 사용자가 파일/URL을 제공했으면 해당 자료부터 읽기
+3. 없으면 WebSearch → ar5iv/HTML 버전 확보 → WebFetch로 본문 읽기
 4. 해당 섹션을 실제로 읽은 후에만 구체적 내용 답변
 5. 답변 시 출처 섹션 명시 (예: "Section 3.2의 실험 결과에 따르면…")
 ```
