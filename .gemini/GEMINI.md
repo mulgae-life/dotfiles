@@ -22,6 +22,7 @@ Antigravity는 `.claude/rules/*.md`를 자동 로드하지 않는다.
 | `~/.claude/rules/coding-style.md` | 범위 준수, 최소 diff, 에러 처리, 리소스 수명주기, 언어별 패턴 |
 | `~/.claude/rules/security.md` | 시크릿 관리, 입력 검증, SQL 인젝션/XSS/CSRF 방지 |
 | `~/.claude/rules/agents.md` | 에이전트 위임 트리거, 우선순위, 체이닝 절차 |
+| `~/.claude/rules/reference-verification.md` | 논문/레퍼런스 인용 시 원문 검증 의무화 |
 
 > 아래는 파일 접근 불가 시 최소 기준선이다.
 

@@ -10,7 +10,7 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
 설치 (심볼릭 링크 + 일부 복사)
   ↓
 세션 시작 시 자동 로드
-  ├── rules/         7개 규칙이 항상 적용 (코딩 스타일, 보안, 한국어 응답 등)
+  ├── rules/         8개 규칙이 항상 적용 (코딩 스타일, 보안, 한국어 응답 등)
   ├── agents/        조건 충족 시 서브에이전트가 자동 위임 (빌드 에러, 보안 등)
   ├── hooks/         Bash 명령어 자동 승인, 알림, compact 리마인더
   ├── settings.json  권한, 언어, 모델 등 전역 설정 (복사)
@@ -61,7 +61,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 ## 🧩 구성요소
 
-### 📏 Rules (7개) — 매 세션 자동 적용
+### 📏 Rules (8개) — 매 세션 자동 적용
 
 | 파일 | 역할 |
 |------|------|
@@ -72,6 +72,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `context-management.md` | 컨텍스트 절약, 스크래치패드, 메모리 계층 |
 | `work-principles.md` | 작업 원칙 (정확성 우선, 리소스 제약 추측 금지 등) |
 | `agents.md` | 에이전트 자동 위임 조건과 우선순위 |
+| `reference-verification.md` | 논문/레퍼런스 인용 시 원문 검증 의무화 |
 
 ### 🤖 Agents (4개) — 조건 충족 시 자동 위임
 
@@ -147,7 +148,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 dotfiles/
 ├── .claude/
 │   ├── CLAUDE.md              # 전역 진입점
-│   ├── rules/                 # 규칙 (7개)
+│   ├── rules/                 # 규칙 (8개)
 │   ├── agents/                # 서브에이전트 (4개)
 │   ├── commands/              # 슬래시 커맨드
 │   ├── hooks/                 # 이벤트 훅
