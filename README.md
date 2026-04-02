@@ -91,14 +91,15 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | Notification | 알림 발생 시 | `notify-send`로 데스크톱 알림 |
 | SessionStart (compact) | 컨텍스트 압축 후 | 핵심 규칙 리마인더 재주입 |
 
-### ⚙️ Skills (17개) — `/skill-name`으로 호출
+### ⚙️ Skills (18개) — `/skill-name`으로 호출
 
 **코드 품질**
 
 | 스킬 | 용도 |
 |------|------|
 | `/code-review` | 심각도 등급별 심층 코드 리뷰 |
-| `/code-verify` | 작업 후 빠른 점검 (코드/문서/리포트) |
+| `/work-verify` | 작업 후 빠른 점검 (코드/문서/리포트) |
+| `/work-plan` | Phase별 코드 예시 포함 심층 작업 계획서 |
 | `/code-simplifier` | 코드 명확성/유지보수성 개선 |
 | `/feedback-analysis` | 사용자 피드백 분석 및 우선순위 정리 |
 

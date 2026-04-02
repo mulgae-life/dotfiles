@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: 작업 완료 후 자동으로 점검하는 에이전트. code-verify 스킬의 절차를 따릅니다. 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
+description: 작업 완료 후 자동으로 점검하는 에이전트. work-verify 스킬의 절차를 따릅니다. 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
 tools:
   - Read
   - Glob
@@ -16,9 +16,9 @@ model: opus
 
 ## 핵심 지침
 
-**`code-verify` 스킬의 점검 절차를 따르세요.**
+**`work-verify` 스킬의 점검 절차를 따르세요.**
 
-스킬 위치: `.claude/skills/code-verify/SKILL.md`
+스킬 위치: `.claude/skills/work-verify/SKILL.md`
 
 ## 자동 위임 조건
 
@@ -35,7 +35,7 @@ model: opus
 ### 점검 방식
 1. 전달받은 **원본 파일을 읽고** 요구사항/개선 항목을 목록화
 2. 각 항목을 실제 코드 변경과 **1:1 대조**하여 PASS/FAIL 판정
-3. 일반 체크리스트(code-verify)는 기준 대조 **이후** 보조로 실행
+3. 일반 체크리스트(work-verify)는 기준 대조 **이후** 보조로 실행
 
 ### 판정 규칙
 
@@ -59,9 +59,9 @@ model: opus
 
 메인 에이전트는 FAIL 피드백을 받으면 해당 항목을 수정 후 verifier를 재실행한다.
 
-## vs code-verify 스킬
+## vs work-verify 스킬
 
-| verifier (에이전트) | /code-verify (스킬) |
+| verifier (에이전트) | /work-verify (스킬) |
 |---------------------|---------------------|
 | 자동 위임 | 수동 호출 |
 | 별도 컨텍스트에서 실행 | 현재 대화에서 실행 |
