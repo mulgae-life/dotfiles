@@ -3,10 +3,13 @@ name: security-reviewer
 description: 보안 취약점을 탐지하고 해결하는 전문가. 인증/인가 코드, API 엔드포인트, 시크릿 처리 등 보안 민감 코드 작성 시 자동으로 위임됩니다. OWASP Top 10 기반으로 분석합니다.
 tools:
   - Read
+  - Edit
   - Glob
   - Grep
   - Bash
-model: opus
+model: sonnet
+effort: high
+memory: project
 ---
 
 # Security Reviewer Agent

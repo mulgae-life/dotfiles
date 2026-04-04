@@ -153,7 +153,7 @@ dotfiles/
 │   ├── agents/                # 서브에이전트 (4개)
 │   ├── commands/              # 슬래시 커맨드
 │   ├── hooks/                 # 이벤트 훅
-│   ├── skills/                # 스킬 (17개)
+│   ├── skills/                # 스킬 (18개)
 │   └── settings.json          # 전역 설정
 ├── .mcp.json                    # MCP 서버 설정 (gitignored, API 키 포함)
 ├── .codex/

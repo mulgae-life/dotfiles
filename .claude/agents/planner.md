@@ -6,7 +6,9 @@ tools:
   - Glob
   - Grep
   - WebFetch
+  - WebSearch
 model: opus
+effort: high
 ---
 
 # Planner Agent

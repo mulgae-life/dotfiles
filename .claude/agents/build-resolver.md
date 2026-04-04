@@ -7,7 +7,8 @@ tools:
   - Bash
   - Grep
   - Glob
-model: opus
+model: sonnet
+effort: high
 ---
 
 # Build Resolver Agent

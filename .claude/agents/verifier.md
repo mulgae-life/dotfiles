@@ -3,10 +3,13 @@ name: verifier
 description: 작업 완료 후 자동으로 점검하는 에이전트. work-verify 스킬의 절차를 따릅니다. 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
 tools:
   - Read
+  - Edit
   - Glob
   - Grep
   - Bash
-model: opus
+model: sonnet
+effort: high
+memory: project
 ---
 
 # Verifier Agent

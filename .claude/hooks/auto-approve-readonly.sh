@@ -75,7 +75,7 @@ esac
 # 파이프(|)는 허용 — 위험한 건 파이프 뒤 명령어에서 잡힘
 DANGEROUS_PATTERNS=(
   # ── 파일 삭제/파괴 (비가역적) ──
-  '\brm\b'        '\brmdir\b'     '\bunlink\b'    '\bshred\b'
+  '\brm\b'        '\bunlink\b'    '\bshred\b'
   '\btruncate\b'
 
   # ── 시스템 (위험) ──
