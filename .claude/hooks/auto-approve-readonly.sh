@@ -82,7 +82,9 @@ DANGEROUS_PATTERNS=(
   '\breboot\b'    '\bshutdown\b'  '\bpoweroff\b'  '\bhalt\b'
 
   # ── 디스크 (비가역적) ──
-  '\bdd\b'        '\bmkfs\b'      '\bfdisk\b'     '\bparted\b'
+  # dd는 실제 옵션(if=, of= 등)이 있을 때만 매칭 — 파이썬 변수명 dd 오탐 방지
+  '\bdd\s+(if|of|bs|count|status|conv|iflag|oflag|ibs|obs|seek|skip)='
+  '\bmkfs\b'      '\bfdisk\b'     '\bparted\b'
 
   # ── Git 쓰기 (비가역적/공유 영향) ──
   # (\S+\s+)* 로 글로벌 옵션(-c, --no-pager, -C path 등) 우회 방지
