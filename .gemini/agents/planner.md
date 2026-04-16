@@ -5,8 +5,6 @@ tools:
   - read_file
   - glob
   - grep_search
-  - web_search
-  - web_fetch
 model: gemini-3.1-pro-preview
 temperature: 0.3
 max_turns: 20

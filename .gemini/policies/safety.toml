@@ -16,10 +16,10 @@ allowRedirection = false
 denyMessage = "파일 삭제 명령은 사용자 승인이 필요합니다"
 
 # Git 쓰기 (push, commit, reset 등)
-# (\S+\s+)* 로 글로벌 옵션(-c, --no-pager, -C path 등) 우회 방지
+# .*\b 로 글로벌 옵션(-c, --no-pager, -C path 등) 우회 방지
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^git\\s+(\\S+\\s+)*(push|commit|reset|clean|rebase|merge|cherry-pick|revert|am|apply)\\b"
+commandRegex = "^git\\s+.*\\b(push|commit|reset|clean|rebase|merge|cherry-pick|revert|am|apply)\\b"
 decision = "ask_user"
 priority = 900
 denyMessage = "Git 쓰기 명령은 사용자 승인이 필요합니다"
@@ -27,7 +27,7 @@ denyMessage = "Git 쓰기 명령은 사용자 승인이 필요합니다"
 # Git 파괴 (branch 삭제, stash 삭제, tag 삭제/강제)
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^git\\s+(\\S+\\s+)*(branch\\s+-[dD]|stash\\s+(drop|clear)|tag\\s+(-[df]|--delete))\\b"
+commandRegex = "^git\\s+.*\\b(branch\\s+-[dD]|stash\\s+(drop|clear)|tag\\s+(-[df]|--delete))\\b"
 decision = "ask_user"
 priority = 910
 denyMessage = "Git 파괴 명령은 사용자 승인이 필요합니다"

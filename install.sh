@@ -229,8 +229,7 @@ main() {
   fi
   # settings.json은 Gemini CLI가 런타임에 수정할 수 있으므로 복사 (레포 보호)
   safe_copy "$DOTFILES_DIR/.gemini/settings.json" "$HOME/.gemini/settings.json"
-  # 스킬 공유: .claude/skills 재사용
-  safe_link "$HOME/.claude/skills" "$HOME/.gemini/skills"
+  # 스킬 공유: .agents/skills 경로에서 이미 공유됨 (중복 링크 시 conflict 발생)
   # Antigravity 전용: global_workflows
   safe_mkdir "$HOME/.gemini/antigravity"
   safe_link "$DOTFILES_DIR/.gemini/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
@@ -258,7 +257,6 @@ main() {
     "$HOME/.gemini/commands"
     "$HOME/.gemini/policies"
     "$HOME/.gemini/hooks"
-    "$HOME/.gemini/skills"
     "$HOME/.gemini/antigravity/global_workflows"
   )
 
