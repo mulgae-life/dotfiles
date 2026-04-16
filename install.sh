@@ -99,6 +99,57 @@ safe_copy() {
   ok "[COPY]   $dst ← $src"
 }
 
+# ── safe_merge_json ──────────────────────
+# JSON 설정 파일을 deep merge한다.
+# 도구가 런타임에 추가한 필드(인증 등)를 보존하면서 레포 설정을 반영.
+#   - 없음          → 레포 버전 복사 [COPY]
+#   - 있음 + jq     → deep merge (레포 우선, 기존 필드 보존) [MERGE]
+#   - 있음 + jq 없음 → safe_copy 폴백 [COPY]
+
+safe_merge_json() {
+  local src="$1" dst="$2"
+
+  # 기존 심볼릭 링크가 있으면 제거
+  if [ -L "$dst" ]; then
+    $DRY_RUN || rm "$dst"
+  fi
+
+  # 대상 파일이 없으면 단순 복사
+  if [ ! -f "$dst" ]; then
+    if $DRY_RUN; then
+      info "[COPY]   $dst ← $src (dry-run)"
+      return
+    fi
+    cp "$src" "$dst"
+    ok "[COPY]   $dst ← $src"
+    return
+  fi
+
+  # jq로 deep merge: 기존(.[0])에 레포(.[1])를 덮어쓰기 → 기존 전용 필드 보존
+  if command -v jq &>/dev/null; then
+    local tmp="${dst}.tmp.$$"
+    if jq -s '.[0] * .[1]' "$dst" "$src" > "$tmp" 2>/dev/null; then
+      if diff -q "$tmp" "$dst" &>/dev/null; then
+        rm "$tmp"
+        ok "[SKIP]   $dst (동일)"
+        return
+      fi
+      if $DRY_RUN; then
+        rm "$tmp"
+        info "[MERGE]  $dst ← $src (dry-run)"
+        return
+      fi
+      mv "$tmp" "$dst"
+      ok "[MERGE]  $dst ← $src (런타임 필드 보존)"
+      return
+    fi
+    rm -f "$tmp"
+  fi
+
+  # jq 실패 시 폴백
+  safe_copy "$src" "$dst"
+}
+
 # ── safe_mkdir ──────────────────────────────
 
 safe_mkdir() {
@@ -200,8 +251,8 @@ main() {
   if [ -d "$DOTFILES_DIR/.claude/hooks" ] && ! $DRY_RUN; then
     chmod +x "$DOTFILES_DIR/.claude/hooks"/*.sh 2>/dev/null || true
   fi
-  # settings.json은 Claude Code가 런타임에 수정하므로 복사 (레포 보호)
-  safe_copy "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
+  # settings.json은 Claude Code가 런타임에 수정하므로 merge (레포 보호 + 런타임 필드 보존)
+  safe_merge_json "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
   # statusline-command.sh: 런타임에 수정되지 않으므로 심볼릭 링크로 관리
   safe_link "$DOTFILES_DIR/.claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
 
@@ -227,9 +278,11 @@ main() {
   if [ -d "$DOTFILES_DIR/.gemini/hooks" ] && ! $DRY_RUN; then
     chmod +x "$DOTFILES_DIR/.gemini/hooks"/*.sh 2>/dev/null || true
   fi
-  # settings.json은 Gemini CLI가 런타임에 수정할 수 있으므로 복사 (레포 보호)
-  safe_copy "$DOTFILES_DIR/.gemini/settings.json" "$HOME/.gemini/settings.json"
-  # 스킬 공유: .agents/skills 경로에서 이미 공유됨 (중복 링크 시 conflict 발생)
+  # settings.json은 Gemini CLI가 런타임에 수정할 수 있으므로 merge (레포 보호 + 런타임 필드 보존)
+  safe_merge_json "$DOTFILES_DIR/.gemini/settings.json" "$HOME/.gemini/settings.json"
+  # 이전 설치의 중복 스킬 링크 정리 (conflict 방지)
+  [ -L "$HOME/.gemini/skills" ] && rm "$HOME/.gemini/skills" && warn "[CLEAN]  $HOME/.gemini/skills (중복 제거)"
+  # 스킬 공유: .agents/skills 경로에서 이미 공유됨
   # Antigravity 전용: global_workflows
   safe_mkdir "$HOME/.gemini/antigravity"
   safe_link "$DOTFILES_DIR/.gemini/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
