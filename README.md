@@ -1,6 +1,6 @@
 # 🛠 dotfiles
 
-AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-code) / Codex / Antigravity)의 전역 설정을 관리하는 레포.
+AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-code) / [Codex](https://github.com/openai/codex) / [Gemini CLI](https://github.com/google-gemini/gemini-cli))의 전역 설정을 관리하는 레포.
 
 한 번 설치하면 어떤 프로젝트에서든 동일한 **규칙 · 에이전트 · 스킬 · 훅**이 자동 적용된다.
 
@@ -34,6 +34,19 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 ```
 
 설치 스크립트는 `~/dotfiles/` → `~/` 로 심볼릭 링크를 생성한다. 단, 도구가 런타임에 수정하는 파일(`settings.json`, `config.toml`)은 복사로 설치하여 레포 원본을 보호한다. 런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
+
+### 도구별 설정 구조
+
+| | Claude Code | Codex | Gemini CLI |
+|---|---|---|---|
+| **지시 파일** | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `GEMINI.md` (인라인) |
+| **설정** | `settings.json` (복사) | `config.toml` (복사) | `settings.json` (복사) |
+| **권한** | hooks + permissions | `approval_policy` + `rules/` | `policies/*.toml` (Policy Engine) |
+| **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) |
+| **훅** | `PreToolUse`, `Notification` | 없음 | `BeforeTool`, `Notification` 등 11종 |
+| **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` |
+| **기본 모델** | Claude Opus | GPT-5.4 | Gemini 3.1 Pro |
+| **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
 
@@ -162,8 +175,13 @@ dotfiles/
 │   ├── rules/                 # 실행 정책 (위험 명령어 차단)
 │   └── skills → ../.claude/skills
 ├── .gemini/
-│   ├── GEMINI.md              # Antigravity 지침
-│   └── global_workflows/
+│   ├── GEMINI.md              # Gemini CLI 지침 (전역)
+│   ├── settings.json          # Gemini CLI 설정 (모델, 훅)
+│   ├── agents/                # 서브에이전트 (4개)
+│   ├── commands/              # 커스텀 슬래시 명령
+│   ├── hooks/                 # 이벤트 훅 (알림)
+│   ├── policies/              # 안전 정책 (명령 허용/차단)
+│   └── skills → ../.claude/skills
 ├── .agents/
 │   └── skills → ../.claude/skills
 └── reference/                 # 레퍼런스 자료

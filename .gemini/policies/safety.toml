@@ -1,0 +1,228 @@
+# ─────────────────────────────────────────────
+# Gemini CLI 전역 안전 정책
+# Claude Code의 auto-approve-readonly.sh + permissions에 대응
+# ─────────────────────────────────────────────
+
+# ── 위험 명령 차단 (ask_user) ────────────────
+# 사용자가 직접 요청할 때만 승인
+
+# 파일 삭제
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(rm|rmdir|unlink|shred|truncate)\\b"
+decision = "ask_user"
+priority = 900
+allowRedirection = false
+denyMessage = "파일 삭제 명령은 사용자 승인이 필요합니다"
+
+# Git 쓰기 (push, commit, reset 등)
+# (\S+\s+)* 로 글로벌 옵션(-c, --no-pager, -C path 등) 우회 방지
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git\\s+(\\S+\\s+)*(push|commit|reset|clean|rebase|merge|cherry-pick|revert|am|apply)\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "Git 쓰기 명령은 사용자 승인이 필요합니다"
+
+# Git 파괴 (branch 삭제, stash 삭제, tag 삭제/강제)
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git\\s+(\\S+\\s+)*(branch\\s+-[dD]|stash\\s+(drop|clear)|tag\\s+(-[df]|--delete))\\b"
+decision = "ask_user"
+priority = 910
+denyMessage = "Git 파괴 명령은 사용자 승인이 필요합니다"
+
+# GitHub CLI 쓰기
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^gh\\s+(pr|issue|release)\\s+(create|close|delete|merge|edit|comment)\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "GitHub CLI 쓰기 명령은 사용자 승인이 필요합니다"
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^gh\\s+api\\s+.*(-X|-f|-F)\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "GitHub API 쓰기 명령은 사용자 승인이 필요합니다"
+
+# GitHub CLI 인증 변경
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^gh\\s+auth\\s+(login|logout)\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "GitHub 인증 변경은 사용자 승인이 필요합니다"
+
+# 시스템 명령
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(reboot|shutdown|poweroff|halt|dd|mkfs|fdisk|parted)\\b"
+decision = "deny"
+priority = 999
+denyMessage = "시스템 파괴 명령은 사용할 수 없습니다"
+
+# sudo
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "sudo"
+decision = "deny"
+priority = 999
+denyMessage = "sudo는 비밀번호 프롬프트로 작업이 중단되므로 사용 불가"
+
+# Docker 삭제
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^docker\\s+(rm|rmi)\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "Docker 삭제 명령은 사용자 승인이 필요합니다"
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^docker[- ]compose\\s+(down|rm)\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "Docker Compose 삭제 명령은 사용자 승인이 필요합니다"
+
+# ── 안전한 읽기 명령 자동 승인 ───────────────
+
+# Git 읽기
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git\\s+(status|diff|log|show|blame|fetch|branch|tag|remote|rev-parse|ls-files|shortlog|describe|config\\s+--get)\\b"
+decision = "allow"
+priority = 500
+
+# 파일 시스템 읽기
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(ls|pwd|cat|head|tail|wc|file|stat|readlink|realpath|tree|basename|dirname|find|du|df)\\b"
+decision = "allow"
+priority = 500
+
+# 시스템 정보
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(ps|free|uname|hostname|uptime|whoami|id|date|nproc|lscpu|lsblk|mount|env|printenv|which|locale|getent|groups)\\b"
+decision = "allow"
+priority = 500
+
+# 네트워크 진단
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(ping|dig|nslookup|ss|netstat|lsof|curl|wget)\\b"
+decision = "allow"
+priority = 500
+
+# 텍스트 처리
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(grep|rg|sed|awk|tr|sort|uniq|cut|diff|jq|yq|xargs|printf|echo|tee)\\b"
+decision = "allow"
+priority = 500
+
+# 파일 관리 (비파괴)
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(cp|mv|mkdir|touch|ln|chmod|chown)\\b"
+decision = "allow"
+priority = 400
+
+# 아카이브
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(tar|zip|unzip|gzip|gunzip)\\b"
+decision = "allow"
+priority = 400
+
+# 빌드/테스트/패키지 매니저
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(npm|npx|pnpm|yarn|pip|pip3|uv|cargo|go|make|cmake|tsc|eslint|prettier|pytest|jest|vitest)\\b"
+decision = "allow"
+priority = 500
+
+# 런타임
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(node|python|python3|ruby|bash|sh)\\b"
+decision = "allow"
+priority = 400
+
+# 프로세스 관리
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(kill|pkill)\\b"
+decision = "allow"
+priority = 300
+
+# 환경 관리
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(source|export|nvm|pyenv)\\b"
+decision = "allow"
+priority = 400
+
+# GitHub CLI 읽기
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^gh\\s+(pr|issue|release|repo)\\s+(list|view|status|checks|diff)\\b"
+decision = "allow"
+priority = 500
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = "gh api "
+decision = "allow"
+priority = 400
+
+# Docker 읽기
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^docker\\s+(ps|images|logs|inspect|info|version|stats|network\\s+ls|volume\\s+ls)\\b"
+decision = "allow"
+priority = 500
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^docker[- ]compose\\s+(ps|logs)\\b"
+decision = "allow"
+priority = 500
+
+# 패키지 정보 조회
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(npm\\s+(list|info|--version)|pip3?\\s+(list|show|--version)|dpkg\\s+-l|apt\\s+list)\\b"
+decision = "allow"
+priority = 500
+
+# systemd/로그 읽기
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(systemctl\\s+status|journalctl|dmesg|crontab\\s+-l)\\b"
+decision = "allow"
+priority = 500
+
+# 해시/체크섬
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(sha256sum|md5sum)\\b"
+decision = "allow"
+priority = 500
+
+# Git 스테이징 (add, checkout, switch, stash)
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git\\s+(add|checkout|switch|stash)\\b"
+decision = "allow"
+priority = 400
+
+# ── 기타 도구 자동 승인 ──────────────────────
+
+# 파일 읽기/검색 도구
+[[rule]]
+toolName = ["read_file", "glob", "grep_search"]
+decision = "allow"
+priority = 500

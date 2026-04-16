@@ -219,6 +219,19 @@ main() {
   # 4. .gemini 전역 설정 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.gemini"
   safe_link "$DOTFILES_DIR/.gemini/GEMINI.md" "$HOME/.gemini/GEMINI.md"
+  safe_link "$DOTFILES_DIR/.gemini/agents"    "$HOME/.gemini/agents"
+  safe_link "$DOTFILES_DIR/.gemini/commands"  "$HOME/.gemini/commands"
+  safe_link "$DOTFILES_DIR/.gemini/policies"  "$HOME/.gemini/policies"
+  safe_link "$DOTFILES_DIR/.gemini/hooks"     "$HOME/.gemini/hooks"
+  # 훅 스크립트 실행 권한 보장
+  if [ -d "$DOTFILES_DIR/.gemini/hooks" ] && ! $DRY_RUN; then
+    chmod +x "$DOTFILES_DIR/.gemini/hooks"/*.sh 2>/dev/null || true
+  fi
+  # settings.json은 Gemini CLI가 런타임에 수정할 수 있으므로 복사 (레포 보호)
+  safe_copy "$DOTFILES_DIR/.gemini/settings.json" "$HOME/.gemini/settings.json"
+  # 스킬 공유: .claude/skills 재사용
+  safe_link "$HOME/.claude/skills" "$HOME/.gemini/skills"
+  # Antigravity 전용: global_workflows
   safe_mkdir "$HOME/.gemini/antigravity"
   safe_link "$DOTFILES_DIR/.gemini/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
 
@@ -241,6 +254,11 @@ main() {
     "$HOME/.codex/rules"
     "$HOME/.agents/skills"
     "$HOME/.gemini/GEMINI.md"
+    "$HOME/.gemini/agents"
+    "$HOME/.gemini/commands"
+    "$HOME/.gemini/policies"
+    "$HOME/.gemini/hooks"
+    "$HOME/.gemini/skills"
     "$HOME/.gemini/antigravity/global_workflows"
   )
 
@@ -248,6 +266,7 @@ main() {
   local copy_targets=(
     "$HOME/.claude/settings.json"
     "$HOME/.codex/config.toml"
+    "$HOME/.gemini/settings.json"
   )
 
   for target in "${link_targets[@]}"; do

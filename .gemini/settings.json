@@ -1,0 +1,38 @@
+{
+  "model": {
+    "name": "gemini-3.1-pro-preview",
+    "compressionThreshold": 0.5
+  },
+  "context": {
+    "includeDirectoryTree": true,
+    "discoveryMaxDirs": 200
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "desktop-notify",
+            "type": "command",
+            "command": "$HOME/.gemini/hooks/notify.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PreCompress": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "name": "compact-reminder",
+            "type": "command",
+            "command": "cat > /dev/null; echo '{\"message\": \"리마인더: 한국어 응답 유지. 변경 이유 설명 필수. 현재 작업 상태를 먼저 확인하세요.\"}'",
+            "timeout": 3000
+          }
+        ]
+      }
+    ]
+  }
+}
