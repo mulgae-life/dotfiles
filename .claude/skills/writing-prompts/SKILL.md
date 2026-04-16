@@ -1,6 +1,7 @@
 ---
 name: writing-prompts
-description: GPT/Claude 프롬프트 파일 생성 및 개선. OpenAI + Anthropic 공식 가이드 기반. 시스템 프롬프트 작성, 격식체 톤 가이드라인 적용, 플랫폼별 특화 기능 자동 적용. "프롬프트 작성해줘", "톤 가이드 적용해줘", "시스템 프롬프트 만들어줘", "AI 응답 품질 개선해줘" 등의 요청에 트리거. LLM 프롬프트를 작성하거나, 챗봇 성격을 설정하거나, AI 응답 품질을 개선하려는 모든 상황에서 이 스킬을 사용하세요. API 연동 코드는 llm-api-guide 스킬을 사용하세요.
+description: GPT/Claude 프롬프트 파일 생성 및 개선. OpenAI + Anthropic 공식 가이드 기반. API 연동 코드는 llm-api-guide 스킬 사용.
+when_to_use: "프롬프트 작성해줘, 톤 가이드 적용해줘, 시스템 프롬프트 만들어줘, AI 응답 품질 개선해줘 요청 시. LLM 프롬프트 작성, 챗봇 성격 설정, AI 응답 품질 개선이 필요한 모든 상황에서 사용."
 ---
 
 # 프롬프트 작성 가이드 (OpenAI + Anthropic 통합)

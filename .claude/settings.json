@@ -239,13 +239,25 @@
         ]
       }
     ],
-    "SessionStart": [
+    "PostCompact": [
       {
-        "matcher": "compact",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "echo '리마인더: 한국어 응답 유지. 변경 이유 설명 필수. 현재 작업 상태를 먼저 확인하세요.'"
+            "command": "cat > /dev/null; echo '{\"message\": \"리마인더: 한국어 응답 유지. 변경 이유 설명 필수. 현재 작업 상태를 먼저 확인하세요.\"}'"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/on-tool-failure.sh",
+            "timeout": 5000
           }
         ]
       }

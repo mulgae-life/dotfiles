@@ -1,6 +1,11 @@
 ---
 name: postgres-best-practices
-description: Supabase의 Postgres 성능 최적화 및 모범 사례 가이드. Postgres 쿼리 작성, 검토, 최적화, 스키마 설계, 데이터베이스 설정 시 사용. "쿼리 최적화해줘", "인덱스 추가해줘", "RLS 정책 작성해줘", "DB 성능 개선해줘" 등의 요청에 트리거. SQL 쿼리, 인덱스, RLS, 커넥션 풀링, 파티셔닝 관련 작업이면 명시적으로 요청하지 않더라도 이 스킬을 참조하세요.
+description: Supabase의 Postgres 성능 최적화 및 모범 사례 가이드.
+when_to_use: "쿼리 최적화해줘, 인덱스 추가해줘, RLS 정책 작성해줘, DB 성능 개선해줘 요청 시. SQL 쿼리, 인덱스, RLS, 커넥션 풀링, 파티셔닝 관련 작업이면 명시적 요청 없이도 참조."
+paths:
+  - "**/*.sql"
+  - "**/migrations/**"
+  - "**/supabase/**"
 ---
 
 # Supabase Postgres 모범 사례

@@ -1,6 +1,7 @@
 ---
 name: langchain-guide
-description: LangChain 1.x 및 LangGraph v1.0 기반 에이전트, 체인, 워크플로우 구현 가이드. LangChain 에이전트 생성, LCEL 체인, RAG 파이프라인, LangGraph 그래프 설계, 멀티에이전트, Human-in-the-loop, 상태 관리, 스트리밍 구현 시 사용. "LangChain 에이전트 만들어줘", "LangGraph 워크플로우 구현해줘", "RAG 파이프라인 만들어줘", "멀티에이전트 시스템 설계해줘", "LangGraph 상태 관리", "LCEL 체인 작성" 등의 요청에 트리거. LangChain이나 LangGraph 관련 코드를 작성하거나 리뷰할 때, 또는 에이전트 프레임워크를 선택하거나 비교할 때 이 스킬을 반드시 참조하세요.
+description: LangChain 1.x 및 LangGraph v1.0 기반 에이전트, 체인, 워크플로우 구현 가이드.
+when_to_use: "LangChain 에이전트 만들어줘, LangGraph 워크플로우 구현해줘, RAG 파이프라인 만들어줘, 멀티에이전트 시스템 설계해줘 요청 시. LangChain/LangGraph 관련 코드를 작성하거나 리뷰할 때 반드시 참조."
 ---
 
 # LangChain & LangGraph 가이드
