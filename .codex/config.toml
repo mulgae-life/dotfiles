@@ -142,7 +142,7 @@ ignore_default_excludes = false                                  # 기본 exclud
 
 # ── 실험적 기능 ──────────────────────────────
 [features]
-multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agents_on_csv, /agent 슬래시)
+multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agent, send_input, resume_agent, wait_agent, close_agent)
 
 # ── 멀티 에이전트 설정 ──────────────────────
 [agents]

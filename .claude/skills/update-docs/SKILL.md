@@ -2,8 +2,6 @@
 name: update-docs
 description: 작업 완료 후 agent-guide/ 프로젝트 문서(SESSION.md, PROJECT.md 등)를 업데이트합니다.
 when_to_use: "문서 업데이트해줘, 세션 정리해줘, 작업 내용 기록해줘, 세션 끝났어 요청 시. 세션 종료나 작업 정리 관련이면 명시적 언급 없이도 사용."
-paths:
-  - "**/agent-guide/**"
 ---
 
 # 문서 업데이트 가이드

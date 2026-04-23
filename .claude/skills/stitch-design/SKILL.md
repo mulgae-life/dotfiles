@@ -8,7 +8,7 @@ allowed-tools:
   - "Bash"
   - "Read"
   - "Write"
-  - "web_fetch"
+  - "WebFetch"
 ---
 
 # Stitch 디자인 전문가
