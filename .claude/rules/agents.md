@@ -20,14 +20,17 @@
 - 사용자가 "직접 해줘" 명시적 요청
 - 파일 1-2개만 수정하는 간단한 작업
 
-## 에이전트 ↔ 스킬 역할 분담
+## 에이전트 ↔ 스킬 페어링
 
-| 자동 (Agent) | 수동 (Skill) |
-|--------------|--------------|
-| verifier: 빠른 점검 | `/code-review`: 심층 리뷰 |
-| security-reviewer: 자동 체크 | `/code-simplifier`: 코드 간소화 |
-| build-resolver: 에러 수정 | `/feedback-analysis`: 피드백 분석 |
-| planner: 계획 초안 | `/update-docs`: 문서 업데이트 |
+같은 기능을 자동/수동으로 제공하거나, 깊이·형식이 다른 버전으로 나뉘는 쌍만 표시.
+
+| 에이전트 (자동) | 페어 스킬 (수동) | 관계 |
+|-----------------|-------------------|------|
+| `verifier` | `/work-verify` | 동일 절차, 자동/수동 호출 차이 |
+| `planner` | `/work-plan` | 컨텍스트 내 초안 ↔ 파일 저장 상세 계획서 |
+| `security-reviewer` | `/security-review` | 동일 축, 자동/수동 호출 차이 |
+
+> `build-resolver`는 페어 스킬 없음. 비페어 수동 스킬 전체 목록은 `README.md` 참조.
 
 ## 행동 규칙
 
