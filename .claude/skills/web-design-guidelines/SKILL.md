@@ -30,7 +30,7 @@ when_to_use: "UI 리뷰해줘, 접근성 체크, 디자인 검토, UX 리뷰 요
 | **터치/인터랙션(Touch & Interaction)** | `touch-action: manipulation`, `overscroll-behavior: contain`, 드래그 중 선택 비활성화 |
 | **Safe Area/레이아웃(Layout)** | `env(safe-area-inset-*)`, 불필요한 스크롤바 방지, flex/grid 우선 |
 | **다크 모드/테마(Dark Mode & Theming)** | `color-scheme: dark`, `theme-color` 메타, `<select>` 명시적 색상 |
-| **로케일/i18n(Locale & i18n)** | `Intl.DateTimeFormat`/`Intl.NumberFormat` 사용, IP 기반 언어 감지 금지 |
+| **로케일/i18n(Locale & i18n)** | `Intl.DateTimeFormat`/`Intl.NumberFormat` 사용, IP 기반 언어 감지 금지, 브랜드/코드 토큰에 `translate="no"` |
 | **하이드레이션 안전성(Hydration Safety)** | `value` + `onChange` 쌍, 날짜/시간 mismatch 방지, `suppressHydrationWarning` 최소화 |
 | **호버/인터랙티브 상태(Hover & Interactive)** | `hover:` 피드백, 상태별 대비 증가 |
 | **콘텐츠/카피(Content & Copy)** | 능동태, Title Case, 구체적 버튼 라벨, 에러에 해결책 포함 |

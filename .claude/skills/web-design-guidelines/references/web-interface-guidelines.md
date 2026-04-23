@@ -1,7 +1,7 @@
 # Web Interface Guidelines 스냅샷
 
 > 출처: https://github.com/vercel-labs/web-interface-guidelines
-> 스냅샷 날짜: 2026-03-20
+> 스냅샷 날짜: 2026-04-23
 > 최신 버전은 WebFetch로 확인. fetch 실패 시 이 파일을 fallback으로 사용.
 
 ---
@@ -120,6 +120,7 @@ Read files, check against rules below. Output concise but comprehensive—sacrif
 - Dates/times: use `Intl.DateTimeFormat` not hardcoded formats
 - Numbers/currency: use `Intl.NumberFormat` not hardcoded formats
 - Detect language via `Accept-Language` / `navigator.languages`, not IP
+- Brand names, code tokens, identifiers: wrap with `translate="no"` to prevent garbled auto-translation
 
 ### Hydration Safety
 
