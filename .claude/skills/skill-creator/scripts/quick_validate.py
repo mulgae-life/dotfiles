@@ -39,7 +39,8 @@ def validate_skill(skill_path):
         return False, f"Invalid YAML in frontmatter: {e}"
 
     # Define allowed properties
-    ALLOWED_PROPERTIES = {'name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility'}
+    # when_to_use: Claude Code Skills 공식 필드. skill-creator 원본에서 누락되어 있어 보강.
+    ALLOWED_PROPERTIES = {'name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility', 'when_to_use'}
 
     # Check for unexpected properties (excluding nested keys under metadata)
     unexpected_keys = set(frontmatter.keys()) - ALLOWED_PROPERTIES
@@ -61,11 +62,15 @@ def validate_skill(skill_path):
         return False, f"Name must be a string, got {type(name).__name__}"
     name = name.strip()
     if name:
-        # Check naming convention (kebab-case: lowercase with hyphens)
-        if not re.match(r'^[a-z0-9-]+$', name):
-            return False, f"Name '{name}' should be kebab-case (lowercase letters, digits, and hyphens only)"
+        # Check naming convention (kebab-case with optional `:` namespace)
+        # `:` 허용: 외부 스킬 생태계(google-labs-code/stitch-skills 등)에서 네임스페이스 구분자로 사용
+        # 예: react:components, ui:button
+        if not re.match(r'^[a-z0-9:-]+$', name):
+            return False, f"Name '{name}' should be lowercase letters, digits, hyphens, and colons only"
         if name.startswith('-') or name.endswith('-') or '--' in name:
             return False, f"Name '{name}' cannot start/end with hyphen or contain consecutive hyphens"
+        if name.startswith(':') or name.endswith(':') or '::' in name:
+            return False, f"Name '{name}' cannot start/end with colon or contain consecutive colons"
         # Check name length (max 64 characters per spec)
         if len(name) > 64:
             return False, f"Name is too long ({len(name)} characters). Maximum is 64 characters."

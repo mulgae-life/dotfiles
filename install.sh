@@ -99,6 +99,48 @@ safe_copy() {
   ok "[COPY]   $dst ← $src"
 }
 
+# ── safe_preserve_copy ─────────────────────
+# 런타임에 도구가 섹션을 추가하는 설정 파일(config.toml 등)을 보호한다.
+# 최초 설치 시에만 복사, 이후 재실행에서는 기존 파일을 보존한다.
+#   - 없음          → 레포 버전 복사 [COPY]
+#   - 있음 + 동일   → [SKIP]
+#   - 있음 + 다름   → [KEEP] 보존, diff 안내로 수동 병합 유도
+#   - 기존 심볼릭   → 제거 후 최초 설치로 취급
+
+safe_preserve_copy() {
+  local src="$1" dst="$2"
+
+  # 기존 심볼릭 링크가 있으면 제거 (링크→복사 전환)
+  if [ -L "$dst" ]; then
+    if $DRY_RUN; then
+      info "[COPY]   $dst ← $src (심볼릭→복사 전환) (dry-run)"
+      return
+    fi
+    rm "$dst"
+  fi
+
+  # 최초 설치
+  if [ ! -f "$dst" ]; then
+    if $DRY_RUN; then
+      info "[COPY]   $dst ← $src (최초 설치) (dry-run)"
+      return
+    fi
+    cp "$src" "$dst"
+    ok "[COPY]   $dst ← $src (최초 설치)"
+    return
+  fi
+
+  # 동일 → SKIP
+  if diff -q "$src" "$dst" &>/dev/null; then
+    ok "[SKIP]   $dst (동일)"
+    return
+  fi
+
+  # 다름 → 런타임 수정으로 간주, 덮어쓰지 않음
+  warn "[KEEP]   $dst (런타임 수정 보존)"
+  warn "         레포 변경사항 확인: diff '$src' '$dst'"
+}
+
 # ── safe_merge_json ──────────────────────
 # JSON 설정 파일을 deep merge한다.
 # 도구가 런타임에 추가한 필드(인증 등)를 보존하면서 레포 설정을 반영.
@@ -261,8 +303,8 @@ main() {
   safe_link "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
   safe_link "$DOTFILES_DIR/.codex/AGENTS.references.md" "$HOME/.codex/AGENTS.references.md"
   safe_link "$DOTFILES_DIR/.codex/rules" "$HOME/.codex/rules"
-  # config.toml은 Codex가 런타임에 trust 항목을 추가하므로 복사 (레포 보호)
-  safe_copy "$DOTFILES_DIR/.codex/config.toml" "$HOME/.codex/config.toml"
+  # config.toml은 Codex가 런타임에 trust 항목을 추가하므로 보존 (레포 덮어쓰기 방지)
+  safe_preserve_copy "$DOTFILES_DIR/.codex/config.toml" "$HOME/.codex/config.toml"
 
   # 3. .agents/skills → .claude/skills 연결
   safe_mkdir "$HOME/.agents"
@@ -282,7 +324,14 @@ main() {
   # settings.json은 Gemini CLI가 런타임에 수정할 수 있으므로 merge (레포 보호 + 런타임 필드 보존)
   safe_merge_json "$DOTFILES_DIR/.gemini/settings.json" "$HOME/.gemini/settings.json"
   # 이전 설치의 중복 스킬 링크 정리 (conflict 방지)
-  [ -L "$HOME/.gemini/skills" ] && rm "$HOME/.gemini/skills" && warn "[CLEAN]  $HOME/.gemini/skills (중복 제거)"
+  if [ -L "$HOME/.gemini/skills" ]; then
+    if $DRY_RUN; then
+      warn "[CLEAN]  $HOME/.gemini/skills (중복 제거) (dry-run)"
+    else
+      rm "$HOME/.gemini/skills"
+      warn "[CLEAN]  $HOME/.gemini/skills (중복 제거)"
+    fi
+  fi
   # 스킬 공유: .agents/skills 경로에서 이미 공유됨
   # Antigravity 전용: global_workflows
   safe_mkdir "$HOME/.gemini/antigravity"
