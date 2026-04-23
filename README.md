@@ -170,8 +170,9 @@ dotfiles/
 │   └── settings.json          # 전역 설정
 ├── .mcp.json                    # MCP 서버 설정 (gitignored, API 키 포함)
 ├── .codex/
-│   ├── AGENTS.md              # Codex 지침
-│   ├── config.toml            # Codex 설정 (모델, 커뮤니케이션 규칙)
+│   ├── AGENTS.md              # Codex 지침 (프로세스 · 에이전트 운영 · 스킬 · 비파괴 원칙)
+│   ├── AGENTS.references.md   # 레퍼런스 검증 규칙 (논문/수식/benchmark)
+│   ├── config.toml            # Codex 설정 (모델 · developer_instructions · 샌드박스 · 환경변수 정책)
 │   ├── rules/                 # 실행 정책 (위험 명령어 차단)
 │   └── skills → ../.claude/skills
 ├── .gemini/

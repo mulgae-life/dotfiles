@@ -6,12 +6,18 @@
 model = "gpt-5.4"
 model_reasoning_effort = "xhigh"
 model_reasoning_summary = "concise"
+model_verbosity = "low"            # GPT-5 Responses API 출력 분량 축소 (reasoning은 xhigh 유지)
 plan_mode_reasoning_effort = "xhigh"
 personality = "pragmatic"
-# service_tier = "fast"
+# service_tier = "fast"            # 대표님이 /fast 또는 수동으로 토글
+
+# ── 문서/파일 연동 ─────────────────────────
+project_doc_fallback_filenames = ["CLAUDE.md", "README.md"]  # AGENTS.md 없을 때 Claude 문서를 fallback으로 사용
+file_opener = "vscode"             # TUI 파일 인용 클릭 → VSCode 점프
 
 # ── 커뮤니케이션 핵심 규칙 ──────────────────
-# AGENTS.md보다 먼저 주입되므로 잘릴 위험 없음
+# developer-role 메시지로 주입됨 (system prompt 교체가 아님)
+# 시스템 프롬프트 완전 교체가 필요하면 model_instructions_file 사용
 developer_instructions = """
 <identity>
 당신은 개발·분석·기획을 아우르는 시니어 테크 리드입니다.
@@ -41,8 +47,7 @@ CRITICAL — 이 규칙은 모든 작업에 최우선 적용됩니다.
 
 DO:
 - 요청된 변경만 수행
-- 범위 밖 개선점 발견 시 "[선택사항]"으로 별도 언급만
-- 버그 수정은 해당 버그만 수정
+- 버그 수정은 해당 버그만 수정 (범위 밖 처리는 아래 INSTEAD 블록 참조)
 
 NEVER:
 - 요청 없는 리팩토링, 리네이밍, 코드 정리 수행
@@ -51,11 +56,22 @@ NEVER:
 - 요청에 없는 추가 기능, 설정 옵션, 유틸리티 함수 생성
 - 관련 없는 데드 코드 삭제 (언급만 가능). 본인의 변경이 만든 고아만 정리
 - 3줄 이하 유사 코드를 추상화 (premature abstraction 금지)
+
+INSTEAD — 범위 밖 발견 시 positive 대안 (NEVER 금지보다 이쪽을 먼저 적용하세요):
+- 범위 밖 개선점 발견 → 변경하지 말고 "[선택사항]"으로 별도 나열
+- 관련 없는 데드 코드 발견 → 삭제 대신 "[참고] 미사용: {파일경로:라인}"으로 보고
+- 인접 코드 비일관성 발견 → 본인 변경에만 새 스타일 적용, 기존 코드는 그대로 유지
+- 3줄 이하 유사 코드 → 추상화 금지, 인라인 유지
+- 모호한 지시 → 가장 단순한 유효 해석을 선택하고 진행 (질문 대신)
 </scope_discipline>
 
 <process>
 코드 수정 전 반드시 이 순서를 따르세요:
-0. 가정을 명시적으로 표면화하세요. 요청이 모호하면 해석을 나열하고 질문하세요. 더 단순한 접근이 있으면 먼저 제시하세요
+0. 가정을 명시적으로 표면화하세요
+   - 모호한 경우: 가장 합리적인 해석으로 진행하고, 채택한 가정을 응답에 1-2줄 명시하세요
+   - 해석 2-3개가 대등하면: 각 해석과 권장안을 나열한 뒤 권장안으로 진행하세요 (질문 대신)
+   - 비가역 변경(파일 삭제·DB 스키마·API breaking change)만 실행 전 확인하세요
+   - 더 단순한 접근이 있으면 먼저 제시하세요 (채택은 사용자 판단)
 1. 대상 파일과 주변 코드를 먼저 읽으세요
 2. 기존 패턴(네이밍, 폴더 구조, 에러 포맷)을 파악하세요
 3. 유사 기능의 기존 코드가 있는지 검색 → 있으면 재사용
@@ -103,11 +119,12 @@ NEVER — 아래 행동은 절대 하지 마세요:
 """
 
 # ── 승인 정책 ──────────────────────────────
-# "never": 승인 없이 자율 실행. 위험 명령어는 rules/default.rules에서 차단
+# "never": 승인 프롬프트 완전 생략. --full-auto(on-request+workspace-write)보다 자율적
+# 위험 명령어는 rules/default.rules의 Starlark DSL에서 차단
 approval_policy = "never"
 
 # ── 샌드박스 설정 ──────────────────────────
-# --full-auto와 동일: 프로젝트 내 파일 편집 + 명령 실행 자동 승인
+# workspace-write: 프로젝트 내 파일 편집 + 명령 실행 허용, 샌드박스 경계는 유지
 # ── AGENTS.md 한도 ─────────────────────────
 project_doc_max_bytes = 65536
 
@@ -116,9 +133,16 @@ sandbox_mode = "workspace-write"
 [sandbox_workspace_write]
 network_access = true  # npm install, git fetch, API 호출 등 네트워크 작업 허용
 
+# ── 환경변수 정책 (시크릿 유출 방지) ────────
+# 서브프로세스로 시크릿 패턴 환경변수가 새는 것을 방지
+[shell_environment_policy]
+inherit = "core"                                                # core: PATH/HOME/USER 등 기본만 전달
+exclude = ["*_KEY", "*_TOKEN", "*_SECRET", "AWS_*", "AZURE_*"]  # 시크릿 패턴 차단
+ignore_default_excludes = false                                  # 기본 exclude 목록도 유지
+
 # ── 실험적 기능 ──────────────────────────────
 [features]
-multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agent, send_input, wait 등)
+multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agents_on_csv, /agent 슬래시)
 
 # ── 멀티 에이전트 설정 ──────────────────────
 [agents]
