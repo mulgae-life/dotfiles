@@ -8,11 +8,11 @@ master Phase 맵에서 이 part에 매핑된 **Phase 범위**를 다룬다. part
 ---
 
 ```markdown
-# Part N: [Part 이름] — Phase M, M+1
+# Part N: [Part 이름] — Phase [M 또는 M-N]
 
 > master: [../master.md](../master.md)
 > 선행 Part: part{N-1} (없으면 `-`) | 후속 Part: part{N+1} (없으면 `-`)
-> 담당 Phase: M, M+1 | 변경 파일: N개 | 상태: 초안
+> 담당 Phase: [M 또는 M-N] | 변경 파일: N개 | 상태: 초안
 
 ## 목표 (필수)
 [이 Phase에서 달성할 구체적 결과 1-2문장]
