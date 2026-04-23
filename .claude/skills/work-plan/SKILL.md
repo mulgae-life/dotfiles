@@ -79,14 +79,15 @@ when_to_use: "계획서 작성해줘, 구현 계획 세워줘, 작업 계획 만
 
 ```
 work-plan_260423_auth-refactor/
-├── master.md                     # 전체 개요 + Phase 맵 + 리스크 + 검증
-├── part1-phase1-types.md         # Phase 1 상세
-├── part2-phase2-service.md       # Phase 2 상세
-├── part3-phase3-api.md           # Phase 3 상세
-└── part4-phase4-migration.md     # Phase 4 상세
+├── master.md               # 전체 개요 + Phase 맵 + 리스크 + 검증
+├── part1-foundation.md     # Phase 1-2: 타입 + 공통 유틸
+├── part2-service.md        # Phase 3: 서비스 레이어
+└── part3-api-migration.md  # Phase 4-5: API + 마이그레이션
 ```
 
-part 파일명: `part{N}-phase{N}-{kebab-case-name}.md`
+- part 파일명: `part{N}-{kebab-case-name}.md`
+- **part 번호는 순차만** (1, 2, 3…). `3a`, `3b` 같은 하위 분할 금지
+- **part ↔ phase 관계는 1:N 가능** — part 하나가 관련 phase들을 묶는다. phase 하나를 여러 part로 쪼개지 않는다 (phase가 너무 크면 phase 자체를 재설계)
 
 ### master / part 역할 분담
 
@@ -102,20 +103,21 @@ part 파일명: `part{N}-phase{N}-{kebab-case-name}.md`
 
 ### Phase 맵 (master 필수 섹션)
 
-master.md에는 다음 형식의 Phase 맵이 반드시 포함된다.
+master.md에는 다음 형식의 Phase 맵이 반드시 포함된다. **Part 기준 정렬**, Phase 범위 명시.
 
-| Phase | Part | 범위 | 파일 수 | 상태 |
-|-------|------|------|---------|------|
-| 1 | [part1](part1-phase1-types.md) | 타입 정의 | 3 | ⬜ 대기 |
-| 2 | [part2](part2-phase2-service.md) | 서비스 레이어 | 5 | 🟡 진행중 |
+| Part | Phase | 범위 | 파일 수 | 상태 |
+|------|-------|------|---------|------|
+| [part1](part1-foundation.md) | 1-2 | 타입 + 공통 유틸 | 4 | ⬜ 대기 |
+| [part2](part2-service.md) | 3 | 서비스 레이어 | 5 | 🟡 진행중 |
+| [part3](part3-api-migration.md) | 4-5 | API + 마이그레이션 | 6 | ⬜ 대기 |
 
 > 상태: ⬜ 대기 / 🟡 진행중 / ✅ 완료 / ⚠️ 차단
-> Phase 완료 시 이 테이블의 상태를 반드시 갱신한다.
+> Phase 완료 시 해당 Part 행의 상태를 갱신. part 내 일부 phase만 완료면 🟡(진행중) 유지.
 
 ### 작업 시 읽기 전략
 
 - **master.md**: 항상 로드 (전체 맥락 유지)
-- **part{N}.md**: 현재 진행 중인 Phase만 로드
+- **part{N}.md**: 현재 진행 중인 Part만 로드 (그 part에 묶인 Phase들을 모두 다룸)
 - 다른 part는 선행/후속 참조 필요 시에만 읽기
 
 ### 일관성 유지
@@ -163,6 +165,12 @@ master.md에는 다음 형식의 Phase 맵이 반드시 포함된다.
 - [ ] 각 Phase가 독립 검증 가능한가 (Phase 완료 후 빌드/테스트 통과)
 - [ ] Phase 크기가 적절한가 (한 Phase에 파일 5-7개 이내)
 - [ ] 위험도 높은 작업이 앞에 있는가 (불확실성을 뒤로 미루지 않기)
+
+### Part 설계 체크 (Split 모드)
+
+- [ ] part 번호가 순차적인가 (1, 2, 3… — `3a/3b` 하위 분할 금지)
+- [ ] 큰 phase는 phase 자체를 분할했는가 (part 쪼개기로 우회 X)
+- [ ] part 하나에 묶인 Phase들이 **역할 일관성**을 갖는가 (예: part1 = 기반, part2 = 서비스)
 
 ## 생명주기
 
