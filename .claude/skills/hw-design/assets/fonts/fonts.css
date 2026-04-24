@@ -1,0 +1,113 @@
+/* ═══════════════════════════════════════════════════════════════════
+ *  HW Design — @font-face 선언 모음
+ *  이 파일을 CSS 진입점(예: app/globals.css) 맨 위에 import 하거나,
+ *  @import url("./fonts/fonts.css"); 로 포함한다.
+ *
+ *  폰트 파일은 `./AtoZ/*.woff2` 와 `./IBMPlexSans/*.ttf` 에 번들됨.
+ *  프로젝트에 배치할 때는 `public/fonts/` 또는 `assets/fonts/` 같이
+ *  정적 자산 경로로 옮기고 아래 `src: url(...)` 를 그에 맞춰 수정.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+/* ──────────────────────────────────────────────────────────────────
+ *  AtoZ — 한글 본문 (9 weights, 100~900)
+ * ──────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-1Thin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-2ExtraLight.woff2") format("woff2");
+}
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-3Light.woff2") format("woff2");
+}
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-4Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-5Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-6SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-7Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-8ExtraBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "AtoZ";
+  font-style:  normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("./AtoZ/AtoZ-9Black.woff2") format("woff2");
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  IBM Plex Sans — 영문/숫자 강조 (Variable font, OFL 라이선스)
+ *  Regular + Italic 2 variable files 로 모든 weight·width 커버.
+ *  `font-variation-settings: "wdth" 100, "wght" 600` 같이 세밀 제어 가능.
+ * ──────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style:  normal;
+  font-weight: 100 700;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url("./IBMPlexSans/IBMPlexSans-VariableFont_wdth,wght.ttf") format("truetype-variations");
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style:  italic;
+  font-weight: 100 700;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url("./IBMPlexSans/IBMPlexSans-Italic-VariableFont_wdth,wght.ttf") format("truetype-variations");
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  권장 적용 (tokens.css 의 --font-sans 와 자동 연동)
+ * ──────────────────────────────────────────────────────────────── */
+html, body {
+  font-family: var(--font-sans);
+}
+
+/* 숫자/영문 강조 스팟에서 변수 폰트 기능 활성화 */
+.hw-numeric,
+[data-variant="numeric"] {
+  font-family: var(--font-numeric);
+  font-feature-settings: "tnum" 1, "lnum" 1;  /* tabular + lining numerals */
+  font-variant-numeric: tabular-nums lining-nums;
+}

@@ -1,0 +1,195 @@
+/* ═══════════════════════════════════════════════════════════════════
+ *  HW Design Tokens — 3-Layer Architecture
+ *  Layer 1 (원천):  --hw-*      — 한화 브랜드 값 (변경 최소)
+ *  Layer 2 (별칭):  --color-*,   — 프로젝트 의미
+ *                   --space-*,
+ *                   --radius-*,
+ *                   --shadow-*
+ *  Layer 3 (사용):  컴포넌트는 Layer 2만 참조
+ *
+ *  ► 리브랜딩·다크모드 확장은 Layer 1/2만 수정하면 전파된다.
+ *  ► 이 파일을 프로젝트 루트에 복사하고 전역 CSS에서 import.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ──────────────────────────────────────────────────────────────
+   *  LAYER 1 — Hanwha Group Identity (원천)
+   * ──────────────────────────────────────────────────────────── */
+
+  /* Brand 2축 */
+  --hw-orange:          #F37321;
+  --hw-orange-dark:     #E06A1B;
+  --hw-orange-deeper:   #C75E14;
+  --hw-orange-light:    #FFF3EB;
+  --hw-orange-muted:    #FDEEDE;
+
+  --hw-navy:            #1A2B4A;
+  --hw-navy-light:      #2D4168;
+  --hw-navy-muted:      #3D537F;
+
+  /* Neutral scale (서피스/텍스트 보조) */
+  --hw-white:           #FFFFFF;
+  --hw-surface-2:       #F7F9FC;
+  --hw-surface-3:       #EEF2F7;
+  --hw-border:          #CBD5E0;
+  --hw-border-light:    #E2E8F0;
+  --hw-gray-500:        #64748B;
+  --hw-gray-400:        #94A3B8;
+
+  /* Semantic state */
+  --hw-success:         #16A34A;   --hw-success-bg:  #DCFCE7;
+  --hw-warning:         #B45309;   --hw-warning-bg:  #FEF3C7;
+  --hw-danger:          #DC2626;   --hw-danger-bg:   #FEE2E2;
+  --hw-info:            #3B82F6;   --hw-info-bg:     #EFF6FF;
+
+  /* Typography raw */
+  --hw-font-sans:       "AtoZ", "Pretendard", -apple-system, BlinkMacSystemFont,
+                        "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --hw-font-plex:       "IBM Plex Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+
+  /* ──────────────────────────────────────────────────────────────
+   *  LAYER 2 — Project semantic aliases
+   *  컴포넌트는 오직 이 계층만 참조한다.
+   * ──────────────────────────────────────────────────────────── */
+
+  /* Color — role-based */
+  --color-primary:            var(--hw-orange);
+  --color-primary-hover:      var(--hw-orange-dark);
+  --color-primary-pressed:    var(--hw-orange-deeper);
+  --color-primary-bg:         var(--hw-orange-light);
+  --color-primary-bg-subtle:  var(--hw-orange-muted);
+
+  --color-neutral:            var(--hw-navy);
+  --color-neutral-light:      var(--hw-navy-light);
+  --color-neutral-muted:      var(--hw-navy-muted);
+
+  /* ↓ DESIGN.md YAML 의 colors.text-primary 와 정확히 1:1 매핑 */
+  --color-text-primary:       var(--hw-navy);
+  --color-text:               var(--color-text-primary);   /* 하위 호환 별칭 */
+  --color-text-secondary:     var(--hw-gray-500);
+  --color-text-tertiary:      var(--hw-gray-400);
+  --color-text-on-primary:    var(--hw-white);
+  --color-text-on-neutral:    var(--hw-white);
+
+  --color-surface:            var(--hw-white);
+  --color-surface-secondary:  var(--hw-surface-2);
+  --color-surface-tertiary:   var(--hw-surface-3);
+  --color-border:             var(--hw-border);
+  --color-border-light:       var(--hw-border-light);
+
+  --color-success:            var(--hw-success);
+  --color-success-bg:         var(--hw-success-bg);
+  --color-warning:            var(--hw-warning);
+  --color-warning-bg:         var(--hw-warning-bg);
+  --color-danger:             var(--hw-danger);
+  --color-danger-bg:          var(--hw-danger-bg);
+  --color-info:               var(--hw-info);
+  --color-info-bg:            var(--hw-info-bg);
+
+  /* Font family alias */
+  --font-sans:                var(--hw-font-sans);
+  --font-numeric:             var(--hw-font-plex);
+
+  /* Spacing — 4/8 이중 grid */
+  --space-0:     0;
+  --space-50:    4px;
+  --space-100:   8px;
+  --space-150:  12px;
+  --space-200:  16px;
+  --space-300:  24px;
+  --space-400:  32px;
+  --space-600:  48px;
+  --space-800:  80px;
+  --space-hero: 128px;
+
+  /* Radius */
+  --radius-none: 0;
+  --radius-sm:   4px;
+  --radius-md:   8px;    /* chip, badge */
+  --radius-lg:  12px;    /* button, input */
+  --radius-xl:  16px;    /* card */
+  --radius-2xl: 20px;    /* CTA large */
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadow — navy-toned */
+  --shadow-card:         0 2px 12px 0 rgba(26, 43, 74, 0.08);
+  --shadow-card-hover:   0 8px 24px 0 rgba(26, 43, 74, 0.14);
+  --shadow-modal:        0 20px 60px 0 rgba(26, 43, 74, 0.20);
+  --shadow-glass:        0 4px 24px 0 rgba(26, 43, 74, 0.06);
+  --shadow-elevated:     0 18px 45px rgba(26, 43, 74, 0.16);
+  --shadow-bubble:       0 10px 30px rgba(15, 23, 42, 0.06);
+  --shadow-bubble-accent:0 10px 24px rgba(243, 115, 33, 0.22);
+  --shadow-toast:        0 12px 40px rgba(26, 43, 74, 0.30);
+  --shadow-glow:         0 0 20px rgba(243, 115, 33, 0.25);
+
+  /* Gradient */
+  --gradient-navy:        linear-gradient(135deg, #1A2B4A 0%, #2D4168 100%);
+  --gradient-navy-3stop:  linear-gradient(135deg, #1A2B4A 0%, #2D4168 40%, #1A2B4A 100%);
+  --gradient-primary:     linear-gradient(135deg, #F37321 0%, #E06A1B 100%);
+  --gradient-primary-h:   linear-gradient(90deg, #F37321, #E06A1B);
+  --gradient-page:        linear-gradient(180deg, #F7F9FC 0%, #EEF2F6 100%);
+  --gradient-page-light:  linear-gradient(155deg, #F8FAFC 0%, #EBF0F7 50%, #E3EBF5 100%);
+
+  /* Motion — 세 단계만 */
+  --motion-fast: 250ms;
+  --motion-base: 350ms;
+  --motion-slow: 550ms;
+  --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Z-index */
+  --z-sticky: 30;
+  --z-toast:  40;
+  --z-modal:  50;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────
+ *  Dark mode — Layer 1/2 재매핑만으로 컴포넌트는 변경 0
+ *  활성화는 <html data-theme="dark">.
+ * ──────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --color-surface:            #0F1A2E;
+  --color-surface-secondary:  #1A2B4A;
+  --color-surface-tertiary:   #2D4168;
+  --color-border:             #3D537F;
+  --color-border-light:       #2D4168;
+  --color-text:               #F7F9FC;
+  --color-text-secondary:     #CBD5E0;
+  --color-text-tertiary:      #94A3B8;
+  /* primary/primary-bg 등은 동일 유지 → 브랜드 일관성 */
+}
+
+
+/* ──────────────────────────────────────────────────────────────────
+ *  Utility — 스킬 체크리스트가 자주 쓰는 전역 유틸
+ * ──────────────────────────────────────────────────────────────── */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.hw-gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+          color: transparent;
+}
+
+.hw-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.hw-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.hw-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 99px;
+}
+.hw-scrollbar::-webkit-scrollbar-thumb:hover { background: #A0AEC0; }
+
+/* 한글 줄바꿈 — 본문 전체에 전역 적용 권장 */
+html {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
