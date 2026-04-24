@@ -125,9 +125,8 @@ npx @google/design.md export --format dtcg ./DESIGN.md > tokens.hw.dtcg.json
 | **그림자 톤** | `rgba(26, 43, 74, x)` (네이비 기반) |
 
 > 전체 스펙: [`assets/DESIGN.md`](assets/DESIGN.md)
-> 고수 노하우 출처·방법론: [`references/design-md-playbook.md`](references/design-md-playbook.md)
-> 브랜드 출처·이력: [`references/brand-identity.md`](references/brand-identity.md)
-> 원본 참고(실전 프로젝트): [`references/source-design.md`](references/source-design.md)
+> 브랜드 출처·검증: [`references/brand-identity.md`](references/brand-identity.md)
+> 폰트 라이선스: [`references/font-license.md`](references/font-license.md)
 
 ## 브랜드 헤더 — 공식 로고 (MUST READ)
 

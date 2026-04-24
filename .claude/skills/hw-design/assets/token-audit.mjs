@@ -3,8 +3,9 @@
  * ═══════════════════════════════════════════════════════════════════
  *  HW Design — Token Audit
  *
- *  프로젝트 내 CSS/SCSS/Tailwind 파일에서 하드코딩된 hex·px·ms/s 값을
- *  찾아내 정정 토큰을 제안한다. Node 18+ 단독 실행, 외부 의존성 0.
+ *  프로젝트 내 CSS/SCSS/Tailwind 파일에서 하드코딩된 hex·px·ms/s 값과
+ *  Tailwind arbitrary px 유틸리티를 찾아내 정정 토큰을 제안한다.
+ *  Node 18+ 단독 실행, 외부 의존성 0.
  *
  *  사용법:
  *    node token-audit.mjs                    # 프로젝트 루트에서 실행
@@ -68,6 +69,28 @@ const PX_TO_TOKEN = new Map([
   ["128", "var(--space-hero)"],
 ]);
 
+// HW 공식 radius 토큰
+const RADIUS_TO_TOKEN = new Map([
+  ["4",    "var(--radius-sm)"],
+  ["8",    "var(--radius-md)"],
+  ["12",   "var(--radius-lg)"],
+  ["16",   "var(--radius-xl)"],
+  ["20",   "var(--radius-2xl)"],
+  ["24",   "var(--radius-3xl)"],
+  ["9999", "var(--radius-full)"],
+]);
+
+// DESIGN.md 컴포넌트 크기 토큰과 직접 연결되는 값
+const SIZE_TO_TOKEN = new Map([
+  ["36",  "DESIGN.md Button sm height 또는 프로젝트 --size-* 토큰"],
+  ["40",  "DESIGN.md components.avatar.size 또는 프로젝트 --size-avatar-md"],
+  ["44",  "DESIGN.md components.button-*.height 또는 프로젝트 --size-control-md"],
+  ["48",  "DESIGN.md components.input.height 또는 프로젝트 --size-input-md"],
+  ["52",  "DESIGN.md Button lg height 또는 프로젝트 --size-control-lg"],
+  ["84",  "DESIGN.md components.brand-logo.height-nav"],
+  ["104", "DESIGN.md components.nav-top.height"],
+]);
+
 // HW 공식 duration 토큰
 const DURATION_TO_TOKEN = new Map([
   ["250ms", "var(--motion-fast)"],
@@ -79,6 +102,92 @@ const DURATION_TO_TOKEN = new Map([
 ]);
 
 const HW_DURATIONS = new Set(["250ms", "350ms", "550ms", "0.25s", "0.35s", "0.55s"]);
+
+const SPACING_PROPS = new Set([
+  "padding", "padding-top", "padding-right", "padding-bottom", "padding-left",
+  "padding-inline", "padding-inline-start", "padding-inline-end",
+  "padding-block", "padding-block-start", "padding-block-end",
+  "margin", "margin-top", "margin-right", "margin-bottom", "margin-left",
+  "margin-inline", "margin-inline-start", "margin-inline-end",
+  "margin-block", "margin-block-start", "margin-block-end",
+  "gap", "row-gap", "column-gap",
+  "top", "right", "bottom", "left",
+  "inset", "inset-inline", "inset-inline-start", "inset-inline-end",
+  "inset-block", "inset-block-start", "inset-block-end",
+]);
+
+const SIZE_PROPS = new Set(["width", "height", "min-width", "max-width", "min-height", "max-height"]);
+
+function normalizeProp(prop) {
+  return prop.replace(/[A-Z]/g, m => `-${m.toLowerCase()}`).toLowerCase();
+}
+
+function lengthRuleForProperty(prop) {
+  if (SPACING_PROPS.has(prop)) {
+    return {
+      kind: "spacing",
+      label: "spacing",
+      knownRule: "hardcoded-spacing",
+      unknownRule: "non-scale-spacing",
+      knownSeverity: "error",
+      tokenMap: PX_TO_TOKEN,
+      fallback: "가장 가까운 --space-* 토큰으로 대체 또는 scale 에 추가",
+    };
+  }
+  if (prop === "border-radius" || prop.endsWith("-radius")) {
+    return {
+      kind: "radius",
+      label: "radius",
+      knownRule: "hardcoded-radius",
+      unknownRule: "non-scale-radius",
+      knownSeverity: "error",
+      tokenMap: RADIUS_TO_TOKEN,
+      fallback: "가장 가까운 --radius-* 토큰으로 대체 또는 scale 에 추가",
+    };
+  }
+  if (SIZE_PROPS.has(prop)) {
+    return {
+      kind: "size",
+      label: "size",
+      knownRule: "hardcoded-size",
+      unknownRule: "non-token-size",
+      knownSeverity: "warning",
+      tokenMap: SIZE_TO_TOKEN,
+      fallback: "DESIGN.md 컴포넌트 크기 토큰 확인 또는 프로젝트 --size-* 토큰 정의",
+    };
+  }
+  return null;
+}
+
+function lengthRuleForUtility(utility) {
+  const base = utility.split(":").pop().toLowerCase();
+  if (/^(p[trblxy]?|m[trblxy]?|gap(?:-[xy])?|space-[xy]|inset(?:-[xy])?|top|right|bottom|left)$/.test(base)) {
+    return lengthRuleForProperty("padding");
+  }
+  if (/^rounded(?:-[trbl]{1,2})?$/.test(base)) {
+    return lengthRuleForProperty("border-radius");
+  }
+  if (/^(w|h|min-w|max-w|min-h|max-h)$/.test(base)) {
+    return lengthRuleForProperty("width");
+  }
+  return null;
+}
+
+function pushLengthFinding({ path, lineIndex, col, rule, subject, pxVal, raw }) {
+  const num = pxVal.replace("px", "");
+  if (num === "0") return;
+  const suggest = rule.tokenMap.get(num);
+  findings.push({
+    file: path,
+    line: lineIndex + 1,
+    col,
+    severity: suggest ? rule.knownSeverity : "warning",
+    rule: suggest ? rule.knownRule : rule.unknownRule,
+    message: `Hardcoded ${rule.label} ${pxVal} in ${subject}`,
+    suggest: suggest || rule.fallback,
+    raw: raw.trim(),
+  });
+}
 
 // ────────────────────────────────────────────────────────────────────
 //  Scanning
@@ -158,28 +267,43 @@ function scanFile(path) {
       });
     }
 
-    // ── 3. px 감지 — spacing-like 컨텍스트에서만 ───────────────
-    //     padding/margin/gap/top/right/bottom/left/inset 와 동반된 숫자+px
-    const pxRe = /(padding|margin|gap|top|right|bottom|left|inset)[^:]*:\s*([^;]+);?/gi;
-    while ((m = pxRe.exec(stripped)) !== null) {
+    // ── 3. CSS/JS declaration px 감지 ─────────────────────────
+    const declarationRe = /([a-zA-Z-]+)\s*:\s*([^;]+);?/g;
+    while ((m = declarationRe.exec(stripped)) !== null) {
+      const prop = normalizeProp(m[1]);
+      const rule = lengthRuleForProperty(prop);
+      if (!rule) continue;
       const value = m[2];
       const pxMatches = value.match(/\b(\d+)px\b/g);
       if (!pxMatches) continue;
       for (const pxVal of pxMatches) {
-        const num = pxVal.replace("px", "");
-        if (num === "0") continue;
-        const suggest = PX_TO_TOKEN.get(num);
-        findings.push({
-          file: path,
-          line: i + 1,
+        pushLengthFinding({
+          path,
+          lineIndex: i,
           col: m.index + 1,
-          severity: suggest ? "error" : "warning",
-          rule: suggest ? "hardcoded-spacing" : "non-scale-spacing",
-          message: `Hardcoded spacing ${pxVal} in ${m[1]}`,
-          suggest: suggest || "가장 가까운 --space-* 토큰으로 대체 또는 scale 에 추가",
-          raw: line.trim(),
+          rule,
+          subject: prop,
+          pxVal,
+          raw: line,
         });
       }
+    }
+
+    // ── 4. Tailwind arbitrary px 유틸리티 감지 ────────────────
+    const arbitraryRe = /\b((?:[a-z0-9-]+:)*(?:p[trblxy]?|m[trblxy]?|gap(?:-[xy])?|space-[xy]|inset(?:-[xy])?|top|right|bottom|left|w|h|min-w|max-w|min-h|max-h|rounded(?:-[trbl]{1,2})?))-\[(\d+)px\]/gi;
+    while ((m = arbitraryRe.exec(stripped)) !== null) {
+      const utility = m[1];
+      const rule = lengthRuleForUtility(utility);
+      if (!rule) continue;
+      pushLengthFinding({
+        path,
+        lineIndex: i,
+        col: m.index + 1,
+        rule,
+        subject: `Tailwind ${utility}-[]`,
+        pxVal: `${m[2]}px`,
+        raw: line,
+      });
     }
   });
 }

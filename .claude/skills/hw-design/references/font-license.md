@@ -48,7 +48,3 @@
 
 - [SIL OFL 1.1 Web 페이지](https://openfontlicense.org/)
 - IBM Plex 원본 라이선스: `assets/fonts/IBMPlexSans/OFL.txt` (이 스킬에 포함)
-
-## 업데이트 이력
-
-- **2026-04-24 v1.0**: 초기 작성. A2Z·IBM Plex 모두 SIL OFL, BI/CI 사용 명시 허용 근거 확보.

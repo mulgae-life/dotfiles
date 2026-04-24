@@ -12,6 +12,23 @@
 
 ## 컬러 팔레트 — 확실성 표기
 
+### ✅ HW 디지털 서비스 표준값
+
+`assets/DESIGN.md` 와 `assets/tokens.css` 는 아래 값을 기준으로 한다. 공식 CI 원색을 그대로 복제한 값이 아니라, 한화손해보험 AI 서비스 화면에서 반복 사용하기 위해 확정한 디지털 제품용 표준이다.
+
+| 역할 | Hex | 용도 |
+|------|-----|------|
+| Primary | `#F37321` | CTA, 액티브 상태, 포커스 링 |
+| Primary Hover | `#E06A1B` | hover, 그래디언트 끝점 |
+| Primary Pressed | `#C75E14` | pressed, 외곽선, 텍스트 포커스 |
+| Primary Light | `#FFF3EB` | 배지·칩 배경 |
+| Primary Muted | `#FDEEDE` | subtle hover 배경 |
+| Neutral | `#1A2B4A` | 헤더·사이드바·본문 텍스트 |
+| Neutral Light | `#2D4168` | 네이비 hover, 그래디언트 끝점 |
+| Neutral Muted | `#3D537F` | on-navy 보조 텍스트, 구분선 |
+| Text Secondary | `#64748B` | 보조 설명 |
+| Text Tertiary | `#94A3B8` | placeholder, meta |
+
 ### ✅ 확인됨 (Hanwha Solutions 기준)
 
 [brandcolorcode.com/hanwha-solutions](https://www.brandcolorcode.com/hanwha-solutions) 에서 Pantone·CMYK·RGB·Hex 4축 모두 확보된 값.
@@ -32,15 +49,9 @@
 2. 한화 공식 디자인 시스템 문서가 별도로 배포되면
 3. 사용자가 명시적으로 특정 계열사 표준을 지정하면 (예: 한화큐셀·한화생명·한화오션 등)
 
-### ⚠️ 이 스킬이 **만든** 값 (공식 출처 없음)
+### ⚠️ 공식 출처 없는 보조값
 
-다음 값은 공식 브랜드 가이드에 없고, 실무 편의를 위해 일반적 디자인 시스템 관행에 따라 **이 스킬이 정의한 것**이다. 공식 값이 확인되면 덮어써야 한다.
-
-- `primary-hover: #DD5D10` — Hanwha Orange의 brightness −10% 추정값
-- `text-primary: #111111` — 순검정 대신 digital-friendly near-black (공식 아님)
-- `text-secondary: #4A4A4A`, `text-tertiary: #8A8A8A` — 관례적 grayscale ladder
-- `surface-muted: #F7F7F8`, `border: #E5E5E5`, `border-strong: #C9C9C9` — 관례적 중성 팔레트
-- State colors (`success/warning/danger/info`) — Tailwind 계열 관례값. 한화 공식 오류/경고 색은 미확인.
+상태 색상(`success/warning/danger/info`), 서피스·보더, hover·pressed 파생값은 공식 브랜드 가이드 수치가 아니라 디지털 제품 UI를 위해 정의한 값이다. 공식 값이 확인되면 `assets/DESIGN.md`, `assets/tokens.css`, `assets/token-audit.mjs`, `assets/tailwind.preset.js` 를 함께 갱신한다.
 
 ## 전용 서체
 
@@ -86,18 +97,3 @@
 - [Stitch DESIGN.md Overview](https://stitch.withgoogle.com/docs/design-md/overview/)
 - [Stitch DESIGN.md Format](https://stitch.withgoogle.com/docs/design-md/format/)
 - [Google Blog: DESIGN.md Open-Sourced](https://blog.google/innovation-and-ai/models-and-research/google-labs/stitch-design-md/)
-
-## 업데이트 이력
-
-- **2026-04-23 v1.0**: 초기 작성. Hanwha Solutions 기준 hex + Pretendard 폴백 + `#111111` 텍스트.
-- **2026-04-23 v1.1**: 스킬명 `hwgi-design` → `hw-design` 리네임. `DESIGN.md` 를 `assets/` 로 이동. SKILL.md description pushy 화, CLAUDE.md 주입 블록 이유 설명 중심.
-- **2026-04-23 v2.0 (현재)**: 실전 디자인 시스템 기반 전면 재작성.
-  - **Primary 값 정정**: `#F96D17` (Hanwha Solutions 추정) → `#F37321` (실전 확인값). Hover `#E06A1B`, Pressed `#C75E14`, bg `#FFF3EB`, bg-subtle `#FDEEDE` 5단 팔레트로 확장.
-  - **Neutral 축 추가**: Navy `#1A2B4A` / `#2D4168` / `#3D537F` 3단 — 한화 DNA 의 **2색 대비축**(Orange + Navy) 완성.
-  - **폰트 교체**: Hanwha Gothic(미검증) → **AtoZ (에이투지체)** 9 weight 실제 웹폰트 번들. IBM Plex Sans Variable 을 영문/숫자 강조용으로 페어링.
-  - **그림자 시스템**: 네이비 톤 `rgba(26, 43, 74, x)` 기반 9종. 브랜드 컬러 일관성 확보.
-  - **Motion 3단계 원칙**: `fast 250 / base 350 / slow 550`ms 만 허용.
-  - **3-Layer Token Architecture** 도입 (Hardik Pandya 패턴): Layer 1 `--hw-*` → Layer 2 `--color-*/--space-*/...` → Layer 3 컴포넌트.
-  - **Token Audit 스크립트** 번들 (`token-audit.mjs`): 하드코딩 hex/px/duration 자동 감지.
-  - **Tailwind 프리셋 + fonts.css** 번들로 프레임워크 연계 즉시 가능.
-  - **출처 추가**: `references/source-design.md` (대표님의 `ai_assist` 실전 디자인 시스템 — DNA 추출 원천), `references/design-md-playbook.md` (공식 + 커뮤니티 고수 노하우 요약).

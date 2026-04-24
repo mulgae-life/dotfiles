@@ -156,7 +156,8 @@
   --color-surface-tertiary:   #2D4168;
   --color-border:             #3D537F;
   --color-border-light:       #2D4168;
-  --color-text:               #F7F9FC;
+  --color-text-primary:       #F7F9FC;
+  --color-text:               var(--color-text-primary);
   --color-text-secondary:     #CBD5E0;
   --color-text-tertiary:      #94A3B8;
   /* primary/primary-bg 등은 동일 유지 → 브랜드 일관성 */
