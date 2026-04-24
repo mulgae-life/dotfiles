@@ -123,15 +123,17 @@ NEVER — 아래 행동은 절대 하지 마세요:
 # 위험 명령어는 rules/default.rules의 Starlark DSL에서 차단
 approval_policy = "never"
 
-# ── 샌드박스 설정 ──────────────────────────
-# workspace-write: 프로젝트 내 파일 편집 + 명령 실행 허용, 샌드박스 경계는 유지
 # ── AGENTS.md 한도 ─────────────────────────
 project_doc_max_bytes = 65536
 
-sandbox_mode = "workspace-write"
-
-[sandbox_workspace_write]
-network_access = true  # npm install, git fetch, API 호출 등 네트워크 작업 허용
+# ── 샌드박스 설정 ──────────────────────────
+# danger-full-access: 샌드박스 완전 해제.
+# 이유: Codex exec 샌드박스는 /dev를 tmpfs nodev로 덮어 GPU 장치(/dev/nvidia*)를
+#       노출하지 않는다. workspace-write로는 mount namespace를 풀 수 없으므로
+#       GPU 연산·CUDA 도구를 쓰려면 샌드박스 자체를 비활성화해야 한다.
+# 유일한 방어선: rules/default.rules (Starlark DSL)가 rm/reboot/gh api 등 차단
+# 병행 방어선: shell_environment_policy(아래)가 시크릿 env var 유출 차단
+sandbox_mode = "danger-full-access"
 
 # ── 환경변수 정책 (시크릿 유출 방지) ────────
 # 서브프로세스로 시크릿 패턴 환경변수가 새는 것을 방지
