@@ -122,7 +122,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 |------|------|
 | `/frontend-design` | 코드 기반 프로덕션 UI 제작 |
 | `/stitch-design` | Google Stitch MCP 기반 AI UI 디자인 (7개 서브스킬 포함) |
-| `/hw-design` | 한화그룹(Hanwha) 디자인 표준 DESIGN.md 배포 — Hanwha Orange·Hanwha Gothic 기반 |
+| `/hw-design` | 한화그룹(Hanwha) 디자인 표준 DESIGN.md 배포 — Hanwha Orange + Navy 2색축 · AtoZ/IBM Plex 페어링 · 공식 트리서클 로고 번들 |
 | `/react-best-practices` | React/Next.js 성능 최적화 |
 | `/web-design-guidelines` | 웹 인터페이스 가이드라인 준수 리뷰 |
 

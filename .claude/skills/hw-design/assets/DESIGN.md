@@ -261,7 +261,7 @@ components:
   nav-top:
     backgroundColor: "{colors.neutral}"
     textColor: "{colors.text-on-neutral}"
-    height: 64px
+    height: 104px                                 # 로고 84px + 브랜드 타이틀 22px 기준 시각 균형
     padding: 0 24px
 
   # ────────────────────────────────────────────────────────────────
@@ -272,6 +272,30 @@ components:
     textColor: "{colors.text-on-primary}"
     rounded: "{rounded.full}"
     size: 40px
+
+  # ────────────────────────────────────────────────────────────────
+  # Brand Logo — 반드시 번들 PNG 사용, SVG/Canvas/코드 자체 제작 금지
+  # ────────────────────────────────────────────────────────────────
+  brand-logo:
+    source: "assets/logo/hanwha-tricircle.png"    # 707×353 · symbol(트리서클) + wordmark(검은 한글)
+    favicon: "assets/logo/favicon.png"            # 154×140 · symbol only
+    height-nav: 84px                              # Top Nav 104px 기준 (symbol+wordmark 비율 고려해 크게)
+    height-hero: 112px                            # Hero 섹션은 Nav 보다 크게
+    safezone: "height / 2"                        # 흰 박스 패딩이 이 역할을 겸함
+
+  # on-navy 배경에서 검은 wordmark 가 묻히는 것을 막는 흰 컨테이너
+  brand-logo-box:
+    backgroundColor: "{colors.surface}"
+    rounded: "{rounded.md}"                       # 8px (Nav) · 12px (Hero)
+    padding: "2px 10px"                           # Nav 기본 — 세로 슬림 (로고가 박스 전체를 채움). Hero 는 4px 16px.
+    shadow: "0 2px 8px rgba(26, 43, 74, 0.18)"
+
+  # 브랜드 헤더 — 로고 옆 한글 서비스명(타이틀) 의 시각 균형
+  brand-header:
+    gap: "{spacing.sm}"                           # 로고 ↔ 타이틀 사이 12px
+    titleFontSize: 1.375rem                       # 22px — h2(24) 바로 아래. Nav 104 / 로고 84 와 균형
+    titleFontWeight: 700
+    titleLetterSpacing: -0.015em                  # 한글 제목은 음의 자간으로 짜임새 확보
 
 # ──────────────────────────────────────────────────────────────────
 # Extended tokens — 공식 스펙의 known 타입은 아니지만 린터가 보존함
@@ -514,6 +538,66 @@ box-shadow: var(--shadow-glass);
 - **Menu Item**: `body` 크기, `text-on-neutral`. active 시 `primary` 배경 + 흰 텍스트, 또는 좌측 3px `primary` 인디케이터 막대.
 - **Mobile**: 햄버거 → 전폭 drawer. 드로어 헤더는 `neutral` 그래디언트.
 
+### Brand Header (로고)
+
+**MUST**: 번들 PNG (`assets/logo/hanwha-tricircle.png`) 를 그대로 쓴다. SVG/Canvas/코드로 트리서클을 재현하지 않는다 — 원 3개 겹치기, 유사 오렌지 그래디언트 전부 금지. CI 일관성 + 법무 안전.
+
+**조합**: symbol(트리서클 오렌지) + wordmark(**검은** 한글 텍스트) 가로 로고타이프. 검은 글자 때문에 **배경 대비 처리가 필요**하다.
+
+#### on-navy 배경 (Top Nav · Hero · 스플래시)
+
+로고를 **흰 박스 컨테이너(`brand-logo-box`)** 로 감싼다. 검은 wordmark 가 네이비에 묻히는 것을 막는다.
+
+```html
+<span class="brand__logo-box">
+  <img src="/public/logo/hanwha-tricircle.png" alt="한화" class="brand__logo"/>
+</span>
+```
+```css
+.brand {                                       /* 브랜드명 타이틀 (로고 옆 한글) */
+  display: flex; align-items: center; gap: var(--sp-sm);
+  font-weight: 700; font-size: 1.375rem;       /* 22px — brand-header.titleFontSize */
+  letter-spacing: -0.015em;
+}
+.brand__logo-box {
+  display: inline-grid; place-items: center;
+  padding: 2px 10px;                           /* 세로 슬림 — 로고가 박스 전체를 채우도록 */
+  background: var(--color-surface);            /* #fff */
+  border-radius: var(--radius-md);             /* 8px */
+  box-shadow: 0 2px 8px rgba(26, 43, 74, .18);
+}
+.brand__logo {
+  height: 84px; width: auto; object-fit: contain; display: block;
+}
+```
+
+#### on-white / on-light 배경 (Footer · 로그인 · 일반 페이지)
+
+컨테이너 불필요. 로고 단독.
+
+```html
+<img src="/public/logo/hanwha-tricircle.png" alt="한화" class="brand__logo"/>
+```
+
+#### 사이즈
+
+| 위치 | 배경 | Nav/컨테이너 높이 | 로고 이미지 높이 | 박스 패딩 | 박스 라운딩 |
+|------|------|-------------------|----------------|----------|------------|
+| Top Nav | navy | **104px** (`nav-top.height`) | **84px** (`brand-logo.height-nav`) | `2px 10px` | `md (8)` |
+| Hero splash | navy | — | 96–128px (`brand-logo.height-hero` 근방) | `6px 16px` | `lg (12)` |
+| Footer | white | — | 24–28px | — | — |
+| Favicon | — | — | `favicon.png` 사용 | — | — |
+
+**브랜드 타이틀 폰트** (`brand-header.title*`): `1.375rem (22px)` · `weight 700` · `letter-spacing -0.015em`. Nav 104px / 로고 84px 와의 시각 균형을 맞춘 값.
+
+세이프존은 로고 높이의 1/2 이상. 박스 패딩이 이 역할을 겸한다.
+
+#### 금지
+
+- **코드로 트리서클 재현** (SVG `<circle>` 3개 겹치기, Canvas drawing, 유사 오렌지 그래디언트)
+- **on-navy 배경에 로고 단독 배치** (검은 wordmark 가 묻힘 — `brand-logo-box` 필수)
+- **로고 색·비율·세이프존 변형**, 트리서클 심볼만 따로 잘라 쓰기
+
 ### Badge
 
 - Solid 페어 4종(success/warning/danger/info): `bg = state-bg`, `text = state`.
@@ -571,6 +655,8 @@ border-radius: 0 2px 2px 0;
 - **한글에 양의 자간**. 한글 자형이 훼손된다.
 - **3종 이상 라운딩 혼용**. 페이지가 어수선해진다.
 - **트리서클 로고 색·비율 변형**. CI 가이드 준수.
+- **트리서클을 SVG/Canvas/코드로 자체 제작** — 원 3개 겹치기, 유사 오렌지 그래디언트, 비율이 같아 보여도 전부 금지. 번들 `assets/logo/hanwha-tricircle.png` 만 사용.
+- **on-navy 배경에 로고 단독 배치** — 검은 wordmark 가 네이비에 묻힌다. `brand-logo-box` 흰 컨테이너로 감싸야 한다.
 - **임의 duration 생성** (예: `0.4s`, `600ms`). `motion.fast/base/slow` 중 하나만 선택.
 - **세컨더리 컬러 추가**. 2색 체계(오렌지+네이비)가 한화 DNA의 핵심.
 
