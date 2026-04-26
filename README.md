@@ -45,7 +45,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) |
 | **훅** | `PreToolUse`, `Notification` | 없음 | `BeforeTool`, `Notification` 등 11종 |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` |
-| **기본 모델** | Claude Opus | GPT-5.4 | Gemini 3.1 Pro |
+| **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법

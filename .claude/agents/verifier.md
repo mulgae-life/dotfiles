@@ -7,8 +7,8 @@ tools:
   - Glob
   - Grep
   - Bash
-model: sonnet
-effort: high
+model: opus
+effort: max
 memory: project
 ---
 

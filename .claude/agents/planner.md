@@ -8,7 +8,7 @@ tools:
   - WebFetch
   - WebSearch
 model: opus
-effort: xhigh
+effort: max
 ---
 
 # Planner Agent

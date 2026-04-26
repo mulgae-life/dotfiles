@@ -29,7 +29,7 @@ OpenAI GPT와 Anthropic Claude 공식 가이드 기반. **범용 원칙 우선, 
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
 | **Examples** | 3-5개 권장 | Few-shot | Multishot (동일 개념) |
 | **XML 태그** | ✅ 권장 | ✅ | ✅ |
-| **특화 파라미터** | - | `reasoning_effort`, `verbosity`, `phase` | - |
+| **특화 파라미터** | - | `reasoning_effort`, `verbosity`, `phase`, `image_detail` | - |
 | **Prefilling** | - | ❌ | ✅ (JSON/캐릭터 강제) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
@@ -72,7 +72,7 @@ OpenAI GPT와 Anthropic Claude 공식 가이드 기반. **범용 원칙 우선, 
 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
-| OpenAI | Predicted Outputs, 구조화 출력 | `references/gpt5-params.md`, `references/gpt54-patterns.md` |
+| OpenAI | Outcome-first, 구조화 출력, Personality 분리 | `references/gpt5-params.md`, `references/gpt55-patterns.md` ⭐ (5.5), `references/gpt54-patterns.md` (5.4) |
 | Anthropic | Prefilling, 긴 컨텍스트 최적화 | `references/prefilling.md`, `references/long-context.md` |
 
 ## 기본 템플릿
@@ -138,7 +138,19 @@ system_prompt: |
 
 ### 플랫폼별 최적화 (선택)
 
-**OpenAI GPT-5**:
+**OpenAI GPT-5.5** (최신, 권장):
+- [ ] **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의
+- [ ] **Personality + Collaboration Style 분리** (각 1-2문단 이내)
+- [ ] `reasoning.effort`: `medium` 출발점, 많은 워크로드는 `low`도 충분
+- [ ] `text.verbosity`: `low` 권장
+- [ ] **Markdown 절제** (plain prose 기본, 헤더·불릿 sparingly)
+- [ ] **Retrieval Budget** 명시 (도구 사용 시 stopping conditions)
+- [ ] **Structured Outputs API**로 스키마 강제 (프롬프트 대신)
+- [ ] **Tool Validation**: 출력 검증을 도구로 (테스트·린트·렌더링)
+- [ ] 5.4에서 마이그레이션: **fresh baseline 재구성** (드롭인 금지)
+- [ ] Message Roles (developer/user)
+
+**OpenAI GPT-5.4 이전**:
 - [ ] reasoning_effort 설정 (작업 복잡도)
 - [ ] verbosity 설정 (응답 길이)
 - [ ] Message Roles (developer/user)
@@ -176,7 +188,8 @@ system_prompt: |
 
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
 - **[gpt5-params.md](references/gpt5-params.md)** - GPT-5 API 파라미터 (`reasoning`, `verbosity` 코드 예시)
-- **[gpt54-patterns.md](references/gpt54-patterns.md)** ⭐ GPT-5.4 프롬프트 패턴 (출력 계약, 도구 지속성, 검증 루프)
+- **[gpt55-patterns.md](references/gpt55-patterns.md)** ⭐ GPT-5.5 프롬프트 패턴 (Outcome-first, Personality 분리, Retrieval Budget, Tool Validation, Markdown 절제) 🆕
+- **[gpt54-patterns.md](references/gpt54-patterns.md)** GPT-5.4 프롬프트 패턴 (출력 계약, 도구 지속성, 검증 루프) — 5.5에서도 호환
 - **[optimization.md](references/optimization.md)** - GPT-5 최적화 팁
 
 ### Anthropic (Claude) 특화
@@ -189,8 +202,11 @@ system_prompt: |
 
 ### OpenAI
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
+- [GPT-5.5 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/) ⭐ 최신 (2026-04)
+- [Using GPT-5.5](https://developers.openai.com/api/docs/guides/latest-model)
+- [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 - [GPT-5 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5_prompting_guide)
-- [GPT-5.4 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/)
+- [GPT-5.4 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.4)
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
 ### Anthropic

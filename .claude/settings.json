@@ -207,7 +207,7 @@
       "Bash(pyenv *)"
     ]
   },
-  "effortLevel": "xhigh",
+  "effortLevel": "max",
   "hooks": {
     "PreToolUse": [
       {

@@ -40,7 +40,7 @@ Anthropic
 | **엔드포인트** | `/v1/responses` | `/v1/messages` |
 | **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
 | **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
-| **Reasoning** | `reasoning: {effort}` (모델별 기본값 상이) | 모델 자체 기능 (extended thinking) |
+| **Reasoning** | `reasoning: {effort}` (5.5: `medium` 권장 출발점, 많은 워크로드는 `low`도 충분 / 5.4 이전: 작업 형태별 매트릭스) | 모델 자체 기능 (extended thinking) |
 | **스트리밍** | `stream: true` | `stream: True` |
 | **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 |
 
@@ -98,7 +98,9 @@ Anthropic
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
-- [GPT-5.4 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/)
+- [GPT-5.5 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/) ⭐ 최신 (2026-04)
+- [Using GPT-5.5](https://developers.openai.com/api/docs/guides/latest-model)
+- [GPT-5.4 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.4)
 
 ### Anthropic
 
