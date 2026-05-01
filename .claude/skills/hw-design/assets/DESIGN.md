@@ -275,19 +275,28 @@ components:
 
   # ────────────────────────────────────────────────────────────────
   # Brand Logo — 반드시 번들 PNG 사용, SVG/Canvas/코드 자체 제작 금지
+  # 배경별 변형 PNG 5종 — 결정 트리는 §Brand Header 참조
   # ────────────────────────────────────────────────────────────────
   brand-logo:
-    source: "assets/logo/hanwha-tricircle.png"    # 707×353 · symbol(트리서클) + wordmark(검은 한글)
-    favicon: "assets/logo/favicon.png"            # 154×140 · symbol only
-    height-nav: 84px                              # Top Nav 104px 기준 (symbol+wordmark 비율 고려해 크게)
-    height-hero: 112px                            # Hero 섹션은 Nav 보다 크게
-    safezone: "height / 2"                        # 흰 박스 패딩이 이 역할을 겸함
+    # on-white 기본 (원본)
+    source: "assets/logo/hanwha-tricircle.png"                       # 707×353 · symbol(컬러) + wordmark(검정)
+    favicon: "assets/logo/favicon.png"                               # 154×140 · symbol only(컬러)
+    # on-navy 변형 (원본의 색상 변환 시안 — references/brand-identity.md)
+    source-on-navy: "assets/logo/hanwha-tricircle-on-navy.png"       # symbol(컬러) + wordmark(흰) — on-navy 헤더 기본
+    source-mono-white: "assets/logo/hanwha-tricircle-mono-white.png" # 전체 흰색 — on-navy 스플래시·히어로·풋터 inverse
+    source-symbol-white: "assets/logo/tricircle-symbol-white.png"    # 심볼만 흰색 — on-navy 모바일 축약
+    # 사이즈
+    height-nav: 56px                              # Top Nav 104px 기준 (변형 PNG 직접 사용)
+    height-hero: 96px                             # Hero 섹션 (96~128px 범위)
+    height-mobile: 32px                           # 모바일 헤더 축약 (Nav 56px)
+    height-footer: 28px                           # 푸터 (on-white)
+    safezone: "height / 2"
 
-  # on-navy 배경에서 검은 wordmark 가 묻히는 것을 막는 흰 컨테이너
+  # DEPRECATED: 변형 PNG 도입으로 더 이상 권장되지 않음. 변형 PNG 미배포 환경에서만 fallback.
   brand-logo-box:
     backgroundColor: "{colors.surface}"
-    rounded: "{rounded.md}"                       # 8px (Nav) · 12px (Hero)
-    padding: "2px 10px"                           # Nav 기본 — 세로 슬림 (로고가 박스 전체를 채움). Hero 는 4px 16px.
+    rounded: "{rounded.md}"
+    padding: "2px 10px"
     shadow: "0 2px 8px rgba(26, 43, 74, 0.18)"
 
   # 브랜드 헤더 — 로고 옆 한글 서비스명(타이틀) 의 시각 균형
@@ -540,63 +549,97 @@ box-shadow: var(--shadow-glass);
 
 ### Brand Header (로고)
 
-**MUST**: 번들 PNG (`assets/logo/hanwha-tricircle.png`) 를 그대로 쓴다. SVG/Canvas/코드로 트리서클을 재현하지 않는다 — 원 3개 겹치기, 유사 오렌지 그래디언트 전부 금지. CI 일관성 + 법무 안전.
+**MUST**: 번들 PNG 5종(`assets/logo/`) 만 사용한다. SVG/Canvas/코드로 트리서클을 재현하지 않는다 — 원 3개 겹치기, 유사 오렌지 그래디언트 전부 금지. CI 일관성 + 법무 안전.
 
-**조합**: symbol(트리서클 오렌지) + wordmark(**검은** 한글 텍스트) 가로 로고타이프. 검은 글자 때문에 **배경 대비 처리가 필요**하다.
+**번들 5종**:
 
-#### on-navy 배경 (Top Nav · Hero · 스플래시)
+| 파일 | 구성 | 용도 |
+|------|------|------|
+| `hanwha-tricircle.png` | symbol(컬러) + wordmark(검정) | on-white 기본 — 일반 페이지·푸터 |
+| `hanwha-tricircle-on-navy.png` | symbol(컬러) + wordmark(흰) | **on-navy 헤더 기본** |
+| `hanwha-tricircle-mono-white.png` | 전체 흰색(농도 분리) | on-navy 스플래시·히어로·풋터 inverse |
+| `favicon.png` | symbol only(컬러) | 파비콘 |
+| `tricircle-symbol-white.png` | symbol only(흰) | on-navy 모바일 축약 |
 
-로고를 **흰 박스 컨테이너(`brand-logo-box`)** 로 감싼다. 검은 wordmark 가 네이비에 묻히는 것을 막는다.
+> ⚠️ on-navy/mono-white/symbol-white 는 원본의 **색상 변환 시안**. 비율·형태는 100% 보존. 한화손보 BI 공식 mono/inverse 자산 도착 시 교체 권장 (`references/brand-identity.md`).
+
+#### 배경별 변형 결정 트리
+
+검정 wordmark 의 원본을 네이비 위에 그대로 올리면 글자가 묻힌다. **흰 박스 컨테이너로 감싸는 방식 대신, 배경에 맞는 변형을 직접 사용**한다.
+
+```
+배경이 어두운가? (네이비 #1A2B4A 등)
+├── YES (on-navy)
+│   ├── 헤더 기본 (컬러 + 흰 wordmark)        → hanwha-tricircle-on-navy.png
+│   ├── 스플래시·히어로·풋터 inverse (전체 흰) → hanwha-tricircle-mono-white.png
+│   └── 모바일 헤더 축약·뱃지 (심볼만)         → tricircle-symbol-white.png
+└── NO (on-white)
+    └── 일반 페이지·푸터                       → hanwha-tricircle.png (원본)
+```
+
+> 이전 권장이던 흰 박스 컨테이너(`brand-logo-box`)는 변형 PNG 가 모두 갖춰진 현재로선 사용하지 않는다 (필요 시 fallback 으로만).
+
+#### on-navy — Top Nav 기본 (Variant A)
 
 ```html
-<span class="brand__logo-box">
-  <img src="/public/logo/hanwha-tricircle.png" alt="한화" class="brand__logo"/>
-</span>
+<div class="brand">
+  <img src="/public/logo/hanwha-tricircle-on-navy.png" alt="한화손보" class="brand__logo"/>
+</div>
 ```
 ```css
-.brand {                                       /* 브랜드명 타이틀 (로고 옆 한글) */
+.brand {
   display: flex; align-items: center; gap: var(--sp-sm);
-  font-weight: 700; font-size: 1.375rem;       /* 22px — brand-header.titleFontSize */
-  letter-spacing: -0.015em;
-}
-.brand__logo-box {
-  display: inline-grid; place-items: center;
-  padding: 2px 10px;                           /* 세로 슬림 — 로고가 박스 전체를 채우도록 */
-  background: var(--color-surface);            /* #fff */
-  border-radius: var(--radius-md);             /* 8px */
-  box-shadow: 0 2px 8px rgba(26, 43, 74, .18);
 }
 .brand__logo {
-  height: 84px; width: auto; object-fit: contain; display: block;
+  height: 56px;             /* brand-logo.height-nav — Top Nav 104px 전제 */
+  width: auto; object-fit: contain; display: block;
 }
 ```
 
-#### on-white / on-light 배경 (Footer · 로그인 · 일반 페이지)
-
-컨테이너 불필요. 로고 단독.
+#### on-navy — 스플래시·히어로 / 풋터 inverse (Variant B)
 
 ```html
-<img src="/public/logo/hanwha-tricircle.png" alt="한화" class="brand__logo"/>
+<img src="/public/logo/hanwha-tricircle-mono-white.png" alt="한화손보" class="brand__logo brand__logo--hero"/>
+```
+```css
+.brand__logo--hero { height: 96px; }   /* brand-logo.height-hero — 또는 더 크게 */
+```
+
+#### on-navy — 모바일 헤더 축약 (Variant C)
+
+```html
+<img src="/public/logo/tricircle-symbol-white.png" alt="한화손보" class="brand__logo brand__logo--symbol"/>
+```
+```css
+.brand__logo--symbol { height: 32px; }  /* brand-logo.height-mobile */
+```
+
+#### on-white — 일반 페이지·푸터 (원본)
+
+```html
+<img src="/public/logo/hanwha-tricircle.png" alt="한화손보" class="brand__logo"/>
 ```
 
 #### 사이즈
 
-| 위치 | 배경 | Nav/컨테이너 높이 | 로고 이미지 높이 | 박스 패딩 | 박스 라운딩 |
-|------|------|-------------------|----------------|----------|------------|
-| Top Nav | navy | **104px** (`nav-top.height`) | **84px** (`brand-logo.height-nav`) | `2px 10px` | `md (8)` |
-| Hero splash | navy | — | 96–128px (`brand-logo.height-hero` 근방) | `6px 16px` | `lg (12)` |
-| Footer | white | — | 24–28px | — | — |
-| Favicon | — | — | `favicon.png` 사용 | — | — |
+| 위치 | 배경 | 사용 변형 | Nav 높이 | 로고 이미지 높이 |
+|------|------|----------|---------|----------------|
+| Top Nav (데스크톱) | navy | `-on-navy.png` | 104px (`nav-top.height`) | 56px (`brand-logo.height-nav`) |
+| Hero splash | navy | `-mono-white.png` | — | 96–128px (`brand-logo.height-hero`) |
+| Footer (on-navy inverse) | navy | `-mono-white.png` | — | 24–28px |
+| Mobile compact header | navy | `tricircle-symbol-white.png` | 56px | 32px (`brand-logo.height-mobile`) |
+| Footer (on-white) | white | `hanwha-tricircle.png` (원본) | — | 24–28px (`brand-logo.height-footer`) |
+| Favicon | — | `favicon.png` (원본) | — | favicon.png 사용 |
 
-**브랜드 타이틀 폰트** (`brand-header.title*`): `1.375rem (22px)` · `weight 700` · `letter-spacing -0.015em`. Nav 104px / 로고 84px 와의 시각 균형을 맞춘 값.
+**브랜드 타이틀 폰트** (`brand-header.title*`, 로고 옆 별도 서비스명 텍스트가 있을 경우): `1.375rem (22px)` · `weight 700` · `letter-spacing -0.015em`.
 
-세이프존은 로고 높이의 1/2 이상. 박스 패딩이 이 역할을 겸한다.
+세이프존은 로고 높이의 1/2 이상.
 
 #### 금지
 
 - **코드로 트리서클 재현** (SVG `<circle>` 3개 겹치기, Canvas drawing, 유사 오렌지 그래디언트)
-- **on-navy 배경에 로고 단독 배치** (검은 wordmark 가 묻힘 — `brand-logo-box` 필수)
-- **로고 색·비율·세이프존 변형**, 트리서클 심볼만 따로 잘라 쓰기
+- **on-navy 배경에 원본(`hanwha-tricircle.png`) 단독 배치** — 검은 wordmark 가 묻힌다. 변형 PNG(`-on-navy` / `-mono-white` / `tricircle-symbol-white`) 로 교체.
+- **로고 색·비율·세이프존 변형**, 트리서클 심볼만 따로 잘라 쓰기 (대신 번들 `tricircle-symbol-white.png` / `favicon.png` 사용)
 
 ### Badge
 
@@ -655,8 +698,8 @@ border-radius: 0 2px 2px 0;
 - **한글에 양의 자간**. 한글 자형이 훼손된다.
 - **3종 이상 라운딩 혼용**. 페이지가 어수선해진다.
 - **트리서클 로고 색·비율 변형**. CI 가이드 준수.
-- **트리서클을 SVG/Canvas/코드로 자체 제작** — 원 3개 겹치기, 유사 오렌지 그래디언트, 비율이 같아 보여도 전부 금지. 번들 `assets/logo/hanwha-tricircle.png` 만 사용.
-- **on-navy 배경에 로고 단독 배치** — 검은 wordmark 가 네이비에 묻힌다. `brand-logo-box` 흰 컨테이너로 감싸야 한다.
+- **트리서클을 SVG/Canvas/코드로 자체 제작** — 원 3개 겹치기, 유사 오렌지 그래디언트, 비율이 같아 보여도 전부 금지. 번들 PNG 5종(`assets/logo/`)만 사용.
+- **on-navy 배경에 원본(`hanwha-tricircle.png`) 단독 배치** — 검은 wordmark 가 묻힌다. on-navy 변형(`-on-navy` / `-mono-white` / `tricircle-symbol-white`)으로 교체 (배경별 결정 트리는 §Brand Header 참조).
 - **임의 duration 생성** (예: `0.4s`, `600ms`). `motion.fast/base/slow` 중 하나만 선택.
 - **세컨더리 컬러 추가**. 2색 체계(오렌지+네이비)가 한화 DNA의 핵심.
 

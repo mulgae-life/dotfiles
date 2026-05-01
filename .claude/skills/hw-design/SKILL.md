@@ -36,8 +36,11 @@ LLM은 세션 간 기억이 없다. "한화 느낌으로 만들어줘"라고 매
 │   ├── IBMPlexSans/*.ttf     ← 영문 variable
 │   └── fonts.css             ← @font-face 선언 묶음
 └── public/logo/
-    ├── hanwha-tricircle.png  ← 한화 CI 로고
-    └── favicon.png
+    ├── hanwha-tricircle.png              ← 원본 (on-white 기본)
+    ├── hanwha-tricircle-on-navy.png      ← on-navy 헤더 기본 (컬러 + 흰 wordmark)
+    ├── hanwha-tricircle-mono-white.png   ← on-navy 스플래시·히어로 (전체 흰)
+    ├── tricircle-symbol-white.png        ← on-navy 모바일 축약 (심볼만 흰)
+    └── favicon.png                        ← 파비콘 (심볼만 컬러)
 ```
 
 프로젝트 `CLAUDE.md` 에 별도 규칙을 주입하지 않는다. 진실의 원천은 오직 `DESIGN.md` — LLM 이 스킬 호출 시(또는 파일을 직접 읽을 때) 여기서 토큰과 컴포넌트 스펙을 모두 확인한다.
@@ -132,104 +135,138 @@ npx @google/design.md export --format dtcg ./DESIGN.md > tokens.hw.dtcg.json
 
 > **LLM 이 가장 자주 저지르는 실수 TOP 1**: SVG 로 원 3개 겹쳐서 트리서클을 자체 제작하는 것. 비율·색이 똑같아 보여도 **절대 금지**. CI 일관성과 법무 안전의 문제다.
 
-### 번들 에셋
+### 번들 에셋 (5종)
 
 | 파일 | 구성 | 용도 |
 |------|------|------|
-| `assets/logo/hanwha-tricircle.png` (707×353, RGBA) | symbol(트리서클 오렌지) + wordmark(**검은** 한글) 가로 로고타이프 | 모든 화면의 브랜드 로고 |
-| `assets/logo/favicon.png` (154×140) | symbol only | 파비콘 |
+| `assets/logo/hanwha-tricircle.png` (707×353, RGBA) | symbol(컬러) + wordmark(**검정**) | **on-white 기본** — 일반 페이지·푸터 |
+| `assets/logo/hanwha-tricircle-on-navy.png` | symbol(컬러) + wordmark(**흰색**) | **on-navy 헤더 기본** (가장 자주 사용) |
+| `assets/logo/hanwha-tricircle-mono-white.png` | symbol(흰색, 농도 분리) + wordmark(흰색) | on-navy 스플래시·히어로·풋터 inverse |
+| `assets/logo/favicon.png` (154×140, RGBA) | symbol only(컬러) | 파비콘 |
+| `assets/logo/tricircle-symbol-white.png` | symbol only(흰색) | on-navy 모바일 헤더 축약·뱃지 |
 
-### ⚠️ 배경 대비 규칙 (핵심)
+> ⚠️ `*-on-navy.png` / `*-mono-white.png` / `tricircle-symbol-white.png` 는 원본의 **색상 변환 시안**입니다. 비율·형태는 100% 보존. 한화손보 BI 공식 mono/inverse 자산이 도착하면 교체 권장 (자세한 내용: `references/brand-identity.md`).
 
-wordmark 가 **검은 글씨**라 네이비 헤더 위에 그대로 올리면 **글자가 묻힌다**.
-→ **on-navy 배경에선 반드시 흰 박스 컨테이너로 감싼다**.
+### ⚠️ 배경별 변형 결정 트리
 
-#### on-navy 배경 (Top Nav, 히어로, 스플래시 기본)
+검정 wordmark 의 원본을 네이비 위에 그대로 올리면 글자가 묻힌다. **흰 박스 컨테이너로 감싸는 방식 대신, 배경에 맞는 변형을 직접 사용**한다.
+
+```
+배경이 어두운가? (네이비 #1A2B4A 등)
+├── YES (on-navy)
+│   ├── 헤더 기본 (컬러 + 흰 wordmark)        → hanwha-tricircle-on-navy.png
+│   ├── 스플래시·히어로·풋터 inverse (전체 흰) → hanwha-tricircle-mono-white.png
+│   └── 모바일 헤더 축약·뱃지 (심볼만)         → tricircle-symbol-white.png
+└── NO (on-white)
+    └── 일반 페이지·푸터                       → hanwha-tricircle.png (원본)
+```
+
+> 흰 박스 컨테이너 방식(이전 권장)은 변형이 모두 갖춰진 현재로선 사용하지 않는다. (필요하다면 fallback 으로만.)
+
+#### on-navy — Top Nav 기본 (Variant A: 컬러 + 흰 wordmark)
 
 ```html
 <div class="brand">
-  <span class="brand__logo-box">
-    <img src="/public/logo/hanwha-tricircle.png" alt="한화" class="brand__logo" />
-  </span>
-  <span class="brand__name">서비스명</span>
+  <img src="/public/logo/hanwha-tricircle-on-navy.png" alt="한화손보" class="brand__logo" />
 </div>
 ```
 
 ```css
-.brand {                                     /* 브랜드명 타이틀 (로고 옆 한글) */
+.brand {
   display: flex; align-items: center; gap: var(--sp-sm);
-  font-weight: 700; font-size: 1.375rem;     /* 22px — 한화 브랜드 타이틀 기본 */
-  letter-spacing: -0.015em;
-}
-.brand__logo-box {
-  display: inline-grid; place-items: center;
-  padding: 2px 10px;                         /* 세로 슬림 — 로고가 박스 전체를 채움 */
-  background: var(--color-surface);          /* #fff */
-  border-radius: var(--radius-md);           /* 8px */
-  box-shadow: 0 2px 8px rgba(26, 43, 74, .18);
 }
 .brand__logo {
-  height: 84px;                              /* Top Nav 기본 (Nav 104px 전제) */
+  height: 56px;              /* Top Nav 104px 전제 */
   width: auto;
   object-fit: contain;
   display: block;
 }
 ```
 
-#### on-white / on-light 배경 (일반 페이지, 푸터)
-
-컨테이너 불필요. 로고 단독 배치:
+#### on-navy — 스플래시·히어로 (Variant B: 전체 흰색)
 
 ```html
-<img src="/public/logo/hanwha-tricircle.png" alt="한화" class="brand__logo" />
+<img src="/public/logo/hanwha-tricircle-mono-white.png" alt="한화손보" class="brand__logo brand__logo--hero" />
+```
+
+```css
+.brand__logo--hero { height: 96px; }   /* 또는 더 크게, 화면 비율에 맞춰 */
+```
+
+#### on-navy — 모바일 헤더 축약 (Variant C: 심볼만 흰색)
+
+```html
+<img src="/public/logo/tricircle-symbol-white.png" alt="한화손보" class="brand__logo brand__logo--symbol" />
+```
+
+```css
+.brand__logo--symbol { height: 32px; }
+```
+
+#### on-white — 일반 페이지·푸터 (원본)
+
+```html
+<img src="/public/logo/hanwha-tricircle.png" alt="한화손보" class="brand__logo" />
 ```
 
 ### React / Next.js
 
 ```tsx
-import logo from "@/public/logo/hanwha-tricircle.png";
+// 변형별로 import
+import logoOnWhite from "@/public/logo/hanwha-tricircle.png";
+import logoOnNavy  from "@/public/logo/hanwha-tricircle-on-navy.png";
+import logoMono    from "@/public/logo/hanwha-tricircle-mono-white.png";
+import logoSymbol  from "@/public/logo/tricircle-symbol-white.png";
 
-// on-navy (헤더 기본)
-<span className="brand__logo-box">
-  <Image src={logo} alt="한화" height={28} priority className="brand__logo" />
-</span>
+// on-navy 헤더 기본
+<Image src={logoOnNavy}  alt="한화손보" height={56} priority className="brand__logo" />
 
-// on-white (푸터 등)
-<Image src={logo} alt="한화" height={28} priority className="brand__logo" />
+// on-navy 스플래시
+<Image src={logoMono}    alt="한화손보" height={96} priority className="brand__logo brand__logo--hero" />
+
+// on-navy 모바일 축약
+<Image src={logoSymbol}  alt="한화손보" height={32} priority className="brand__logo brand__logo--symbol" />
+
+// on-white 푸터
+<Image src={logoOnWhite} alt="한화손보" height={28} priority className="brand__logo" />
 ```
 
 ### 사이즈
 
-| 위치 | 배경 | Nav/컨테이너 높이 | 로고 이미지 높이 | 박스 패딩 | 박스 라운딩 |
-|------|------|-------------------|----------------|----------|------------|
-| Top Nav | navy | **Nav 104px** | **84px** | `2px 10px` | `md (8)` |
-| Hero splash | navy | — | 96–128px | `6px 16px` | `lg (12)` |
-| Footer | white | — | 24–28px | — (컨테이너 없음) | — |
-| Favicon | — | — | `favicon.png` 사용 | — | — |
+| 위치 | 배경 | 사용 변형 | Nav 높이 | 로고 이미지 높이 |
+|------|------|----------|---------|----------------|
+| Top Nav (데스크톱) | navy | `-on-navy.png` | 104px | 56px |
+| Hero splash | navy | `-mono-white.png` | — | 96–128px |
+| Footer (on-navy inverse) | navy | `-mono-white.png` | — | 24–28px |
+| Mobile compact header | navy | `tricircle-symbol-white.png` | 56px | 32px |
+| Footer (on-white) | white | `hanwha-tricircle.png` (원본) | — | 24–28px |
+| Favicon | — | `favicon.png` (원본) | — | favicon.png 사용 |
 
-**브랜드 타이틀 폰트** (로고 옆 한글 서비스명): `1.375rem (22px)` · `weight 700` · `letter-spacing -0.015em`. Nav 높이 104px 기준 시각 균형에 맞춘 값.
+**브랜드 타이틀 폰트** (로고 옆에 별도 서비스명 텍스트를 둘 경우): `1.375rem (22px)` · `weight 700` · `letter-spacing -0.015em`.
 
-**세이프존**: 로고 높이의 1/2 이상. 흰 박스 패딩이 이 역할을 겸한다.
+**세이프존**: 로고 높이의 1/2 이상.
 
 ### 단일 파일 데모 시나리오 (3가지 중 택 1)
 
-- **권장**: 로고 PNG 를 데모 HTML 과 **같은 폴더에 복사** 후 상대경로 `<img src="hanwha-tricircle.png">`
-- 외부 파일 금지 조건: `data:image/png;base64,...` 로 **인라인** (PNG 65KB → base64 ≈ 86KB, 수용 가능)
+- **권장**: 사용할 변형 PNG 를 데모 HTML 과 **같은 폴더에 복사** 후 상대경로 `<img src="hanwha-tricircle-on-navy.png">`
+- 외부 파일 금지 조건: `data:image/png;base64,...` 로 **인라인** (변형 PNG 6~64KB → base64 약 8~86KB, 수용 가능)
 - **금지**: SVG `<circle>` 3개로 트리서클 재현, Canvas drawing, 아이콘 폰트 대체 — 배포 가능한 산출물에는 모두 불가
 
 ### 배포 후 검증 (필수)
 
 ```bash
-# 1) 공식 에셋이 실제 렌더되는지
-grep -rn "hanwha-tricircle\|data:image/png;base64,iVBOR" ./
+# 1) 공식 에셋(원본 + 변형)이 실제 렌더되는지
+grep -rEn 'hanwha-tricircle(-on-navy|-mono-white)?\.png|tricircle-symbol-white\.png|data:image/png;base64,iVBOR' ./
 
 # 2) SVG 로 그린 금지 패턴이 섞여 있지 않은지
 grep -rn '<circle[^>]*fill="url(#' ./          # 원 3개 + 그래디언트 → 의심
 
-# 3) on-navy 영역에 brand__logo-box 래퍼가 있는지 (네이비 헤더 사용 시)
-grep -n "brand__logo-box" ./
+# 3) on-navy 영역에서 원본(`hanwha-tricircle.png`)을 그대로 쓰고 있지는 않은지
+#    (네이비 배경 컨테이너 안에 검정 wordmark 원본이 있으면 묻힘 — 변형으로 교체)
+grep -rn 'hanwha-tricircle\.png' ./            # 푸터·on-white 페이지에만 있어야 정상
 
-# 없으면 wordmark 묻힘. 래퍼 추가 또는 on-white 배경으로 변경.
+# 4) (구버전 호환) `brand__logo-box` 래퍼가 남아 있다면 변형으로 마이그레이션 권장
+grep -rn "brand__logo-box" ./
 ```
 
 ## Do's and Don'ts (요약)
@@ -241,8 +278,8 @@ grep -n "brand__logo-box" ./
 - 그림자는 네이비 톤 (`rgba(26, 43, 74, x)`)
 - 모션은 `fast/base/slow` 3단계만
 - 터치 타겟 ≥ 44×44px, `focus-visible` 링 필수
-- **로고는 번들 PNG 만** (`public/logo/hanwha-tricircle.png`)
-- **on-navy 배경에선 흰 박스 컨테이너** 로 로고를 감싸기 (검은 wordmark 대비 확보)
+- **로고는 번들 PNG 만** (원본 + 4종 변형 — `public/logo/hanwha-tricircle*.png`, `tricircle-symbol-white.png`, `favicon.png`)
+- **on-navy 배경에선 변형 PNG 직접 사용** (`-on-navy` / `-mono-white` / `tricircle-symbol-white`) — 흰 박스 컨테이너 fallback 은 변형이 없을 때만
 
 **❌ Don't**
 - 오렌지 위에 오렌지 쌓기 (계층 붕괴)
@@ -253,7 +290,7 @@ grep -n "brand__logo-box" ./
 - 임의 duration (`0.4s` 같은 값)
 - 트리서클 로고 색·비율 변형
 - **트리서클을 SVG/Canvas/코드로 자체 제작** (원 3개 겹치기, 유사 오렌지 그래디언트 — 전부 금지)
-- **on-navy 배경에 로고 그대로 올리기** (검은 wordmark 가 묻힘 — 흰 박스 컨테이너 필수)
+- **on-navy 배경에 원본 로고(`hanwha-tricircle.png`) 그대로 올리기** (검은 wordmark 가 묻힘 — `-on-navy` / `-mono-white` / `tricircle-symbol-white` 변형으로 교체)
 
 ## 관련 스킬
 

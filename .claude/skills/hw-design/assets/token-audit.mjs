@@ -87,7 +87,6 @@ const SIZE_TO_TOKEN = new Map([
   ["44",  "DESIGN.md components.button-*.height 또는 프로젝트 --size-control-md"],
   ["48",  "DESIGN.md components.input.height 또는 프로젝트 --size-input-md"],
   ["52",  "DESIGN.md Button lg height 또는 프로젝트 --size-control-lg"],
-  ["84",  "DESIGN.md components.brand-logo.height-nav"],
   ["104", "DESIGN.md components.nav-top.height"],
 ]);
 

@@ -75,6 +75,7 @@
 ### Do
 
 - 화이트 배경 위 사용이 기본
+- 어두운 배경(네이비 등)에서는 **변형 PNG**(`-on-navy` / `-mono-white` / `tricircle-symbol-white`) 사용
 - 주변 세이프존은 **로고 높이의 1/2 이상**
 - 인쇄: CMYK / 디지털: RGB
 
@@ -83,6 +84,28 @@
 - 색상·비율 임의 변경 금지
 - Tricircle 3원의 기하 변형 금지
 - 복잡한 배경·패턴 위 직접 배치 금지 (대비 확보된 단색 배경 필요)
+
+## 로고 변형(`-on-navy` / `-mono-white` / `tricircle-symbol-white`) 출처
+
+`assets/logo/` 의 다음 변형 PNG 들은 **원본 PNG(`hanwha-tricircle.png` / `favicon.png`)의 색상 변환 시안**이다.
+
+| 파일 | 변환 방식 |
+|------|-----------|
+| `hanwha-tricircle-on-navy.png` | 원본의 무채색 픽셀(검정 wordmark + 안티앨리어싱)만 흰색으로 invert. 컬러 트라이써클은 보존. |
+| `hanwha-tricircle-mono-white.png` | 모든 비투명 픽셀의 RGB 를 흰색으로 변환 + 컬러 픽셀의 luminance 중앙값 기준으로 짙은 영역=알파 100%, 옅은 영역=알파 50% 이산 매핑 (트리서클 3원 구분 보존 목적). |
+| `tricircle-symbol-white.png` | `favicon.png` 에 위와 동일한 매핑 적용. |
+
+**비율·형태는 100% 보존**되며, 픽셀 색상만 변환했다. 변환 스크립트는 `~/dotfiles/.archive/2026-05-01_logo-variants-draft/` 에 보관.
+
+### 교체 권장 조건
+
+다음 중 하나가 충족되면 한화손보 BI 가이드의 **공식 mono/inverse 자산**으로 교체하는 것이 안전하다:
+
+1. 한화손보 BI 가이드 PDF/페이지에서 mono/inverse 사양이 확인됨
+2. 한화 그룹 본사가 배포하는 mono 표준이 별도로 존재
+3. 사외 노출 산출물(웹사이트·인쇄물)에 사용해야 하는 경우 — 시안과 BI 가이드 정합성 검증 후 사용
+
+지금까지는 **사내 시안 / 디자인 시스템 견본** 용도로 사용 가능. 외부 배포 전엔 BI 가이드 정합성 검증 필요.
 
 ## 외부 참조
 
