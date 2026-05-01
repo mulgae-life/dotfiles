@@ -41,7 +41,7 @@ codex exec --help > /tmp/codex_help.txt
 claude --help > /tmp/claude_help.txt
 ```
 
-호스트 모델은 위 출력을 읽고 §Peer Adapter의 매핑 표를 **현재 시점 플래그로 갱신**합니다. 4가지 요건 중 하나라도 매핑할 플래그를 찾지 못하면 §Fallback으로 전환합니다.
+호스트 모델은 위 출력을 읽고 §Peer Adapter의 매핑 표를 **현재 시점 충족 수단으로 갱신**합니다. 4가지 요건 중 하나라도 충족 수단을 찾지 못하면 §Fallback으로 전환합니다 (참고: ④ 재귀 호출 차단은 플래그가 아니라 packet header + 단발 호출 조합으로 충족).
 
 > CLI 자체는 항상 설치되어 있다는 전제이므로 존재 여부 검사는 생략합니다.
 
@@ -144,7 +144,7 @@ codex exec \
 
 | 항목 | 충족 수단 |
 |------|----------|
-| 비파괴 실행 (샌드박스) | Claude Code는 `-p` 단발 모드 자체가 read 위주 동작이며 별도 read-only 플래그는 현재 시점 미지원. 미적용 시 `decision_log.md` §7 메타에 기록 |
+| 비파괴 실행 (샌드박스) | Claude Code는 별도 read-only 모드 매핑 없음 (현재 시점). 미적용 시 `decision_log.md` §7 메타에 사유 기록 |
 
 ```bash
 # 현재 시점 매핑 — Preflight에서 갱신
