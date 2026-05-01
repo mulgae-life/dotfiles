@@ -140,7 +140,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 |------|------|
 | `/writing-prompts` | LLM 프롬프트 작성 |
 | `/update-docs` | 프로젝트 문서 업데이트 |
-| `/recursive-discussion` | Claude↔Codex 왕복 토론으로 결과물 개선 |
+| `/recursive-discussion` | Claude↔Codex 대등 토론으로 결과물 개선 — 라운드 정책(최소 3 / 권장 5 / 상한 10) + packet 공통 블록 + 토론 상태표 기반 판단 |
 
 **프로젝트 관리**
 
@@ -196,3 +196,14 @@ dotfiles/
     ├── skills-guide/
     └── stitch-guide/          # Google Stitch MCP 참조 문서
 ```
+
+## 📌 변경 이력
+
+상세 노트는 [GitHub Releases](https://github.com/mulgae-life/dotfiles/releases)에서 확인.
+
+| 버전 | 핵심 변경 |
+|------|-----------|
+| **v1.3** | hw-design 브랜드 헤더 토큰화 + on-navy 로고 변형 PNG 3종(헤더/스플래시/모바일) + 결정 트리 / recursive-discussion CLI 버전 의존성 격리 + 권한 대칭성·라운드 정책·packet 공통 블록 강화 / GPT-5.5 가이드 정합화 + 한국어 응답 품질 강화 + `.archive` 산출물 정리 규칙 |
+| **v1.2** | hw-design 스킬 신설 + `/work-plan` 콤팩트화 |
+| **v1.1** | Gemini CLI 지원 추가 |
+| **v1.0** | AI Agent Guidelines System 초기 릴리즈 |
