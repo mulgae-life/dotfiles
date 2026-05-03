@@ -27,7 +27,7 @@ LLM은 세션 간 기억이 없다. "한화 느낌으로 만들어줘"라고 매
 
 ```
 프로젝트루트/
-├── DESIGN.md                 ← 토큰+8섹션 공식 포맷 (진실의 원천)
+├── DESIGN.md                 ← 토큰+9섹션 (8섹션 공식 + Visual Theme 격상, 진실의 원천)
 ├── tokens.css                ← 3-layer CSS 변수 (Layer 1 → 2 → 컴포넌트)
 ├── tailwind.preset.hw.js     ← Tailwind 사용 시 옵션
 ├── token-audit.mjs           ← 하드코딩 감지 스크립트 (Node 단독 실행)
