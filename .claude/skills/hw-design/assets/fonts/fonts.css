@@ -98,6 +98,80 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────
+ *  Hanwha (한화체) — 로고·Display 전용 (3 weights, 300/400/700)
+ *  한화그룹 공식 BI 폰트. 출처: www.hanwhaeagles.co.kr/fonts/
+ *  지식재산권: 한화그룹. dotfiles 사용은 사용자 사내 라이선스 협의 완료.
+ * ──────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "Hanwha";
+  font-style:  normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("./Hanwha/HanwhaL.woff2") format("woff2"),
+       url("./Hanwha/HanwhaL.woff")  format("woff"),
+       url("./Hanwha/HanwhaL.ttf")   format("truetype");
+}
+@font-face {
+  font-family: "Hanwha";
+  font-style:  normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./Hanwha/HanwhaR.woff2") format("woff2"),
+       url("./Hanwha/HanwhaR.woff")  format("woff"),
+       url("./Hanwha/HanwhaR.ttf")   format("truetype");
+}
+@font-face {
+  font-family: "Hanwha";
+  font-style:  normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./Hanwha/HanwhaB.woff2") format("woff2"),
+       url("./Hanwha/HanwhaB.woff")  format("woff"),
+       url("./Hanwha/HanwhaB.ttf")   format("truetype");
+}
+
+/* ──────────────────────────────────────────────────────────────────
+ *  HanwhaGothic (한화고딕) — 본문 전용 (5 weights, 100/200/300/400/700)
+ *  한화그룹 공식 본문 서체. 출처: www.hanwhaeagles.co.kr/fonts/
+ *  woff2 단일 형식 (서버에 woff/ttf 미호스팅) — 모던 브라우저 100% 커버, 폴백은 AtoZ.
+ * ──────────────────────────────────────────────────────────────── */
+@font-face {
+  font-family: "HanwhaGothic";
+  font-style:  normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("./HanwhaGothic/HanwhaGothicT.woff2") format("woff2");
+}
+@font-face {
+  font-family: "HanwhaGothic";
+  font-style:  normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("./HanwhaGothic/HanwhaGothicEL.woff2") format("woff2");
+}
+@font-face {
+  font-family: "HanwhaGothic";
+  font-style:  normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("./HanwhaGothic/HanwhaGothicL.woff2") format("woff2");
+}
+@font-face {
+  font-family: "HanwhaGothic";
+  font-style:  normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./HanwhaGothic/HanwhaGothicR.woff2") format("woff2");
+}
+@font-face {
+  font-family: "HanwhaGothic";
+  font-style:  normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./HanwhaGothic/HanwhaGothicB.woff2") format("woff2");
+}
+
+/* ──────────────────────────────────────────────────────────────────
  *  권장 적용 (tokens.css 의 --font-sans 와 자동 연동)
  * ──────────────────────────────────────────────────────────────── */
 html, body {

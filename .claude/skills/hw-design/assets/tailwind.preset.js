@@ -57,8 +57,9 @@ module.exports = {
       },
 
       fontFamily: {
-        sans:    [withVar("font-sans")],
-        numeric: [withVar("font-numeric")],
+        sans:    [withVar("font-sans")],     // 본문·기본 (한화고딕 우선)
+        display: [withVar("font-display")],  // Display·로고·Hero (한화체)
+        numeric: [withVar("font-numeric")],  // 숫자 강조 (IBM Plex)
       },
 
       fontSize: {

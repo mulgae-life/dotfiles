@@ -1,6 +1,6 @@
 ---
 name: hw-design
-description: 한화(Hanwha) 브랜드 톤으로 UI를 만들 때 DESIGN.md + tokens.css + AtoZ/IBM Plex 웹폰트 + Tailwind 프리셋 + 공식 트리서클 로고(PNG) + token-audit 스크립트를 한 번에 프로젝트에 배포해 AI 세션 간 룩앤필을 고정하는 스킬. 오렌지 #F37321 + 네이비 #1A2B4A 2색축·3단계 모션·네이비 톤 그림자 DNA를 Google 공식 DESIGN.md v0.1.0 포맷 + Hardik Pandya 3-layer token 패턴으로 토큰화했다. 진실의 원천은 DESIGN.md 하나 — 프로젝트 CLAUDE.md 에 별도 규칙을 주입하지 않는다. stitch-design(Stitch MCP로 새 DESIGN.md 생성)이나 frontend-design(코드 UI 구현)과 달리 이미 확정된 한화 표준을 고정 배포한다. "한화", "hw", "Hanwha" 키워드 또는 한화 계열사 프로젝트 맥락이면 명시적 요청이 없어도 최우선 참조한다.
+description: 한화(Hanwha) 브랜드 톤으로 UI를 만들 때 DESIGN.md + tokens.css + 한화체 3w + 한화고딕 5w + IBM Plex 웹폰트 + Tailwind 프리셋 + 공식 트리서클 로고(PNG) + token-audit 스크립트를 한 번에 프로젝트에 배포해 AI 세션 간 룩앤필을 고정하는 스킬. 오렌지 #F37321 + 네이비 #1A2B4A 2색축·3단계 모션·네이비 톤 그림자 DNA를 Google 공식 DESIGN.md v0.1.0 포맷 + Hardik Pandya 3-layer token 패턴으로 토큰화했다. 진실의 원천은 DESIGN.md 하나 — 프로젝트 CLAUDE.md 에 별도 규칙을 주입하지 않는다. stitch-design(Stitch MCP로 새 DESIGN.md 생성)이나 frontend-design(코드 UI 구현)과 달리 이미 확정된 한화 표준을 고정 배포한다. "한화", "hw", "Hanwha" 키워드 또는 한화 계열사 프로젝트 맥락이면 명시적 요청이 없어도 최우선 참조한다.
 when_to_use: "한화 디자인으로 만들어줘, 한화 톤으로 UI 만들어줘, hw 적용해줘, 한화 스타일 랜딩페이지/대시보드/웹앱/컴포넌트 만들어줘 요청 시. 한화 관련 신규 프로젝트 초기 세팅, 기존 프로젝트에 한화 브랜드 덧씌우기, 팀원이 여러 명이라 디자인 일관성이 필요한 바이브 코딩 세션 등에서 사용."
 allowed-tools:
   - "Read"
@@ -32,7 +32,9 @@ LLM은 세션 간 기억이 없다. "한화 느낌으로 만들어줘"라고 매
 ├── tailwind.preset.hw.js     ← Tailwind 사용 시 옵션
 ├── token-audit.mjs           ← 하드코딩 감지 스크립트 (Node 단독 실행)
 ├── public/fonts/
-│   ├── AtoZ/*.woff2          ← 한글 9-weight
+│   ├── Hanwha/*.woff2        ← 한화체 3-weight (L/R/B) — Display·로고
+│   ├── HanwhaGothic/*.woff2  ← 한화고딕 5-weight (T/EL/L/R/B) — 본문
+│   ├── AtoZ/*.woff2          ← 폴백 한글 9-weight
 │   ├── IBMPlexSans/*.ttf     ← 영문 variable
 │   └── fonts.css             ← @font-face 선언 묶음
 └── public/logo/
@@ -59,10 +61,12 @@ cp "$SKILL/token-audit.mjs"   ./token-audit.mjs
 
 # 폰트 + 로고 (경로는 프로젝트에 맞게 조정)
 mkdir -p ./public/fonts ./public/logo
-cp -r "$SKILL/fonts/AtoZ"        ./public/fonts/
-cp -r "$SKILL/fonts/IBMPlexSans" ./public/fonts/
-cp    "$SKILL/fonts/fonts.css"   ./public/fonts/
-cp -r "$SKILL/logo/"*            ./public/logo/
+cp -r "$SKILL/fonts/Hanwha"        ./public/fonts/   # 한화체 (Display·로고)
+cp -r "$SKILL/fonts/HanwhaGothic"  ./public/fonts/   # 한화고딕 (본문)
+cp -r "$SKILL/fonts/AtoZ"          ./public/fonts/   # 폴백
+cp -r "$SKILL/fonts/IBMPlexSans"   ./public/fonts/   # 영문·숫자
+cp    "$SKILL/fonts/fonts.css"     ./public/fonts/
+cp -r "$SKILL/logo/"*              ./public/logo/
 
 # Tailwind 사용 시
 cp "$SKILL/tailwind.preset.js" ./tailwind.preset.hw.js
@@ -100,6 +104,53 @@ node token-audit.mjs --strict          # warning 도 exit 1 처리
 node token-audit.mjs src/components    # 특정 폴더만
 ```
 
+## 디자인 산출 후 안내 (MUST)
+
+`/hw-design`을 활용해 UI/페이지/컴포넌트/대시보드를 만든 직후, 응답 마지막에 **"적용된 결정 + 변경 옵션"** 섹션을 반드시 덧붙인다. 기본 동작은 자동 결정 그대로 두되, 사용자가 결과물을 보고 자연어로 손쉽게 변경 요청할 수 있도록 안내하는 것이 목적이다.
+
+### 출력 형식 (해당 작업에 결정된 항목만 포함)
+
+```markdown
+---
+### 💡 적용된 결정 + 변경 옵션
+
+| 항목 | 적용 | 다른 선택지 (요청 예시) |
+|------|------|------------------------|
+| **로고** | `hanwha-tricircle-on-navy.png` (컬러 + 흰 wordmark) | "mono-white로 바꿔줘", "심볼만 모바일 축약", "푸터는 on-white 원본으로" |
+| **헤더 배경** | navy `#1A2B4A` | "white 헤더로 바꿔줘", "그래디언트로" |
+| **헤딩 폰트** | 한화체 B (700) | "한화체 R(차분히)로", "한화고딕 B로 통일" |
+| **본문 폰트** | 한화고딕 R (400) | "한화고딕 L(가볍게)", "한화체로 통일" |
+| **다크모드** | 미적용 | "다크모드도 지원해줘" → `[data-theme="dark"]` 활성화 |
+| **컨텐츠 폭** | 1280px (데스크톱) | "1440 와이드로", "모바일 우선으로 재구성" |
+
+> 자세한 사양은 `DESIGN.md` 참조. 변경은 자연어로 그대로 말씀해주시면 됩니다.
+---
+```
+
+### 포함 규칙
+
+- **해당 작업에 실제로 결정된 항목만** 표에 포함 (예: 모달만 만들었으면 헤더 배경 행 생략, 다크모드 안 다뤘으면 그 행 생략)
+- 각 행은 **"적용 / 변경 요청 예시"** 두 컬럼. 변경 예시는 자연어 1~2개
+- 표 끝에 `DESIGN.md` 참조 안내 1줄 포함
+- 사용자가 "안내 생략" 또는 "옵션 표 빼줘" 명시 요청 시에만 생략
+
+### 안내 대상 항목 카탈로그
+
+LLM이 다음 결정을 내렸으면 표에 1행씩 추가한다:
+
+| 결정 카테고리 | 변경 가능 옵션 |
+|---------------|---------------|
+| 로고 변형 | `hanwha-tricircle.png` (on-white) / `-on-navy.png` (헤더 기본) / `-mono-white.png` (Hero·풋터 inverse) / `tricircle-symbol-white.png` (모바일 축약) / `favicon.png` |
+| 헤더 배경 | navy `#1A2B4A` / white / `gradients.navy` 그래디언트 / 헤더 없음 |
+| 헤딩 폰트 | 한화체 L(300) / R(400) / B(700) — 기본 B / 한화고딕 통일도 가능 |
+| 본문 폰트 weight | 한화고딕 T(100) / EL(200) / L(300) / R(400) / B(700) — 기본 R |
+| 다크모드 | `[data-theme="dark"]` 활성화 / 비활성 |
+| 컨텐츠 폭 | 1280 (기본) / 1440 (대시보드 와이드) / 모바일 우선 단일 컬럼 |
+| Primary 강도 | 면적 ≤ 20% (기본) / Hero에만 / 절제(테두리만) |
+| 라운딩 키 | `lg`(12, 기본) / `xl`(16) / `2xl`(20) — 한 페이지 3종 이하 유지 |
+| 그림자 강도 | flat / `card` / `card-hover` / `modal` — 3단계 계층 |
+| 모션 속도 | `fast`(250) / `base`(350, 기본) / `slow`(550) |
+
 ## 공식 CLI 연계 (선택)
 
 ```bash
@@ -120,8 +171,9 @@ npx @google/design.md export --format dtcg ./DESIGN.md > tokens.hw.dtcg.json
 | **Neutral (Navy)** | `#1A2B4A` — 헤더·사이드바·본문 텍스트 |
 | **Surface** | `#FFFFFF` / `#F7F9FC` (secondary) / `#EEF2F7` (tertiary) |
 | **State** | success `#16A34A` · warning `#B45309` · danger `#DC2626` · info `#3B82F6` |
-| **Font (한글)** | AtoZ 9w → Pretendard fallback |
-| **Font (영문)** | IBM Plex Sans variable |
+| **Font (Display·로고)** | 한화체 3w (L/R/B) → 한화고딕 → AtoZ |
+| **Font (한글 본문)** | 한화고딕 5w (T/EL/L/R/B) → AtoZ → Pretendard fallback |
+| **Font (영문·숫자)** | IBM Plex Sans variable |
 | **라운딩** | chip `md(8)` / button·input `lg(12)` / card `xl(16)` / CTA `2xl(20)` |
 | **간격** | 4 / 8 / 12 / 16 / 24 / 32 / 48 / 80 / 128 px |
 | **Motion** | fast 250 / base 350 / slow 550 ms — **3단계만** |

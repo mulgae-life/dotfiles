@@ -1,7 +1,7 @@
 ---
 name: Hanwha Group Identity (HW)
 version: alpha
-description: 한화그룹 비주얼 아이덴티티 범용 디자인 표준. Orange + Navy 2색 대비축 + A2Z 한글/IBM Plex 영문 페어링 + 네이비 톤 그림자 + 3단계 모션 리듬을 기본 DNA로 한다. 프로젝트 루트에 배치하면 AI 에이전트가 이 파일 하나를 참조해 한화 룩앤필을 재현한다.
+description: 한화그룹 비주얼 아이덴티티 범용 디자인 표준. Orange + Navy 2색 대비축 + 한화체(Display·로고) + 한화고딕(본문) + IBM Plex(영문·숫자) 페어링 + AtoZ/Pretendard 폴백 + 네이비 톤 그림자 + 3단계 모션 리듬을 기본 DNA로 한다. 프로젝트 루트에 배치하면 AI 에이전트가 이 파일 하나를 참조해 한화 룩앤필을 재현한다.
 colors:
   # ────────────────────────────────────────────────────────────────
   # Brand — 2색 대비축 (Orange + Navy)
@@ -48,73 +48,73 @@ colors:
 
 typography:
   # ────────────────────────────────────────────────────────────────
-  # Display (히어로, 스플래시)
+  # Display (히어로, 스플래시) — 한화체 (로고 DNA)
   # ────────────────────────────────────────────────────────────────
   display:
-    fontFamily: "AtoZ, 'IBM Plex Sans', Pretendard, -apple-system, 'Apple SD Gothic Neo', sans-serif"
+    fontFamily: "Hanwha, HanwhaGothic, AtoZ, 'IBM Plex Sans', Pretendard, -apple-system, 'Apple SD Gothic Neo', sans-serif"
     fontSize: 2.75rem
-    fontWeight: 800
+    fontWeight: 700
     lineHeight: 1.15
     letterSpacing: -0.02em
 
   # ────────────────────────────────────────────────────────────────
-  # Headings
+  # Headings — 한화체 (브랜드 위계)
   # ────────────────────────────────────────────────────────────────
   h1:
-    fontFamily: "AtoZ, 'IBM Plex Sans', Pretendard, sans-serif"
+    fontFamily: "Hanwha, HanwhaGothic, AtoZ, 'IBM Plex Sans', Pretendard, sans-serif"
     fontSize: 2rem
     fontWeight: 700
     lineHeight: 1.2
     letterSpacing: -0.015em
   h2:
-    fontFamily: "AtoZ, 'IBM Plex Sans', Pretendard, sans-serif"
+    fontFamily: "Hanwha, HanwhaGothic, AtoZ, 'IBM Plex Sans', Pretendard, sans-serif"
     fontSize: 1.5rem
     fontWeight: 700
     lineHeight: 1.25
     letterSpacing: -0.01em
   h3:
-    fontFamily: "AtoZ, 'IBM Plex Sans', Pretendard, sans-serif"
+    fontFamily: "Hanwha, HanwhaGothic, AtoZ, 'IBM Plex Sans', Pretendard, sans-serif"
     fontSize: 1.25rem
-    fontWeight: 600
+    fontWeight: 400
     lineHeight: 1.35
 
   # ────────────────────────────────────────────────────────────────
-  # Body — 모바일 가독성 위해 15~17px 존 (Tailwind 기본보다 큼)
+  # Body — 한화고딕 (5w 가독성). 모바일 15~17px 존 (Tailwind 기본보다 큼)
   # ────────────────────────────────────────────────────────────────
   body-lg:
-    fontFamily: "AtoZ, Pretendard, sans-serif"
+    fontFamily: "HanwhaGothic, AtoZ, Pretendard, sans-serif"
     fontSize: 1.0625rem             # 17px
     fontWeight: 400
     lineHeight: 1.6
   body:
-    fontFamily: "AtoZ, Pretendard, sans-serif"
+    fontFamily: "HanwhaGothic, AtoZ, Pretendard, sans-serif"
     fontSize: 0.9375rem             # 15px — 한글 본문 기본
     fontWeight: 400
     lineHeight: 1.6
   body-sm:
-    fontFamily: "AtoZ, Pretendard, sans-serif"
+    fontFamily: "HanwhaGothic, AtoZ, Pretendard, sans-serif"
     fontSize: 0.8125rem             # 13px — 메타, 보조
-    fontWeight: 400
+    fontWeight: 300                 # 한화고딕 L (300)
     lineHeight: 1.5
 
   # ────────────────────────────────────────────────────────────────
   # Micro
   # ────────────────────────────────────────────────────────────────
   caption:
-    fontFamily: "AtoZ, Pretendard, sans-serif"
+    fontFamily: "HanwhaGothic, AtoZ, Pretendard, sans-serif"
     fontSize: 0.75rem               # 12px
-    fontWeight: 500
+    fontWeight: 400
     lineHeight: 1.4
   label-caps:
-    fontFamily: "'IBM Plex Sans', AtoZ, sans-serif"
+    fontFamily: "'IBM Plex Sans', HanwhaGothic, AtoZ, sans-serif"
     fontSize: 0.75rem
     fontWeight: 600
     lineHeight: 1
     letterSpacing: 0.2em            # 영문 라벨 (uppercase 권장)
   button:
-    fontFamily: "AtoZ, 'IBM Plex Sans', sans-serif"
+    fontFamily: "HanwhaGothic, Hanwha, 'IBM Plex Sans', AtoZ, sans-serif"
     fontSize: 0.9375rem
-    fontWeight: 500
+    fontWeight: 400                 # 한화고딕 R (한화체 weight 부재 시 동등 자연스러움)
     lineHeight: 1
   # 숫자·평점·대시보드 지표용
   numeric:
@@ -390,31 +390,35 @@ motion:
 
 ### 폰트 페어링
 
-- **AtoZ (에이투지체)** — 한글 본문 전용. 9-weight (100~900) 전부 `assets/fonts/AtoZ/` 에 번들됨.
+- **Hanwha (한화체)** — 한화 로고 DNA를 잇는 **Display·헤딩 전용** 서체. 3-weight (Light 300 / Regular 400 / Bold 700). `assets/fonts/Hanwha/` 에 번들 (woff2 + woff + ttf). 한화그룹 공식 BI 폰트.
+- **HanwhaGothic (한화고딕)** — **본문·UI 전용**. 5-weight (Thin 100 / ExtraLight 200 / Light 300 / Regular 400 / Bold 700). `assets/fonts/HanwhaGothic/` 에 번들 (woff2). 한화그룹 공식 본문 서체.
 - **IBM Plex Sans** — 영문·숫자 강조. 대시보드 지표, 평점, 라벨(uppercase)에 사용. Variable font 번들. `tabular-nums`·`lining-nums` 기본.
-- **Pretendard** (폴백) — AtoZ 웹폰트 로드 실패 시 한글 대체.
+- **AtoZ (에이투지체)** — 한화 폰트 로드 실패 시 폴백. 9-weight 번들 유지.
+- **Pretendard** — 마지막 한글 폴백.
+
+> 한화체와 한화고딕의 라이선스 출처·사용 권한은 [`references/font-license.md`](../references/font-license.md) 참조. 한화그룹 IP — 외부 재배포 금지.
 
 ### 스케일 요약 (rem 기반, 루트 16px 가정)
 
 | 토큰 | Size | Weight | LH | 용도 |
 |------|------|--------|-----|------|
-| `display` | 44px | 800 | 1.15 | 히어로 헤드라인 |
-| `h1` | 32px | 700 | 1.2 | 페이지 타이틀 |
-| `h2` | 24px | 700 | 1.25 | 섹션 헤더 |
-| `h3` | 20px | 600 | 1.35 | 서브 헤더 |
-| `body-lg` | 17px | 400 | 1.6 | 리드 문단, 인풋 |
-| `body` | **15px** | 400 | 1.6 | **본문 기본** |
-| `body-sm` | 13px | 400 | 1.5 | 메타, 보조 |
-| `caption` | 12px | 500 | 1.4 | 태그, 타임스탬프 |
+| `display` | 44px | 700 | 1.15 | 히어로 헤드라인 (한화체 B) |
+| `h1` | 32px | 700 | 1.2 | 페이지 타이틀 (한화체 B) |
+| `h2` | 24px | 700 | 1.25 | 섹션 헤더 (한화체 B) |
+| `h3` | 20px | 400 | 1.35 | 서브 헤더 (한화체 R) |
+| `body-lg` | 17px | 400 | 1.6 | 리드 문단, 인풋 (한화고딕 R) |
+| `body` | **15px** | 400 | 1.6 | **본문 기본** (한화고딕 R) |
+| `body-sm` | 13px | 300 | 1.5 | 메타, 보조 (한화고딕 L) |
+| `caption` | 12px | 400 | 1.4 | 태그, 타임스탬프 (한화고딕 R) |
 | `label-caps` | 12px | 600 | 1 | 영문 uppercase 라벨 (자간 0.2em) |
-| `button` | 15px | 500 | 1 | 버튼 라벨 |
-| `numeric` | 24px | 600 | 1 | 숫자 지표 (tabular) |
+| `button` | 15px | 400 | 1 | 버튼 라벨 (한화고딕 R) |
+| `numeric` | 24px | 600 | 1 | 숫자 지표 (tabular, IBM Plex) |
 
 ### 한글 타이포 규칙
 
 - **자간**: 제목은 `-0.01 ~ -0.02em` (음의 자간). 본문·그 이하는 **자간 0** (한글은 기본 자간이 이미 넓다 — 양의 자간 금지).
 - **줄바꿈**: `word-break: keep-all; overflow-wrap: break-word;` — 단어 단위 끊김 방지.
-- **mix-weight**: 한 페이지에서 동시 사용 weight ≤ 3단계 (보통 400/500/700).
+- **mix-weight**: 한 페이지에서 동시 사용 weight ≤ 3단계 (보통 300/400/700 — 한화고딕 L/R + 한화체 B).
 
 ### 그래디언트 텍스트
 

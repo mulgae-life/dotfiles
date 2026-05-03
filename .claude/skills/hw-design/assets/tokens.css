@@ -43,9 +43,11 @@
   --hw-info:            #3B82F6;   --hw-info-bg:     #EFF6FF;
 
   /* Typography raw */
-  --hw-font-sans:       "AtoZ", "Pretendard", -apple-system, BlinkMacSystemFont,
-                        "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
-  --hw-font-plex:       "IBM Plex Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --hw-font-hanwha:        "Hanwha", "AtoZ", system-ui, sans-serif;                /* 한화체 — 로고·Display */
+  --hw-font-hanwha-gothic: "HanwhaGothic", "AtoZ", "Pretendard", system-ui, sans-serif;  /* 한화고딕 — 본문 */
+  --hw-font-sans:          "HanwhaGothic", "Hanwha", "AtoZ", "Pretendard", -apple-system, BlinkMacSystemFont,
+                           "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --hw-font-plex:          "IBM Plex Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
 
   /* ──────────────────────────────────────────────────────────────
@@ -88,8 +90,9 @@
   --color-info-bg:            var(--hw-info-bg);
 
   /* Font family alias */
-  --font-sans:                var(--hw-font-sans);
-  --font-numeric:             var(--hw-font-plex);
+  --font-sans:                var(--hw-font-sans);              /* 본문·기본 — 한화고딕 우선 */
+  --font-display:             var(--hw-font-hanwha);            /* Display·로고·Hero — 한화체 */
+  --font-numeric:             var(--hw-font-plex);              /* 숫자 강조 — IBM Plex */
 
   /* Spacing — 4/8 이중 grid */
   --space-0:     0;

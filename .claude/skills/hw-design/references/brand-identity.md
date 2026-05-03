@@ -53,22 +53,32 @@
 
 상태 색상(`success/warning/danger/info`), 서피스·보더, hover·pressed 파생값은 공식 브랜드 가이드 수치가 아니라 디지털 제품 UI를 위해 정의한 값이다. 공식 값이 확인되면 `assets/DESIGN.md`, `assets/tokens.css`, `assets/token-audit.mjs`, `assets/tailwind.preset.js` 를 함께 갱신한다.
 
-## 전용 서체
+## 전용 서체 (확보 완료)
 
-### Hanwha Gothic (한화고딕)
+### Hanwha Font (한화체) — 로고·Display 전용
 
-- 한화 공식 전용 서체. **Light (300) / Regular (400) / Bold (700)** 3종 weight.
-- 출처: [SandollCloud - Hanwha Gothic](https://www.sandollcloud.com/font/18304/Hanwha-Gothic), [Fontwiki](https://fontwiki.com/en/font-detail/Hanwha-Gothic-c621), [typodesign.co.kr/Hanwha](https://typodesign.co.kr/Hanwha)
+- 한화그룹 로고 DNA를 잇는 **로고타입 일관성 유지** 서체. **Light (300) / Regular (400) / Bold (700)** 3종 weight.
+- 본 스킬 번들: `assets/fonts/Hanwha/` (woff2 + woff + ttf 각 3 weight = 9 파일, 약 5.6MB).
+- 사용 위치: `display`, `h1` ~ `h3` (Display·헤딩 전용). 본문에는 사용하지 않는 것이 한화 관례.
 
-### Hanwha Font (한화 폰트)
+### Hanwha Gothic (한화고딕) — 본문 전용
 
-- 로고 계열 전용 서체로, CI 로고타이프와의 일관성을 유지하기 위한 용도.
-- 일반 본문 UI에는 **Hanwha Gothic을 사용**하는 것이 관례.
+- 한화그룹 공식 본문 서체. **Thin (100) / ExtraLight (200) / Light (300) / Regular (400) / Bold (700)** 5종 weight.
+- 본 스킬 번들: `assets/fonts/HanwhaGothic/` (woff2 단일 형식 × 5 weight = 5 파일, 약 1.5MB).
+- woff/ttf는 한화이글스 서버에 미호스팅이지만 모든 모던 브라우저가 woff2를 100% 지원하므로 실용상 문제없음.
+- 사용 위치: `body-lg`, `body`, `body-sm`, `caption`, `button` (본문·UI 전용).
 
-### 웹 폰트 배포
+### 출처 및 사용 권한 근거
 
-- 공식 웹폰트 CDN 또는 오픈 라이선스 배포가 **공개적으로 확인되지 않았다**. 라이선스 확보가 필요.
-- **폴백**: [Pretendard](https://github.com/orioncactus/pretendard) (오픈소스, SIL OFL) — 한글·영문 혼용에 최적화. 한화 프로젝트에서 Hanwha Gothic 확보 전까지 안정적인 대체제.
+- **폰트 정의 CSS** (전체 weight): `https://www.hanwhaeagles.co.kr/css/fonts.css`
+- **폰트 파일 호스팅**: `https://www.hanwhaeagles.co.kr/fonts/`
+- **한화체 메인 정의** (참고): `https://www.hanwhacorp.co.kr/_resource/font/hanwha/font.css`
+- **소유권**: 한화그룹 (Hanwha Group Internal IP)
+- **사용 권한**: 본 dotfiles 사용자(한화 임직원)의 사내 라이선스 협의 완료 — 자세한 라이선스 조건과 외부 재배포 정책은 [`font-license.md`](./font-license.md) 참조.
+
+### 폴백 체인
+
+`HanwhaGothic` → `Hanwha` → `AtoZ` (SIL OFL 9w 번들) → `Pretendard` → system. 한화 폰트 로드 실패 또는 미배포 환경(외부 협업자)에서도 자연스럽게 폴백 동작.
 
 ## 로고 사용 규칙 (요약)
 
@@ -114,6 +124,8 @@
 - [㈜한화 CI](https://www.hanwhacorp.co.kr/hanwha/company/ci.jsp)
 - [Hanwha Brand System Toolkit (다운로드)](https://www.hanwha.com/newsroom/media-library/brand-system-toolkit.do)
 - [Hanwha Brand System Design Guide PDF](https://www.hanwha.com/upload/newsroom/media-library/contents/20240521/1716274557872.pdf) (2024-05-21 배포)
+- [한화이글스 폰트 정의 CSS (전체 weight)](https://www.hanwhaeagles.co.kr/css/fonts.css)
+- [한화체 정의 CSS (㈜한화 메인)](https://www.hanwhacorp.co.kr/_resource/font/hanwha/font.css)
 
 ### DESIGN.md 포맷
 - [Google Labs Code - design.md (공식 GitHub)](https://github.com/google-labs-code/design.md) — Apache-2.0, v0.1.0 alpha
