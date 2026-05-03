@@ -33,8 +33,10 @@ Usage:
   node build-standalone.mjs [input] [output] [options]
 
 Options:
-  --fonts core     한화체 R/B + 한화고딕 R/B (기본, ~1.5MB)
-  --fonts all      한화체 3w + 한화고딕 5w 전체 (~3MB)
+  --fonts core     한화체 R/B + 한화고딕 R/B 만 인라인 (~1.5MB, 사이즈 절약)
+  --fonts all      fonts.css 통째 mirror — 한화체 3w + 한화고딕 5w
+                   + AtoZ 9w + IBM Plex 2개 모두 인라인 (~4MB,
+                   index.html 과 시각적으로 100% 동일)
   --fonts none     폰트 제외, 시스템 폴백 (~200KB)
   -h, --help       이 도움말
 
@@ -99,6 +101,43 @@ const fmtMB = (n) => `${(n / 1024 / 1024).toFixed(2)} MB`;
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+/**
+ * fonts.css 본문을 그대로 보존하면서 안쪽 url() 의 woff2/woff/ttf/otf 를
+ * 모두 base64 data URL 로 치환한다.
+ *
+ * 매트릭스 기반 인라인(core 모드)은 사이즈 절약이 목적이라 폴백 폰트가 빠지지만,
+ * mirror 모드는 fonts.css 정의를 그대로 옮기므로 외부 로드와 동일하게 렌더된다.
+ */
+function inlineFontsCssMirror(fontsCssPath) {
+  const cssDir = dirname(fontsCssPath);
+  let css = readFileSync(fontsCssPath, "utf8");
+  let bytes = 0, count = 0;
+  const missing = [];
+
+  css = css.replace(
+    /url\(\s*["']?([^"')]+\.(?:woff2|woff|ttf|otf))["']?\s*\)/gi,
+    (full, relPath) => {
+      if (relPath.startsWith("data:") || relPath.startsWith("http")) return full;
+      const fontPath = resolve(cssDir, relPath);
+      if (!existsSync(fontPath)) {
+        missing.push(relPath);
+        return full;
+      }
+      const ext = relPath.split(".").pop().toLowerCase();
+      const mime = ext === "woff2" ? "font/woff2"
+                 : ext === "woff"  ? "font/woff"
+                 : ext === "otf"   ? "font/otf"
+                 : "font/ttf";
+      const dataUrl = b64(fontPath, mime);
+      bytes += dataUrl.length;
+      count++;
+      return `url("${dataUrl}")`;
+    }
+  );
+
+  return { css, bytes, count, missing };
+}
+
 /* ──────────────────────────────────────────────────
  *  변환
  * ──────────────────────────────────────────────── */
@@ -133,7 +172,31 @@ if (fontsMode === "none") {
     html = html.replace(fontsLinkRe, "");
     console.log(`▸ fonts: 시스템 폴백 (link 제거)`);
   }
+} else if (fontsMode === "all") {
+  // fonts.css 통째 mirror — 한화체 + 한화고딕 + AtoZ + IBM Plex 모두 인라인.
+  // 외부 로드와 동일 렌더 보장이 목적이라 사이즈는 큼.
+  if (!fontsLinkMatch) {
+    console.warn(`⚠ fonts.css link 없음 — mirror 위치 못 찾음`);
+  } else {
+    const fontsCssPath = resolve(baseDir, fontsLinkMatch[1]);
+    if (!existsSync(fontsCssPath)) {
+      console.warn(`⚠ fonts.css 경로 못 찾음: ${fontsCssPath} — link 보존`);
+    } else {
+      const result = inlineFontsCssMirror(fontsCssPath);
+      fontsBytes = result.bytes;
+      html = html.replace(
+        fontsLinkRe,
+        `<style data-source="fonts.css (mirror)">\n${result.css}\n  </style>\n  `
+      );
+      console.log(`▸ fonts: all 모드 (mirror) — ${result.count}개 인라인 (${fmtMB(fontsBytes)})`);
+      if (result.missing.length > 0) {
+        console.warn(`⚠ fonts.css 안에서 못 찾은 파일 ${result.missing.length}개:`);
+        result.missing.forEach((p) => console.warn(`    - ${p}`));
+      }
+    }
+  }
 } else {
+  // core 모드 — 명시 매트릭스 기반 인라인 (사이즈 절약, 폴백 폰트 제외)
   const fontsList = FONT_MATRIX[fontsMode];
   for (const { family, weight, file } of fontsList) {
     const fontPath = resolve(baseDir, file);
