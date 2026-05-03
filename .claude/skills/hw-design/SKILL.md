@@ -31,6 +31,7 @@ LLM은 세션 간 기억이 없다. "한화 느낌으로 만들어줘"라고 매
 ├── tokens.css                ← 3-layer CSS 변수 (Layer 1 → 2 → 컴포넌트)
 ├── tailwind.preset.hw.js     ← Tailwind 사용 시 옵션
 ├── token-audit.mjs           ← 하드코딩 감지 스크립트 (Node 단독 실행)
+├── build-standalone.mjs      ← 외부 공유용 단일 HTML 빌더 (Node 단독 실행)
 ├── public/fonts/
 │   ├── Hanwha/*.woff2        ← 한화체 3-weight (L/R/B) — Display·로고
 │   ├── HanwhaGothic/*.woff2  ← 한화고딕 5-weight (T/EL/L/R/B) — 본문
@@ -47,7 +48,7 @@ LLM은 세션 간 기억이 없다. "한화 느낌으로 만들어줘"라고 매
 
 프로젝트 `CLAUDE.md` 에 별도 규칙을 주입하지 않는다. 진실의 원천은 오직 `DESIGN.md` — LLM 이 스킬 호출 시(또는 파일을 직접 읽을 때) 여기서 토큰과 컴포넌트 스펙을 모두 확인한다.
 
-## 사용법 (3단계)
+## 사용법 (4단계)
 
 ### 1) 전체 세트 배포
 
@@ -55,9 +56,10 @@ LLM은 세션 간 기억이 없다. "한화 느낌으로 만들어줘"라고 매
 SKILL=~/.claude/skills/hw-design/assets
 
 # 필수 파일
-cp "$SKILL/DESIGN.md"         ./DESIGN.md
-cp "$SKILL/tokens.css"        ./tokens.css
-cp "$SKILL/token-audit.mjs"   ./token-audit.mjs
+cp "$SKILL/DESIGN.md"            ./DESIGN.md
+cp "$SKILL/tokens.css"           ./tokens.css
+cp "$SKILL/token-audit.mjs"      ./token-audit.mjs
+cp "$SKILL/build-standalone.mjs" ./build-standalone.mjs
 
 # 폰트 + 로고 (경로는 프로젝트에 맞게 조정)
 mkdir -p ./public/fonts ./public/logo
@@ -104,6 +106,25 @@ node token-audit.mjs --strict          # warning 도 exit 1 처리
 node token-audit.mjs src/components    # 특정 폴더만
 ```
 
+### 4) 외부 공유용 단일 HTML 빌드 (디자인 프로토타입 공유)
+
+`index.html` + `tokens.css` + `fonts/` + `logo/` 를 모두 인라인하여 **외부 자산 0개**의 단일 HTML 한 개로 합친다. 이메일·메신저·드라이브로 파일 한 개만 보내면 어디서든 동일하게 렌더된다.
+
+```bash
+node build-standalone.mjs                    # 기본: core 4 weight 인라인 (~1.5MB)
+node build-standalone.mjs --fonts none       # 시스템 폴백 (~200KB)
+node build-standalone.mjs --fonts all        # 한화체 3w + 한화고딕 5w 전체 (~3MB)
+node build-standalone.mjs index.html out.html  # 입력/출력 경로 지정
+```
+
+| 모드 | 인라인 폰트 | 사이즈 | 사용 시점 |
+|------|------------|--------|-----------|
+| `core` (기본) | 한화체 R/B + 한화고딕 R/B | ~1.5MB | 외부 공유 시 한화 룩앤필 100% 보존 |
+| `none` | 없음 (시스템 폴백) | ~200KB | 가벼운 미리보기·내부 빠른 공유 |
+| `all` | 한화체 3w + 한화고딕 5w | ~3MB | 모든 weight 사용한 풀 디자인 |
+
+출력 파일은 같은 폴더의 `standalone.html` (또는 두 번째 인자로 지정한 경로). 외부 참조가 남아 있으면 종료 코드 1.
+
 ## 디자인 산출 후 안내 (MUST)
 
 `/hw-design`을 활용해 UI/페이지/컴포넌트/대시보드를 만든 직후, 응답 마지막에 **"적용된 결정 + 변경 옵션"** 섹션을 반드시 덧붙인다. 기본 동작은 자동 결정 그대로 두되, 사용자가 결과물을 보고 자연어로 손쉽게 변경 요청할 수 있도록 안내하는 것이 목적이다.
@@ -126,6 +147,17 @@ node token-audit.mjs src/components    # 특정 폴더만
 > 자세한 사양은 `DESIGN.md` 참조. 변경은 자연어로 그대로 말씀해주시면 됩니다.
 ---
 ```
+
+### 데모·프로토타입 산출 시 standalone.html 도 함께 빌드 (MUST)
+
+단일 페이지 데모·프로토타입·시안(`.archive/<태그>/index.html` 등)을 만들었으면, **외부 공유 가능한 단일 HTML 파일도 같이 생성**한다. 디자인 프로토타입은 "파일 한 개 보내면 끝"이 표준 산출물이기 때문이다.
+
+```bash
+# 데모 폴더 안에서 (index.html 옆에)
+node build-standalone.mjs                    # 기본 core 4 weight 인라인
+```
+
+기본은 `core` 모드(한화 룩앤필 100% 보존). 가벼운 미리보기가 필요하면 `--fonts none`, 모든 weight를 쓴 풀 디자인이면 `--fonts all`. 자세한 옵션은 [§ 사용법 4)](#4-외부-공유용-단일-html-빌드-디자인-프로토타입-공유) 참조. 적용 후 옵션 표에 **"외부 공유 파일"** 행을 1줄 추가해 사용자에게 알린다 (카탈로그 참고).
 
 ### 포함 규칙
 
@@ -150,6 +182,7 @@ LLM이 다음 결정을 내렸으면 표에 1행씩 추가한다:
 | 라운딩 키 | `lg`(12, 기본) / `xl`(16) / `2xl`(20) — 한 페이지 3종 이하 유지 |
 | 그림자 강도 | flat / `card` / `card-hover` / `modal` — 3단계 계층 |
 | 모션 속도 | `fast`(250) / `base`(350, 기본) / `slow`(550) |
+| 외부 공유 파일 | `standalone.html` (core, ~1.5MB, 기본) / `--fonts none` (~200KB, 가벼운 미리보기) / `--fonts all` (~3MB, 풀 weight) |
 
 ## 공식 CLI 연계 (선택)
 
