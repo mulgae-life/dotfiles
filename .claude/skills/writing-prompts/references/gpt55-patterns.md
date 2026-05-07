@@ -9,8 +9,9 @@
 - [5. Markdown 절제 정책 (강조)](#5-markdown-절제-정책-강조)
 - [6. Structured Outputs 권장](#6-structured-outputs-권장)
 - [7. Image Detail 기본값 변경](#7-image-detail-기본값-변경)
-- [8. 5.4 패턴 호환](#8-54-패턴-호환)
-- [9. 마이그레이션 전략 (5.4 → 5.5)](#9-마이그레이션-전략-54--55)
+- [8. Long-Task User-Visible Updates (신규)](#8-long-task-user-visible-updates-신규)
+- [9. 5.4 패턴 호환](#9-54-패턴-호환)
+- [10. 마이그레이션 전략 (5.4 → 5.5)](#10-마이그레이션-전략-54--55)
 - [참고](#참고)
 
 
@@ -240,7 +241,26 @@ response = client.responses.create(
 
 ---
 
-## 8. 5.4 패턴 호환
+## 8. Long-Task User-Visible Updates (신규)
+
+5.5는 추론 시간이 길어지는 작업에서 사용자에게 **첫 응답을 빨리 띄우라**고 권장. 코딩 에이전트 등 Coding/Agentic 워크플로우에서 특히 유용 (`reasoning.effort=medium` 이상에서 체감 지연이 늘어나는 경우 대응책).
+
+```xml
+<long_task_updates>
+- For tasks that may take significant thinking time before producing a
+  user-visible response, send a short user-visible update that
+  acknowledges the request and names the first step.
+- Keep it to one or two sentences.
+</long_task_updates>
+```
+
+**원칙**:
+- 침묵 시간을 최소화하되, 진행 업데이트가 본 답변을 대체하지 않도록 1-2문장으로 제한
+- "Before exploring, explain your understanding and first step" (`<user_updates_spec>`)와 결합해 사용
+
+---
+
+## 9. 5.4 패턴 호환
 
 5.4의 다음 패턴은 5.5에서도 그대로 유효 (단, **outcome-first 프레임 안에 배치**):
 
@@ -257,11 +277,11 @@ response = client.responses.create(
 
 상세는 [`gpt54-patterns.md`](./gpt54-patterns.md) 참조.
 
-5.5에서 새로 추가/강조된 것: §1~§7.
+5.5에서 새로 추가/강조된 것: §1~§8.
 
 ---
 
-## 9. 마이그레이션 전략 (5.4 → 5.5)
+## 10. 마이그레이션 전략 (5.4 → 5.5)
 
 > ⚠️ **드롭인 교체 금지**. "Treat it as a new model family, not a drop-in replacement."
 > 옛 프롬프트의 효과성은 5.5가 보장하지 않는다.

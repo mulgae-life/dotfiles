@@ -1,12 +1,12 @@
 ---
 name: writing-prompts
-description: GPT/Claude 프롬프트 파일 생성 및 개선. OpenAI + Anthropic 공식 가이드 기반. API 연동 코드는 llm-api-guide 스킬 사용.
+description: GPT/Claude/Gemma/Qwen 프롬프트 파일 생성 및 개선. OpenAI + Anthropic + Google + Alibaba 공식 가이드 기반. API 연동 코드는 llm-api-guide 스킬 사용.
 when_to_use: "프롬프트 작성해줘, 톤 가이드 적용해줘, 시스템 프롬프트 만들어줘, AI 응답 품질 개선해줘 요청 시. LLM 프롬프트 작성, 챗봇 성격 설정, AI 응답 품질 개선이 필요한 모든 상황에서 사용."
 ---
 
-# 프롬프트 작성 가이드 (OpenAI + Anthropic 통합)
+# 프롬프트 작성 가이드 (OpenAI + Anthropic + 오픈웨이트 통합)
 
-OpenAI GPT와 Anthropic Claude 공식 가이드 기반. **범용 원칙 우선, 모델별 최적화는 보조**. 한국어 프로젝트 특화 규칙(격식체) 포함.
+OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 기반. **범용 원칙 우선, 모델별 최적화는 보조**. 한국어 프로젝트 특화 규칙(격식체) 포함.
 
 ---
 
@@ -22,6 +22,8 @@ OpenAI GPT와 Anthropic Claude 공식 가이드 기반. **범용 원칙 우선, 
 
 ## TL;DR
 
+### 클로즈드 API (OpenAI / Anthropic)
+
 | 항목 | 공통 | OpenAI (GPT) | Anthropic (Claude) |
 |------|------|--------------|-------------------|
 | **구조** | Identity → Instructions → Examples → Context | ✅ | ✅ |
@@ -34,6 +36,20 @@ OpenAI GPT와 Anthropic Claude 공식 가이드 기반. **범용 원칙 우선, 
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
 | **모순 제거** | 충돌 지시 금지 | ✅ | ✅ |
+
+### 오픈웨이트 (Google Gemma / Alibaba Qwen)
+
+| 항목 | Google Gemma 4 | Alibaba Qwen 3.6 |
+|------|---------------|------------------|
+| **Chat template** | `<\|turn>...<turn\|>` (Gemma 3에서 완전 교체) | ChatML `<\|im_start\|>...<\|im_end\|>` (Qwen 3.5 동일) |
+| **System role** | **신규 지원** (Gemma 3 워크어라운드 제거 필수) | 지원 (디폴트 system prompt 없음) |
+| **Thinking** | `<\|think\|>` 토큰 + multi-turn strip 룰 | 디폴트 ON, `enable_thinking` / `preserve_thinking` (agentic) |
+| **Tool calling** | `<\|"\|>` delimiter 공식 포맷 | `qwen3_coder` 파서, Qwen-Agent 권장 |
+| **Sampling 권장** | `temp=1.0, top_p=0.95, top_k=64` (모든 사용처) | 모드별·작업별 프리셋 (모델별 `presence_penalty` 차이) |
+| **Context** | 256K (대형) / 128K (Effective) | 262K native + YaRN으로 1M (오픈웨이트) |
+| **Multimodal** | 모든 사이즈 vision + E2B/E4B는 audio | 27B / 35B-A3B 모두 vision encoder |
+| **vLLM 필수 플래그** | `--reasoning-parser gemma4 --tool-call-parser gemma4` | `--reasoning-parser qwen3 --tool-call-parser qwen3_coder` |
+| **라이선스** | Apache 2.0 (Gemma 3 Terms 제약 해소) | Apache 2.0 |
 
 ## 빠른 참조
 
@@ -74,6 +90,8 @@ OpenAI GPT와 Anthropic Claude 공식 가이드 기반. **범용 원칙 우선, 
 |--------|----------|------------|
 | OpenAI | Outcome-first, 구조화 출력, Personality 분리 | `references/gpt5-params.md`, `references/gpt55-patterns.md` ⭐ (5.5), `references/gpt54-patterns.md` (5.4) |
 | Anthropic | Prefilling, 긴 컨텍스트 최적화 | `references/prefilling.md`, `references/long-context.md` |
+| Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` 🆕 |
+| Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` 🆕 |
 
 ## 기본 템플릿
 
@@ -159,6 +177,29 @@ system_prompt: |
 - [ ] Prefilling 활용 (JSON/형식 강제)
 - [ ] Long context 문서 배치 (맨 위)
 
+**Google Gemma 4** (오픈웨이트, 2026-04-02):
+- [ ] **Chat template 교체**: `<start_of_turn>` → `<|turn>`, `<end_of_turn>` → `<turn|>` (Gemma 3에서 완전 교체)
+- [ ] **System role 사용**: Gemma 3의 "user 턴에 system 우겨넣기" 워크어라운드 제거
+- [ ] **Thinking 활성화**: 시스템 프롬프트 맨 앞에 `<|think|>` 토큰 추가
+- [ ] **Multi-turn thought strip**: 직전 model 턴의 `<|channel>thought` 블록 제거 (단, 함수 호출 중에는 유지)
+- [ ] **Multimodal placement**: image/audio를 text 앞에 배치
+- [ ] **Visual token budget**: 70/140/280/560/1120 작업별 명시 (분류 70-140, OCR 1120)
+- [ ] **Tool calling**: `<|"|>` delimiter 포맷 사용
+- [ ] **공식 sampling**: `temperature=1.0, top_p=0.95, top_k=64` (OpenAI식 0.7 금지)
+- [ ] **vLLM**: `--reasoning-parser gemma4 --tool-call-parser gemma4` 필수
+- [ ] Audio 워크로드: E2B/E4B만 사용 (대형 2종 미지원)
+
+**Alibaba Qwen 3.6** (오픈웨이트, 2026-04):
+- [ ] **ChatML 템플릿**: `<|im_start|>role\n...\n<|im_end|>` (Qwen 3.5 동일)
+- [ ] **디폴트 thinking ON** 인지: 단순 chat은 명시적으로 `enable_thinking=false`로 토큰 절감
+- [ ] **`preserve_thinking=true`**: agentic multi-turn에서 활성화 (코딩 에이전트, 멀티스텝 tool 사용)
+- [ ] **Tool 파서 교체**: Qwen 3.5의 `qwen3` → **`qwen3_coder`** (vLLM/SGLang)
+- [ ] **Sampling 모드별 분리**: thinking 일반 (`temp=1.0, top_p=0.95, top_k=20`), 정밀 코딩 (`temp=0.6`), instruct (`temp=0.7, top_p=0.8`)
+- [ ] **모델별 `presence_penalty` 분기**: 35B-A3B=1.5, 27B=0.0 (thinking 일반)
+- [ ] **128K 미만 truncate 금지**: thinking 보존 권고 충족
+- [ ] **Long context**: 262K native, YaRN으로 1M까지. Plus API는 1M 디폴트
+- [ ] **공식 권장 프레임워크**: Qwen-Agent + MCP
+
 ### 추가 도구 (사용자 직접)
 - OpenAI Prompt Optimizer: https://platform.openai.com/chat/edit?optimize=true
 
@@ -198,6 +239,14 @@ system_prompt: |
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
 - **[claude-4-specifics.md](references/claude-4-specifics.md)** ⭐ Claude 4.x 베스트 프랙티스
 
+### Google Gemma 특화 (오픈웨이트)
+
+- **[gemma4-patterns.md](references/gemma4-patterns.md)** ⭐ Gemma 4 패턴 요약 — chat template 교체, `<|think|>` 토글, multi-turn strip, `<|"|>` tool delimiter, 공식 sampling, vLLM 플래그, Gemma 3 → 4 마이그레이션 🆕
+
+### Alibaba Qwen 특화 (오픈웨이트)
+
+- **[qwen36-patterns.md](references/qwen36-patterns.md)** ⭐ Qwen 3.6 패턴 요약 — ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling, agentic 시스템 프롬프트, Qwen 3.5 → 3.6 마이그레이션 🆕
+
 ## 참고 자료
 
 ### OpenAI
@@ -212,3 +261,21 @@ system_prompt: |
 ### Anthropic
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
 - [Claude 4.x Best Practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices)
+
+### Google Gemma 4 (2026-04-02)
+- [Gemma 4 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemma-4-prompt-guide.md) ⭐ 16섹션 + 외부 노하우
+- [Gemma 4 모델 카드 (공식)](https://ai.google.dev/gemma/docs/core/model_card_4)
+- [Prompt formatting (공식)](https://ai.google.dev/gemma/docs/core/prompt-formatting-gemma4)
+- [Function calling (공식)](https://ai.google.dev/gemma/docs/capabilities/text/function-calling-gemma4)
+- [HuggingFace Blog — Gemma 4](https://huggingface.co/blog/gemma4)
+- [vLLM Gemma 4 Recipe](https://docs.vllm.ai/projects/recipes/en/latest/Google/Gemma4.html)
+- [Simon Willison — Gemma 4 출시일 분석](https://simonwillison.net/2026/Apr/2/gemma-4/)
+
+### Alibaba Qwen 3.6 (2026-04)
+- [Qwen 3.6 풀 가이드 (한국어)](../../../reference/qwen-prompt-guide/qwen-3.6-prompt-guide.md) ⭐ 17섹션 + 외부 노하우
+- [Qwen3.6 GitHub (공식)](https://github.com/QwenLM/Qwen3.6)
+- [Qwen-Agent 프레임워크 (공식)](https://github.com/QwenLM/Qwen-Agent)
+- [Qwen3.6-Plus: Towards Real-World Agents (Alibaba Cloud)](https://www.alibabacloud.com/blog/qwen3-6-plus-towards-real-world-agents_603005)
+- [HuggingFace 모델 카드 (35B-A3B)](https://huggingface.co/Qwen/Qwen3.6-35B-A3B)
+- [Caleb Fahlgren — Qwen 3 Chat Template 분석 (HF Blog)](https://huggingface.co/blog/qwen-3-chat-template-deep-dive)
+- [Simon Willison — Qwen3.6-27B 로컬 재현](https://simonwillison.net/2026/Apr/22/qwen36-27b/)
