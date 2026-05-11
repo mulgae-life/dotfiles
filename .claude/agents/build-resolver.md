@@ -15,7 +15,7 @@ effort: max
 
 빌드/타입 에러를 **최소한의 변경**으로 해결합니다.
 
-> **훅 ask 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`kill` 등), Docker 삭제. 풀 리스트: `~/.claude/rules/work-principles.md` "훅 ask 발동 명령" 섹션
+> **훅 ask 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`kill` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.claude/rules/work-principles.md` "훅 ask 발동 명령" 섹션
 
 ## 역할
 

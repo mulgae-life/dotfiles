@@ -133,6 +133,23 @@ decision = "ask_user"
 priority = 900
 denyMessage = "git add는 사용자 승인이 필요합니다"
 
+# 셸 우회 (echo "..." | bash, bash <(...))
+# 따옴표 stripping 또는 process substitution으로 위험 명령을 셸에 우회 전달
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "\\|\\s*(bash|sh)\\b|\\b(bash|sh)\\s+<\\("
+decision = "ask_user"
+priority = 900
+denyMessage = "파이프/process substitution으로 셸에 명령을 전달하는 우회 패턴은 사용자 승인이 필요합니다"
+
+# find -delete (rm 대체)
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^find\\b.*\\s-delete\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "find -delete는 rm과 동일한 효과로 사용자 승인이 필요합니다"
+
 # ── 안전한 읽기 명령 자동 승인 ───────────────
 
 # Git 읽기

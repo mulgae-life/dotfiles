@@ -136,6 +136,16 @@ DANGEROUS_PATTERNS=(
 
   # ── Git staging ──
   '\bgit\s+(\S+\s+)*add\b'
+
+  # ── 셸 우회 (따옴표/process sub 우회 방지) ──
+  # echo "rm ..." | bash 처럼 stripping 우회 시도
+  # bash <(...) process substitution
+  '\|\s*(bash|sh)\b'
+  '\b(bash|sh)\s+<\('
+
+  # ── find -delete (rm 대체) ──
+  # find -delete는 rm 키워드 없이 동일 효과
+  '\bfind\b.*\s-delete\b'
 )
 
 # 따옴표 내부 문자열 제거 (echo "reboot" 같은 오탐 방지)
