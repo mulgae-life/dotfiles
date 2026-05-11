@@ -16,6 +16,8 @@ memory: project
 
 보안 취약점을 탐지하고 해결 방안을 제시합니다.
 
+> **차단 명령**: `rm/rmdir/unlink/shred/truncate`, `sudo`, `git push/commit/reset/clean/rebase/merge/cherry-pick/revert/am/apply/branch -d/stash drop/tag -d`, `gh ...edit.../api -X/-fF/auth login|logout`, `reboot/shutdown/poweroff/halt/dd/mkfs/fdisk/parted`, `docker rm/rmi`, `docker-compose down/rm` 등은 hook이 자동 거부합니다 — 시도하지 마세요. 풀 리스트: `~/.claude/rules/work-principles.md`
+
 ## 역할
 
 - 보안 취약점 탐지

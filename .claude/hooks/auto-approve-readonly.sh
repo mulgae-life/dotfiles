@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Claude Code PreToolUse 훅: Bash 명령어 자동 승인
-# 비가역적/파괴적 명령(rm, git push/commit 등)만 차단, 나머지는 자동 승인
-# 자율 코딩·검증 작업이 중단 없이 진행되도록 최소 차단 정책
+# 비가역적/파괴적 명령(rm, git push/commit 등)은 "ask"로 사용자 승인 요청, 나머지는 자동 승인(allow)
+# 사용자 명시 요청 시 승인하여 실행, 자율 작업 중 시도는 시스템 프롬프트(rules/work-principles.md)가 회피
+# 안전 명령에서는 절대 ask 발동 안 함 → 자율 작업 흐름 중단 없음
 set -euo pipefail
 
 INPUT=$(cat)
@@ -23,14 +24,16 @@ COMMAND=$(parse_command)
 
 [[ -z "$COMMAND" ]] && exit 0
 
-# "ask" 반환 헬퍼
-ask_user() {
+# 위험 명령 사용자 승인 요청 헬퍼
+# 사용자 명시 요청 시: 대표님이 승인하여 실행
+# 자율 작업 중 시도: 대표님이 거부하여 차단 (정상적으론 시스템 프롬프트가 회피하므로 발동 드물어야 함)
+ask_command() {
   cat <<'ASKEOF'
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "ask",
-    "permissionDecisionReason": "State-changing command detected"
+    "permissionDecisionReason": "위험 명령입니다. 사용자 승인이 필요합니다."
   }
 }
 ASKEOF
@@ -52,7 +55,7 @@ case "$FIRST_TOKEN" in
       )
       for pattern in "${SCRIPT_DANGEROUS_PATTERNS[@]}"; do
         if [[ "$COMMAND" =~ $pattern ]]; then
-          ask_user
+          ask_command
         fi
       done
       # 위험 패턴 없음 → 안전한 인라인 스크립트
@@ -75,8 +78,11 @@ esac
 # 파이프(|)는 허용 — 위험한 건 파이프 뒤 명령어에서 잡힘
 DANGEROUS_PATTERNS=(
   # ── 파일 삭제/파괴 (비가역적) ──
-  '\brm\b'        '\bunlink\b'    '\bshred\b'
+  '\brm\b'        '\brmdir\b'     '\bunlink\b'    '\bshred\b'
   '\btruncate\b'
+
+  # ── sudo (권한 상승 + 비밀번호 프롬프트로 작업 중단) ──
+  '\bsudo\b'
 
   # ── 시스템 (위험) ──
   '\breboot\b'    '\bshutdown\b'  '\bpoweroff\b'  '\bhalt\b'
@@ -109,9 +115,18 @@ DANGEROUS_PATTERNS=(
 # 큰따옴표/작은따옴표 내용을 빈 문자열로 치환 후 패턴 매칭
 COMMAND_STRIPPED=$(echo "$COMMAND" | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g')
 
+# 셸 인터프리터 호출(bash -c "...", sh -c "...", eval "...") 감지 시
+# stripping을 건너뛰고 원본에 패턴 매칭 — 따옴표 내부 우회 차단
+# (python/ruby/perl/node 인라인은 위쪽 case에서 별도 처리)
+if echo "$COMMAND" | head -1 | grep -qE '^\s*(bash|sh)\s+-c\b|^\s*eval\b'; then
+  TARGET="$COMMAND"
+else
+  TARGET="$COMMAND_STRIPPED"
+fi
+
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
-  if [[ "$COMMAND_STRIPPED" =~ $pattern ]]; then
-    ask_user
+  if [[ "$TARGET" =~ $pattern ]]; then
+    ask_command
   fi
 done
 

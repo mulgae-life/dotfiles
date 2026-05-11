@@ -202,9 +202,9 @@ NEVER:
 자율 작업 중 다음 명령은 사용자가 직접 요청할 때만 실행:
 
 - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
-- **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`
-- **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`
-- **시스템**: `reboot`, `shutdown`, `dd`, `mkfs`, `fdisk`
+- **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git stash drop/clear`, `git tag -d`
+- **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api -X/-f/-F`, `gh auth login/logout`
+- **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`
 - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
 - **sudo**: 비밀번호 프롬프트로 작업이 중단됨
 

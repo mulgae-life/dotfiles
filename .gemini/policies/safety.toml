@@ -3,8 +3,9 @@
 # Claude Code의 auto-approve-readonly.sh + permissions에 대응
 # ─────────────────────────────────────────────
 
-# ── 위험 명령 차단 (ask_user) ────────────────
-# 사용자가 직접 요청할 때만 승인
+# ── 위험 명령 사용자 승인 요청 (ask_user) ────
+# 사용자 명시 요청 시 승인하여 실행, 자율 작업 중에는 시스템 프롬프트(GEMINI.md)가 회피
+# 안전 명령에서는 절대 ask_user 발동 안 함 → 자율 작업 흐름 중단 없음
 
 # 파일 삭제
 [[rule]]
@@ -59,7 +60,7 @@ denyMessage = "GitHub 인증 변경은 사용자 승인이 필요합니다"
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^(reboot|shutdown|poweroff|halt|dd|mkfs|fdisk|parted)\\b"
-decision = "deny"
+decision = "ask_user"
 priority = 999
 denyMessage = "시스템 파괴 명령은 사용할 수 없습니다"
 
@@ -67,7 +68,7 @@ denyMessage = "시스템 파괴 명령은 사용할 수 없습니다"
 [[rule]]
 toolName = "run_shell_command"
 commandPrefix = "sudo"
-decision = "deny"
+decision = "ask_user"
 priority = 999
 denyMessage = "sudo는 비밀번호 프롬프트로 작업이 중단되므로 사용 불가"
 

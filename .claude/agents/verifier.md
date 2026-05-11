@@ -17,6 +17,8 @@ memory: project
 작업 완료 후 **자동으로 점검**합니다.
 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
 
+> **차단 명령**: `rm/rmdir/unlink/shred/truncate`, `sudo`, `git push/commit/reset/clean/rebase/merge/cherry-pick/revert/am/apply/branch -d/stash drop/tag -d`, `gh ...edit.../api -X/-fF/auth login|logout`, `reboot/shutdown/poweroff/halt/dd/mkfs/fdisk/parted`, `docker rm/rmi`, `docker-compose down/rm` 등은 hook이 자동 거부합니다 — 시도하지 마세요. 풀 리스트: `~/.claude/rules/work-principles.md`
+
 ## 핵심 지침
 
 **`work-verify` 스킬의 점검 절차를 따르세요.**

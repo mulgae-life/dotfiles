@@ -15,6 +15,8 @@ effort: max
 
 빌드/타입 에러를 **최소한의 변경**으로 해결합니다.
 
+> **차단 명령**: `rm/rmdir/unlink/shred/truncate`, `sudo`, `git push/commit/reset/clean/rebase/merge/cherry-pick/revert/am/apply/branch -d/stash drop/tag -d`, `gh ...edit.../api -X/-fF/auth login|logout`, `reboot/shutdown/poweroff/halt/dd/mkfs/fdisk/parted`, `docker rm/rmi`, `docker-compose down/rm` 등은 hook이 자동 거부합니다 — 시도하지 마세요. 풀 리스트: `~/.claude/rules/work-principles.md`
+
 ## 역할
 
 - TypeScript 컴파일 에러 수정

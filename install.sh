@@ -261,6 +261,11 @@ main() {
   safe_link "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
   safe_link "$DOTFILES_DIR/.codex/AGENTS.references.md" "$HOME/.codex/AGENTS.references.md"
   safe_link "$DOTFILES_DIR/.codex/rules" "$HOME/.codex/rules"
+  safe_link "$DOTFILES_DIR/.codex/hooks" "$HOME/.codex/hooks"
+  # 훅 스크립트 실행 권한 보장 (git pull 시 fileMode 설정에 따라 누락 가능)
+  if [ -d "$DOTFILES_DIR/.codex/hooks" ] && ! $DRY_RUN; then
+    chmod +x "$DOTFILES_DIR/.codex/hooks"/*.sh 2>/dev/null || true
+  fi
   # config.toml은 레포 버전으로 덮어쓰기 (Codex가 실행 시 trust 등 런타임 필드를 자동 재작성)
   safe_copy "$DOTFILES_DIR/.codex/config.toml" "$HOME/.codex/config.toml"
 
@@ -313,6 +318,7 @@ main() {
     "$HOME/.codex/AGENTS.md"
     "$HOME/.codex/AGENTS.references.md"
     "$HOME/.codex/rules"
+    "$HOME/.codex/hooks"
     "$HOME/.agents/skills"
     "$HOME/.gemini/GEMINI.md"
     "$HOME/.gemini/agents"

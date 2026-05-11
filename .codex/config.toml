@@ -210,3 +210,31 @@ status_line = [
   "context-remaining",
   "weekly-limit",
 ]
+
+# ── 훅 (Codex Hooks, v0.129+) ────────────────
+# Claude Code의 .claude/hooks/* 와 1:1 대응. 모두 작업 중단 없는 알림/리마인더 전용
+# PreToolUse 자동 승인은 의도적 미설정 — approval_policy="never" + rules/default.rules가 이미 통제
+# matcher 미설정 = 모든 매칭, 명시할 때만 regex 적용
+
+# Stop: 턴 완료 시 데스크톱 알림 (notify-send)
+[[hooks.Stop]]
+[[hooks.Stop.hooks]]
+type = "command"
+command = "$HOME/.codex/hooks/notify.sh"
+timeout = 5
+
+# PostToolUse: Bash 도구 실패 시 (exit_code != 0) 데스크톱 알림
+[[hooks.PostToolUse]]
+matcher = "^Bash$"
+[[hooks.PostToolUse.hooks]]
+type = "command"
+command = "$HOME/.codex/hooks/on-tool-failure.sh"
+timeout = 5
+
+# PostCompact: 압축 후 한국어 응답·변경 이유 설명 리마인더 재주입
+[[hooks.PostCompact]]
+matcher = "^(manual|auto)$"
+[[hooks.PostCompact.hooks]]
+type = "command"
+command = "$HOME/.codex/hooks/post-compact-reminder.sh"
+timeout = 5

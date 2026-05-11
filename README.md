@@ -43,7 +43,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **설정** | `settings.json` (복사) | `config.toml` (복사) | `settings.json` (복사) |
 | **권한** | hooks + permissions | `approval_policy` + `rules/` | `policies/*.toml` (Policy Engine) |
 | **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) |
-| **훅** | `PreToolUse`, `Notification` | 없음 | `BeforeTool`, `Notification` 등 11종 |
+| **훅** | `PreToolUse`, `Notification`, `SessionStart` | `Stop`, `PostToolUse`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` |
 | **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro |
 | **CLI 버전 (검증 기준)** | 2.1.138 | 0.130.0 | 0.38.1 |
@@ -99,11 +99,23 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 ### 🪝 Hooks — 이벤트 기반 자동 실행
 
+**Claude Code**
+
 | 훅 | 이벤트 | 동작 |
 |----|--------|------|
-| `auto-approve-readonly.sh` | PreToolUse (Bash) | 위험 명령만 차단, 나머지 자동 승인 |
+| `auto-approve-readonly.sh` | PreToolUse (Bash) | 위험 명령은 자동 거부(deny), 안전 명령은 자동 승인 — ask 미발동 |
 | Notification | 알림 발생 시 | `notify-send`로 데스크톱 알림 |
 | SessionStart (compact) | 컨텍스트 압축 후 | 핵심 규칙 리마인더 재주입 |
+
+**Codex (v0.129+)**
+
+| 훅 | 이벤트 | 동작 |
+|----|--------|------|
+| `notify.sh` | Stop | 턴 완료 시 `notify-send` 알림 |
+| `on-tool-failure.sh` | PostToolUse (Bash, exit≠0) | 실패 시 `notify-send` 알림 |
+| `post-compact-reminder.sh` | PostCompact (manual/auto) | 한국어 응답·변경 이유 리마인더 |
+
+> Codex PreToolUse는 의도적 미설정 — `approval_policy = "never"` + `.codex/rules/default.rules`(Starlark DSL)가 이미 통제
 
 ### ⚙️ Skills (19개) — `/skill-name`으로 호출
 
@@ -174,8 +186,9 @@ dotfiles/
 ├── .codex/
 │   ├── AGENTS.md              # Codex 지침 (프로세스 · 에이전트 운영 · 스킬 · 비파괴 원칙)
 │   ├── AGENTS.references.md   # 레퍼런스 검증 규칙 (논문/수식/benchmark)
-│   ├── config.toml            # Codex 설정 (모델 · developer_instructions · 샌드박스 · 환경변수 정책)
+│   ├── config.toml            # Codex 설정 (모델 · developer_instructions · 샌드박스 · 환경변수 정책 · 훅)
 │   ├── rules/                 # 실행 정책 (위험 명령어 차단)
+│   ├── hooks/                 # 이벤트 훅 (Stop / PostToolUse / PostCompact)
 │   └── skills → ../.claude/skills
 ├── .gemini/
 │   ├── GEMINI.md              # Gemini CLI 지침 (전역)

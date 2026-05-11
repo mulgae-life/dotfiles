@@ -29,7 +29,7 @@
   - 관련 없는 기존 파일/데드 코드는 대상 아님 (범위 준수 규칙 우선 — 언급만)
 - **훅 차단 명령 사용 금지**: 다음 명령은 사용자가 직접 요청할 때만 실행하고, 자율 작업 중에는 사용 금지:
   - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
-  - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git branch -d/-D`, `git stash drop/clear`, `git tag -d`
-  - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api -X/-f/-F`
-  - **시스템**: `reboot`, `shutdown`, `dd`, `mkfs`, `fdisk`, `parted`
+  - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git stash drop/clear`, `git tag -d`
+  - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api -X/-f/-F`, `gh auth login/logout`
+  - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
   - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
