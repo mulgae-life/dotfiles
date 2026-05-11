@@ -97,8 +97,15 @@ DANGEROUS_PATTERNS=(
   '\bgit\s+(\S+\s+)*(push|reset|commit)\b'
   '\bgit\s+(\S+\s+)*(clean|rebase|merge|cherry-pick|revert|am|apply)\b'
   '\bgit\s+(\S+\s+)*branch\s+(-[dD]|--delete)\b'
-  '\bgit\s+(\S+\s+)*stash\s+(drop|clear)\b'
+  '\bgit\s+(\S+\s+)*stash\b'
   '\bgit\s+(\S+\s+)*tag\s+(-[df]|--delete)\b'
+
+  # ── Git 상태 변경 (working tree/HEAD 이동) ──
+  # checkout/switch: 브랜치 전환 시 현재 작업 컨텍스트 손실 + detached HEAD 위험
+  # restore: working tree 변경 폐기 위험 (--staged는 unstage만이라 안전하지만 단순화 위해 통째로 ask)
+  '\bgit\s+(\S+\s+)*checkout\b'
+  '\bgit\s+(\S+\s+)*switch\b'
+  '\bgit\s+(\S+\s+)*restore\b'
 
   # ── GitHub CLI 쓰기 ──
   '\bgh\s+(pr|issue|release|repo)\s+(create|close|delete|merge|edit|comment)\b'
@@ -109,6 +116,26 @@ DANGEROUS_PATTERNS=(
   # ── Docker 삭제 ──
   '\bdocker\s+(rm|rmi)\b'
   '\bdocker(-|\s+)compose\s+(down|rm)\b'
+
+  # ── 파일 in-place 수정 (Edit 도구 우회) ──
+  '\bsed\s+(\S+\s+)*-i\b'                # sed -i / sed -i.bak
+  '\bgawk\s+(\S+\s+)*-i\s+inplace\b'     # gawk -i inplace
+  '\bawk\s+(\S+\s+)*-i\s+inplace\b'      # awk -i inplace
+
+  # ── 링크 강제 덮어쓰기 (force overwrite) ──
+  # cp/mv는 경로 변경·복사로 되돌리기 쉬워 allow (덮어쓰기 케이스는 의도적)
+  '\bln\s+(\S+\s+)*-[a-zA-Z]*f'          # ln -f / ln -sf
+
+  # ── 권한/소유자 변경 ──
+  '\bchmod\b'
+  '\bchown\b'
+
+  # ── 프로세스 종료 ──
+  '\bkill\b'
+  '\bpkill\b'
+
+  # ── Git staging ──
+  '\bgit\s+(\S+\s+)*add\b'
 )
 
 # 따옴표 내부 문자열 제거 (echo "reboot" 같은 오탐 방지)

@@ -179,6 +179,27 @@ prefix_rule(
     justification = "패치 적용 차단"
 )
 
+# ── Git 상태 변경 (working tree/HEAD 이동) ──
+# checkout/switch: 브랜치 전환 시 작업 컨텍스트 손실 + detached HEAD 위험
+# restore: working tree 변경 폐기 위험
+prefix_rule(
+    pattern = ["git", "checkout"],
+    decision = "forbidden",
+    justification = "체크아웃 차단 — 작업 컨텍스트 손실 + working tree 변경 폐기 위험"
+)
+
+prefix_rule(
+    pattern = ["git", "switch"],
+    decision = "forbidden",
+    justification = "브랜치 전환 차단 — 작업 컨텍스트 손실 위험"
+)
+
+prefix_rule(
+    pattern = ["git", "restore"],
+    decision = "forbidden",
+    justification = "restore 차단 — working tree 변경 폐기 위험"
+)
+
 # ── Git 삭제 (비가역적) ──
 # 삭제 플래그만 차단, 읽기(git branch -a, git tag -l 등)는 허용
 # forbidden > allow 우선이므로, allow와 forbidden이 동시 매칭되면 forbidden 적용
@@ -189,9 +210,9 @@ prefix_rule(
 )
 
 prefix_rule(
-    pattern = ["git", "stash", ["drop", "clear"]],
+    pattern = ["git", "stash"],
     decision = "forbidden",
-    justification = "stash 데이터 삭제 차단"
+    justification = "stash 차단 — working tree 비우는 상태 변경 위험 (list/show 포함 전체 차단)"
 )
 
 prefix_rule(
@@ -201,8 +222,9 @@ prefix_rule(
 )
 
 # ── Git 읽기 명령은 허용 ──
+# stash는 위 forbidden 규칙 우선 적용됨 (working tree 변경 위험)
 prefix_rule(
-    pattern = ["git", ["status", "diff", "log", "show", "blame", "fetch", "remote", "stash", "branch", "tag"]],
+    pattern = ["git", ["status", "diff", "log", "show", "blame", "fetch", "remote", "branch", "tag"]],
     decision = "allow"
 )
 
@@ -248,4 +270,41 @@ prefix_rule(
     pattern = ["docker", "compose", ["down", "rm"]],
     decision = "forbidden",
     justification = "Docker Compose 리소스 삭제 차단"
+)
+
+# ── A 그룹: 명확히 위험한 상태 변경 명령 ──
+# 영향도가 적은 read-only 명령만 자동 허용 원칙
+# 갭 인정: sed -i (옵션 위치 다양), 리다이렉트(>/>>)는 prefix_rule로 처리 불가 → AGENTS.md 안내
+
+# cp/mv: 경로 변경·복사로 되돌리기 쉬워 allow
+# (Starlark prefix_rule은 옵션 매칭 어려워 ln도 통째로 차단 유지)
+
+prefix_rule(
+    pattern = ["ln"],
+    decision = "forbidden",
+    justification = "ln 차단 — -f/-sf force overwrite 위험 (prefix_rule 한계로 ln 통째로 차단)"
+)
+
+prefix_rule(
+    pattern = ["chmod"],
+    decision = "forbidden",
+    justification = "chmod 차단 — 권한 변경"
+)
+
+prefix_rule(
+    pattern = ["chown"],
+    decision = "forbidden",
+    justification = "chown 차단 — 소유자 변경"
+)
+
+prefix_rule(
+    pattern = ["sed", "-i"],
+    decision = "forbidden",
+    justification = "sed -i 차단 — 파일 in-place 수정 (옵션 위치가 첫 인자일 때만 매칭)"
+)
+
+prefix_rule(
+    pattern = ["git", "add"],
+    decision = "forbidden",
+    justification = "git add 차단 — staging 상태 변경"
 )

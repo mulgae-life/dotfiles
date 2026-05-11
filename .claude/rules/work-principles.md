@@ -27,9 +27,15 @@
   - ✗ 불필요해 보여서 `rm` (나중에 참조 불가)
   - ✓ `mv demo.html test_output.json .archive/2026-04-24_hw-design-demo/`
   - 관련 없는 기존 파일/데드 코드는 대상 아님 (범위 준수 규칙 우선 — 언급만)
-- **훅 차단 명령 사용 금지**: 다음 명령은 사용자가 직접 요청할 때만 실행하고, 자율 작업 중에는 사용 금지:
+- **훅 ask 발동 명령 사용 금지**: 다음 명령은 hook이 사용자 승인 요청(`ask`)을 발동시켜 **자율 작업 흐름이 중단됩니다**. 자율 작업 중에는 **시도 자체 금지** — 필요 시 사용자에게 먼저 묻고 명시 승인 후 실행. 사용자가 직접 요청한 경우에만 ask로 안전하게 진행:
   - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
-  - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git stash drop/clear`, `git tag -d`
+  - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d`
+  - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash` (전체), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
   - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api -X/-f/-F`, `gh auth login/logout`
   - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
+  - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
+  - (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 allow)
+  - **프로세스**: `kill`, `pkill`
   - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
+
+  > **원칙**: 영향도 적은 read-only 명령만 자동 허용. 빌드/테스트/패키지 설치(`npm install`, `pytest` 등)는 자율 작업 흐름 유지를 위해 allow.

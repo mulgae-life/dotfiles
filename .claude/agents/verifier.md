@@ -17,7 +17,7 @@ memory: project
 작업 완료 후 **자동으로 점검**합니다.
 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
 
-> **차단 명령**: `rm/rmdir/unlink/shred/truncate`, `sudo`, `git push/commit/reset/clean/rebase/merge/cherry-pick/revert/am/apply/branch -d/stash drop/tag -d`, `gh ...edit.../api -X/-fF/auth login|logout`, `reboot/shutdown/poweroff/halt/dd/mkfs/fdisk/parted`, `docker rm/rmi`, `docker-compose down/rm` 등은 hook이 자동 거부합니다 — 시도하지 마세요. 풀 리스트: `~/.claude/rules/work-principles.md`
+> **훅 ask 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`kill` 등), Docker 삭제. 풀 리스트: `~/.claude/rules/work-principles.md` "훅 ask 발동 명령" 섹션
 
 ## 핵심 지침
 

@@ -25,13 +25,23 @@ decision = "ask_user"
 priority = 900
 denyMessage = "Git 쓰기 명령은 사용자 승인이 필요합니다"
 
-# Git 파괴 (branch 삭제, stash 삭제, tag 삭제/강제)
+# Git 파괴 (branch 삭제, tag 삭제/강제) + stash 전체
+# stash는 working tree 비우는 상태 변경이므로 list/show 포함 전체 ask
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^git\\s+.*\\b(branch\\s+-[dD]|stash\\s+(drop|clear)|tag\\s+(-[df]|--delete))\\b"
+commandRegex = "^git\\s+.*\\b(branch\\s+-[dD]|stash|tag\\s+(-[df]|--delete))\\b"
 decision = "ask_user"
 priority = 910
-denyMessage = "Git 파괴 명령은 사용자 승인이 필요합니다"
+denyMessage = "Git 파괴/stash 명령은 사용자 승인이 필요합니다"
+
+# Git 상태 변경 (checkout/switch/restore)
+# 브랜치 전환 시 작업 컨텍스트 손실, detached HEAD, working tree 변경 폐기 위험
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git\\s+.*\\b(checkout|switch|restore)\\b"
+decision = "ask_user"
+priority = 920
+denyMessage = "Git 상태 변경 명령은 작업 컨텍스트 손실 위험이 있어 사용자 승인이 필요합니다"
 
 # GitHub CLI 쓰기
 [[rule]]
@@ -87,6 +97,42 @@ decision = "ask_user"
 priority = 900
 denyMessage = "Docker Compose 삭제 명령은 사용자 승인이 필요합니다"
 
+# ── A 그룹: 명확히 위험한 상태 변경 명령 ────────
+# 영향도가 적은 read-only 명령만 자동 허용 원칙
+
+# 파일 in-place 수정 (Edit 도구 우회)
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(sed\\s+(\\S+\\s+)*-i\\b|g?awk\\s+(\\S+\\s+)*-i\\s+inplace)"
+decision = "ask_user"
+priority = 900
+denyMessage = "파일 in-place 수정은 사용자 승인이 필요합니다"
+
+# 링크 강제 덮어쓰기 + 권한/소유자
+# cp/mv는 경로 변경·복사로 되돌리기 쉬워 allow (덮어쓰기 케이스는 의도적)
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^ln\\s+(\\S+\\s+)*-[a-zA-Z]*f|^(chmod|chown)\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "권한 변경/링크 강제 덮어쓰기는 사용자 승인이 필요합니다"
+
+# 프로세스 종료
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(kill|pkill)\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "프로세스 종료 명령은 사용자 승인이 필요합니다"
+
+# Git staging
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git\\s+(\\S+\\s+)*add\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "git add는 사용자 승인이 필요합니다"
+
 # ── 안전한 읽기 명령 자동 승인 ───────────────
 
 # Git 읽기
@@ -124,10 +170,11 @@ commandRegex = "^(grep|rg|sed|awk|tr|sort|uniq|cut|diff|jq|yq|xargs|printf|echo|
 decision = "allow"
 priority = 500
 
-# 파일 관리 (비파괴)
+# 파일 관리 (비파괴) — 단순 생성 + 경로 변경·복사
+# ln -f/-sf/chmod/chown은 위 ask_user 규칙(priority 900)이 우선 적용됨
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^(cp|mv|mkdir|touch|ln|chmod|chown)\\b"
+commandRegex = "^(mkdir|touch|cp|mv)\\b"
 decision = "allow"
 priority = 400
 
@@ -152,12 +199,7 @@ commandRegex = "^(node|python|python3|ruby|bash|sh)\\b"
 decision = "allow"
 priority = 400
 
-# 프로세스 관리
-[[rule]]
-toolName = "run_shell_command"
-commandRegex = "^(kill|pkill)\\b"
-decision = "allow"
-priority = 300
+# 프로세스 관리: kill/pkill은 위 A 그룹 ask_user 규칙(priority 900)이 우선 적용됨
 
 # 환경 관리
 [[rule]]
@@ -213,12 +255,8 @@ commandRegex = "^(sha256sum|md5sum)\\b"
 decision = "allow"
 priority = 500
 
-# Git 스테이징 (add, checkout, switch, stash)
-[[rule]]
-toolName = "run_shell_command"
-commandRegex = "^git\\s+(add|checkout|switch|stash)\\b"
-decision = "allow"
-priority = 400
+# Git 스테이징: git add는 위 A 그룹 ask_user 규칙(priority 900)이 우선 적용됨
+# checkout/switch/restore/stash는 위 ask_user 규칙(priority 910/920)이 우선 적용됨
 
 # ── 기타 도구 자동 승인 ──────────────────────
 

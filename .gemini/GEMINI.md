@@ -197,16 +197,21 @@ NEVER:
 - **시간 소요 작업 인내**: 빌드/테스트/검색이 진행 중이면 멈춘 증거 없이 조급해하지 않기
 - **산출물 정리**: 테스트·실험·디버그 과정에서 본인이 만든 파일(임시 스크립트, 데모, 로그, 실험 결과, 체크포인트 등)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 이동하여 작업 경로 루트를 깨끗하게 유지. 보존이 목적이므로 `rm` 금지 (이동만). 관련 없는 기존 파일은 대상 아님 (언급만)
 
-### 금지 명령
+### 금지 명령 (ask_user 발동 = 작업 흐름 중단)
 
-자율 작업 중 다음 명령은 사용자가 직접 요청할 때만 실행:
+다음 명령은 `.gemini/policies/safety.toml`에서 `ask_user`로 설정되어 사용자 승인 요청을 발동시킵니다. **자율 작업 중에는 시도 자체 금지** — 필요 시 사용자에게 먼저 묻고 명시 승인 후 실행. 사용자가 직접 요청한 경우에만 ask로 안전하게 진행:
 
 - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
-- **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git stash drop/clear`, `git tag -d`
+- **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d`
+- **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash` (전체), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
 - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api -X/-f/-F`, `gh auth login/logout`
-- **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`
+- **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
+- **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
+- (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 allow)
+- **프로세스**: `kill`, `pkill`
 - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
-- **sudo**: 비밀번호 프롬프트로 작업이 중단됨
+
+> **원칙**: 영향도 적은 read-only 명령만 자동 허용. 빌드/테스트/패키지 설치(`npm install`, `pytest` 등)는 자율 작업 흐름 유지를 위해 allow.
 
 ---
 
