@@ -46,6 +46,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **훅** | `PreToolUse`, `Notification` | 없음 | `BeforeTool`, `Notification` 등 11종 |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` |
 | **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro |
+| **CLI 버전 (검증 기준)** | 2.1.138 | 0.130.0 | 0.38.1 |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법

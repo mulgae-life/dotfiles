@@ -166,7 +166,8 @@ Personality(`pragmatic`)와 분리된 협업 방식 (5.5 §4):
 """
 
 # ── 승인 정책 ──────────────────────────────
-# "never": 승인 프롬프트 완전 생략. --full-auto(on-request+workspace-write)보다 자율적
+# "never": 승인 프롬프트 완전 생략 (v0.128부터 deprecated된 --full-auto 대신 permission profiles 권고가 공식 흐름이나,
+#          우리는 sandbox_mode + rules/default.rules Starlark DSL 조합으로 직접 통제하므로 profiles 미사용)
 # 위험 명령어는 rules/default.rules의 Starlark DSL에서 차단
 approval_policy = "never"
 
@@ -192,6 +193,8 @@ ignore_default_excludes = false                                  # 기본 exclud
 # ── 실험적 기능 ──────────────────────────────
 [features]
 multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agent, send_input, resume_agent, wait_agent, close_agent)
+goals = true        # /goal 슬래시 명령 활성화 (v0.128+, persistent goal + Ralph Loop 스타일 자율 continuation)
+suppress_unstable_features_warning = true  # under-development 기능 사용 시 경고 메시지 끄기
 
 # ── 멀티 에이전트 설정 ──────────────────────
 [agents]
