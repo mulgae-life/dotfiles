@@ -2,227 +2,75 @@
 # Codex 실행 정책 (Execution Policy)
 # approval_policy = "never" + sandbox_mode = "danger-full-access" 조합에서 위험 명령어만 차단
 # (v0.128부터 --full-auto는 deprecated. 우리는 permission profiles 대신 본 Starlark DSL로 직접 통제)
-# Claude Code의 auto-approve-readonly.sh에 대응
+# Claude Code의 auto-approve-readonly.sh에 대응 — 카테고리별 사유 분기로 통일
+# justification은 차단 시점에 사용자/에이전트에게 노출됨 → 대체 방법까지 안내
 # ─────────────────────────────────────────────
 
+# ── 카테고리별 차단 사유 (Claude의 ask_command 사유와 동일 분류) ──
+# 모듈-레벨 변수로 일원화하여 메시지 유지보수성 확보
+_MSG_FILE_DELETE   = "파일 삭제는 비가역적입니다. 보존이 목적이면 .archive/<YYYY-MM-DD>_<태그>/로 mv를 검토하세요. 사용자가 명시적으로 삭제를 요청한 경우에만 실행하세요."
+_MSG_SYSTEM        = "시스템 레벨 명령(sudo/reboot/dd/mkfs 등)입니다. 환경 전체에 영향을 주므로 사용자 명시 승인이 필수입니다."
+_MSG_GIT_WRITE     = "Git 쓰기(push/commit/reset/rebase/merge 등)입니다. 이력·리모트가 바뀝니다. 사용자 명시 승인 후에만 실행하세요."
+_MSG_GIT_STATE     = "Git 상태 변경(checkout/switch/restore/stash/add)입니다. working tree·staging이 바뀝니다. 현재 작업 컨텍스트를 사용자와 먼저 확인하세요."
+_MSG_GH_CLI        = "GitHub CLI 쓰기 작업입니다. 외부 시스템(PR/이슈/릴리즈)에 영향이 있으므로 사용자 명시 승인 후 실행하세요."
+_MSG_DOCKER_DELETE = "Docker 리소스 삭제(rm/rmi/down)입니다. 컨테이너·이미지·볼륨 손실 가능. 사용자 확인 후 실행하세요."
+_MSG_INPLACE       = "파일 in-place 수정(sed -i)은 차단됩니다. 파일 수정은 apply_patch(또는 Edit 류) 도구를 사용하세요. Bash 우회는 변경 추적이 어렵습니다."
+_MSG_LINK_FORCE    = "ln(-f/-sf 포함)은 강제 덮어쓰기 위험으로 통째 차단 (Starlark prefix_rule 옵션 매칭 한계). cp/mv로 대체하거나 사용자 명시 승인 후 실행하세요."
+_MSG_PERMISSION    = "권한/소유자 변경(chmod/chown)입니다. 보안 상태가 바뀝니다. 사용자가 명시 요청한 경우에만 실행하세요."
+_MSG_PROCESS       = "프로세스 종료(kill/pkill/killall)입니다. 대상 PID/패턴을 사용자와 먼저 확인하세요."
+
 # ── 파일 삭제/파괴 (비가역적) ──
-prefix_rule(
-    pattern = ["rm"],
-    decision = "forbidden",
-    justification = "파일 삭제 명령어 차단"
-)
+prefix_rule(pattern = ["rm"],        decision = "forbidden", justification = _MSG_FILE_DELETE)
+prefix_rule(pattern = ["rmdir"],     decision = "forbidden", justification = _MSG_FILE_DELETE)
+prefix_rule(pattern = ["unlink"],    decision = "forbidden", justification = _MSG_FILE_DELETE)
+prefix_rule(pattern = ["shred"],     decision = "forbidden", justification = _MSG_FILE_DELETE)
+prefix_rule(pattern = ["truncate"],  decision = "forbidden", justification = _MSG_FILE_DELETE)
+prefix_rule(pattern = ["git", "rm"], decision = "forbidden", justification = _MSG_FILE_DELETE)
 
-prefix_rule(
-    pattern = ["rmdir"],
-    decision = "forbidden",
-    justification = "디렉토리 삭제 명령어 차단"
-)
-
-prefix_rule(
-    pattern = ["unlink"],
-    decision = "forbidden",
-    justification = "파일 삭제 명령어 차단"
-)
-
-prefix_rule(
-    pattern = ["shred"],
-    decision = "forbidden",
-    justification = "파일 파쇄 명령어 차단"
-)
-
-prefix_rule(
-    pattern = ["truncate"],
-    decision = "forbidden",
-    justification = "파일 절단 명령어 차단"
-)
-
-# ── 시스템 (위험) ──
-prefix_rule(
-    pattern = ["reboot"],
-    decision = "forbidden",
-    justification = "시스템 재부팅 차단"
-)
-
-prefix_rule(
-    pattern = ["shutdown"],
-    decision = "forbidden",
-    justification = "시스템 종료 차단"
-)
-
-prefix_rule(
-    pattern = ["poweroff"],
-    decision = "forbidden",
-    justification = "시스템 종료 차단"
-)
-
-prefix_rule(
-    pattern = ["halt"],
-    decision = "forbidden",
-    justification = "시스템 정지 차단"
-)
-
-# ── sudo (권한 상승 + 비밀번호 프롬프트) ──
-prefix_rule(
-    pattern = ["sudo"],
-    decision = "forbidden",
-    justification = "sudo 차단 — 비밀번호 프롬프트로 작업이 중단됨"
-)
+# ── 시스템 (sudo/재부팅/디스크) ──
+prefix_rule(pattern = ["reboot"],   decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["shutdown"], decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["poweroff"], decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["halt"],     decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["sudo"],     decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["dd"],       decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["mkfs"],     decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["fdisk"],    decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["parted"],   decision = "forbidden", justification = _MSG_SYSTEM)
 
 # ── 프로세스 종료 ──
-prefix_rule(
-    pattern = ["kill"],
-    decision = "forbidden",
-    justification = "프로세스 강제 종료 차단"
-)
-
-prefix_rule(
-    pattern = ["pkill"],
-    decision = "forbidden",
-    justification = "프로세스 강제 종료 차단"
-)
-
-prefix_rule(
-    pattern = ["killall"],
-    decision = "forbidden",
-    justification = "프로세스 강제 종료 차단"
-)
-
-# ── 디스크 (비가역적) ──
-prefix_rule(
-    pattern = ["dd"],
-    decision = "forbidden",
-    justification = "디스크 직접 쓰기 차단"
-)
-
-prefix_rule(
-    pattern = ["mkfs"],
-    decision = "forbidden",
-    justification = "파일시스템 포맷 차단"
-)
-
-prefix_rule(
-    pattern = ["fdisk"],
-    decision = "forbidden",
-    justification = "디스크 파티션 조작 차단"
-)
-
-prefix_rule(
-    pattern = ["parted"],
-    decision = "forbidden",
-    justification = "디스크 파티션 조작 차단"
-)
+prefix_rule(pattern = ["kill"],    decision = "forbidden", justification = _MSG_PROCESS)
+prefix_rule(pattern = ["pkill"],   decision = "forbidden", justification = _MSG_PROCESS)
+prefix_rule(pattern = ["killall"], decision = "forbidden", justification = _MSG_PROCESS)
 
 # ── Git 쓰기 (비가역적/공유 영향) ──
-prefix_rule(
-    pattern = ["git", "rm"],
-    decision = "forbidden",
-    justification = "파일 삭제 차단 — git rm 경로"
-)
+prefix_rule(pattern = ["git", "push"],        decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "commit"],      decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "reset"],       decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "clean"],       decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "rebase"],      decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "merge"],       decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "cherry-pick"], decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "revert"],      decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "am"],          decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "apply"],       decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "branch", ["-d", "-D", "--delete"]], decision = "forbidden", justification = _MSG_GIT_WRITE)
+prefix_rule(pattern = ["git", "tag", ["-d", "-f", "--delete"]],    decision = "forbidden", justification = _MSG_GIT_WRITE)
 
-prefix_rule(
-    pattern = ["git", "push"],
-    decision = "forbidden",
-    justification = "원격 푸시 차단 — 수동으로 실행"
-)
-
-prefix_rule(
-    pattern = ["git", "commit"],
-    decision = "forbidden",
-    justification = "커밋 차단 — 수동으로 실행"
-)
-
-prefix_rule(
-    pattern = ["git", "reset"],
-    decision = "forbidden",
-    justification = "커밋 리셋 차단"
-)
-
-prefix_rule(
-    pattern = ["git", "clean"],
-    decision = "forbidden",
-    justification = "untracked 파일 삭제 차단"
-)
-
-prefix_rule(
-    pattern = ["git", "rebase"],
-    decision = "forbidden",
-    justification = "리베이스 차단"
-)
-
-prefix_rule(
-    pattern = ["git", "merge"],
-    decision = "forbidden",
-    justification = "머지 차단"
-)
-
-prefix_rule(
-    pattern = ["git", "cherry-pick"],
-    decision = "forbidden",
-    justification = "체리픽 차단"
-)
-
-prefix_rule(
-    pattern = ["git", "revert"],
-    decision = "forbidden",
-    justification = "리버트 차단"
-)
-
-prefix_rule(
-    pattern = ["git", "am"],
-    decision = "forbidden",
-    justification = "패치 적용 차단"
-)
-
-prefix_rule(
-    pattern = ["git", "apply"],
-    decision = "forbidden",
-    justification = "패치 적용 차단"
-)
-
-# ── Git 상태 변경 (working tree/HEAD 이동) ──
+# ── Git 상태 변경 (working tree/staging/HEAD 이동) ──
+# work-principles.md 정합: stash·add도 "Git 상태 변경" 카테고리로 통일
 # checkout/switch: 브랜치 전환 시 작업 컨텍스트 손실 + detached HEAD 위험
 # restore: working tree 변경 폐기 위험
-prefix_rule(
-    pattern = ["git", "checkout"],
-    decision = "forbidden",
-    justification = "체크아웃 차단 — 작업 컨텍스트 손실 + working tree 변경 폐기 위험"
-)
-
-prefix_rule(
-    pattern = ["git", "switch"],
-    decision = "forbidden",
-    justification = "브랜치 전환 차단 — 작업 컨텍스트 손실 위험"
-)
-
-prefix_rule(
-    pattern = ["git", "restore"],
-    decision = "forbidden",
-    justification = "restore 차단 — working tree 변경 폐기 위험"
-)
-
-# ── Git 삭제 (비가역적) ──
-# 삭제 플래그만 차단, 읽기(git branch -a, git tag -l 등)는 허용
-# forbidden > allow 우선이므로, allow와 forbidden이 동시 매칭되면 forbidden 적용
-prefix_rule(
-    pattern = ["git", "branch", ["-d", "-D", "--delete"]],
-    decision = "forbidden",
-    justification = "브랜치 삭제 차단"
-)
-
-prefix_rule(
-    pattern = ["git", "stash"],
-    decision = "forbidden",
-    justification = "stash 차단 — working tree 비우는 상태 변경 위험 (list/show 포함 전체 차단)"
-)
-
-prefix_rule(
-    pattern = ["git", "tag", ["-d", "-f", "--delete"]],
-    decision = "forbidden",
-    justification = "태그 삭제/덮어쓰기 차단"
-)
+# stash: working tree 비우는 상태 변경 (list/show 포함 전체 차단)
+# add: staging 상태 변경
+prefix_rule(pattern = ["git", "checkout"], decision = "forbidden", justification = _MSG_GIT_STATE)
+prefix_rule(pattern = ["git", "switch"],   decision = "forbidden", justification = _MSG_GIT_STATE)
+prefix_rule(pattern = ["git", "restore"],  decision = "forbidden", justification = _MSG_GIT_STATE)
+prefix_rule(pattern = ["git", "stash"],    decision = "forbidden", justification = _MSG_GIT_STATE)
+prefix_rule(pattern = ["git", "add"],      decision = "forbidden", justification = _MSG_GIT_STATE)
 
 # ── Git 읽기 명령은 허용 ──
-# stash는 위 forbidden 규칙 우선 적용됨 (working tree 변경 위험)
+# stash는 위 forbidden 우선 적용됨 (working tree 변경 위험)
 prefix_rule(
     pattern = ["git", ["status", "diff", "log", "show", "blame", "fetch", "remote", "branch", "tag"]],
     decision = "allow"
@@ -232,20 +80,11 @@ prefix_rule(
 prefix_rule(
     pattern = ["gh", ["pr", "issue", "release", "repo"], ["create", "close", "delete", "merge", "edit", "comment"]],
     decision = "forbidden",
-    justification = "GitHub 리소스 변경 차단"
+    justification = _MSG_GH_CLI
 )
 
-prefix_rule(
-    pattern = ["gh", "auth", ["login", "logout"]],
-    decision = "forbidden",
-    justification = "GitHub 인증 변경 차단"
-)
-
-prefix_rule(
-    pattern = ["gh", "api"],
-    decision = "forbidden",
-    justification = "GitHub API 직접 호출 차단 — 쓰기 작업 가능하므로 차단"
-)
+prefix_rule(pattern = ["gh", "auth", ["login", "logout"]], decision = "forbidden", justification = _MSG_GH_CLI)
+prefix_rule(pattern = ["gh", "api"],                       decision = "forbidden", justification = _MSG_GH_CLI)
 
 # ── GitHub CLI 읽기는 허용 ──
 prefix_rule(
@@ -254,57 +93,17 @@ prefix_rule(
 )
 
 # ── Docker 삭제 ──
-prefix_rule(
-    pattern = ["docker", ["rm", "rmi"]],
-    decision = "forbidden",
-    justification = "Docker 리소스 삭제 차단"
-)
+prefix_rule(pattern = ["docker", ["rm", "rmi"]],             decision = "forbidden", justification = _MSG_DOCKER_DELETE)
+prefix_rule(pattern = ["docker-compose", ["down", "rm"]],    decision = "forbidden", justification = _MSG_DOCKER_DELETE)
+prefix_rule(pattern = ["docker", "compose", ["down", "rm"]], decision = "forbidden", justification = _MSG_DOCKER_DELETE)
 
-prefix_rule(
-    pattern = ["docker-compose", ["down", "rm"]],
-    decision = "forbidden",
-    justification = "Docker Compose 리소스 삭제 차단"
-)
-
-prefix_rule(
-    pattern = ["docker", "compose", ["down", "rm"]],
-    decision = "forbidden",
-    justification = "Docker Compose 리소스 삭제 차단"
-)
-
-# ── A 그룹: 명확히 위험한 상태 변경 명령 ──
+# ── A 그룹: 링크 강제 / 권한 / in-place 수정 ──
 # 영향도가 적은 read-only 명령만 자동 허용 원칙
 # 갭 인정: sed -i (옵션 위치 다양), 리다이렉트(>/>>)는 prefix_rule로 처리 불가 → AGENTS.md 안내
-
 # cp/mv: 경로 변경·복사로 되돌리기 쉬워 allow
 # (Starlark prefix_rule은 옵션 매칭 어려워 ln도 통째로 차단 유지)
-
-prefix_rule(
-    pattern = ["ln"],
-    decision = "forbidden",
-    justification = "ln 차단 — -f/-sf force overwrite 위험 (prefix_rule 한계로 ln 통째로 차단)"
-)
-
-prefix_rule(
-    pattern = ["chmod"],
-    decision = "forbidden",
-    justification = "chmod 차단 — 권한 변경"
-)
-
-prefix_rule(
-    pattern = ["chown"],
-    decision = "forbidden",
-    justification = "chown 차단 — 소유자 변경"
-)
-
-prefix_rule(
-    pattern = ["sed", "-i"],
-    decision = "forbidden",
-    justification = "sed -i 차단 — 파일 in-place 수정 (옵션 위치가 첫 인자일 때만 매칭)"
-)
-
-prefix_rule(
-    pattern = ["git", "add"],
-    decision = "forbidden",
-    justification = "git add 차단 — staging 상태 변경"
-)
+prefix_rule(pattern = ["ln"],        decision = "forbidden", justification = _MSG_LINK_FORCE)
+prefix_rule(pattern = ["chmod"],     decision = "forbidden", justification = _MSG_PERMISSION)
+prefix_rule(pattern = ["chown"],     decision = "forbidden", justification = _MSG_PERMISSION)
+prefix_rule(pattern = ["sed", "-i"],         decision = "forbidden", justification = _MSG_INPLACE)
+prefix_rule(pattern = ["sed", "--in-place"], decision = "forbidden", justification = _MSG_INPLACE)

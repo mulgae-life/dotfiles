@@ -1,154 +1,169 @@
 # ─────────────────────────────────────────────
 # Gemini CLI 전역 안전 정책
-# Claude Code의 auto-approve-readonly.sh + permissions에 대응
+# Claude Code의 auto-approve-readonly.sh + permissions에 대응 — 카테고리별 사유 분기로 통일
+# denyMessage는 차단/승인요청 시점에 사용자/에이전트에게 노출됨 → 대체 방법까지 안내
+# (TOML은 변수 미지원이라 메시지를 카테고리별로 인라인 반복)
 # ─────────────────────────────────────────────
 
 # ── 위험 명령 사용자 승인 요청 (ask_user) ────
 # 사용자 명시 요청 시 승인하여 실행, 자율 작업 중에는 시스템 프롬프트(GEMINI.md)가 회피
 # 안전 명령에서는 절대 ask_user 발동 안 함 → 자율 작업 흐름 중단 없음
 
-# 파일 삭제
+# 파일 삭제 (FILE_DELETE)
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^(rm|rmdir|unlink|shred|truncate)\\b"
 decision = "ask_user"
 priority = 900
 allowRedirection = false
-denyMessage = "파일 삭제 명령은 사용자 승인이 필요합니다"
+denyMessage = "파일 삭제는 비가역적입니다. 보존이 목적이면 .archive/<YYYY-MM-DD>_<태그>/로 mv를 검토하세요. 사용자가 명시적으로 삭제를 요청한 경우에만 승인하세요."
 
-# Git 쓰기 (push, commit, reset 등)
+# Git 쓰기 (push, commit, reset 등) — GIT_WRITE
 # .*\b 로 글로벌 옵션(-c, --no-pager, -C path 등) 우회 방지
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^git\\s+.*\\b(push|commit|reset|clean|rebase|merge|cherry-pick|revert|am|apply)\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "Git 쓰기 명령은 사용자 승인이 필요합니다"
+denyMessage = "Git 쓰기(push/commit/reset/rebase/merge 등)입니다. 이력·리모트가 바뀝니다. 사용자 명시 승인 후에만 진행하세요."
 
-# Git 파괴 (branch 삭제, tag 삭제/강제) + stash 전체
-# stash는 working tree 비우는 상태 변경이므로 list/show 포함 전체 ask
+# Git 파괴 (branch 삭제, tag 삭제/강제) — GIT_WRITE
+# stash는 work-principles.md 정합화로 GIT_STATE로 분리됨 (아래 별도 규칙)
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^git\\s+.*\\b(branch\\s+-[dD]|stash|tag\\s+(-[df]|--delete))\\b"
+commandRegex = "^git\\s+.*\\b(branch\\s+-[dD]|tag\\s+(-[df]|--delete))\\b"
 decision = "ask_user"
 priority = 910
-denyMessage = "Git 파괴/stash 명령은 사용자 승인이 필요합니다"
+denyMessage = "Git 쓰기(push/commit/reset/rebase/merge 등)입니다. 이력·리모트가 바뀝니다. 사용자 명시 승인 후에만 진행하세요."
 
-# Git 상태 변경 (checkout/switch/restore)
+# Git 상태 변경 (checkout/switch/restore/stash) — GIT_STATE
 # 브랜치 전환 시 작업 컨텍스트 손실, detached HEAD, working tree 변경 폐기 위험
+# stash: working tree 비우는 상태 변경이므로 list/show 포함 전체 ask
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^git\\s+.*\\b(checkout|switch|restore)\\b"
+commandRegex = "^git\\s+.*\\b(checkout|switch|restore|stash)\\b"
 decision = "ask_user"
 priority = 920
-denyMessage = "Git 상태 변경 명령은 작업 컨텍스트 손실 위험이 있어 사용자 승인이 필요합니다"
+denyMessage = "Git 상태 변경(checkout/switch/restore/stash/add)입니다. working tree·staging이 바뀝니다. 현재 작업 컨텍스트를 사용자와 먼저 확인하세요."
 
-# GitHub CLI 쓰기
+# Git staging (git add) — GIT_STATE
+# work-principles.md 정합: git add도 "Git 상태 변경" 카테고리
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^git\\s+(\\S+\\s+)*add\\b"
+decision = "ask_user"
+priority = 900
+denyMessage = "Git 상태 변경(checkout/switch/restore/stash/add)입니다. working tree·staging이 바뀝니다. 현재 작업 컨텍스트를 사용자와 먼저 확인하세요."
+
+# GitHub CLI 쓰기 — GH_CLI
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^gh\\s+(pr|issue|release)\\s+(create|close|delete|merge|edit|comment)\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "GitHub CLI 쓰기 명령은 사용자 승인이 필요합니다"
+denyMessage = "GitHub CLI 쓰기 작업입니다. 외부 시스템(PR/이슈/릴리즈)에 영향이 있으므로 사용자 명시 승인 후 진행하세요."
 
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^gh\\s+api\\s+.*(-X|-f|-F)\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "GitHub API 쓰기 명령은 사용자 승인이 필요합니다"
+denyMessage = "GitHub CLI 쓰기 작업입니다. 외부 시스템(PR/이슈/릴리즈)에 영향이 있으므로 사용자 명시 승인 후 진행하세요."
 
-# GitHub CLI 인증 변경
+# GitHub CLI 인증 변경 — GH_CLI
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^gh\\s+auth\\s+(login|logout)\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "GitHub 인증 변경은 사용자 승인이 필요합니다"
+denyMessage = "GitHub CLI 쓰기 작업입니다. 외부 시스템(PR/이슈/릴리즈)에 영향이 있으므로 사용자 명시 승인 후 진행하세요."
 
-# 시스템 명령
+# 시스템 명령 — SYSTEM
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^(reboot|shutdown|poweroff|halt|dd|mkfs|fdisk|parted)\\b"
 decision = "ask_user"
 priority = 999
-denyMessage = "시스템 파괴 명령은 사용할 수 없습니다"
+denyMessage = "시스템 레벨 명령(sudo/reboot/dd/mkfs 등)입니다. 환경 전체에 영향을 주므로 사용자 명시 승인이 필수입니다."
 
-# sudo
+# sudo — SYSTEM
 [[rule]]
 toolName = "run_shell_command"
 commandPrefix = "sudo"
 decision = "ask_user"
 priority = 999
-denyMessage = "sudo는 비밀번호 프롬프트로 작업이 중단되므로 사용 불가"
+denyMessage = "시스템 레벨 명령(sudo/reboot/dd/mkfs 등)입니다. 환경 전체에 영향을 주므로 사용자 명시 승인이 필수입니다. (특히 sudo는 비밀번호 프롬프트로 작업이 중단됨)"
 
-# Docker 삭제
+# Docker 삭제 — DOCKER_DELETE
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^docker\\s+(rm|rmi)\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "Docker 삭제 명령은 사용자 승인이 필요합니다"
+denyMessage = "Docker 리소스 삭제(rm/rmi/down)입니다. 컨테이너·이미지·볼륨 손실 가능. 사용자 확인 후 진행하세요."
 
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^docker[- ]compose\\s+(down|rm)\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "Docker Compose 삭제 명령은 사용자 승인이 필요합니다"
+denyMessage = "Docker 리소스 삭제(rm/rmi/down)입니다. 컨테이너·이미지·볼륨 손실 가능. 사용자 확인 후 진행하세요."
 
 # ── A 그룹: 명확히 위험한 상태 변경 명령 ────────
 # 영향도가 적은 read-only 명령만 자동 허용 원칙
 
-# 파일 in-place 수정 (Edit 도구 우회)
+# 파일 in-place 수정 (Edit 도구 우회) — INPLACE
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^(sed\\s+(\\S+\\s+)*-i\\b|g?awk\\s+(\\S+\\s+)*-i\\s+inplace)"
+commandRegex = "^(sed\\s+(\\S+\\s+)*(-i|--in-place)\\b|g?awk\\s+(\\S+\\s+)*-i\\s+inplace)"
 decision = "ask_user"
 priority = 900
-denyMessage = "파일 in-place 수정은 사용자 승인이 필요합니다"
+denyMessage = "파일 in-place 수정(sed -i/awk -i inplace)은 차단됩니다. 파일 수정은 replace/write_file 등 전용 편집 도구를 사용하세요. Bash 우회는 변경 추적이 어렵습니다."
 
-# 링크 강제 덮어쓰기 + 권한/소유자
+# 링크 강제 덮어쓰기 — LINK_FORCE
 # cp/mv는 경로 변경·복사로 되돌리기 쉬워 allow (덮어쓰기 케이스는 의도적)
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^ln\\s+(\\S+\\s+)*-[a-zA-Z]*f|^(chmod|chown)\\b"
+commandRegex = "^ln\\s+(\\S+\\s+)*-[a-zA-Z]*f"
 decision = "ask_user"
 priority = 900
-denyMessage = "권한 변경/링크 강제 덮어쓰기는 사용자 승인이 필요합니다"
+denyMessage = "링크 강제 덮어쓰기(ln -sf 등)입니다. 기존 링크/파일이 덮어쓰일 수 있습니다. 사용자 명시 승인 후 진행하세요."
 
-# 프로세스 종료
+# 권한/소유자 변경 — PERMISSION
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^(kill|pkill)\\b"
+commandRegex = "^(chmod|chown)\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "프로세스 종료 명령은 사용자 승인이 필요합니다"
+denyMessage = "권한/소유자 변경(chmod/chown)입니다. 보안 상태가 바뀝니다. 사용자가 명시 요청한 경우에만 진행하세요."
 
-# Git staging
+# 프로세스 종료 — PROCESS
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^git\\s+(\\S+\\s+)*add\\b"
+commandRegex = "^(kill|pkill|killall)\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "git add는 사용자 승인이 필요합니다"
+denyMessage = "프로세스 종료(kill/pkill/killall)입니다. 대상 PID/패턴을 사용자와 먼저 확인하세요."
 
-# 셸 우회 (echo "..." | bash, bash <(...))
+# 셸 우회 (echo "..." | bash, bash <(...)) — SHELL_BYPASS
 # 따옴표 stripping 또는 process substitution으로 위험 명령을 셸에 우회 전달
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "\\|\\s*(bash|sh)\\b|\\b(bash|sh)\\s+<\\("
 decision = "ask_user"
 priority = 900
-denyMessage = "파이프/process substitution으로 셸에 명령을 전달하는 우회 패턴은 사용자 승인이 필요합니다"
+denyMessage = "셸 우회 패턴(echo|bash, bash <(...), find -delete 등)은 차단됩니다. 우회 자체가 금지되며, 원본 명령을 직접 호출하면 정상적으로 정책이 작동합니다."
 
-# find -delete (rm 대체)
+# find -delete (rm 대체) — SHELL_BYPASS
 [[rule]]
 toolName = "run_shell_command"
 commandRegex = "^find\\b.*\\s-delete\\b"
 decision = "ask_user"
 priority = 900
-denyMessage = "find -delete는 rm과 동일한 효과로 사용자 승인이 필요합니다"
+denyMessage = "셸 우회 패턴(echo|bash, bash <(...), find -delete 등)은 차단됩니다. 우회 자체가 금지되며, 원본 명령을 직접 호출하면 정상적으로 정책이 작동합니다."
+
+# 인라인 스크립트 우회(python -c "os.system(...)", node -e "fs.rmSync(...)", bash -c "rm ...")는
+# 정밀 매칭이 복잡하고 자율성을 저해할 위험이 있어 hook에서 차단하지 않음 — GEMINI.md 지침으로 통제
 
 # ── 안전한 읽기 명령 자동 승인 ───────────────
 

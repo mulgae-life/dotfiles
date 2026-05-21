@@ -46,7 +46,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **훅** | `PreToolUse`, `Notification`, `SessionStart` | `Stop`, `PostToolUse`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` |
 | **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro |
-| **CLI 버전 (검증 기준)** | 2.1.138 | 0.130.0 | 0.38.1 |
+| **CLI 버전 (검증 기준)** | 2.1.146 | 0.132.0 | 0.38.1 |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
@@ -217,6 +217,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v1.4** | 위험 명령 차단 정합성 강화: 12 카테고리 ask 사유 분기(Claude/Codex/Gemini 3-tool 정합) + `.claude/settings.json` 권한 재설계(deny 47 / ask 73 / allow 188, `defaultMode: "default"`) + 셸·인라인 스크립트 우회 차단 + `killall`·`sed --in-place` 보강 + 174건 직접 호출 검증(Claude hook 137 + Codex exec 37, 100% PASS) |
 | **v1.3** | hw-design 브랜드 헤더 토큰화 + on-navy 로고 변형 PNG 3종(헤더/스플래시/모바일) + 결정 트리 / recursive-discussion CLI 버전 의존성 격리 + 권한 대칭성·라운드 정책·packet 공통 블록 강화 / GPT-5.5 가이드 정합화 + 한국어 응답 품질 강화 + `.archive` 산출물 정리 규칙 |
 | **v1.2** | hw-design 스킬 신설 + `/work-plan` 콤팩트화 |
 | **v1.1** | Gemini CLI 지원 추가 |
