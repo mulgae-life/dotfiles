@@ -298,9 +298,13 @@ main() {
     fi
   fi
   # 스킬 공유: .agents/skills 경로에서 이미 공유됨
-  # Antigravity 전용: global_workflows
+  # Antigravity IDE: ~/.gemini/antigravity/skills/, global_workflows
   safe_mkdir "$HOME/.gemini/antigravity"
   safe_link "$DOTFILES_DIR/.gemini/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
+  safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/antigravity/skills"
+  # Antigravity CLI(agy): ~/.gemini/antigravity-cli/skills/
+  safe_mkdir "$HOME/.gemini/antigravity-cli"
+  safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/antigravity-cli/skills"
 
   # 5. .antigravity 안전 정책 (Claude/Codex/Gemini와 동일 12 카테고리)
   # 본 디렉토리를 ~/.antigravity/ 워크스페이스 템플릿으로 노출 (개별 프로젝트에 cp로 복제)
@@ -339,6 +343,8 @@ main() {
     "$HOME/.gemini/policies"
     "$HOME/.gemini/hooks"
     "$HOME/.gemini/antigravity/global_workflows"
+    "$HOME/.gemini/antigravity/skills"
+    "$HOME/.gemini/antigravity-cli/skills"
     "$HOME/.antigravity"
   )
 
