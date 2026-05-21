@@ -1,6 +1,6 @@
 # 🛠 dotfiles
 
-AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-code) / [Codex](https://github.com/openai/codex) / [Gemini CLI](https://github.com/google-gemini/gemini-cli))의 전역 설정을 관리하는 레포.
+AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-code) / [Codex](https://github.com/openai/codex) / [Gemini CLI](https://github.com/google-gemini/gemini-cli) / [Antigravity](https://antigravity.google))의 전역 설정을 관리하는 레포.
 
 한 번 설치하면 어떤 프로젝트에서든 동일한 **규칙 · 에이전트 · 스킬 · 훅**이 자동 적용된다.
 
@@ -37,17 +37,17 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 ### 도구별 설정 구조
 
-| | Claude Code | Codex | Gemini CLI |
-|---|---|---|---|
-| **지시 파일** | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `GEMINI.md` (인라인) |
-| **설정** | `settings.json` (복사) | `config.toml` (복사) | `settings.json` (복사) |
-| **권한** | hooks + permissions | `approval_policy` + `rules/` | `policies/*.toml` (Policy Engine) |
-| **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) |
-| **훅** | `PreToolUse`, `Notification`, `SessionStart` | `Stop`, `PostToolUse`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 |
-| **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` |
-| **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro |
-| **CLI 버전 (검증 기준)** | 2.1.146 | 0.132.0 | 0.38.1 |
-| **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 |
+| | Claude Code | Codex | Gemini CLI | Antigravity |
+|---|---|---|---|---|
+| **지시 파일** | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `GEMINI.md` (인라인) | `AGENTS.md` + `GEMINI.md` (공유) |
+| **설정** | `settings.json` (복사) | `config.toml` (복사) | `settings.json` (복사) | `.antigravity/settings.json` (워크스페이스) |
+| **권한** | hooks + permissions | `approval_policy` + `rules/` | `policies/*.toml` (Policy Engine) | `permissions.{allow,ask,deny}` + hooks |
+| **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) | Subagents (병렬 실행) |
+| **훅** | `PreToolUse`, `Notification`, `SessionStart` | `Stop`, `PostToolUse`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `before_tool_call` (Claude hook 재사용) |
+| **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
+| **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
+| **CLI 버전 (검증 기준)** | 2.1.146 | 0.132.0 | 0.38.1 | IDE 2.1.x / `agy` |
+| **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
 
@@ -200,6 +200,12 @@ dotfiles/
 │   └── skills → ../.claude/skills
 ├── .agents/
 │   └── skills → ../.claude/skills
+├── .antigravity/              # Antigravity 안전 정책 (v1.5)
+│   ├── README.md              # 검증 상태 + 4-tool 정합 매트릭스
+│   ├── settings.json          # permissions(allow/ask/deny) + agentSettings + hooks
+│   └── hooks/
+│       ├── auto-approve-readonly.sh → ../../.claude/hooks/auto-approve-readonly.sh
+│       └── mcp-config-guard.sh      # .agent/mcp_config.json 백도어 차단
 └── reference/                 # 레퍼런스 자료
     ├── Agent-Coding-Guide/    # 에이전트 코딩 가이드 (팀 교육용)
     ├── agent-teams-guide/
@@ -217,6 +223,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v1.5** | **Antigravity 통합**: `.antigravity/settings.json` 신설(allow/ask/deny + agentSettings + hooks) + `.claude/hooks/auto-approve-readonly.sh` 재사용으로 4-tool 12 카테고리 정합 + `.agent/mcp_config.json` 영속 백도어 차단 훅(`mcp-config-guard.sh`) + `webhook.site` 강제 denylist + `terminalExecutionPolicy: "off"` 강제 + `~/.gemini/AGENTS.md` 크로스툴 convention 진입점 + install.sh `.antigravity` 자동 심볼릭 링크 (실측 필요 항목은 `.antigravity/README.md`에 명시) |
 | **v1.4** | 위험 명령 차단 정합성 강화: 12 카테고리 ask 사유 분기(Claude/Codex/Gemini 3-tool 정합) + `.claude/settings.json` 권한 재설계(deny 47 / ask 73 / allow 188, `defaultMode: "default"`) + 셸·인라인 스크립트 우회 차단 + `killall`·`sed --in-place` 보강 + 174건 직접 호출 검증(Claude hook 137 + Codex exec 37, 100% PASS) |
 | **v1.3** | hw-design 브랜드 헤더 토큰화 + on-navy 로고 변형 PNG 3종(헤더/스플래시/모바일) + 결정 트리 / recursive-discussion CLI 버전 의존성 격리 + 권한 대칭성·라운드 정책·packet 공통 블록 강화 / GPT-5.5 가이드 정합화 + 한국어 응답 품질 강화 + `.archive` 산출물 정리 규칙 |
 | **v1.2** | hw-design 스킬 신설 + `/work-plan` 콤팩트화 |

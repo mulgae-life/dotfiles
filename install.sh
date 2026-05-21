@@ -276,6 +276,8 @@ main() {
   # 4. .gemini 전역 설정 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.gemini"
   safe_link "$DOTFILES_DIR/.gemini/GEMINI.md" "$HOME/.gemini/GEMINI.md"
+  # AGENTS.md: Antigravity/Cursor 등 크로스툴 convention 진입점 (Gemini CLI는 안 읽음)
+  safe_link "$DOTFILES_DIR/.gemini/AGENTS.md" "$HOME/.gemini/AGENTS.md"
   safe_link "$DOTFILES_DIR/.gemini/agents"    "$HOME/.gemini/agents"
   safe_link "$DOTFILES_DIR/.gemini/commands"  "$HOME/.gemini/commands"
   safe_link "$DOTFILES_DIR/.gemini/policies"  "$HOME/.gemini/policies"
@@ -300,6 +302,16 @@ main() {
   safe_mkdir "$HOME/.gemini/antigravity"
   safe_link "$DOTFILES_DIR/.gemini/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
 
+  # 5. .antigravity 안전 정책 (Claude/Codex/Gemini와 동일 12 카테고리)
+  # 본 디렉토리를 ~/.antigravity/ 워크스페이스 템플릿으로 노출 (개별 프로젝트에 cp로 복제)
+  # IDE 글로벌 settings는 macOS의 ~/Library/Application Support/Antigravity/User/settings.json에 위치 —
+  # 그 위치 동기화는 사용자가 수동(설치 후 1회) 진행 (실측 후 키 이름 확정 필요)
+  safe_link "$DOTFILES_DIR/.antigravity" "$HOME/.antigravity"
+  # 훅 스크립트 실행 권한 보장 (auto-approve-readonly.sh는 .claude/hooks/ symlink)
+  if [ -d "$DOTFILES_DIR/.antigravity/hooks" ] && ! $DRY_RUN; then
+    chmod +x "$DOTFILES_DIR/.antigravity/hooks"/*.sh 2>/dev/null || true
+  fi
+
   # ── 검증 ──────────────────────────────────
   echo ""
   info "검증 중..."
@@ -321,11 +333,13 @@ main() {
     "$HOME/.codex/hooks"
     "$HOME/.agents/skills"
     "$HOME/.gemini/GEMINI.md"
+    "$HOME/.gemini/AGENTS.md"
     "$HOME/.gemini/agents"
     "$HOME/.gemini/commands"
     "$HOME/.gemini/policies"
     "$HOME/.gemini/hooks"
     "$HOME/.gemini/antigravity/global_workflows"
+    "$HOME/.antigravity"
   )
 
   # 복사로 설치되는 파일 (런타임 수정 보호)
