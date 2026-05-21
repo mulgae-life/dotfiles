@@ -322,6 +322,7 @@ main() {
       ANTIGRAVITY_USER_DIR="$HOME/Library/Application Support/Antigravity/User"
       safe_mkdir "$ANTIGRAVITY_USER_DIR"
       safe_merge_json "$DOTFILES_DIR/.antigravity/settings.json" "$ANTIGRAVITY_USER_DIR/settings.json"
+      ANTIGRAVITY_IDE_SETTINGS="$ANTIGRAVITY_USER_DIR/settings.json"
       ;;
     MINGW*|MSYS*|CYGWIN*)
       # Windows (Git Bash/WSL-cmd) — %APPDATA%/Antigravity IDE/User/
@@ -329,10 +330,11 @@ main() {
         ANTIGRAVITY_USER_DIR="$APPDATA/Antigravity IDE/User"
         safe_mkdir "$ANTIGRAVITY_USER_DIR"
         safe_merge_json "$DOTFILES_DIR/.antigravity/settings.json" "$ANTIGRAVITY_USER_DIR/settings.json"
+        ANTIGRAVITY_IDE_SETTINGS="$ANTIGRAVITY_USER_DIR/settings.json"
       fi
       ;;
     *)
-      info "Antigravity IDE는 Linux 미지원 — agy CLI(~/.antigravity, ~/.gemini/antigravity-cli/skills)만 활성화"
+      info "Antigravity IDE는 Linux 미지원 — agy CLI 참조 경로만 활성화 (~/.antigravity, ~/.gemini/antigravity-cli/skills). agy 바이너리는 별도 설치 필요."
       ;;
   esac
 
@@ -374,6 +376,11 @@ main() {
     "$HOME/.codex/config.toml"
     "$HOME/.gemini/settings.json"
   )
+
+  # OS-conditional: Antigravity IDE 글로벌 settings (macOS/Windows만 존재)
+  if [ -n "${ANTIGRAVITY_IDE_SETTINGS:-}" ]; then
+    copy_targets+=("$ANTIGRAVITY_IDE_SETTINGS")
+  fi
 
   for target in "${link_targets[@]}"; do
     if [ -L "$target" ]; then
