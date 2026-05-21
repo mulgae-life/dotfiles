@@ -223,7 +223,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
-| **v1.5** | **Antigravity 통합**: `.antigravity/settings.json` 신설(allow/ask/deny + agentSettings + hooks) + `.claude/hooks/auto-approve-readonly.sh` 재사용으로 4-tool 12 카테고리 정합 + `.agent/mcp_config.json` 영속 백도어 차단 훅(`mcp-config-guard.sh`) + `webhook.site` 강제 denylist + `terminalExecutionPolicy: "off"` 강제 + `~/.gemini/AGENTS.md` 크로스툴 convention 진입점 + install.sh `.antigravity` 자동 심볼릭 링크 (실측 필요 항목은 `.antigravity/README.md`에 명시) |
+| **v1.5** | **Antigravity 통합 (수동 단계 0)**: `.antigravity/settings.json` 신설(permissions allow 179/ask 73/deny 53 + agentSettings + hooks) + `.claude/hooks/auto-approve-readonly.sh` 재사용으로 4-tool 12 카테고리 정합 + `.agent/mcp_config.json` 영속 백도어 차단 훅(`mcp-config-guard.sh`) + `webhook.site` 강제 denylist + `terminalExecutionPolicy: "off"` 강제 + `~/.gemini/AGENTS.md` 크로스툴 convention 진입점 + 19개 스킬 IDE/CLI 양쪽 연결 + **install.sh OS 감지**로 macOS `~/Library/Application Support/Antigravity/User/settings.json` · Windows `%APPDATA%/Antigravity IDE/User/settings.json` 자동 `safe_merge_json` (글로벌 settings → 모든 워크스페이스 자동 상속) |
 | **v1.4** | 위험 명령 차단 정합성 강화: 12 카테고리 ask 사유 분기(Claude/Codex/Gemini 3-tool 정합) + `.claude/settings.json` 권한 재설계(deny 47 / ask 73 / allow 188, `defaultMode: "default"`) + 셸·인라인 스크립트 우회 차단 + `killall`·`sed --in-place` 보강 + 174건 직접 호출 검증(Claude hook 137 + Codex exec 37, 100% PASS) |
 | **v1.3** | hw-design 브랜드 헤더 토큰화 + on-navy 로고 변형 PNG 3종(헤더/스플래시/모바일) + 결정 트리 / recursive-discussion CLI 버전 의존성 격리 + 권한 대칭성·라운드 정책·packet 공통 블록 강화 / GPT-5.5 가이드 정합화 + 한국어 응답 품질 강화 + `.archive` 산출물 정리 규칙 |
 | **v1.2** | hw-design 스킬 신설 + `/work-plan` 콤팩트화 |

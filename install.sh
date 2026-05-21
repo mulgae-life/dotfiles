@@ -307,14 +307,34 @@ main() {
   safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/antigravity-cli/skills"
 
   # 5. .antigravity 안전 정책 (Claude/Codex/Gemini와 동일 12 카테고리)
-  # 본 디렉토리를 ~/.antigravity/ 워크스페이스 템플릿으로 노출 (개별 프로젝트에 cp로 복제)
-  # IDE 글로벌 settings는 macOS의 ~/Library/Application Support/Antigravity/User/settings.json에 위치 —
-  # 그 위치 동기화는 사용자가 수동(설치 후 1회) 진행 (실측 후 키 이름 확정 필요)
+  # 본 디렉토리를 ~/.antigravity/로 노출 (워크스페이스 템플릿 + agy CLI 참조용)
   safe_link "$DOTFILES_DIR/.antigravity" "$HOME/.antigravity"
   # 훅 스크립트 실행 권한 보장 (auto-approve-readonly.sh는 .claude/hooks/ symlink)
   if [ -d "$DOTFILES_DIR/.antigravity/hooks" ] && ! $DRY_RUN; then
     chmod +x "$DOTFILES_DIR/.antigravity/hooks"/*.sh 2>/dev/null || true
   fi
+
+  # IDE 글로벌 User settings (OS별 경로) — macOS/Windows만 IDE 지원, Linux는 skip
+  # 글로벌 settings에 permissions를 두면 모든 워크스페이스에 자동 상속 (VS Code 패턴)
+  # → 워크스페이스마다 .antigravity/ 복사 없이 한 번 설치로 4-tool 모두 동일 정책 적용
+  case "$(uname -s)" in
+    Darwin)
+      ANTIGRAVITY_USER_DIR="$HOME/Library/Application Support/Antigravity/User"
+      safe_mkdir "$ANTIGRAVITY_USER_DIR"
+      safe_merge_json "$DOTFILES_DIR/.antigravity/settings.json" "$ANTIGRAVITY_USER_DIR/settings.json"
+      ;;
+    MINGW*|MSYS*|CYGWIN*)
+      # Windows (Git Bash/WSL-cmd) — %APPDATA%/Antigravity IDE/User/
+      if [ -n "${APPDATA:-}" ]; then
+        ANTIGRAVITY_USER_DIR="$APPDATA/Antigravity IDE/User"
+        safe_mkdir "$ANTIGRAVITY_USER_DIR"
+        safe_merge_json "$DOTFILES_DIR/.antigravity/settings.json" "$ANTIGRAVITY_USER_DIR/settings.json"
+      fi
+      ;;
+    *)
+      info "Antigravity IDE는 Linux 미지원 — agy CLI(~/.antigravity, ~/.gemini/antigravity-cli/skills)만 활성화"
+      ;;
+  esac
 
   # ── 검증 ──────────────────────────────────
   echo ""
