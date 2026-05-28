@@ -2,6 +2,14 @@
 
 > 모든 슬라이드는 이 9개 중 하나다. 생성 시 코드 주석에 아키타입 번호와 이름을 명시한다.
 > 좌표는 **1920×1080 px 디자인 그리드** (144dpi Full HD 가정). PPTX EMU 변환은 `round(px × 6350)` (= 12,191,996/1920). HTML deck은 그대로 1920×1080 CSS px. ⚠️ 96dpi 변환 `× 9525`는 표준 슬라이드 밖으로 나가므로 사용 금지.
+>
+> **PowerPoint 실측 좌표 룰**:
+> - 헤더 strip: **y = 0–80** (시그니처 이미지 64 px 수용)
+> - 타이틀 밴드 시작: **y = 130** (chapter cue y=130, title y=165)
+> - 헤더 시그니처: **`hanwha-signature-ink.png` 한 장** (심볼+wordmark 합본, 비율 2:1, height 64, 텍스트 ink 재페인트)
+> - 한글 타이틀 박스 height: **font_px × 1.6** (descender + 두 줄 wrap 안전)
+> - subtitle y 위치: **title 박스 끝(`y + font_px × 1.6`) + 24 px**
+> - 부제-본문 vertical gap: **≥ 30 px**
 
 ## 목차
 
@@ -26,9 +34,9 @@
 - 헤더 strip 존재 (챕터 라벨 좌 + 시그니처 우)
 - 좌측 절반 (x = 80–880):
   - 오렌지 챕터 cue (Bold 16 px) — `--hw-orange`
-  - Display 타이틀 Bold 72 px — `--hw-ink` (※ 표지 전용 사이즈)
-  - 페이지 인디케이터 "1 / 4"를 타이틀 우측에 인라인, Regular 14 px
-  - 본문 인트로 5–8줄, Regular 15 px, `--hw-graphite`
+  - Display 타이틀 Bold 72 px — `--hw-ink` (※ 표지 전용 사이즈, **박스 height ≥ font_px × 1.6** — descender + 두 줄 wrap 안전)
+  - 본문 인트로 5–8줄, Regular 15 px, `--hw-graphite`, line_spacing 1.65 명시
+- **페이지 인디케이터**: 우측 하단 y=1040 (다른 슬라이드와 동일) — Cover 인라인 표기 금지
 - 우측 절반 (x = 960–1840):
   - Hero 일러스트 / 캐릭터 아트
   - 세로 가득, 외곽 60 px 마진
@@ -43,8 +51,7 @@
   <header class="hw-header">
     <span class="hw-chapter-label">신상품 소개</span>
     <div class="hw-signature">
-      <img src="assets/logo/hanwha-symbol.png" alt="한화손보" />
-      <span>한화손보</span>
+      <img src="assets/logo/hanwha-signature.png" alt="한화손보" />
     </div>
   </header>
 
@@ -75,7 +82,7 @@
 
 - 헤더 strip 존재
 - 좌측 절반 (x = 0–800):
-  - 풀-블리드 이미지/사진, y = 56–1080
+  - 풀-블리드 이미지/사진, y = 80–1080
 - 우측 절반 (x = 880–1840):
   - 타이틀 블록: Bold 56 px `--hw-ink` ("안녕하세요" 같은 인사 또는 섹션 타이틀)
   - 서브타이틀: Bold 32 px `--hw-orange` (바로 아래)
@@ -104,11 +111,11 @@
 
 ```css
 .two-column-image-left .col-image {
-  position: absolute; left: 0; top: 56px; width: 800px; height: 1024px;
+  position: absolute; left: 0; top: 80px; width: 800px; height: 1000px;
 }
 .two-column-image-left .col-image img { width: 100%; height: 100%; object-fit: cover; }
 .two-column-image-left .col-text {
-  position: absolute; left: 880px; top: 110px; width: 960px;
+  position: absolute; left: 880px; top: 130px; width: 960px;
 }
 .two-column-image-left h2 { font-weight: 700; font-size: 56px; color: var(--hw-ink); margin: 0; }
 .two-column-image-left .subtitle { font-weight: 700; font-size: 32px; color: var(--hw-orange); margin: 8px 0 24px; }
@@ -122,8 +129,8 @@
 아키타입 2의 **좌우 미러링 버전**. 텍스트 좌(x = 80–960), 이미지 우(x = 1040–1840).
 
 ```css
-.two-column-text-left .col-text { left: 80px; top: 110px; width: 880px; }
-.two-column-text-left .col-image { left: 1040px; top: 110px; width: 760px; height: 870px; }
+.two-column-text-left .col-text { left: 80px; top: 130px; width: 880px; }
+.two-column-text-left .col-image { left: 1040px; top: 130px; width: 760px; height: 850px; }
 ```
 
 ---
@@ -334,8 +341,8 @@
 | 위치 | 디자인 px | EMU | 인치 |
 |------|-----------|------|------|
 | 헤더 strip y=0 | 0 | 0 | 0" |
-| 헤더 strip y=56 | 56 | 355,600 | 0.389" |
-| 타이틀 밴드 시작 y=110 | 110 | 698,500 | 0.764" |
+| 헤더 strip y=80 (끝) | 80 | 508,000 | 0.556" |
+| 타이틀 밴드 시작 y=130 | 130 | 825,500 | 0.903" |
 | 타이틀 밴드 끝 y=270 | 270 | 1,714,500 | 1.875" |
 | 본문 zone 시작 y=300 | 300 | 1,905,000 | 2.083" |
 | 본문 zone 끝 y=820 | 820 | 5,207,000 | 5.694" |

@@ -82,23 +82,43 @@ prs.slide_height = Inches(7.5)     # =  6,858,000 EMU = 1080 px @144dpi
 
 ### 헤더 strip (모든 콘텐츠 슬라이드)
 
+> **헤더 strip 배경**: `HW_MIST` (#F5F5F5)는 본문 배경(#FFFFFF)과 명도 차가 부족해 PPTX 렌더 시 거의 invisible. **`HW_ORANGE_TINT` (#FCE6D6) + 2px `HW_ORANGE` 하단선**으로 시각 분리 + 브랜드 일관성 확보.
+>
+> **헤더 height + 시그니처**: 56 px strip + 시그니처 28 px는 PowerPoint 실측에서 거의 안 보임. **strip 80 px + 시그니처 합본 이미지 64 px**로 가시성 확보. 텍스트 wordmark 분리 사용은 박스 폭 부족 시 줄바꿈("한화\n손보") 발생 → 합본 이미지로 영구 해결.
+
 ```python
-def add_header(slide, chapter_label: str, symbol_path: str):
-    # 1. Strip background (gray fill, full width, y=0~56)
+HEADER_H = 80
+
+def add_header(slide, chapter_label: str, signature_path: str):
+    """모든 콘텐츠 슬라이드 상단 헤더 strip.
+
+    Args:
+        signature_path: hanwha-signature-ink.png 경로 (심볼+wordmark 합본, 비율 2:1, 텍스트 ink 재페인트)
+    """
+    # 1. Strip background — orange-tint (브랜드 컬러)
     strip = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE,
         left=px(0), top=px(0),
-        width=px(1920), height=px(56),
+        width=px(1920), height=px(HEADER_H),
     )
     strip.fill.solid()
-    strip.fill.fore_color.rgb = HW_MIST
-    strip.line.color.rgb = HW_LINE  # 하단 1px line
-    strip.line.width = Emu(9525)  # 1px
+    strip.fill.fore_color.rgb = HW_ORANGE_TINT
+    strip.line.fill.background()
 
-    # 2. Chapter label (left, 40px inset)
+    # 2. 2px orange 하단선 (별도 shape으로 그려야 PPT 렌더 시 안 사라짐)
+    bottom_line = slide.shapes.add_shape(
+        MSO_SHAPE.RECTANGLE,
+        left=px(0), top=px(HEADER_H - 2),
+        width=px(1920), height=px(2),
+    )
+    bottom_line.fill.solid()
+    bottom_line.fill.fore_color.rgb = HW_ORANGE
+    bottom_line.line.fill.background()
+
+    # 3. Chapter label (left, 40px inset)
     lbl = slide.shapes.add_textbox(
         left=px(40), top=px(0),
-        width=px(600), height=px(56),
+        width=px(800), height=px(HEADER_H),
     )
     p = lbl.text_frame.paragraphs[0]
     p.text = chapter_label
@@ -107,72 +127,53 @@ def add_header(slide, chapter_label: str, symbol_path: str):
     p.font.color.rgb = HW_GRAPHITE
     lbl.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
 
-    # 3. Signature (right, 40px inset)
-    # 심볼은 28px 높이, 우측 가장자리에서 40px + wordmark 폭만큼 안쪽
-    wordmark_text = "한화손보"
-    # 시그니처는 정확한 우측 정렬이 중요 — 한 textbox에 심볼 inline 대신
-    # 심볼 이미지 + wordmark textbox 두 개를 좌표 계산하여 배치
-    sym = slide.shapes.add_picture(
-        symbol_path,
-        left=px(1920 - 40 - 100),  # 추정 — wordmark 폭 따라 조정
-        top=px(14),                 # 56px strip 안에서 28px 심볼 중앙
-        height=px(28),
+    # 4. Signature — hanwha-signature-ink.png 합본 이미지 한 장 (텍스트 ink 재페인트 버전)
+    # 비율 2:1 → height 64 px → width 128 px. 우측 40px inset.
+    sig_h = 64
+    sig_w = sig_h * 2  # 128
+    sig_x = 1920 - 40 - sig_w  # 우측 40px inset → x = 1752
+    sig_y = (HEADER_H - sig_h) // 2  # 세로 중앙 → y = 8
+    slide.shapes.add_picture(
+        signature_path,
+        left=px(sig_x), top=px(sig_y),
+        height=px(sig_h),
     )
-    wm = slide.shapes.add_textbox(
-        left=px(1920 - 40 - 70),  # wordmark 너비 ~70px
-        top=px(0),
-        width=px(70),
-        height=px(56),
-    )
-    p = wm.text_frame.paragraphs[0]
-    p.text = wordmark_text
-    p.font.name = FONT_NAME
-    p.font.size = Pt(13.5)  # 18px ≈ 13.5pt
-    p.font.bold = True
-    p.font.color.rgb = HW_INK
-    wm.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
 ```
 
 ### Title band (모든 콘텐츠 슬라이드)
 
-```python
-def add_title(slide, title: str, subtitle: str = "",
-              chapter_cue: str = "", title_color=HW_INK, title_size_pt=30):
-    """타이틀 밴드 y=110–270. 좌측 정렬 기본."""
-    y = 110
-    if chapter_cue:
-        cue = slide.shapes.add_textbox(
-            left=px(80), top=px(y), width=px(800), height=px(24),
-        )
-        p = cue.text_frame.paragraphs[0]
-        p.text = chapter_cue
-        p.font.name = FONT_NAME
-        p.font.size = Pt(12)  # 16px
-        p.font.bold = True
-        p.font.color.rgb = HW_ORANGE
-        y += 30  # next line
+> **타이틀 박스 height + subtitle gap**: font 크기 기준 계산(`font_size + 여유`)은 한글 descender + 두 줄 wrap 포함 시 부족 → 타이틀-부제 겹침. **title 박스 height = `font_px × 1.6`**, **subtitle y = `title 박스 끝 + 24`**로 확정.
 
-    tit = slide.shapes.add_textbox(
-        left=px(80), top=px(y), width=px(1760), height=px(60),
-    )
-    p = tit.text_frame.paragraphs[0]
-    p.text = title
-    p.font.name = FONT_NAME
-    p.font.size = Pt(title_size_pt)  # 40px → 30pt, 48px → 36pt, 72px → 54pt
-    p.font.bold = True
-    p.font.color.rgb = title_color
-    y += title_size_pt + 10
+```python
+def add_title_band(slide, title: str, subtitle: str = "",
+                   chapter_cue: str = "", title_color=HW_INK, title_size_px=40,
+                   align="left", band_x=80):
+    """타이틀 밴드 y=130–270 (헤더 80에 맞춰 시작 130).
+    좌측 정렬 기본.
+
+    Args:
+        title_size_px: 디자인 px 단위 (40=기본 슬라이드, 48=섹션 hero, 72=Cover Display)
+    """
+    y = 130
+
+    if chapter_cue:
+        add_text(slide, chapter_cue, x=band_x, y=y, w=1760, h=28,
+                 size_px=16, bold=True, color=HW_ORANGE, align=align)
+        y = 165  # title 시작 y (chapter cue 있을 때)
+    else:
+        y = 165  # chapter cue 없어도 동일 위치 (밴드 간 정렬)
+
+    # title 박스 height = font_px × 1.6 (descender + 두 줄 wrap 안전 마진)
+    title_h = int(title_size_px * 1.6)
+    add_text(slide, title, x=band_x, y=y, w=1760, h=title_h,
+             size_px=title_size_px, bold=True, color=title_color,
+             align=align, line_height=1.1)
 
     if subtitle:
-        sub = slide.shapes.add_textbox(
-            left=px(80), top=px(y), width=px(1760), height=px(36),
-        )
-        p = sub.text_frame.paragraphs[0]
-        p.text = subtitle
-        p.font.name = FONT_NAME
-        p.font.size = Pt(18)  # 24px
-        p.font.bold = True
-        p.font.color.rgb = HW_INK
+        # subtitle y = title 박스 끝 + 24 (font_px 기준 계산은 부정확, +8 이하는 시각상 붙음)
+        sub_y = y + title_h + 24
+        add_text(slide, subtitle, x=band_x, y=sub_y, w=1760, h=50,
+                 size_px=22, bold=True, color=HW_INK, align=align)
 ```
 
 ### Density Zone — Stat strip 예시
@@ -208,21 +209,21 @@ def add_density_stat_strip(slide, stats: list[tuple[str, str]]):
 ### 전체 데크 생성 흐름
 
 ```python
-def build_deck(output_path: str, symbol_path: str):
+def build_deck(output_path: str, signature_path: str):
     prs = Presentation()
     prs.slide_width  = Inches(13.333)
     prs.slide_height = Inches(7.5)
 
     # 1. Cover
     slide1 = prs.slides.add_slide(prs.slide_layouts[6])  # blank
-    add_header(slide1, "신상품 소개", symbol_path)
-    add_title(slide1, "운전자 보험 리뉴얼", chapter_cue="2026 신상품", title_size_pt=54)
+    add_header(slide1, "신상품 소개", signature_path)
+    add_title_band(slide1, "운전자 보험 리뉴얼", chapter_cue="2026 신상품", title_size_px=72)
     # ... cover의 우측 hero image, 좌측 intro body 추가 ...
 
     # 2. Two-column
     slide2 = prs.slides.add_slide(prs.slide_layouts[6])
-    add_header(slide2, "신상품 소개", symbol_path)
-    add_title(slide2, "안녕하세요", subtitle="한화손해보험입니다", title_size_pt=42)
+    add_header(slide2, "신상품 소개", signature_path)
+    add_title_band(slide2, "안녕하세요", subtitle="한화손해보험입니다", title_size_px=56)
     # ... 좌측 이미지, 우측 본문 ...
     add_density_stat_strip(slide2, [
         ("1,234", "가입 고객"),
@@ -238,7 +239,7 @@ def build_deck(output_path: str, symbol_path: str):
 if __name__ == "__main__":
     build_deck(
         "out.pptx",
-        symbol_path=str(Path.home() / ".claude/skills/hw-ppt/assets/logo/hanwha-symbol.png"),
+        signature_path=str(Path.home() / ".claude/skills/hw-ppt/assets/logo/hanwha-signature.png"),
     )
 ```
 
@@ -277,12 +278,12 @@ if __name__ == "__main__":
     overflow: hidden;
   }
 
-  /* Header strip — 모든 콘텐츠 슬라이드 동일 */
+  /* Header strip — 모든 콘텐츠 슬라이드 동일 (height 80, 시그니처 이미지 64 px) */
   .hw-header {
     position: absolute; inset: 0 0 auto 0;
-    height: 56px;
-    background: var(--hw-mist);
-    border-bottom: 1px solid var(--hw-line);
+    height: 80px;
+    background: var(--hw-orange-tint);
+    border-bottom: 2px solid var(--hw-orange);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 40px;
   }
@@ -290,27 +291,23 @@ if __name__ == "__main__":
     font-weight: 400; font-size: 14px;
     color: var(--hw-graphite); letter-spacing: 0.01em;
   }
-  .hw-signature { display: flex; align-items: center; gap: 8px; }
-  .hw-signature img { height: 28px; width: auto; display: block; }
-  .hw-signature span {
-    font-weight: 700; font-size: 18px;
-    color: var(--hw-ink); line-height: 1;
-  }
+  .hw-signature img { height: 64px; width: auto; display: block; }
 
-  /* Title band — y = 110–270 */
+  /* Title band — y = 130–270 (헤더 80 기준) */
   .chapter-cue {
-    position: absolute; left: 80px; top: 110px;
+    position: absolute; left: 80px; top: 130px;
     font-weight: 700; font-size: 16px; color: var(--hw-orange); margin: 0;
   }
   h1, h2, .section-title {
-    position: absolute; left: 80px; top: 140px;
+    position: absolute; left: 80px; top: 165px;
     margin: 0; line-height: 1.1;
   }
   h1 { font-weight: 700; font-size: 40px; color: var(--hw-ink); }
   .section-title { font-weight: 700; font-size: 48px; color: var(--hw-orange); }
+  /* subtitle y = title 박스 끝(165 + font_px × 1.6) + 24. font 40 → top 253 */
   .subtitle {
-    position: absolute; left: 80px; top: 200px;
-    font-weight: 700; font-size: 24px; color: var(--hw-ink); margin: 0;
+    position: absolute; left: 80px; top: 253px;
+    font-weight: 700; font-size: 22px; color: var(--hw-ink); margin: 0;
   }
 
   /* Body zone — y = 300–820 */
@@ -343,8 +340,7 @@ if __name__ == "__main__":
   <header class="hw-header">
     <span class="hw-chapter-label">신상품 소개</span>
     <div class="hw-signature">
-      <img src="assets/logo/hanwha-symbol.png" alt="한화손보" />
-      <span>한화손보</span>
+      <img src="assets/logo/hanwha-signature-ink.png" alt="한화손보" />
     </div>
   </header>
   <p class="chapter-cue">2026 신상품</p>
@@ -392,6 +388,119 @@ cp $SRC/HanwhaL.ttf $DST/
 PPTX는 .ttf를 직접 사용 (별도 임베드 불필요 — `python-pptx`의 `font.name = "Hanwha"`로 참조).
 
 HTML deck은 `@font-face` + 상대 경로 (또는 base64 인라인).
+
+### ⚠️ PowerPoint에서 한화체 미설치 환경 대응 — subset 임베드
+
+**문제**: 사용자 PC에 한화체 .ttf가 설치 안 되어 있으면 PowerPoint가 시스템 한국어 폰트(맑은 고딕 등)로 폴백 → 디자인 의도와 다르게 표시.
+
+**해결**: PPTX 내부에 한화체 .ttf를 **subset 처리하여 임베드**. python-pptx 저장 후 ZIP 후처리.
+
+```python
+def embed_fonts_subset(pptx_path: Path, font_map: list):
+    """font_map = [(family, style, ttf_path), ...]; style ∈ {regular, bold, italic, boldItalic}
+    PPTX 내 모든 텍스트의 unicode만 남겨 subset → ppt/fonts/*.fntdata로 임베드.
+
+    효과 (5장 데크 기준):
+      - 원본 .ttf 1.27MB × 2 (R/B) = 2.5MB
+      - subset 후 37KB × 2 = 74KB (3% 수준, 라이센스 fsType=4 호환)
+    """
+    import zipfile, shutil
+    from lxml import etree as ET
+    from fontTools import subset
+    from fontTools.ttLib import TTFont
+
+    # 1. PPTX 내부 텍스트의 unicode 집합 추출
+    prs = Presentation(str(pptx_path))
+    codepoints = set(range(0x20, 0x7F))  # ASCII printable 보강
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if not shape.has_text_frame: continue
+            for p in shape.text_frame.paragraphs:
+                for r in p.runs:
+                    codepoints.update(ord(c) for c in r.text)
+
+    # 2. ZIP 풀기
+    tmp = pptx_path.with_suffix(".unzip")
+    if tmp.exists(): shutil.rmtree(tmp)
+    with zipfile.ZipFile(pptx_path, "r") as z: z.extractall(tmp)
+
+    # 3. ppt/fonts/fontN.fntdata 생성 (subset 적용)
+    fonts_dir = tmp / "ppt" / "fonts"; fonts_dir.mkdir(parents=True, exist_ok=True)
+    embedded = []
+    for i, (family, style, src) in enumerate(font_map, 1):
+        fname = f"font{i}.fntdata"
+        opts = subset.Options(); opts.layout_features = ["*"]
+        opts.glyph_names = True; opts.symbol_cmap = True
+        opts.notdef_glyph = True; opts.notdef_outline = True
+        sub = subset.Subsetter(options=opts)
+        font = TTFont(str(src)); sub.populate(unicodes=codepoints); sub.subset(font)
+        font.save(str(fonts_dir / fname))
+        embedded.append((family, style, f"rId{1000+i}", fname))
+
+    # 4. presentation.xml.rels — font relationship
+    REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+    rels = ET.parse(str(tmp / "ppt/_rels/presentation.xml.rels"))
+    for fam, style, rid, fname in embedded:
+        r = ET.SubElement(rels.getroot(), f"{{{REL_NS}}}Relationship")
+        r.set("Id", rid)
+        r.set("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/font")
+        r.set("Target", f"fonts/{fname}")
+    rels.write(str(tmp / "ppt/_rels/presentation.xml.rels"),
+               xml_declaration=True, encoding="UTF-8", standalone=True)
+
+    # 5. presentation.xml — <p:embeddedFontLst>
+    P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
+    R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    pres = ET.parse(str(tmp / "ppt/presentation.xml"))
+    root = pres.getroot()
+    lst = root.find(f"{{{P_NS}}}embeddedFontLst")
+    if lst is None:
+        lst = ET.SubElement(root, f"{{{P_NS}}}embeddedFontLst")
+        # ECMA-376: embeddedFontLst는 defaultTextStyle 앞에 위치
+        ds = root.find(f"{{{P_NS}}}defaultTextStyle")
+        if ds is not None:
+            root.remove(lst)
+            root.insert(list(root).index(ds), lst)
+    by_family = {}
+    for fam, style, rid, fname in embedded:
+        by_family.setdefault(fam, []).append((style, rid))
+    for fam, items in by_family.items():
+        ef = ET.SubElement(lst, f"{{{P_NS}}}embeddedFont")
+        fe = ET.SubElement(ef, f"{{{P_NS}}}font"); fe.set("typeface", fam)
+        for style, rid in items:
+            child = ET.SubElement(ef, f"{{{P_NS}}}{style}")
+            child.set(f"{{{R_NS}}}id", rid)
+    pres.write(str(tmp / "ppt/presentation.xml"),
+               xml_declaration=True, encoding="UTF-8", standalone=True)
+
+    # 6. [Content_Types].xml — .fntdata Default
+    CT_NS = "http://schemas.openxmlformats.org/package/2006/content-types"
+    ct = ET.parse(str(tmp / "[Content_Types].xml"))
+    has = any(d.get("Extension") == "fntdata"
+              for d in ct.getroot().findall(f"{{{CT_NS}}}Default"))
+    if not has:
+        d = ET.SubElement(ct.getroot(), f"{{{CT_NS}}}Default")
+        d.set("Extension", "fntdata")
+        d.set("ContentType", "application/x-fontdata")
+    ct.write(str(tmp / "[Content_Types].xml"),
+             xml_declaration=True, encoding="UTF-8", standalone=True)
+
+    # 7. 재패키징
+    pptx_path.unlink()
+    with zipfile.ZipFile(pptx_path, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in tmp.rglob("*"):
+            if f.is_file(): z.write(f, str(f.relative_to(tmp)))
+    shutil.rmtree(tmp)
+
+
+# 사용
+embed_fonts_subset(Path("out.pptx"), [
+    ("Hanwha", "regular", Path.home() / ".claude/skills/hw-design/assets/fonts/Hanwha/HanwhaR.ttf"),
+    ("Hanwha", "bold",    Path.home() / ".claude/skills/hw-design/assets/fonts/Hanwha/HanwhaB.ttf"),
+])
+```
+
+> **라이센스 주의**: 한화체 .ttf의 `OS/2.fsType=4` (preview/print only). subset 처리로 PPT 표시 전용 임베드는 허용 범위. **편집용 임베드(fsType=0/8)는 라이센스 위반 가능**, subset 권장.
 
 ### ⚠️ 한글 렌더링: eastAsia typeface 설정
 
@@ -455,9 +564,11 @@ PYEOF
 
 ---
 
-## 5. 로고 알파 변환
+## 5. 로고 알파 변환 + 시그니처 텍스트 ink 재페인트
 
-`assets/logo/hanwha-signature.png`와 `hanwha-symbol.png`는 현재 검정 배경 JPEG (사용자가 클로드 웹에서 사용하던 원본). 알파 PNG로 변환 권장.
+### 5-1. 검정 배경 JPEG → 알파 PNG
+
+`assets/logo/hanwha-signature.png`와 `hanwha-symbol.png`는 검정 배경 JPEG (사용자가 클로드 웹에서 사용하던 원본). 알파 PNG로 변환 권장.
 
 ### Pillow 사용
 
@@ -497,6 +608,47 @@ done
 
 > Pillow도 ImageMagick도 없으면 SKILL.md 안내에 따라 .pptx에서 검정 배경 그대로 사용 가능 (단, 슬라이드 헤더 배경이 `--hw-mist` 회색이면 검정이 도드라짐 — 알파 변환 권장).
 
+### 5-2. 시그니처 텍스트 ink 재페인트 (헤더 가시성 확보)
+
+알파 변환 후 `hanwha-signature.png`는 텍스트가 **흰색 outline only (fill 투명)** 상태로 남음 (원본이 검정 배경 위 흰색 텍스트였기 때문). orange-tint(#FCE6D6) 헤더 위에서 "한화손보" 텍스트가 거의 안 보임 → **흰색 픽셀을 HW_INK(#1A1A1A)로 재페인트한 `hanwha-signature-ink.png` 생성**.
+
+```python
+from PIL import Image
+from pathlib import Path
+
+src = Path("assets/logo/hanwha-signature.png")
+dst = Path("assets/logo/hanwha-signature-ink.png")
+
+img = Image.open(src).convert("RGBA")
+w, h = img.size
+px = img.load()
+
+# 좌측 30%는 심볼(컬러 그대로), 우측 70%의 흰색 픽셀만 ink로 변환
+SYMBOL_BOUND_X = int(w * 0.30)
+for y in range(h):
+    for x in range(w):
+        r, g, b, a = px[x, y]
+        if a < 30:
+            continue
+        if x >= SYMBOL_BOUND_X and r > 200 and g > 200 and b > 200:
+            px[x, y] = (0x1A, 0x1A, 0x1A, a)  # ink. 알파는 유지
+
+# 하단 검정 막대(원본 JPEG 잔존) 알파 0 처리
+for y in range(int(h * 0.77), h):
+    for x in range(w):
+        r, g, b, a = px[x, y]
+        if a > 0 and r < 80 and g < 80 and b < 80:
+            px[x, y] = (0, 0, 0, 0)
+
+img.save(dst, "PNG")
+```
+
+PPTX 헤더에서 사용:
+```python
+SIGNATURE_PATH = Path("assets/logo/hanwha-signature-ink.png")
+slide.shapes.add_picture(str(SIGNATURE_PATH), px(1752), px(8), height=px(64))
+```
+
 ---
 
 ## 6. px → EMU 변환 헬퍼
@@ -515,7 +667,7 @@ def px(n):
 # 사용
 slide_w_design = 1920    # → Emu(12,192,000) ≈ Inches(13.333)
 slide_h_design = 1080    # → Emu( 6,858,000) = Inches(7.5)
-header_h_design = 56     # → Emu(  355,600)
+header_h_design = 80     # → Emu(  508,000)
 margin_x_design = 80     # → Emu(  508,000)
 
 # 폰트 px → pt
@@ -534,9 +686,9 @@ def px_to_pt(px_size):
 | 위치 | 디자인 px | EMU | 인치 |
 |------|-----------|------|------|
 | 헤더 y=0 | 0 | 0 | 0" |
-| 헤더 y=56 (끝) | 56 | 355,600 | 0.39" |
-| 타이틀 y=110 | 110 | 698,500 | 0.76" |
-| 타이틀 y=140 | 140 | 889,000 | 0.97" |
+| 헤더 y=80 (끝) | 80 | 508,000 | 0.56" |
+| 타이틀 밴드 y=130 | 130 | 825,500 | 0.90" |
+| 타이틀 y=165 | 165 | 1,047,750 | 1.15" |
 | 본문 y=300 | 300 | 1,905,000 | 2.08" |
 | Density y=840 | 840 | 5,334,000 | 5.83" |
 | 페이지 인디 y=1040 | 1040 | 6,604,000 | 7.22" |
@@ -557,80 +709,85 @@ def px_to_pt(px_size):
 
 ## 7. 파이 차트 (MSO_SHAPE.PIE 각도 조정)
 
-`MSO_SHAPE.PIE`는 기본적으로 90° 슬라이스만 그린다. 정확한 슬라이스 각도는 `adjustments` 속성을 통해 `degree × 60000` 단위로 설정.
+### ⚠️ 핵심 주의:
+
+OOXML `ST_Angle` 범위는 `-21,600,000 ~ 21,600,000` (= -360 ~ 360°). **음수 각도(`-90` 같은 12시 표기)는 PowerPoint/Spire 모두 호환성 불안**. 반드시 **0–360 양수 범위로 정규화**하고, 한 슬라이스가 360°를 넘으면 **두 조각으로 쪼개기**.
+
+또한 `PIE` preset의 좌표계는 **0° = 3시 (동쪽), 시계 방향 증가**. 12시부터 시작하려면 `start = 270°`.
 
 ```python
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.util import Emu
-import math
+from pptx.oxml.ns import qn
+from lxml import etree
 
-def add_pie_slice(slide, cx_px, cy_px, radius_px, start_deg, end_deg, fill_color):
-    """
-    파이 슬라이스 추가.
-    start_deg, end_deg: 시계 방향, 0° = 위쪽 (12시), 90° = 오른쪽 (3시)
-    """
-    # MSO_SHAPE.PIE는 좌상단 기준 bounding box + adj1(시작각)/adj2(종료각)
-    left = px(cx_px - radius_px)
-    top  = px(cy_px - radius_px)
-    w    = px(radius_px * 2)
-    h    = px(radius_px * 2)
-
-    shape = slide.shapes.add_shape(MSO_SHAPE.PIE, left, top, w, h)
-
-    # PowerPoint의 PIE adjustment: 0° = 동(3시), 반시계 방향 양수
-    # 일반 차트의 0° = 북(12시), 시계 방향과 다르다 — 변환 필요
-    # PPT 각도 = (90 - normal_deg) % 360
-    ppt_start = (90 - end_deg) % 360
-    ppt_end   = (90 - start_deg) % 360
-
-    shape.adjustments[0] = ppt_start  # adj1
-    shape.adjustments[1] = ppt_end    # adj2
-
-    shape.fill.solid()
-    shape.fill.fore_color.rgb = fill_color
-    shape.line.fill.background()  # no border
-    return shape
+def _draw_pie_slice(slide, cx_px, cy_px, radius_px,
+                    start_deg: float, end_deg: float, color):
+    """단일 파이 슬라이스 (start_deg, end_deg는 0–360 정규화)."""
+    shape = slide.shapes.add_shape(
+        MSO_SHAPE.PIE,
+        px(cx_px - radius_px), px(cy_px - radius_px),
+        px(radius_px * 2),     px(radius_px * 2),
+    )
+    # adj1/adj2 직접 설정 (degree × 60000)
+    spPr = shape.element.spPr
+    avLst = spPr.find(qn("a:prstGeom")).find(qn("a:avLst"))
+    if avLst is None:
+        avLst = etree.SubElement(spPr.find(qn("a:prstGeom")), qn("a:avLst"))
+    for gd in avLst.findall(qn("a:gd")):
+        avLst.remove(gd)
+    for name, val in [("adj1", start_deg), ("adj2", end_deg)]:
+        gd = etree.SubElement(avLst, qn("a:gd"))
+        gd.set("name", name)
+        gd.set("fmla", f"val {int(round(val * 60000))}")
+    shape.fill.solid(); shape.fill.fore_color.rgb = color
+    shape.line.color.rgb = HW_PAPER
+    shape.line.width = Emu(int(2 * 9525))
+    shape.shadow.inherit = False
 
 
-def add_pie_chart(slide, cx_px, cy_px, radius_px, data: list[tuple[float, "RGBColor"]],
-                  donut_hole_radius_px: int = 0, center_image_path: str = None):
-    """
-    data: [(value, color), ...]. 합산하여 percentage 계산.
-    donut_hole_radius_px: 0이면 솔리드 파이, > 0이면 도넛
-    center_image_path: 도넛 중앙에 배치할 이미지 (예: hanwha-symbol.png)
-    """
-    total = sum(v for v, _ in data)
-    current_deg = 0
-    for value, color in data:
-        slice_deg = 360 * value / total
-        add_pie_slice(slide, cx_px, cy_px, radius_px,
-                      current_deg, current_deg + slice_deg, color)
-        current_deg += slice_deg
+def add_pie_chart(slide, cx_px, cy_px, radius_px,
+                  data: list[tuple[float, "RGBColor"]],
+                  donut_hole_radius_px: int = 0,
+                  center_image_path: str = None):
+    """slices = [(percent, color), ...]. 12시(270°)부터 시계방향.
+    누적 각도가 360°를 넘으면 자동으로 두 조각으로 쪼개기."""
+    cursor = 270.0
+    for pct, color in data:
+        sweep = pct * 3.6
+        start = cursor % 360.0
+        end = start + sweep
+        if end <= 360.0:
+            _draw_pie_slice(slide, cx_px, cy_px, radius_px, start, end, color)
+        else:
+            # 360 경계 넘으면 두 조각으로 쪼개기 (같은 색)
+            _draw_pie_slice(slide, cx_px, cy_px, radius_px, start, 360.0, color)
+            _draw_pie_slice(slide, cx_px, cy_px, radius_px, 0.0, end - 360.0, color)
+        cursor = cursor + sweep
 
-    # 도넛 효과: 중앙에 흰 원
+    # 도넛 효과: 중앙 흰 사각형 + 심볼
+    # 사각형은 직경의 약 25% 비율이 시각상 적정 (예: r=220 → 사각형 100)
     if donut_hole_radius_px > 0:
         hole = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL,
-            px(cx_px - donut_hole_radius_px), px(cy_px - donut_hole_radius_px),
-            px(donut_hole_radius_px * 2), px(donut_hole_radius_px * 2),
+            MSO_SHAPE.RECTANGLE,
+            px(cx_px - donut_hole_radius_px // 2),
+            px(cy_px - donut_hole_radius_px // 2),
+            px(donut_hole_radius_px), px(donut_hole_radius_px),
         )
         hole.fill.solid(); hole.fill.fore_color.rgb = HW_PAPER
         hole.line.fill.background()
 
-    # 도넛 중앙 심볼
     if center_image_path and donut_hole_radius_px > 0:
-        img_size = donut_hole_radius_px  # 직경의 절반
+        img_size = int(donut_hole_radius_px * 0.72)
         slide.shapes.add_picture(
             center_image_path,
             px(cx_px - img_size // 2), px(cy_px - img_size // 2),
-            width=px(img_size), height=px(img_size),
+            height=px(img_size),
         )
 
 
-# 사용 (archetype 5 Pie chart)
+# 사용 (archetype 5 Pie chart) — 60/20/10/8/2, 도넛 사각형 100, 심볼 72
 add_pie_chart(
-    slide,
-    cx_px=1350, cy_px=540, radius_px=260,
+    slide, cx_px=1360, cy_px=540, radius_px=220,
     data=[
         (60, HW_ORANGE),
         (20, HW_ORANGE_MID),
@@ -643,7 +800,7 @@ add_pie_chart(
 )
 ```
 
-> `MSO_SHAPE.PIE`의 각도 좌표계가 일반적인 시계 방향 0°=북 표기와 다른 점을 주의. 위 헬퍼는 normal_deg(0°=12시, 시계방향)를 PPT 좌표로 자동 변환한다.
+> **❌ 안 되는 패턴**: `start_angle = -90`으로 12시 시작 + adj1/adj2에 음수 EMU. PowerPoint가 무시하거나 잘못된 각도로 표시. **항상 0–360 양수 정규화 + 360° 쪼개기**.
 
 ---
 
