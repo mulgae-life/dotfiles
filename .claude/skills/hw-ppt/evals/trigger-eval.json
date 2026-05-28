@@ -1,0 +1,82 @@
+[
+  {
+    "query": "한화손해보험 신상품 IR 자료 5장 만들어줘. 표지·투칼럼·파이차트·상승그래프·클로징 구성으로",
+    "should_trigger": true
+  },
+  {
+    "query": "우리 회사가 한화손보인데 자동차 보험 신규 출시 자료 만들어야 함. 표지부터 클로징까지 7-8장 정도. 자율주행 시대 강조하고싶고 As-Is/To-Be 비교도 한 장 들어가면 좋겠어",
+    "should_trigger": true
+  },
+  {
+    "query": "한화 보험 제안서용 As-Is/To-Be 슬라이드 한 장 부탁. 2024년 사고 처리 프로세스랑 2025년 AI 도입 후 비교하는 내용. 16:9로",
+    "should_trigger": true
+  },
+  {
+    "query": "회사 톤으로 분기 실적 보고 PPT 만들어야 하는데 한화손보야. 8장짜리고 항목별표랑 비교바차트 위주로 가져가고 싶어",
+    "should_trigger": true
+  },
+  {
+    "query": "hanwha insurance Q3 2025 quarterly results presentation, 8 slides, with rising graph for revenue trend and pie chart for customer segment",
+    "should_trigger": true
+  },
+  {
+    "query": "한화손보 톤으로 신상품 5장짜리 덱 만들어줘. 데이터는 가상으로 채워도 됨",
+    "should_trigger": true
+  },
+  {
+    "query": "한화손해보험 디자인 시스템 PPT 한 장만 — Pie chart 아키타입으로 연령대별 가입 비율",
+    "should_trigger": true
+  },
+  {
+    "query": "한화 보험 슬라이드 자료. 운전자보험 상품 비교용. python-pptx로 출력해줘",
+    "should_trigger": true
+  },
+  {
+    "query": "한화손보 IR 자료인데 매출 추이를 Rising graph로, 상품 카탈로그를 Item table로 보여주고싶어. 16:9 1920x1080",
+    "should_trigger": true
+  },
+  {
+    "query": "한화손해보험 신상품 소개 슬라이드 (3장)",
+    "should_trigger": true
+  },
+  {
+    "query": "한화그룹 랜딩페이지 만들어줘. 오렌지 + 네이비 2색 톤으로",
+    "should_trigger": false
+  },
+  {
+    "query": "한화 톤으로 React 대시보드 컴포넌트 만들어줘. shadcn/ui 베이스에 token-audit도 통과해야 함",
+    "should_trigger": false
+  },
+  {
+    "query": "분기 보고서 PowerPoint 5장 만들어줘. 우리 회사는 LG디스플레이고 OLED 매출 추이 강조하는 내용",
+    "should_trigger": false
+  },
+  {
+    "query": "Anthropic 공식 pptx 스킬로 발표 자료 만들어줘. 학술 컨퍼런스용이라 academic-pptx-skill 패턴 따랐으면 좋겠어",
+    "should_trigger": false
+  },
+  {
+    "query": "한화 디자인 토큰 우리 프로젝트 src/styles/ 에 적용해줘. DESIGN.md랑 tokens.css 깔고 token-audit.mjs도 같이",
+    "should_trigger": false
+  },
+  {
+    "query": "한화이글스 2025시즌 우승 기념 응원 PPT 만들어줘. 야구 통계 위주로 10장 정도",
+    "should_trigger": false
+  },
+  {
+    "query": "한화 호텔앤리조트 예약 시스템 PPT 디자인. 객실 비교랑 가격 정책 위주로",
+    "should_trigger": false
+  },
+  {
+    "query": "DB손해보험 자동차 상품 카탈로그 PPT 만들어줘. 표지 + 상품별 비교표 + 클로징 5장",
+    "should_trigger": false
+  },
+  {
+    "query": "한화 계열사 입사지원용 자기소개서 PPT 5장. 본인 학력 + 경력 + 한화 지원동기",
+    "should_trigger": false
+  },
+  {
+    "query": "PPT 만들어줘. 발표용으로 16:9 5장 정도. 주제는 자율주행 자동차 시장 전망",
+    "should_trigger": false
+  }
+]

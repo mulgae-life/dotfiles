@@ -1,0 +1,30 @@
+{
+  "skill_name": "hw-ppt",
+  "description": "한화손해보험 PPT 디자인 시스템 스킬의 테스트 케이스. 각 케이스는 9개 아키타입 중 다른 조합을 사용하여 스킬의 핵심 기능을 검증한다.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "new-product-launch-5-slides",
+      "prompt": "한화손보 자율주행 운전자 보험 신상품 소개 PPT 5장을 만들어줘. 표지(Cover) → 상품 소개(Two-column) → 보장 비교(As-Is/To-Be) → 가입 고객 분포(Pie chart) → 클로징(Closing) 구성. 출력은 .pptx 우선. 가상 데이터 활용해도 됨.",
+      "expected_output": ".pptx 파일 (또는 fallback HTML). 5장 모두 16:9 1920×1080. 헤더 strip + 시그니처 모든 슬라이드 동일 좌표. 각 슬라이드가 9개 아키타입 중 명시된 것을 정확히 따름. Density Zone 모두 채워짐 (S3은 As-Is/To-Be 예외 적용). 오렌지는 액센트로만 사용.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "quarterly-report-8-slides",
+      "prompt": "2025년 3분기 한화손해보험 실적 보고서 PPT 8장. 표지 → 섹션 디바이더(1. 핵심 지표) → Stat strip 중심 슬라이드 → 비교 바 차트(Comparison bars) → Rising graph(분기별 매출 추이) → Item table(상품별 실적) → 섹션 디바이더(2. 전망) → 클로징. 한화체 폰트 임베드. .pptx 출력.",
+      "expected_output": ".pptx 8장. 섹션 디바이더가 큰 챕터 번호(`01` 200px)를 정확히 사용. Rising graph는 5개 마운틴/화살표 + 점선 트렌드라인. Item table은 행 교차 색(white/mist) + 행 높이 56px. 모든 슬라이드 헤더 좌우 마진 40px 대칭. Density Zone에 적절한 패턴 적용.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "name": "single-as-is-to-be-slide",
+      "prompt": "한화손해보험 사고 보상 프로세스의 현재(2024)와 신규(2025) 비교를 한 장의 As-Is/To-Be 슬라이드로 만들어줘. 좌측 As-Is에 4 bullets(서류 제출, 48시간 심사, 7일 보상, 전화 안내), 우측 To-Be에 4 bullets(AI 사진 분석, 24시간 심사, 즉시 보상, 앱 알림). HTML deck로 출력.",
+      "expected_output": "단일 HTML 파일. 1920×1080 슬라이드 1장. As-Is(orange-soft) → To-Be(orange) 화살표 바, 중앙 노치. 비교 패널 orange-tint 배경 라운드 8px. Density Zone에 '2024' / '2025' 연도 라벨 (Bold 32 orange) — 일반 Stat strip 대신 §6 예외 적용. 헤더 strip 정상 배치.",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}

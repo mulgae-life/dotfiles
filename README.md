@@ -136,6 +136,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `/frontend-design` | 코드 기반 프로덕션 UI 제작 |
 | `/stitch-design` | Google Stitch MCP 기반 AI UI 디자인 (7개 서브스킬 포함) |
 | `/hw-design` | 한화그룹(Hanwha) 디자인 표준 DESIGN.md 배포 — Hanwha Orange + Navy 2색축 · 한화체 3w + 한화고딕 5w + IBM Plex 페어링 · 공식 트리서클 로고 번들 |
+| `/hw-ppt` | 한화손해보험(Hanwha Insurance) PPT 디자인 시스템 — 16:9 1920×1080 · 9개 슬라이드 아키타입 · Density Zone 룰 · 한화체 .ttf 임베드 · Anthropic 공식 pptx 스킬과 협업 (.pptx 우선 + HTML 옵션) |
 | `/react-best-practices` | React/Next.js 성능 최적화 |
 | `/web-design-guidelines` | 웹 인터페이스 가이드라인 준수 리뷰 |
 
