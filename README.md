@@ -33,20 +33,20 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 ~/dotfiles/install.sh --dry-run
 ```
 
-설치 스크립트는 `~/dotfiles/` → `~/` 로 심볼릭 링크를 생성한다. 단, 도구가 런타임에 수정하는 파일(`settings.json`, `config.toml`)은 복사로 설치하여 레포 원본을 보호한다. 런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
+설치 스크립트는 `~/dotfiles/` → `~/` 로 심볼릭 링크를 생성한다. 단, 도구가 런타임에 수정하는 파일(`.claude/settings.json`, `.codex/config.toml`)은 복사로 설치하여 레포 원본을 보호한다. 예외로 **인증을 설정 파일에 인라인 저장하는 Gemini `settings.json`과 IDE 글로벌 settings(Antigravity)는 인증·외부 설정 보존을 위해 deep merge**한다(Claude는 인증이 `.credentials.json` 별도라 복사). 런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
 
 ### 도구별 설정 구조
 
 | | Claude Code | Codex | Gemini CLI | Antigravity |
 |---|---|---|---|---|
 | **지시 파일** | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `GEMINI.md` (인라인) | `AGENTS.md` + `GEMINI.md` (공유) |
-| **설정** | `settings.json` (복사) | `config.toml` (복사) | `settings.json` (복사) | `.antigravity/settings.json` (워크스페이스) |
+| **설정** | `settings.json` (복사) | `config.toml` (복사) | `settings.json` (merge·인증 보존) | `.antigravity/settings.json` (워크스페이스) |
 | **권한** | hooks + permissions | `approval_policy` + `rules/` | `policies/*.toml` (Policy Engine) | `permissions.{allow,ask,deny}` + hooks |
 | **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) | Subagents (병렬 실행) |
 | **훅** | `PreToolUse`, `Notification`, `SessionStart` | `Stop`, `PostToolUse`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `before_tool_call` (Claude hook 재사용) |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
 | **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
-| **CLI 버전 (검증 기준)** | 2.1.146 | 0.132.0 | 0.38.1 | IDE 2.1.x / `agy` |
+| **CLI 버전 (검증 기준)** | 2.1.156 | 0.132.0 | 0.38.1 | IDE 2.1.x / `agy` |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
@@ -224,6 +224,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v1.6** | **Opus 4.8 정합 + hw-ppt 신설**: `.claude/settings.json` `effortLevel` 제거(Opus 4.8 기본 `high` 자동 추종 — v1.4 권한 커밋에서 `xhigh→medium`으로 비의도적 회귀했던 것 정정) + **install.sh `settings.json` 파일별 정책 분리**(deep merge가 키 삭제를 전파 못 해 좀비 잔존 → Claude는 `safe_copy`로 덮어쓰기, Gemini는 `security.auth` OAuth·`ide` 상태를 settings에 인라인 저장하므로 `safe_merge_json` 유지, Antigravity IDE 글로벌은 사용자 설정 보존 위해 merge) + README 설치방식 서술 정합 + Claude Code 검증버전 `2.1.156` / **hw-ppt 스킬 신설**: 한화손해보험 16:9 1920×1080 PPT 디자인 시스템(9개 슬라이드 아키타입·Density Zone 룰·한화체 `.ttf` 임베드·실측 헤더/타이틀 밴드 좌표·Anthropic 공식 pptx 스킬 협업) |
 | **v1.5** | **Antigravity 통합 (수동 단계 0)**: `.antigravity/settings.json` 신설(permissions allow 179/ask 73/deny 53 + agentSettings + hooks) + `.claude/hooks/auto-approve-readonly.sh` 재사용으로 4-tool 12 카테고리 정합 + `.agent/mcp_config.json` 영속 백도어 차단 훅(`mcp-config-guard.sh`) + `webhook.site` 강제 denylist + `terminalExecutionPolicy: "off"` 강제 + `~/.gemini/AGENTS.md` 크로스툴 convention 진입점 + 19개 스킬 IDE/CLI 양쪽 연결 + **install.sh OS 감지**로 macOS `~/Library/Application Support/Antigravity/User/settings.json` · Windows `%APPDATA%/Antigravity IDE/User/settings.json` 자동 `safe_merge_json` (글로벌 settings → 모든 워크스페이스 자동 상속) |
 | **v1.4** | 위험 명령 차단 정합성 강화: 12 카테고리 ask 사유 분기(Claude/Codex/Gemini 3-tool 정합) + `.claude/settings.json` 권한 재설계(deny 47 / ask 73 / allow 188, `defaultMode: "default"`) + 셸·인라인 스크립트 우회 차단 + `killall`·`sed --in-place` 보강 + 174건 직접 호출 검증(Claude hook 137 + Codex exec 37, 100% PASS) |
 | **v1.3** | hw-design 브랜드 헤더 토큰화 + on-navy 로고 변형 PNG 3종(헤더/스플래시/모바일) + 결정 트리 / recursive-discussion CLI 버전 의존성 격리 + 권한 대칭성·라운드 정책·packet 공통 블록 강화 / GPT-5.5 가이드 정합화 + 한국어 응답 품질 강화 + `.archive` 산출물 정리 규칙 |

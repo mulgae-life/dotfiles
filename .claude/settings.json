@@ -337,7 +337,6 @@
     ],
     "defaultMode": "default"
   },
-  "effortLevel": "medium",
   "hooks": {
     "PreToolUse": [
       {

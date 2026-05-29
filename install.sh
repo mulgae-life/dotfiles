@@ -251,8 +251,8 @@ main() {
   if [ -d "$DOTFILES_DIR/.claude/hooks" ] && ! $DRY_RUN; then
     chmod +x "$DOTFILES_DIR/.claude/hooks"/*.sh 2>/dev/null || true
   fi
-  # settings.json은 Claude Code가 런타임에 수정하므로 merge (레포 보호 + 런타임 필드 보존)
-  safe_merge_json "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
+  # settings.json은 레포 버전으로 덮어쓰기 (레포가 진실의 원천 — 인증은 .credentials.json에 별도 관리)
+  safe_copy "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
   # statusline-command.sh: 런타임에 수정되지 않으므로 심볼릭 링크로 관리
   safe_link "$DOTFILES_DIR/.claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
 
@@ -286,7 +286,8 @@ main() {
   if [ -d "$DOTFILES_DIR/.gemini/hooks" ] && ! $DRY_RUN; then
     chmod +x "$DOTFILES_DIR/.gemini/hooks"/*.sh 2>/dev/null || true
   fi
-  # settings.json은 Gemini CLI가 런타임에 수정할 수 있으므로 merge (레포 보호 + 런타임 필드 보존)
+  # settings.json은 Gemini가 인증(security.auth)·IDE 상태(ide.*)를 여기 기록하므로 merge로 보존
+  # (Claude와 달리 인증이 .credentials.json 별도 파일이 아니라 settings.json 인라인)
   safe_merge_json "$DOTFILES_DIR/.gemini/settings.json" "$HOME/.gemini/settings.json"
   # 이전 설치의 중복 스킬 링크 정리 (conflict 방지)
   if [ -L "$HOME/.gemini/skills" ]; then
