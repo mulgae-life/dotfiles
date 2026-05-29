@@ -193,7 +193,7 @@ ignore_default_excludes = false                                  # 기본 exclud
 # ── 실험적 기능 ──────────────────────────────
 [features]
 multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agent, send_input, resume_agent, wait_agent, close_agent)
-goals = true        # /goal 슬래시 명령 활성화 (v0.128+, persistent goal + Ralph Loop 스타일 자율 continuation)
+# goals: 0.133.0부터 기본 활성 + non-experimental로 승격 → [features] 토글에서 제거됨 (명시 불필요, /goal 정상 작동)
 suppress_unstable_features_warning = true  # under-development 기능 사용 시 경고 메시지 끄기
 
 # ── 멀티 에이전트 설정 ──────────────────────

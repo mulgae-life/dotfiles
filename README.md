@@ -46,7 +46,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **훅** | `PreToolUse`, `Notification`, `SessionStart` | `Stop`, `PostToolUse`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `before_tool_call` (Claude hook 재사용) |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
 | **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
-| **CLI 버전 (검증 기준)** | 2.1.156 | 0.132.0 | 0.38.1 | IDE 2.1.x / `agy` |
+| **CLI 버전 (검증 기준)** | 2.1.156 | 0.135.0 | 0.38.1 | IDE 2.1.x / `agy` |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
