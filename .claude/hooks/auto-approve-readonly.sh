@@ -211,9 +211,14 @@ DANGEROUS_PATTERNS=(
   'FILE_DELETE:\btruncate\b'
 )
 
-# 따옴표 내부 문자열 제거 (echo "reboot" 같은 오탐 방지)
-# 큰따옴표/작은따옴표 내용을 빈 문자열로 치환 후 패턴 매칭
-COMMAND_STRIPPED=$(echo "$COMMAND" | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g')
+# 비실행 텍스트 제거 — 패턴 매칭 전 정규화 (hook은 bash 파서가 아니라 텍스트 매칭이므로)
+#   1) 따옴표 내부 문자열 ("reboot" 오탐 방지)
+#   2) # 주석 (주석 속 "rm 금지" 등 오탐 방지)
+# 순서 중요: 따옴표 먼저 → 따옴표 안의 #는 함께 소거 → 남은 #만 진짜 주석으로 제거
+# bash 주석 규칙 준수: 줄 시작 또는 공백 뒤의 #만 주석 (URL의 #frag, a#b 같은 단어 중간 #는 미제거)
+COMMAND_STRIPPED=$(echo "$COMMAND" \
+  | sed -e "s/'[^']*'//g" -e 's/"[^"]*"//g' \
+        -e 's/[[:space:]]#.*$//' -e 's/^[[:space:]]*#.*$//')
 
 # 셸 인터프리터 호출(bash -c "...", sh -c "...", eval "...") 감지 시
 # stripping을 건너뛰고 원본에 패턴 매칭 — 따옴표 내부 우회 차단
