@@ -92,6 +92,70 @@ ask_command() {
   exit 0
 }
 
+# ── /tmp 한정 파일조작 허용 판정 ──────────────────────────
+# /tmp는 임시 디렉토리(망쳐도 프로젝트 무관)라, 대상이 모두 /tmp면 파일조작형 위험명령
+# (rm/chmod/chown/sed -i/truncate/ln -sf/find -delete 등)을 ask 없이 통과시킨다.
+# "위험은 대상이 어디냐에서 온다"는 경로 기반 정책 — 경로 무관 위험(sudo/git/docker/
+# kill/echo|bash)은 별도 카테고리라 이 함수를 거치지 않고 항상 ask 유지.
+#   케이스1: cmd [opts] /tmp/대상...            (절대경로가 전부 /tmp, 최소 1개)
+#   케이스2: cd /tmp[/...] && <cmd 상대경로>     (cwd가 /tmp이므로 상대경로 허용)
+# 공통 차단: 줄바꿈/.. 경로탈출/메타문자(; | & $ ` < > ( )) → 복합·체인·치환 우회 봉쇄
+# 첫 토큰(cd 체인은 && 뒤 첫 토큰)이 파일조작 명령 화이트리스트일 때만 적용 →
+# env/nohup/timeout/sudo/bash -c 같은 래퍼·인터프리터 경유는 화이트리스트 밖이라 차단.
+# 판정은 stripped(따옴표 제거) 명령 기반이므로 sed 정규식 내부 메타(`$` 앵커 등)는
+# 따옴표와 함께 소거되고, 따옴표로 감싼 경로는 절대경로로 안 잡혀 보수적으로 거부된다.
+_is_fileop_first() {
+  # 첫 토큰이 "대상 경로형" 파일조작 명령인지 (TMP_EXEMPT_CATEGORIES와 매핑)
+  local f
+  f=$(echo "$1" | awk '{print $1}')
+  case "$f" in
+    rm|rmdir|unlink|shred|truncate|chmod|chown|sed|gawk|awk|ln|find) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+_tmp_targets_ok() {
+  # 인자: $1=명령 문자열, $2=모드(abs_only|tmp_relative)
+  # 절대경로(/...)·홈(~...) 토큰만 검사 — 옵션/mode/size/스크립트 인자는 자동 무시
+  # 서브셸 + set -f 로 glob(/tmp/*) 확장을 막아 hook cwd 오염을 방지
+  ( set -f
+    local found_tmp=0 tok
+    for tok in $1; do
+      case "$tok" in
+        /tmp/?*) found_tmp=1 ;;  # /tmp 하위 절대경로
+        /*)      exit 1 ;;       # 그 외 절대경로 → 프로젝트/시스템 대상, 거부
+        '~'*)    exit 1 ;;       # 홈 확장 거부
+      esac
+    done
+    if [[ "$2" == abs_only ]]; then
+      [[ $found_tmp -eq 1 ]]     # 명시적 /tmp 절대경로 대상 최소 1개 필수
+    fi )                         # tmp_relative: 비-/tmp 절대경로만 없으면 통과
+}
+
+is_tmp_scoped() {
+  local cmd="$1"
+  [[ "$cmd" == *$'\n'* ]] && return 1   # 줄바꿈 = 다중 명령 우회 차단
+  [[ "$cmd" == *".."* ]]  && return 1   # 경로 탈출 차단
+  if [[ "$cmd" =~ ^[[:space:]]*cd[[:space:]] ]]; then
+    # 케이스2: cd /tmp[/...] && <cmd> (정확히 하나의 cd…&&)
+    local re='^[[:space:]]*cd[[:space:]]+(/tmp|/tmp/[^[:space:]]+)[[:space:]]+&&[[:space:]]+([^[:space:]].*)$'
+    [[ "$cmd" =~ $re ]] || return 1
+    local rest="${BASH_REMATCH[2]}"
+    case "$rest" in
+      *'&'*|*';'*|*'|'*|*'$'*|*'`'*|*'<'*|*'>'*|*'('*|*')'*) return 1 ;;
+    esac
+    _is_fileop_first "$rest" || return 1   # && 뒤 첫 토큰이 파일조작 명령이어야
+    _tmp_targets_ok "$rest" tmp_relative
+  else
+    # 케이스1: cmd [opts] /tmp/대상...
+    case "$cmd" in
+      *'&'*|*';'*|*'|'*|*'$'*|*'`'*|*'<'*|*'>'*|*'('*|*')'*) return 1 ;;
+    esac
+    _is_fileop_first "$cmd" || return 1    # 첫 토큰이 파일조작 명령이어야 (래퍼 차단)
+    _tmp_targets_ok "$cmd" abs_only
+  fi
+}
+
 # ── 인라인 스크립트 명령 → 셸 패턴 대신 스크립트 전용 패턴 체크 ──
 # python3 -c "...", python -c "...", ruby -e "...", perl -e "..." 등
 # 인라인 코드 내부의 셸 키워드(unlink 등)가 오탐되는 것 방지하되,
@@ -229,10 +293,20 @@ else
   TARGET="$COMMAND_STRIPPED"
 fi
 
+# /tmp 한정으로 자동 허용할 "대상 경로형" 카테고리 (경로 무관 위험은 제외)
+# SHELL_BYPASS도 포함하나 echo|bash·bash<()는 메타문자(|, ())로 is_tmp_scoped를 통과
+# 못 하고 find -delete만 실질 통과 → 안전. SYSTEM/GIT/GH/DOCKER/PROCESS는 항상 ask 유지.
+TMP_EXEMPT_CATEGORIES=" FILE_DELETE INPLACE PERMISSION LINK_FORCE SHELL_BYPASS "
+
 for entry in "${DANGEROUS_PATTERNS[@]}"; do
   category="${entry%%:*}"
   pattern="${entry#*:}"
   if [[ "$TARGET" =~ $pattern ]]; then
+    # 대상이 전부 /tmp인 파일조작이면 이 위험 매칭을 무시하고 계속 검사
+    # (다른 카테고리에도 걸리면 거기서 ask — 예: rm /tmp/x && reboot 은 SYSTEM에서 잡힘)
+    if [[ "$TMP_EXEMPT_CATEGORIES" == *" $category "* ]] && is_tmp_scoped "$TARGET"; then
+      continue
+    fi
     ask_command "$category"
   fi
 done

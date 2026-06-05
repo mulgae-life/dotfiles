@@ -46,7 +46,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **훅** | `PreToolUse`, `Notification`, `SessionStart` | `Stop`, `PostToolUse`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `before_tool_call` (Claude hook 재사용) |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
 | **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
-| **CLI 버전 (검증 기준)** | 2.1.156 | 0.135.0 | 0.38.1 | IDE 2.1.x / `agy` |
+| **CLI 버전 (검증 기준)** | 2.1.163 | 0.137.0 | 0.38.1 | IDE 2.1.x / `agy` |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
@@ -224,6 +224,9 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v1.9** | **보안 hook `/tmp` 예외 (경로 기반 정책) + CLI 검증버전 정합**: `auto-approve-readonly.sh`에 "위험은 대상이 어디냐에서 온다" 정책 도입 — `/tmp` 하위 대상 파일조작(`rm`·`rmdir`·`unlink`·`shred`·`truncate`·`chmod`·`chown`·`sed -i`·`awk -i`·`ln -sf`·`find -delete`)은 ask 없이 자동 허용(임시 디렉토리=프로젝트 무관)하여 임시 작업·테스트 흐름이 안 끊기게 함. 우회 봉쇄: 화이트리스트(파일조작 명령 직접 시작 — `env`/`nohup`/`timeout`/`bash -c` 래퍼 차단) + 절대경로 전부 `/tmp/` + 메타문자/`..`/`/tmp` 접두어 공격(`/tmpfoo`) 차단 (65케이스 검증). 경로 무관 위험(`sudo`·`git`·`gh`·`docker`·`kill`·`echo\|bash`)은 `/tmp`여도 ask 유지 + work-principles `/tmp` 예외 노트·build-tool config(Claude Code 2.1.160) ask 항목 추가 + 검증버전 Claude Code `2.1.163`·Codex `0.137.0` 정합 |
+| **v1.8** | **hw-ppt PowerPoint 실측 패치**: 헤더 시그니처 `hanwha-signature-ink.png` 신규(흰색 outline 텍스트를 ink `#1A1A1A`로 재페인트 → orange-tint `#FCE6D6` 헤더에서 "한화손보" 가시성 확보) + 헤더 strip height `56→80px` + 타이틀 밴드 좌표 실측 확정(밴드 시작 y `110→130`, 한글 타이틀 height `font_px×1.6`, 서브타이틀 y = title 박스 끝 `+24px`, 부제-본문 vertical gap `≥30px`) |
+| **v1.7** | **위험 명령 정밀 분류 + 셸 우회 차단**: ask 1차 정밀 분류(Git 상태 변경 `checkout`/`switch`/`restore`/`stash`/`add`, in-place `sed -i`·`awk -i inplace`, 권한 `chmod`/`chown`, 프로세스 `kill`/`pkill`, 링크 강제 `ln -f`/`-sf`) + 2차 셸 우회 차단(`echo "rm"\|bash`·`curl url\|bash` 파이프 stripping 우회, `bash <(...)` process substitution, `find -delete` — 4건 갭 중 3건 차단, `source`는 allow 유지) + `cp`/`mv` allow 정정(되돌리기 쉬움) + curl 단독 다운로드 allow 유지 |
 | **v1.6** | **Opus 4.8 정합 + hw-ppt 신설**: `.claude/settings.json` `effortLevel` 제거(Opus 4.8 기본 `high` 자동 추종 — v1.4 권한 커밋에서 `xhigh→medium`으로 비의도적 회귀했던 것 정정) + **install.sh `settings.json` 파일별 정책 분리**(deep merge가 키 삭제를 전파 못 해 좀비 잔존 → Claude는 `safe_copy`로 덮어쓰기, Gemini는 `security.auth` OAuth·`ide` 상태를 settings에 인라인 저장하므로 `safe_merge_json` 유지, Antigravity IDE 글로벌은 사용자 설정 보존 위해 merge) + README 설치방식 서술 정합 + Claude Code 검증버전 `2.1.156` / **hw-ppt 스킬 신설**: 한화손해보험 16:9 1920×1080 PPT 디자인 시스템(9개 슬라이드 아키타입·Density Zone 룰·한화체 `.ttf` 임베드·실측 헤더/타이틀 밴드 좌표·Anthropic 공식 pptx 스킬 협업) |
 | **v1.5** | **Antigravity 통합 (수동 단계 0)**: `.antigravity/settings.json` 신설(permissions allow 179/ask 73/deny 53 + agentSettings + hooks) + `.claude/hooks/auto-approve-readonly.sh` 재사용으로 4-tool 12 카테고리 정합 + `.agent/mcp_config.json` 영속 백도어 차단 훅(`mcp-config-guard.sh`) + `webhook.site` 강제 denylist + `terminalExecutionPolicy: "off"` 강제 + `~/.gemini/AGENTS.md` 크로스툴 convention 진입점 + 19개 스킬 IDE/CLI 양쪽 연결 + **install.sh OS 감지**로 macOS `~/Library/Application Support/Antigravity/User/settings.json` · Windows `%APPDATA%/Antigravity IDE/User/settings.json` 자동 `safe_merge_json` (글로벌 settings → 모든 워크스페이스 자동 상속) |
 | **v1.4** | 위험 명령 차단 정합성 강화: 12 카테고리 ask 사유 분기(Claude/Codex/Gemini 3-tool 정합) + `.claude/settings.json` 권한 재설계(deny 47 / ask 73 / allow 188, `defaultMode: "default"`) + 셸·인라인 스크립트 우회 차단 + `killall`·`sed --in-place` 보강 + 174건 직접 호출 검증(Claude hook 137 + Codex exec 37, 100% PASS) |
