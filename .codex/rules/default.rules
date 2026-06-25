@@ -99,7 +99,8 @@ prefix_rule(pattern = ["docker", "compose", ["down", "rm"]], decision = "forbidd
 
 # ── A 그룹: 링크 강제 / 권한 / in-place 수정 ──
 # 영향도가 적은 read-only 명령만 자동 허용 원칙
-# 갭 인정: sed -i (옵션 위치 다양), 리다이렉트(>/>>)는 prefix_rule로 처리 불가 → AGENTS.md 안내
+# 갭 인정: 표준 위치만 매칭 (sed -i / awk -i inplace 등 옵션 순서 바뀌면 누락),
+#          리다이렉트(>/>>)는 prefix_rule로 처리 불가 → AGENTS.md 안내
 # cp/mv: 경로 변경·복사로 되돌리기 쉬워 allow
 # (Starlark prefix_rule은 옵션 매칭 어려워 ln도 통째로 차단 유지)
 prefix_rule(pattern = ["ln"],        decision = "forbidden", justification = _MSG_LINK_FORCE)
@@ -107,3 +108,6 @@ prefix_rule(pattern = ["chmod"],     decision = "forbidden", justification = _MS
 prefix_rule(pattern = ["chown"],     decision = "forbidden", justification = _MSG_PERMISSION)
 prefix_rule(pattern = ["sed", "-i"],         decision = "forbidden", justification = _MSG_INPLACE)
 prefix_rule(pattern = ["sed", "--in-place"], decision = "forbidden", justification = _MSG_INPLACE)
+# awk/gawk -i inplace (Claude hook INPLACE 정합 — 인자가 실행되는 sed/awk in-place 수정 차단)
+prefix_rule(pattern = ["gawk", "-i", "inplace"], decision = "forbidden", justification = _MSG_INPLACE)
+prefix_rule(pattern = ["awk", "-i", "inplace"],  decision = "forbidden", justification = _MSG_INPLACE)
