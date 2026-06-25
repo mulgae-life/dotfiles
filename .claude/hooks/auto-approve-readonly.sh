@@ -193,81 +193,84 @@ EOF
 esac
 
 # ── 위험 명령어 패턴 체크 ─────────────────────────────────
-# 각 항목은 "카테고리:정규식" 형식. 카테고리는 ask_command 사유 분기 키.
-# \b = 단어 경계 (GNU regex). "firmware"의 "rm" 등 오탐 방지
-# 파이프(|)는 허용 — 위험한 건 파이프 뒤 명령어에서 잡힘
-#
-# 우선순위: for 루프가 첫 매칭에서 exit하므로 배열 순서가 곧 우선순위
-# 더 구체적인 카테고리(SHELL_BYPASS, DOCKER_DELETE 등)를 광범위한 FILE_DELETE 앞에 둠
-# 예: `docker rm` / `echo rm | bash`가 FILE_DELETE로 흡수되지 않도록 차단
+# 정책: 위험단어가 '명령어'로 실행될 때만 ask. grep/cat 등 조회성 명령의 인자·검색어로
+# 등장하면 무시(allow). 명령을 세그먼트(; | & ( ) { } ` 줄바꿈)로 나눠, 세그먼트의 첫
+# 명령어가 조회성(READ_CMD)이면 그 안의 위험단어를 무시한다. 누락 시 과탐(안전측 실패).
+#   allow: `ps aux | grep kill`, `grep rm install.sh`, `which kill`, `cat shutdown.md`
+#   ask  : `kill 1`, `xargs rm`, `FOO=1 rm x`, `if x; then rm y`, `foo && rm z`
+NL=$'\n'
+# SKIP: 명령어와 핵심 옵션(-i, push) 사이 다른 옵션을 건너뛴다 (세그먼트 내부라 구분자 무관)
+SKIP='([^[:space:]]+[[:blank:]]+)*'
+
+# 조회성(read-only) 명령: 인자가 실행/수정되지 않아 위험단어가 인자로 와도 안전.
+# sed/awk/gawk/find/xargs/env/sudo/sh/bash/eval 등 '인자를 실행'하거나 '-i/-delete로
+# 수정·삭제'하는 명령은 제외 → 위험 패턴이 직접 검사한다. (목록 누락 시 과탐=안전)
+READ_CMD_RE='^(grep|egrep|fgrep|zgrep|rg|ag|ack|cat|bat|zcat|tac|nl|less|more|most|head|tail|which|type|whatis|man|help|apropos|info|echo|printf|ls|dir|vdir|wc|sort|uniq|cut|paste|tr|column|fold|fmt|jq|yq|history|comm|diff|colordiff|sdiff|strings|od|xxd|hexdump|file|stat|tree|basename|dirname|realpath|readlink|pwd|date|printenv|cal|seq|rev|cksum|md5sum|sha1sum|sha256sum|sha512sum|base64|cmp|tee|cp|mv|touch|mkdir|vim|vi|view|nano|emacs|code)$'
+
+# 파이프 우회류: 세그먼트로 나누면 파이프(|) 컨텍스트가 깨지므로 원본 전체에서 먼저 검사.
+BYPASS_PATTERNS=(
+  'SHELL_BYPASS:\|[[:blank:]]*(bash|sh)\b'                    # echo ... | bash
+  'SHELL_BYPASS:\b(bash|sh)[[:blank:]]+<\('                   # bash <(...)
+  'SHELL_BYPASS:\bfind\b[^;|&'"$NL"']*[[:blank:]]-delete\b'   # find ... -delete
+)
+
+# 세그먼트별 위험 패턴 (세그먼트 내 위치무관 \b — 첫 토큰이 READ_CMD면 검사 전에 skip).
+# 첫 매칭에서 ask하므로 배열 순서가 우선순위 (DOCKER가 FILE_DELETE보다 앞).
 DANGEROUS_PATTERNS=(
-  # ── 셸 우회 (따옴표/process sub 우회 방지 — 최우선) ──
-  # echo "rm ..." | bash 처럼 stripping 우회 시도
-  # bash <(...) process substitution
-  # find -delete는 rm 키워드 없이 동일 효과
-  'SHELL_BYPASS:\|\s*(bash|sh)\b'
-  'SHELL_BYPASS:\b(bash|sh)\s+<\('
-  'SHELL_BYPASS:\bfind\b.*\s-delete\b'
+  # Docker 삭제 (rm 키워드 포함이라 FILE_DELETE보다 앞)
+  'DOCKER_DELETE:\bdocker[[:blank:]]+(rm|rmi)\b'
+  'DOCKER_DELETE:\bdocker(-|[[:blank:]]+)compose[[:blank:]]+(down|rm)\b'
 
-  # ── Docker 삭제 (rm 키워드 포함이라 FILE_DELETE보다 앞) ──
-  'DOCKER_DELETE:\bdocker\s+(rm|rmi)\b'
-  'DOCKER_DELETE:\bdocker(-|\s+)compose\s+(down|rm)\b'
+  # 파일 in-place 수정 (Edit 도구 우회)
+  'INPLACE:\bsed[[:blank:]]+'"$SKIP"'-i\b'                      # sed -i / sed -i.bak
+  'INPLACE:\bsed[[:blank:]]+'"$SKIP"'--in-place\b'             # sed --in-place
+  'INPLACE:\bgawk[[:blank:]]+'"$SKIP"'-i[[:blank:]]+inplace\b'  # gawk -i inplace
+  'INPLACE:\bawk[[:blank:]]+'"$SKIP"'-i[[:blank:]]+inplace\b'   # awk -i inplace
 
-  # ── 파일 in-place 수정 (Edit 도구 우회) ──
-  'INPLACE:\bsed\s+(\S+\s+)*-i\b'                # sed -i / sed -i.bak
-  'INPLACE:\bsed\s+(\S+\s+)*--in-place\b'        # sed --in-place (GNU long option)
-  'INPLACE:\bgawk\s+(\S+\s+)*-i\s+inplace\b'     # gawk -i inplace
-  'INPLACE:\bawk\s+(\S+\s+)*-i\s+inplace\b'      # awk -i inplace
+  # 링크 강제 덮어쓰기 (cp/mv는 allow)
+  'LINK_FORCE:\bln[[:blank:]]+'"$SKIP"'-[a-zA-Z]*f'            # ln -f / ln -sf
 
-  # ── 링크 강제 덮어쓰기 (force overwrite) ──
-  # cp/mv는 경로 변경·복사로 되돌리기 쉬워 allow (덮어쓰기 케이스는 의도적)
-  'LINK_FORCE:\bln\s+(\S+\s+)*-[a-zA-Z]*f'       # ln -f / ln -sf
+  # Git 쓰기 — SKIP으로 글로벌 옵션(-c, -C path) 우회 방지
+  'GIT_WRITE:\bgit[[:blank:]]+'"$SKIP"'(push|reset|commit)\b'
+  'GIT_WRITE:\bgit[[:blank:]]+'"$SKIP"'(clean|rebase|merge|cherry-pick|revert|am|apply)\b'
+  'GIT_WRITE:\bgit[[:blank:]]+'"$SKIP"'branch[[:blank:]]+(-[dD]|--delete)\b'
+  'GIT_WRITE:\bgit[[:blank:]]+'"$SKIP"'tag[[:blank:]]+(-[df]|--delete)\b'
 
-  # ── Git 쓰기 (비가역적/공유 영향) ──
-  # (\S+\s+)* 로 글로벌 옵션(-c, --no-pager, -C path 등) 우회 방지
-  'GIT_WRITE:\bgit\s+(\S+\s+)*(push|reset|commit)\b'
-  'GIT_WRITE:\bgit\s+(\S+\s+)*(clean|rebase|merge|cherry-pick|revert|am|apply)\b'
-  'GIT_WRITE:\bgit\s+(\S+\s+)*branch\s+(-[dD]|--delete)\b'
-  'GIT_WRITE:\bgit\s+(\S+\s+)*tag\s+(-[df]|--delete)\b'
+  # Git 상태 변경 (working tree/staging/HEAD 이동)
+  'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'checkout\b'
+  'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'switch\b'
+  'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'restore\b'
+  'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'stash\b'
+  'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'add\b'
 
-  # ── Git 상태 변경 (working tree/staging/HEAD 이동) ──
-  # work-principles.md 분류 정합: stash·add는 "Git 상태 변경" 카테고리로 통일
-  # checkout/switch: 브랜치 전환 시 현재 작업 컨텍스트 손실 + detached HEAD 위험
-  # restore: working tree 변경 폐기 위험 (--staged는 unstage만이라 안전하지만 단순화 위해 통째로 ask)
-  'GIT_STATE:\bgit\s+(\S+\s+)*checkout\b'
-  'GIT_STATE:\bgit\s+(\S+\s+)*switch\b'
-  'GIT_STATE:\bgit\s+(\S+\s+)*restore\b'
-  'GIT_STATE:\bgit\s+(\S+\s+)*stash\b'
-  'GIT_STATE:\bgit\s+(\S+\s+)*add\b'
+  # GitHub CLI 쓰기
+  'GH_CLI:\bgh[[:blank:]]+(pr|issue|release|repo)[[:blank:]]+(create|close|delete|merge|edit|comment)\b'
+  'GH_CLI:\bgh[[:blank:]]+api[[:blank:]]+-X\b'
+  'GH_CLI:\bgh[[:blank:]]+api[[:blank:]]'"$SKIP"'-[fF]\b'
+  'GH_CLI:\bgh[[:blank:]]+auth[[:blank:]]+(login|logout)\b'
 
-  # ── GitHub CLI 쓰기 ──
-  'GH_CLI:\bgh\s+(pr|issue|release|repo)\s+(create|close|delete|merge|edit|comment)\b'
-  'GH_CLI:\bgh\s+api\s+-X\b'
-  'GH_CLI:\bgh\s+api\b.*\s-[fF]\b'
-  'GH_CLI:\bgh\s+auth\s+(login|logout)\b'
-
-  # ── 권한/소유자 변경 ──
+  # 권한/소유자 변경
   'PERMISSION:\bchmod\b'
   'PERMISSION:\bchown\b'
 
-  # ── 프로세스 종료 ──
+  # 프로세스 종료
   'PROCESS:\bkill\b'
   'PROCESS:\bpkill\b'
   'PROCESS:\bkillall\b'
 
-  # ── 시스템 (sudo/재부팅/디스크) ──
+  # 시스템 (sudo/재부팅/디스크)
   'SYSTEM:\bsudo\b'
   'SYSTEM:\breboot\b'
   'SYSTEM:\bshutdown\b'
   'SYSTEM:\bpoweroff\b'
   'SYSTEM:\bhalt\b'
-  # dd는 실제 옵션(if=, of= 등)이 있을 때만 매칭 — 파이썬 변수명 dd 오탐 방지
-  'SYSTEM:\bdd\s+(if|of|bs|count|status|conv|iflag|oflag|ibs|obs|seek|skip)='
+  # dd는 실제 옵션(if=, of= 등)이 있을 때만 매칭 — 변수명 dd 오탐 방지
+  'SYSTEM:\bdd[[:blank:]]+(if|of|bs|count|status|conv|iflag|oflag|ibs|obs|seek|skip)='
   'SYSTEM:\bmkfs\b'
   'SYSTEM:\bfdisk\b'
   'SYSTEM:\bparted\b'
 
-  # ── 파일 삭제/파괴 (비가역적 — 가장 범용적이므로 마지막) ──
+  # 파일 삭제/파괴 (가장 범용적이므로 마지막)
   'FILE_DELETE:\brm\b'
   'FILE_DELETE:\brmdir\b'
   'FILE_DELETE:\bunlink\b'
@@ -294,22 +297,46 @@ else
 fi
 
 # /tmp 한정으로 자동 허용할 "대상 경로형" 카테고리 (경로 무관 위험은 제외)
-# SHELL_BYPASS도 포함하나 echo|bash·bash<()는 메타문자(|, ())로 is_tmp_scoped를 통과
-# 못 하고 find -delete만 실질 통과 → 안전. SYSTEM/GIT/GH/DOCKER/PROCESS는 항상 ask 유지.
-TMP_EXEMPT_CATEGORIES=" FILE_DELETE INPLACE PERMISSION LINK_FORCE SHELL_BYPASS "
+# SYSTEM/GIT/GH/DOCKER/PROCESS는 대상 경로와 무관한 위험이라 항상 ask 유지.
+TMP_EXEMPT_CATEGORIES=" FILE_DELETE INPLACE PERMISSION LINK_FORCE "
 
-for entry in "${DANGEROUS_PATTERNS[@]}"; do
+# ── 1단계: 파이프 우회류 (원본 전체) ──────────────────────
+# echo|bash·bash<()는 메타문자(|, ())로 is_tmp_scoped 미통과, find -delete /tmp만 실질 허용.
+for entry in "${BYPASS_PATTERNS[@]}"; do
   category="${entry%%:*}"
   pattern="${entry#*:}"
   if [[ "$TARGET" =~ $pattern ]]; then
-    # 대상이 전부 /tmp인 파일조작이면 이 위험 매칭을 무시하고 계속 검사
-    # (다른 카테고리에도 걸리면 거기서 ask — 예: rm /tmp/x && reboot 은 SYSTEM에서 잡힘)
-    if [[ "$TMP_EXEMPT_CATEGORIES" == *" $category "* ]] && is_tmp_scoped "$TARGET"; then
-      continue
-    fi
+    is_tmp_scoped "$TARGET" && continue
     ask_command "$category"
   fi
 done
+
+# ── 2단계: 세그먼트 분할 → 조회성 명령 예외 → 위험 패턴 ────
+# 구분자(; | & ( ) { } ` 줄바꿈)를 줄바꿈으로 치환해 명령 세그먼트로 나눈다.
+segments=$(printf '%s' "$TARGET" | tr ';|&`(){}'"$NL" '\n')
+while IFS= read -r seg; do
+  [[ -z "${seg//[[:space:]]/}" ]] && continue
+  # env prefix(VAR=val)를 건너뛴 첫 명령어 토큰 추출
+  read -ra _toks <<< "$seg"
+  first=""
+  for t in "${_toks[@]}"; do
+    [[ "$t" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]] && continue
+    first="$t"; break
+  done
+  # 첫 명령어가 조회성(grep/cat/which 등)이면 인자 위험단어를 무시(allow)
+  [[ "$first" =~ $READ_CMD_RE ]] && continue
+  for entry in "${DANGEROUS_PATTERNS[@]}"; do
+    category="${entry%%:*}"
+    pattern="${entry#*:}"
+    if [[ "$seg" =~ $pattern ]]; then
+      # 대상이 전부 /tmp인 파일조작이면 무시 (cd 체인 인식 위해 원본 TARGET 전달)
+      if [[ "$TMP_EXEMPT_CATEGORIES" == *" $category "* ]] && is_tmp_scoped "$TARGET"; then
+        continue
+      fi
+      ask_command "$category"
+    fi
+  done
+done <<< "$segments"
 
 # ── 위험 패턴 없음 → 자동 승인 ──────────────────────────
 cat <<'EOF'
