@@ -138,7 +138,8 @@ is_tmp_scoped() {
   [[ "$cmd" == *".."* ]]  && return 1   # 경로 탈출 차단
   if [[ "$cmd" =~ ^[[:space:]]*cd[[:space:]] ]]; then
     # 케이스2: cd /tmp[/...] && <cmd> (정확히 하나의 cd…&&)
-    local re='^[[:space:]]*cd[[:space:]]+(/tmp|/tmp/[^[:space:]]+)[[:space:]]+&&[[:space:]]+([^[:space:]].*)$'
+    # cd 대상에 $·백틱 금지 — 런타임 확장(예: $DIR=..)으로 /tmp 탈출 가능하므로 리터럴 경로만
+    local re='^[[:space:]]*cd[[:space:]]+(/tmp|/tmp/[^[:space:]$`]+)[[:space:]]+&&[[:space:]]+([^[:space:]].*)$'
     [[ "$cmd" =~ $re ]] || return 1
     local rest="${BASH_REMATCH[2]}"
     case "$rest" in
@@ -154,6 +155,51 @@ is_tmp_scoped() {
     _is_fileop_first "$cmd" || return 1    # 첫 토큰이 파일조작 명령이어야 (래퍼 차단)
     _tmp_targets_ok "$cmd" abs_only
   fi
+}
+
+# 케이스3(선두 && 체인): `cd /tmp/… && <파일조작> && … ; 기타` 처럼 뒤에 다른 명령이
+# 이어지는 복합 명령에서, 위반 세그먼트가 "선두 && 체인 구간" 안에 있으면 /tmp 한정으로 판정.
+# 안전 근거: cd가 리터럴 /tmp 경로이고 &&로 직결되므로 cd 실패 시 후속이 실행되지 않고(단락),
+# 성공 시 cwd가 /tmp 하위로 고정된다. 구간 내 선행 세그먼트를 전부 "검증된 파일조작 외부명령"
+# (cwd 변경 불가)으로 제한하므로 위반 세그먼트 실행 시점의 cwd가 /tmp임이 보장된다.
+# 선두 구간 밖(; 이후 등)은 eval/따옴표 트릭/cd 실패 경로로 cwd 보장 불가 → 비적용(ask 유지).
+is_tmp_scoped_chain() {
+  local cmd="$1" seg="$2"
+  [[ "$cmd" == *$'\n'* ]]  && return 1   # 줄바꿈 = 다중 명령 우회 차단
+  [[ "$cmd" == *".."* ]]   && return 1   # 경로 탈출 차단
+  [[ "$cmd" == *$'\x01'* ]] && return 1  # 내부 마커 문자 충돌 방지
+  # 위반 세그먼트 자체: 확장/리다이렉트 금지 + 파일조작 명령 시작 + 비-/tmp 절대경로 없음
+  case "$seg" in *'$'*|*'<'*|*'>'*) return 1 ;; esac
+  _is_fileop_first "$seg" || return 1
+  _tmp_targets_ok "$seg" tmp_relative || return 1
+  # 동일 문자열 세그먼트가 2회 이상 등장하면 선두 구간 밖 실행분과 위치 구분 불가 → 거부
+  # (printf에 개행 필수 — 미종결 마지막 줄은 read 루프가 버림)
+  local n=0 s
+  while IFS= read -r s; do
+    [[ "$s" == "$seg" ]] && n=$((n+1))
+  done < <(printf '%s\n' "$cmd" | tr ';|&`(){}' '\n')
+  [[ $n -eq 1 ]] || return 1
+  # 선두 && 체인 구간 추출: &&를 마커로 보호한 뒤 첫 구분자(;|단독&/리다이렉트/서브셸)에서 절단
+  # 주의: 클래스는 변수 경유 필수 — ${...%%[...}]} 인라인은 클래스 내 }가 확장 종결자로 파싱됨
+  local m=$'\x01' prefix cutcls='[;|&<>`(){}]*'
+  prefix="${cmd//&&/$m}"
+  prefix="${prefix%%$cutcls}"
+  # 구간 내 순서 검사: 첫 세그먼트는 리터럴 cd /tmp…($ 확장 금지), 이후 세그먼트는
+  # 위반 세그먼트에 도달할 때까지 전부 "검증된 파일조작" 또는 "리터럴 /tmp cd"여야 한다
+  # (리터럴 /tmp cd는 성공 시 cwd가 여전히 /tmp 하위, 실패 시 && 단락 → 어느 쪽도 안전)
+  local i=0 piece cd_re='^[[:space:]]*cd[[:space:]]+/tmp(/[^[:space:]$]+)?[[:space:]]*$'
+  while IFS= read -r piece; do
+    if [[ $i -eq 0 ]]; then
+      [[ "$piece" =~ $cd_re ]] || return 1
+    elif ! [[ "$piece" =~ $cd_re ]]; then
+      [[ "$piece" == "$seg" ]] && return 0
+      case "$piece" in *'$'*) return 1 ;; esac
+      _is_fileop_first "$piece" || return 1
+      _tmp_targets_ok "$piece" tmp_relative || return 1
+    fi
+    i=$((i+1))
+  done < <(printf '%s\n' "$prefix" | tr "$m" '\n')
+  return 1   # 위반 세그먼트가 선두 구간 밖 → 비적용
 }
 
 # ── 인라인 스크립트 명령 → 셸 패턴 대신 스크립트 전용 패턴 체크 ──
@@ -329,9 +375,12 @@ while IFS= read -r seg; do
     category="${entry%%:*}"
     pattern="${entry#*:}"
     if [[ "$seg" =~ $pattern ]]; then
-      # 대상이 전부 /tmp인 파일조작이면 무시 (cd 체인 인식 위해 원본 TARGET 전달)
-      if [[ "$TMP_EXEMPT_CATEGORIES" == *" $category "* ]] && is_tmp_scoped "$TARGET"; then
-        continue
+      # 대상이 전부 /tmp인 파일조작이면 무시 — 명령 전체(케이스1·2) 또는
+      # 선두 && 체인 내 세그먼트(케이스3) 판정
+      if [[ "$TMP_EXEMPT_CATEGORIES" == *" $category "* ]]; then
+        if is_tmp_scoped "$TARGET" || is_tmp_scoped_chain "$TARGET" "$seg"; then
+          continue
+        fi
       fi
       ask_command "$category"
     fi
