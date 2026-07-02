@@ -223,13 +223,9 @@ type = "command"
 command = "$HOME/.codex/hooks/notify.sh"
 timeout = 5
 
-# PostToolUse: Bash 도구 실패 시 (exit_code != 0) 데스크톱 알림
-[[hooks.PostToolUse]]
-matcher = "^Bash$"
-[[hooks.PostToolUse.hooks]]
-type = "command"
-command = "$HOME/.codex/hooks/on-tool-failure.sh"
-timeout = 5
+# PostToolUse 실패알림 훅은 제거됨 (v2.0): Codex의 PostToolUse hook payload는 `tool_response`가
+# exit code 없는 순수 출력 문자열이고 PostToolUseFailure 이벤트도 없어(0.142.5 소스 검증)
+# 셸 실패 감지가 구조적으로 불가. Codex가 exit_code를 노출하면 .archive/2026-07-02_codex-dead-hook/에서 복원
 
 # PostCompact: 압축 후 한국어 응답·변경 이유 설명 리마인더 재주입
 [[hooks.PostCompact]]

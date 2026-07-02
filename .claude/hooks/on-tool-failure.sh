@@ -17,19 +17,19 @@ fi
 
 # 빌드 실패 감지
 if echo "$COMMAND" | grep -qE '(npm run build|tsc|pnpm build|pnpm run build|yarn build|cargo build|make\b)'; then
-  echo '{"hookSpecificOutput":{"additionalContext":"빌드 실패 감지. build-resolver 에이전트 위임을 고려하세요. 에러 메시지를 분석하고 최소한의 변경으로 수정하세요."}}'
+  echo '{"hookSpecificOutput":{"hookEventName":"PostToolUseFailure","additionalContext":"빌드 실패 감지. build-resolver 에이전트 위임을 고려하세요. 에러 메시지를 분석하고 최소한의 변경으로 수정하세요."}}'
   exit 0
 fi
 
 # 테스트 실패 감지
 if echo "$COMMAND" | grep -qE '(npm test|npm run test|pnpm test|pytest|jest|vitest|cargo test)'; then
-  echo '{"hookSpecificOutput":{"additionalContext":"테스트 실패 감지. 실패한 테스트의 에러 메시지를 정확히 읽고, 테스트 코드가 아닌 구현 코드의 문제를 먼저 확인하세요."}}'
+  echo '{"hookSpecificOutput":{"hookEventName":"PostToolUseFailure","additionalContext":"테스트 실패 감지. 실패한 테스트의 에러 메시지를 정확히 읽고, 테스트 코드가 아닌 구현 코드의 문제를 먼저 확인하세요."}}'
   exit 0
 fi
 
 # 린트 실패 감지
 if echo "$COMMAND" | grep -qE '(eslint|ruff|mypy|pylint|prettier)'; then
-  echo '{"hookSpecificOutput":{"additionalContext":"린트/타입체크 실패 감지. 자동 수정이 가능한지 먼저 확인하세요 (--fix 옵션)."}}'
+  echo '{"hookSpecificOutput":{"hookEventName":"PostToolUseFailure","additionalContext":"린트/타입체크 실패 감지. 자동 수정이 가능한지 먼저 확인하세요 (--fix 옵션)."}}'
   exit 0
 fi
 

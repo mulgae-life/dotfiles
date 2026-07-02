@@ -245,8 +245,8 @@ DANGEROUS_PATTERNS=(
 
   # GitHub CLI 쓰기
   'GH_CLI:\bgh[[:blank:]]+(pr|issue|release|repo)[[:blank:]]+(create|close|delete|merge|edit|comment)\b'
-  'GH_CLI:\bgh[[:blank:]]+api[[:blank:]]+-X\b'
-  'GH_CLI:\bgh[[:blank:]]+api[[:blank:]]'"$SKIP"'-[fF]\b'
+  # api 쓰기 플래그: SKIP으로 위치무관 + 결합형(-XDELETE)·롱폼(--method 등) 동의어 커버
+  'GH_CLI:\bgh[[:blank:]]+api[[:blank:]]'"$SKIP"'(-X|-[fF]|--method\b|--field\b|--raw-field\b|--input\b)'
   'GH_CLI:\bgh[[:blank:]]+auth[[:blank:]]+(login|logout)\b'
 
   # 권한/소유자 변경

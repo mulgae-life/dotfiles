@@ -202,9 +202,10 @@ NEVER:
 다음 명령은 `.gemini/policies/safety.toml`에서 `ask_user`로 설정되어 사용자 승인 요청을 발동시킵니다. **자율 작업 중에는 시도 자체 금지** — 필요 시 사용자에게 먼저 묻고 명시 승인 후 실행. 사용자가 직접 요청한 경우에만 ask로 안전하게 진행:
 
 - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
-- **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d`
+  - **`/tmp` 예외**: `rm`/`rmdir`/`unlink`는 대상이 **전부 `/tmp/` 하위 절대경로**인 단순 형태(플래그+경로만, 체인·`..`·메타문자 없음)면 자동 허용된다. 임시 작업·테스트 정리는 `/tmp`에서 ask 없이 진행 가능. (`truncate`·`cd /tmp && rm x` 형태는 미커버 — ask)
+- **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
 - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash` (전체), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
-- **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api -X/-f/-F`, `gh auth login/logout`
+- **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
 - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
 - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
 - **프로세스**: `kill`, `pkill`

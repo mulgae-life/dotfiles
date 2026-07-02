@@ -18,6 +18,16 @@ priority = 900
 allowRedirection = false
 denyMessage = "파일 삭제는 비가역적입니다. 보존이 목적이면 .archive/<YYYY-MM-DD>_<태그>/로 mv를 검토하세요. 사용자가 명시적으로 삭제를 요청한 경우에만 승인하세요."
 
+# /tmp 예외 (Claude hook 경로 기반 정책과 정합): 대상이 전부 /tmp/ 하위인 단순 삭제는 자동 허용
+# 조건: 삭제 명령으로 시작 + 플래그 + /tmp/ 절대경로만 (각 경로 세그먼트는 영숫자로 시작 → `..` 탈출 불가,
+# 문자클래스에 ; | & $ ( ) < > 제외 → 체인/치환 불가). truncate는 -s <크기> 값 인자라 미커버(ask 유지).
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(rm|rmdir|unlink)(\\s+-[A-Za-z-]+)*(\\s+/tmp(/[A-Za-z0-9_][A-Za-z0-9._-]*)+/?)+\\s*$"
+decision = "allow"
+priority = 950
+allowRedirection = false
+
 # Git 쓰기 (push, commit, reset 등) — GIT_WRITE
 # .*\b 로 글로벌 옵션(-c, --no-pager, -C path 등) 우회 방지
 [[rule]]
@@ -63,9 +73,11 @@ decision = "ask_user"
 priority = 900
 denyMessage = "GitHub CLI 쓰기 작업입니다. 외부 시스템(PR/이슈/릴리즈)에 영향이 있으므로 사용자 명시 승인 후 진행하세요."
 
+# api 쓰기 플래그: 토큰 시작 매칭으로 결합형(-XDELETE)·위치무관·롱폼(--method 등) 동의어 커버
+# (기존 .*(-X|-f|-F)\b는 결합형에서 \b 불성립으로 누수 — Claude hook과 동일 패턴으로 정합)
 [[rule]]
 toolName = "run_shell_command"
-commandRegex = "^gh\\s+api\\s+.*(-X|-f|-F)\\b"
+commandRegex = "^gh\\s+api\\s+(\\S+\\s+)*(-X|-[fF]|--method\\b|--field\\b|--raw-field\\b|--input\\b)"
 decision = "ask_user"
 priority = 900
 denyMessage = "GitHub CLI 쓰기 작업입니다. 외부 시스템(PR/이슈/릴리즈)에 영향이 있으므로 사용자 명시 승인 후 진행하세요."

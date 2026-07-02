@@ -43,10 +43,10 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **설정** | `settings.json` (복사) | `config.toml` (복사) | `settings.json` (merge·인증 보존) | `.antigravity/settings.json` (워크스페이스) |
 | **권한** | hooks + permissions | `approval_policy` + `rules/` | `policies/*.toml` (Policy Engine) | `permissions.{allow,ask,deny}` + hooks |
 | **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) | Subagents (병렬 실행) |
-| **훅** | `PreToolUse`, `Notification`, `SessionStart` | `Stop`, `PostToolUse`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `before_tool_call` (Claude hook 재사용) |
+| **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `PostCompact` | `Stop`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `before_tool_call` (Claude hook 재사용) |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
 | **기본 모델** | Claude Opus | GPT-5.5 | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
-| **CLI 버전 (검증 기준)** | 2.1.163 | 0.137.0 | 0.38.1 | IDE 2.1.x / `agy` |
+| **CLI 버전 (검증 기준)** | 2.1.198 | 0.142.5 | 0.38.1 | IDE 2.1.x / `agy` |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
@@ -103,17 +103,19 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 | 훅 | 이벤트 | 동작 |
 |----|--------|------|
-| `auto-approve-readonly.sh` | PreToolUse (Bash) | 위험 명령은 자동 거부(deny), 안전 명령은 자동 승인 — ask 미발동 |
+| `auto-approve-readonly.sh` | PreToolUse (Bash) | 진짜 위험한 명령만 ask로 승인 요청, 안전 명령·`/tmp` 파일조작은 자동 승인 |
+| `on-tool-failure.sh` | PostToolUseFailure (Bash) | 빌드/테스트/린트 실패 시 대응 가이던스 주입 |
 | Notification | 알림 발생 시 | `notify-send`로 데스크톱 알림 |
-| SessionStart (compact) | 컨텍스트 압축 후 | 핵심 규칙 리마인더 재주입 |
+| PostCompact | 컨텍스트 압축 후 | 핵심 규칙 리마인더 재주입 |
 
 **Codex (v0.129+)**
 
 | 훅 | 이벤트 | 동작 |
 |----|--------|------|
 | `notify.sh` | Stop | 턴 완료 시 `notify-send` 알림 |
-| `on-tool-failure.sh` | PostToolUse (Bash, exit≠0) | 실패 시 `notify-send` 알림 |
 | `post-compact-reminder.sh` | PostCompact (manual/auto) | 한국어 응답·변경 이유 리마인더 |
+
+> Codex 실패알림 훅(PostToolUse)은 제거됨 — payload(`tool_response`)에 exit code가 없고 `PostToolUseFailure` 이벤트도 미지원(0.142.5 소스 검증)이라 실패 감지가 구조적으로 불가. Codex가 exit_code를 노출하면 `.archive/2026-07-02_codex-dead-hook/`에서 복원
 
 > Codex PreToolUse는 의도적 미설정 — `approval_policy = "never"` + `.codex/rules/default.rules`(Starlark DSL)가 이미 통제
 
@@ -182,6 +184,8 @@ dotfiles/
 │   ├── commands/              # 슬래시 커맨드
 │   ├── hooks/                 # 이벤트 훅
 │   ├── skills/                # 스킬 (19개)
+│   ├── scratch/               # 연구 노트·대량 출력 저장
+│   ├── statusline-command.sh  # 상태줄 스크립트
 │   └── settings.json          # 전역 설정
 ├── .mcp.json                    # MCP 서버 설정 (gitignored, API 키 포함)
 ├── .codex/
@@ -189,30 +193,37 @@ dotfiles/
 │   ├── AGENTS.references.md   # 레퍼런스 검증 규칙 (논문/수식/benchmark)
 │   ├── config.toml            # Codex 설정 (모델 · developer_instructions · 샌드박스 · 환경변수 정책 · 훅)
 │   ├── rules/                 # 실행 정책 (위험 명령어 차단)
-│   ├── hooks/                 # 이벤트 훅 (Stop / PostToolUse / PostCompact)
+│   ├── hooks/                 # 이벤트 훅 (Stop / PostCompact)
 │   └── skills → ../.claude/skills
 ├── .gemini/
-│   ├── GEMINI.md              # Gemini CLI 지침 (전역)
+│   ├── GEMINI.md              # Gemini CLI 지침 (전역, 정본)
+│   ├── AGENTS.md              # 크로스툴 convention 진입점 (Antigravity·Cursor 등 → GEMINI.md 참조)
 │   ├── settings.json          # Gemini CLI 설정 (모델, 훅)
 │   ├── agents/                # 서브에이전트 (4개)
 │   ├── commands/              # 커스텀 슬래시 명령
 │   ├── hooks/                 # 이벤트 훅 (알림)
+│   ├── global_workflows/      # Antigravity 글로벌 워크플로우 (링크 대상)
 │   └── policies/              # 안전 정책 (명령 허용/차단)
 ├── .antigravity/              # Antigravity 안전 정책 (v1.5)
 │   ├── README.md              # 검증 상태 + 4-tool 정합 매트릭스
 │   ├── settings.json          # permissions(allow/ask/deny) + agentSettings + hooks
+│   ├── policies/              # (예약) 정책 디렉토리
 │   └── hooks/
 │       ├── auto-approve-readonly.sh → ../../.claude/hooks/auto-approve-readonly.sh
 │       └── mcp-config-guard.sh      # .agent/mcp_config.json 백도어 차단
 └── reference/                 # 레퍼런스 자료
     ├── Agent-Coding-Guide/    # 에이전트 코딩 가이드 (팀 교육용)
     ├── agent-teams-guide/
+    ├── awesome-design-md-survey/  # DESIGN.md 브랜드 사례 조사
     ├── claude-prompt-guide/
+    ├── google-prompt-guide/
     ├── langchain-langgraph-guide/
     ├── openai-api-guide/
     ├── openai-prompt-guide/
+    ├── qwen-prompt-guide/
     ├── skills-guide/
-    └── stitch-guide/          # Google Stitch MCP 참조 문서
+    ├── stitch-guide/          # Google Stitch MCP 참조 문서
+    └── 참고디자인파일/           # 디자인 원본 (폰트·로고)
 ```
 
 > **스킬 공유**: 설치 시 `~/.agents/skills → ~/.claude/skills` 로 통합된다. Codex·Gemini는 이 공용 경로로 스킬을 공유받으며, 도구별 개별 링크(`~/.gemini/skills` 등)는 만들지 않는다. Antigravity만 `~/.gemini/antigravity[-cli]/skills` 로 별도 연결한다.
@@ -223,6 +234,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.0** | **`gh api` 쓰기 누수 봉쇄 (3-tool) + `PostToolUseFailure` 훅 수리 + Gemini `/tmp` 예외**: 전면 감사에서 발견된 `gh api` 쓰기 우회 3형(`--method` 롱폼, `-XDELETE` 결합형, `gh api <경로> -X` 위치변형)이 auto-allow로 새던 것을 Claude hook(`SKIP` 부분식 + 롱폼 `--method`/`--field`/`--raw-field`/`--input` 통합 패턴, 17케이스 실측) · Gemini `safety.toml`(토큰 시작 매칭, 32케이스 검증) · Antigravity ask 글롭 14종으로 봉쇄 — 읽기(`gh api` 조회·`--paginate`·`-H`·`--jq`)는 계속 자동 승인(오탐 0). Codex는 `gh api` 전체 forbidden이라 원래 면역. + `on-tool-failure.sh` 출력에 `hookSpecificOutput.hookEventName` 누락으로 가이던스가 조용히 미주입되던 것 수리(빌드 실패 유발 실측으로 발화 확인) + Gemini에 `/tmp` 한정 파일삭제(`rm`/`rmdir`/`unlink`) 자동 허용 규칙 추가(Claude v1.9 경로 기반 정책과 정합, 세그먼트 영숫자 시작 강제로 `..` 탈출·메타문자 체인 차단) + 문서 정합(훅 표 사실 오류 2건 — hook은 deny가 아닌 ask·`SessionStart`→`PostCompact`, scratch/플랜 지침 모순 해소, 디렉토리 트리 누락 보완, 검증버전 Claude `2.1.198`·Codex `0.142.5`) + **Codex 실패알림 훅 제거**(payload `tool_response`에 exit code 부재 + `PostToolUseFailure` 이벤트 미지원 — 0.142.5 소스 검증으로 작동 불가 확정, 스크립트는 `.archive/`에 보존) + Codex 실행정책 갭 3종 실측·문서화(`git -C/-c/--git-dir` 전역옵션 우회, `xargs rm`, `sed --in-place=.bak`) + `.pyc`/`.DS_Store` 추적 해제 |
 | **v1.9** | **보안 hook `/tmp` 예외 (경로 기반 정책) + CLI 검증버전 정합**: `auto-approve-readonly.sh`에 "위험은 대상이 어디냐에서 온다" 정책 도입 — `/tmp` 하위 대상 파일조작(`rm`·`rmdir`·`unlink`·`shred`·`truncate`·`chmod`·`chown`·`sed -i`·`awk -i`·`ln -sf`·`find -delete`)은 ask 없이 자동 허용(임시 디렉토리=프로젝트 무관)하여 임시 작업·테스트 흐름이 안 끊기게 함. 우회 봉쇄: 화이트리스트(파일조작 명령 직접 시작 — `env`/`nohup`/`timeout`/`bash -c` 래퍼 차단) + 절대경로 전부 `/tmp/` + 메타문자/`..`/`/tmp` 접두어 공격(`/tmpfoo`) 차단 (65케이스 검증). 경로 무관 위험(`sudo`·`git`·`gh`·`docker`·`kill`·`echo\|bash`)은 `/tmp`여도 ask 유지 + work-principles `/tmp` 예외 노트·build-tool config(Claude Code 2.1.160) ask 항목 추가 + 검증버전 Claude Code `2.1.163`·Codex `0.137.0` 정합 |
 | **v1.8** | **hw-ppt PowerPoint 실측 패치**: 헤더 시그니처 `hanwha-signature-ink.png` 신규(흰색 outline 텍스트를 ink `#1A1A1A`로 재페인트 → orange-tint `#FCE6D6` 헤더에서 "한화손보" 가시성 확보) + 헤더 strip height `56→80px` + 타이틀 밴드 좌표 실측 확정(밴드 시작 y `110→130`, 한글 타이틀 height `font_px×1.6`, 서브타이틀 y = title 박스 끝 `+24px`, 부제-본문 vertical gap `≥30px`) |
 | **v1.7** | **위험 명령 정밀 분류 + 셸 우회 차단**: ask 1차 정밀 분류(Git 상태 변경 `checkout`/`switch`/`restore`/`stash`/`add`, in-place `sed -i`·`awk -i inplace`, 권한 `chmod`/`chown`, 프로세스 `kill`/`pkill`, 링크 강제 `ln -f`/`-sf`) + 2차 셸 우회 차단(`echo "rm"\|bash`·`curl url\|bash` 파이프 stripping 우회, `bash <(...)` process substitution, `find -delete` — 4건 갭 중 3건 차단, `source`는 allow 유지) + `cp`/`mv` allow 정정(되돌리기 쉬움) + curl 단독 다운로드 allow 유지 |
