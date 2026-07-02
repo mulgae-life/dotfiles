@@ -197,10 +197,7 @@ dotfiles/
 │   ├── agents/                # 서브에이전트 (4개)
 │   ├── commands/              # 커스텀 슬래시 명령
 │   ├── hooks/                 # 이벤트 훅 (알림)
-│   ├── policies/              # 안전 정책 (명령 허용/차단)
-│   └── skills → ../.claude/skills
-├── .agents/
-│   └── skills → ../.claude/skills
+│   └── policies/              # 안전 정책 (명령 허용/차단)
 ├── .antigravity/              # Antigravity 안전 정책 (v1.5)
 │   ├── README.md              # 검증 상태 + 4-tool 정합 매트릭스
 │   ├── settings.json          # permissions(allow/ask/deny) + agentSettings + hooks
@@ -217,6 +214,8 @@ dotfiles/
     ├── skills-guide/
     └── stitch-guide/          # Google Stitch MCP 참조 문서
 ```
+
+> **스킬 공유**: 설치 시 `~/.agents/skills → ~/.claude/skills` 로 통합된다. Codex·Gemini는 이 공용 경로로 스킬을 공유받으며, 도구별 개별 링크(`~/.gemini/skills` 등)는 만들지 않는다. Antigravity만 `~/.gemini/antigravity[-cli]/skills` 로 별도 연결한다.
 
 ## 📌 변경 이력
 

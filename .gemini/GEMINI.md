@@ -333,7 +333,7 @@ Gemini CLI의 서브에이전트를 활용한다. 에이전트 정의는 `~/.gem
 
 ## 스킬 활용
 
-`~/.gemini/skills/` 또는 `~/.claude/skills/` 디렉토리에 작업별 전문 가이드가 있다.
+`~/.agents/skills/` 또는 `~/.claude/skills/` 디렉토리에 작업별 전문 가이드가 있다.
 해당 분야 작업 시 `SKILL.md`를 읽고 절차와 품질 기준을 따른다.
 
 예: React 최적화 → `react-best-practices/SKILL.md`, 코드 리뷰 → `code-review/SKILL.md`
