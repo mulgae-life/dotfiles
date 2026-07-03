@@ -149,14 +149,6 @@ decision = "ask_user"
 priority = 900
 denyMessage = "권한/소유자 변경(chmod/chown)입니다. 보안 상태가 바뀝니다. 사용자가 명시 요청한 경우에만 진행하세요."
 
-# 프로세스 종료 — PROCESS
-[[rule]]
-toolName = "run_shell_command"
-commandRegex = "^(kill|pkill|killall)\\b"
-decision = "ask_user"
-priority = 900
-denyMessage = "프로세스 종료(kill/pkill/killall)입니다. 대상 PID/패턴을 사용자와 먼저 확인하세요."
-
 # 셸 우회 (echo "..." | bash, bash <(...)) — SHELL_BYPASS
 # 따옴표 stripping 또는 process substitution으로 위험 명령을 셸에 우회 전달
 [[rule]]
@@ -243,7 +235,12 @@ commandRegex = "^(node|python|python3|ruby|bash|sh)\\b"
 decision = "allow"
 priority = 400
 
-# 프로세스 관리: kill/pkill은 위 A 그룹 ask_user 규칙(priority 900)이 우선 적용됨
+# 프로세스 관리: kill/pkill/killall은 allow (재시작 가능한 조작 — 파일 삭제·git 쓰기와 위험 등급 다름)
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = "^(kill|pkill|killall)\\b"
+decision = "allow"
+priority = 400
 
 # 환경 관리
 [[rule]]

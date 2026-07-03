@@ -61,9 +61,6 @@ ask_command() {
     PERMISSION)
       reason="권한/소유자 변경(chmod/chown)입니다. 보안 상태가 바뀝니다. 사용자가 명시 요청한 경우에만 진행하세요."
       ;;
-    PROCESS)
-      reason="프로세스 종료(kill/pkill/killall)입니다. 대상 PID/패턴을 사용자와 먼저 확인하세요."
-      ;;
     SHELL_BYPASS)
       reason="셸 우회 패턴(echo|bash, bash <(...), find -delete 등)은 차단됩니다. 우회 자체가 금지되며, 원본 명령을 직접 호출하면 정상적으로 정책이 작동합니다."
       ;;
@@ -96,7 +93,7 @@ ask_command() {
 # /tmp는 임시 디렉토리(망쳐도 프로젝트 무관)라, 대상이 모두 /tmp면 파일조작형 위험명령
 # (rm/chmod/chown/sed -i/truncate/ln -sf/find -delete 등)을 ask 없이 통과시킨다.
 # "위험은 대상이 어디냐에서 온다"는 경로 기반 정책 — 경로 무관 위험(sudo/git/docker/
-# kill/echo|bash)은 별도 카테고리라 이 함수를 거치지 않고 항상 ask 유지.
+# echo|bash)은 별도 카테고리라 이 함수를 거치지 않고 항상 ask 유지.
 #   케이스1: cmd [opts] /tmp/대상...            (절대경로가 전부 /tmp, 최소 1개)
 #   케이스2: cd /tmp[/...] && <cmd 상대경로>     (cwd가 /tmp이므로 상대경로 허용)
 # 공통 차단: 줄바꿈/.. 경로탈출/메타문자(; | & $ ` < > ( )) → 복합·체인·치환 우회 봉쇄
@@ -202,6 +199,20 @@ is_tmp_scoped_chain() {
   return 1   # 위반 세그먼트가 선두 구간 밖 → 비적용
 }
 
+# 케이스4(위치 무관 /tmp 절대경로): 위반 세그먼트 자체가 파일조작 명령으로 시작하고
+# 대상 절대경로가 전부 /tmp 하위(최소 1개)면, 멀티라인·`;`·파이프 뒤 등 위치와 무관하게 허용.
+# 안전 근거: 절대경로는 cwd가 어디로 이동했든 항상 같은 파일을 가리키므로, 케이스2·3처럼
+# "cwd가 /tmp임"을 보장할 필요가 없다. 선행 세그먼트(cd 실패·비-/tmp cd 등)는 판정에 무관.
+# 세그먼트 내 $·리다이렉트·`..`는 여전히 거부 — 런타임 확장/탈출로 /tmp 밖을 겨냥할 수 있으므로.
+# (상대경로 인자는 케이스1과 동일하게 옵션/스크립트 인자로 간주되어 미검사 — 기존 정책 유지)
+is_tmp_scoped_abs() {
+  local seg="$1"
+  [[ "$seg" == *".."* ]] && return 1
+  case "$seg" in *'$'*|*'<'*|*'>'*) return 1 ;; esac
+  _is_fileop_first "$seg" || return 1
+  _tmp_targets_ok "$seg" abs_only
+}
+
 # ── 인라인 스크립트 명령 → 셸 패턴 대신 스크립트 전용 패턴 체크 ──
 # python3 -c "...", python -c "...", ruby -e "...", perl -e "..." 등
 # 인라인 코드 내부의 셸 키워드(unlink 등)가 오탐되는 것 방지하되,
@@ -242,8 +253,8 @@ esac
 # 정책: 위험단어가 '명령어'로 실행될 때만 ask. grep/cat 등 조회성 명령의 인자·검색어로
 # 등장하면 무시(allow). 명령을 세그먼트(; | & ( ) { } ` 줄바꿈)로 나눠, 세그먼트의 첫
 # 명령어가 조회성(READ_CMD)이면 그 안의 위험단어를 무시한다. 누락 시 과탐(안전측 실패).
-#   allow: `ps aux | grep kill`, `grep rm install.sh`, `which kill`, `cat shutdown.md`
-#   ask  : `kill 1`, `xargs rm`, `FOO=1 rm x`, `if x; then rm y`, `foo && rm z`
+#   allow: `ps aux | grep rm`, `grep rm install.sh`, `which shred`, `cat shutdown.md`
+#   ask  : `sudo ls`, `xargs rm`, `FOO=1 rm x`, `if x; then rm y`, `foo && rm z`
 NL=$'\n'
 # SKIP: 명령어와 핵심 옵션(-i, push) 사이 다른 옵션을 건너뛴다 (세그먼트 내부라 구분자 무관)
 SKIP='([^[:space:]]+[[:blank:]]+)*'
@@ -299,11 +310,6 @@ DANGEROUS_PATTERNS=(
   'PERMISSION:\bchmod\b'
   'PERMISSION:\bchown\b'
 
-  # 프로세스 종료
-  'PROCESS:\bkill\b'
-  'PROCESS:\bpkill\b'
-  'PROCESS:\bkillall\b'
-
   # 시스템 (sudo/재부팅/디스크)
   'SYSTEM:\bsudo\b'
   'SYSTEM:\breboot\b'
@@ -343,7 +349,7 @@ else
 fi
 
 # /tmp 한정으로 자동 허용할 "대상 경로형" 카테고리 (경로 무관 위험은 제외)
-# SYSTEM/GIT/GH/DOCKER/PROCESS는 대상 경로와 무관한 위험이라 항상 ask 유지.
+# SYSTEM/GIT/GH/DOCKER는 대상 경로와 무관한 위험이라 항상 ask 유지.
 TMP_EXEMPT_CATEGORIES=" FILE_DELETE INPLACE PERMISSION LINK_FORCE "
 
 # ── 1단계: 파이프 우회류 (원본 전체) ──────────────────────
@@ -375,10 +381,10 @@ while IFS= read -r seg; do
     category="${entry%%:*}"
     pattern="${entry#*:}"
     if [[ "$seg" =~ $pattern ]]; then
-      # 대상이 전부 /tmp인 파일조작이면 무시 — 명령 전체(케이스1·2) 또는
-      # 선두 && 체인 내 세그먼트(케이스3) 판정
+      # 대상이 전부 /tmp인 파일조작이면 무시 — 명령 전체(케이스1·2),
+      # 선두 && 체인 내 세그먼트(케이스3), 위치 무관 /tmp 절대경로 세그먼트(케이스4) 판정
       if [[ "$TMP_EXEMPT_CATEGORIES" == *" $category "* ]]; then
-        if is_tmp_scoped "$TARGET" || is_tmp_scoped_chain "$TARGET" "$seg"; then
+        if is_tmp_scoped "$TARGET" || is_tmp_scoped_chain "$TARGET" "$seg" || is_tmp_scoped_abs "$seg"; then
           continue
         fi
       fi

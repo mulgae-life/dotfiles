@@ -208,7 +208,6 @@ NEVER:
 - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
 - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
 - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
-- **프로세스**: `kill`, `pkill`
 - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
 - **셸 우회**: `echo "..." | bash` / `curl ... | bash` (파이프로 셸 전달 — 따옴표 stripping 우회), `bash <(...)` (process substitution), `find ... -delete` (rm 없이 동일 효과) — 위험 명령을 직접 호출하지 않고 우회 실행하는 패턴
 - **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴 (regex로 정밀 차단이 어려워 정책 우회됨, 시도 자체 금지)

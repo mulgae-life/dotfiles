@@ -307,7 +307,7 @@ main() {
   safe_mkdir "$HOME/.gemini/antigravity-cli"
   safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/antigravity-cli/skills"
 
-  # 5. .antigravity 안전 정책 (Claude/Codex/Gemini와 동일 12 카테고리)
+  # 5. .antigravity 안전 정책 (Claude/Codex/Gemini와 동일 11 카테고리)
   # 본 디렉토리를 ~/.antigravity/로 노출 (워크스페이스 템플릿 + agy CLI 참조용)
   safe_link "$DOTFILES_DIR/.antigravity" "$HOME/.antigravity"
   # 훅 스크립트 실행 권한 보장 (auto-approve-readonly.sh는 .claude/hooks/ symlink)

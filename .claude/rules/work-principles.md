@@ -34,7 +34,6 @@
   - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
   - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
   - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
-  - **프로세스**: `kill`, `pkill`, `killall`
   - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
   - **셸 우회**: `echo "..." | bash` / `curl ... | bash` (파이프로 셸 전달 — 따옴표 stripping 우회), `bash <(...)` (process substitution), `find ... -delete` (rm 없이 동일 효과) — 위험 명령을 직접 호출하지 않고 우회 실행하는 패턴
   - **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴 (hook이 regex로 잡기 어려워 차단 우회됨, 시도 자체 금지)
@@ -44,8 +43,8 @@
     - ✓ Bash(`uvicorn app --port 8013`, run_in_background: true) → 이후 별도 Bash로 `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8013/docs`
   - (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 allow)
 
-  > **`/tmp` 예외 (경로 기반 정책)**: 위 "대상 경로형" 명령(`rm`·`rmdir`·`unlink`·`shred`·`truncate`·`chmod`·`chown`·`sed -i`·`awk -i`·`ln -sf`·`find -delete`)은 **대상이 모두 `/tmp/` 하위면 hook이 자동 허용**한다(임시 디렉토리=프로젝트 무관). 허용 형태 3종: ① `/tmp/x` 절대경로 ② `cd /tmp/... && <cmd> 상대경로` 단일 체인 ③ **선두 `&&` 체인** — `cd /tmp/... && rm ... && <기타 명령> ; <기타>`처럼 뒤에 다른 명령이 이어져도, 파일조작 세그먼트가 `cd /tmp` 직후의 `&&` 체인 안에 있고(사이에 다른 파일조작·리터럴 `/tmp` cd만 허용) 상대경로·`/tmp` 절대경로만 다루면 자동 허용 (`find -delete`만 ①·② 형태 한정). 임시 작업·테스트·정리는 `/tmp`에서 마음껏 하면 된다.
-  > 단 ① `..` 경로탈출 ② 파일조작 세그먼트가 `;`/`|`/단독 `&` **뒤**에 오는 경우(cd 실패·cwd 이동 경로로 /tmp 보장 불가) ③ `/tmp` 외 절대경로·`$` 확장·리다이렉트가 파일조작 세그먼트에 혼합 ④ 래퍼·인터프리터 경유(`env`·`nohup`·`timeout`·`bash -c`·`python -c` 등 — 파일조작 명령으로 **직접 시작**해야 함) ⑤ 멀티라인 복합 명령은 여전히 ask. **경로 무관 위험**(`sudo`·`git`·`gh`·`docker`·`kill`·`echo|bash`)은 `/tmp`여도 항상 ask — 이들은 대상 경로와 무관하게 시스템·외부·이력에 영향을 주기 때문.
-  > **작성 요령**: `/tmp` 파일조작은 `cd /tmp/... &&` 바로 뒤에 배치하거나 별도 명령으로 분리 실행하면 ask 없이 통과한다. 멀티라인 파이프라인(`for`+`$()`+인라인 python 등)에 `rm`을 섞으면 정적 판정이 불가해 ask가 뜬다 — 삭제만 먼저 단독 실행하고 나머지를 이어서 실행할 것.
+  > **`/tmp` 예외 (경로 기반 정책)**: 위 "대상 경로형" 명령(`rm`·`rmdir`·`unlink`·`shred`·`truncate`·`chmod`·`chown`·`sed -i`·`awk -i`·`ln -sf`·`find -delete`)은 **대상이 모두 `/tmp/` 하위면 hook이 자동 허용**한다(임시 디렉토리=프로젝트 무관). 허용 형태 4종: ① `/tmp/x` 절대경로 ② `cd /tmp/... && <cmd> 상대경로` 단일 체인 ③ **선두 `&&` 체인** — `cd /tmp/... && rm ... && <기타 명령> ; <기타>`처럼 뒤에 다른 명령이 이어져도, 파일조작 세그먼트가 `cd /tmp` 직후의 `&&` 체인 안에 있고(사이에 다른 파일조작·리터럴 `/tmp` cd만 허용) 상대경로·`/tmp` 절대경로만 다루면 자동 허용 ④ **위치 무관 `/tmp` 절대경로 세그먼트** — 파일조작 세그먼트가 멀티라인·`;`·파이프 뒤 등 어디에 있든, 그 세그먼트가 파일조작 명령으로 시작하고 대상 절대경로가 전부 `/tmp` 하위(최소 1개, `$`·리다이렉트·`..` 없음)면 자동 허용. 절대경로는 cwd 이동과 무관하게 같은 파일을 가리키기 때문 (`find -delete`만 ①·② 형태 한정). 임시 작업·테스트·정리는 `/tmp`에서 마음껏 하면 된다.
+  > 단 ① `..` 경로탈출 ② **상대경로 대상**의 파일조작 세그먼트가 `;`/`|`/단독 `&` **뒤**에 오거나 멀티라인에 섞인 경우(cd 실패·cwd 이동 경로로 /tmp 보장 불가 — `/tmp` 절대경로 대상이면 케이스④로 위치 무관 허용) ③ `/tmp` 외 절대경로·`$` 확장·리다이렉트가 파일조작 세그먼트에 혼합 ④ 래퍼·인터프리터 경유(`env`·`nohup`·`timeout`·`bash -c`·`python -c` 등 — 파일조작 명령으로 **직접 시작**해야 함)는 여전히 ask. **경로 무관 위험**(`sudo`·`git`·`gh`·`docker`·`echo|bash`)은 `/tmp`여도 항상 ask — 이들은 대상 경로와 무관하게 시스템·외부·이력에 영향을 주기 때문.
+  > **작성 요령**: `/tmp` 파일조작은 **`/tmp/...` 절대경로로 쓰면** 멀티라인·복합 명령 어디에 있어도 통과한다(케이스④). 상대경로를 쓸 때만 `cd /tmp/... &&` 바로 뒤 배치 또는 별도 명령 분리가 필요하다. 단 파일조작 세그먼트에 `$` 변수·리다이렉트를 섞으면(예: `rm $TMPFILE`, `for`+`$()` 파이프라인 내부) 정적 판정이 불가해 ask가 뜬다 — 이때는 삭제만 리터럴 경로로 먼저 단독 실행하고 나머지를 이어서 실행할 것.
 
   > **원칙**: 영향도 적은 read-only 명령만 자동 허용. 빌드/테스트/패키지 설치(`npm install`, `pytest` 등)는 자율 작업 흐름 유지를 위해 allow.

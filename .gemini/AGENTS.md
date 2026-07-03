@@ -19,4 +19,4 @@
 
 ## 4-tool 안전 정책 요약
 
-`GEMINI.md` §작업원칙 §금지명령 참조. 12 카테고리(FILE_DELETE / SYSTEM / GIT_WRITE / GIT_STATE / GH_CLI / DOCKER_DELETE / INPLACE / LINK_FORCE / PERMISSION / PROCESS / SHELL_BYPASS / SCRIPT_INJECTION) 모두 Antigravity의 `permissions`(대부분 `ask`, 파국적 명령만 `deny`) + `before_tool_call` 훅으로 강제됩니다 (`.antigravity/settings.json`).
+`GEMINI.md` §작업원칙 §금지명령 참조. 11 카테고리(FILE_DELETE / SYSTEM / GIT_WRITE / GIT_STATE / GH_CLI / DOCKER_DELETE / INPLACE / LINK_FORCE / PERMISSION / SHELL_BYPASS / SCRIPT_INJECTION) 모두 Antigravity의 `permissions`(대부분 `ask`, 파국적 명령만 `deny`) + `before_tool_call` 훅으로 강제됩니다 (`.antigravity/settings.json`).
