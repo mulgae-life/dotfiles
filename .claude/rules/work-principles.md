@@ -39,6 +39,9 @@
   - **셸 우회**: `echo "..." | bash` / `curl ... | bash` (파이프로 셸 전달 — 따옴표 stripping 우회), `bash <(...)` (process substitution), `find ... -delete` (rm 없이 동일 효과) — 위험 명령을 직접 호출하지 않고 우회 실행하는 패턴
   - **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴 (hook이 regex로 잡기 어려워 차단 우회됨, 시도 자체 금지)
   - **빌드툴/셸 설정 파일 쓰기** (Claude Code 2.1.160+ 내장 동작 — hook 아님): `.npmrc`, `.yarnrc*`, `.bazelrc` 등 빌드툴 설정과 `.bashrc`/`.zshrc`/`.profile` 등 셸 시작 파일은 코드 실행 권한을 부여할 수 있어 Edit/Write로 쓸 때 `acceptEdits` 모드에서도 ask 발동. 수정 필요 시 사용자에게 먼저 고지 후 진행
+  - **백그라운드 `&` 연산자** (Claude Code 내장 동작 — hook 아님): `cmd &`, `nohup cmd ... &` 처럼 `&`로 백그라운드 실행하면 hook이 allow해도 내장 안전 검사("defers execution past approval-time safety checks")가 ask 발동. 비활성화 설정 없음. **대안**: Bash 도구의 `run_in_background: true` 파라미터로 실행(harness 백그라운드 태스크 인프라 사용, ask 없음) → 후속 확인(`sleep`+`curl` 등)은 별도 명령으로 분리
+    - ✗ `nohup uvicorn app --port 8013 > /tmp/.../log 2>&1 & sleep 6; curl ...`
+    - ✓ Bash(`uvicorn app --port 8013`, run_in_background: true) → 이후 별도 Bash로 `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8013/docs`
   - (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 allow)
 
   > **`/tmp` 예외 (경로 기반 정책)**: 위 "대상 경로형" 명령(`rm`·`rmdir`·`unlink`·`shred`·`truncate`·`chmod`·`chown`·`sed -i`·`awk -i`·`ln -sf`·`find -delete`)은 **대상이 모두 `/tmp/` 하위면 hook이 자동 허용**한다(임시 디렉토리=프로젝트 무관). 허용 형태 3종: ① `/tmp/x` 절대경로 ② `cd /tmp/... && <cmd> 상대경로` 단일 체인 ③ **선두 `&&` 체인** — `cd /tmp/... && rm ... && <기타 명령> ; <기타>`처럼 뒤에 다른 명령이 이어져도, 파일조작 세그먼트가 `cd /tmp` 직후의 `&&` 체인 안에 있고(사이에 다른 파일조작·리터럴 `/tmp` cd만 허용) 상대경로·`/tmp` 절대경로만 다루면 자동 허용 (`find -delete`만 ①·② 형태 한정). 임시 작업·테스트·정리는 `/tmp`에서 마음껏 하면 된다.
