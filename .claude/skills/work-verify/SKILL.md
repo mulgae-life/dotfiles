@@ -2,7 +2,6 @@
 name: work-verify
 description: 작업 완료 후 결과물을 빠르게 점검합니다. code-review(심층 리포트)와 달리 빠른 체크리스트 기반 점검에 특화.
 when_to_use: "점검해줘, 확인해줘, 빠뜨린 거 없는지 봐줘, 커밋 전에 확인해줘 요청 시. 코드, 문서, 리포트, 계획서 등 모든 작업 유형의 누락/영향도 확인이 필요할 때."
-model: opus
 effort: medium
 ---
 
