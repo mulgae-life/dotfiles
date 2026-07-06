@@ -348,6 +348,18 @@ else
   TARGET="$COMMAND_STRIPPED"
 fi
 
+# `&&` 직후 줄바꿈은 bash에서 순수 라인 연속(list 미완성 → 다음 줄로 이어짐)이라
+# `a &&\nb` == `a && b`. 새 명령 경계를 만들지 못하므로 공백으로 정규화해도 의미 동일.
+# 가독성용 멀티라인 `&&` 체인(cd /tmp/... && sed -i ... &&\npython ...)이
+# is_tmp_scoped/is_tmp_scoped_chain의 멀티라인 차단에 걸리지 않게 한다.
+# `;`/단독 줄바꿈은 독립 명령 경계(cd 실패 후에도 실행됨)라 정규화하지 않는다.
+# 주의: ${var/pat/&& } 형태는 bash 5.2 patsub_replacement의 `&`(=매치 텍스트) 확장으로
+# 무한 루프가 되므로, `&`를 치환문에 쓰지 않는 prefix/suffix 조립으로 처리한다.
+_cont_re=$'&&[[:blank:]]*\n[[:blank:]]*'
+while [[ "$TARGET" =~ $_cont_re ]]; do
+  TARGET="${TARGET%%"${BASH_REMATCH[0]}"*}&& ${TARGET#*"${BASH_REMATCH[0]}"}"
+done
+
 # /tmp 한정으로 자동 허용할 "대상 경로형" 카테고리 (경로 무관 위험은 제외)
 # SYSTEM/GIT/GH/DOCKER는 대상 경로와 무관한 위험이라 항상 ask 유지.
 TMP_EXEMPT_CATEGORIES=" FILE_DELETE INPLACE PERMISSION LINK_FORCE "

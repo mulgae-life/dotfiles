@@ -8,43 +8,32 @@
   - ✗ "m_eff = m_s + m_f니까 added mass 구현 완료" (가정을 검증 없이 사실로 취급)
   - ✓ "m_eff 분모 치환이 Eq.(21)과 동일한지 항 단위로 대조해보겠습니다" (가정을 검증 대상으로 제시)
   - 요청이 모호하면 가능한 해석을 나열하고 질문. 더 단순한 접근이 있으면 먼저 제시
-  - 무엇이 모호한지 모르겠을 땐, **혼란의 위치를 명명하라**: 어떤 단어/개념/경로가 다중 해석되는지 1줄로 표면화 후 질문
+  - 무엇이 모호한지 모르겠을 땐 **혼란의 위치를 명명**: 어떤 단어/개념/경로가 다중 해석되는지 1줄로 표면화 후 질문
 - **목표 기반 실행**: 작업을 검증 가능한 성공 기준으로 변환한 후 착수
   - ✗ "Re gap을 줄여보겠습니다" (검증 기준 없음)
   - ✓ "Majumder 2023 §4.4 기준 Heavy 276.61, Light 231.41 대비 ±2% 이내를 목표로 합니다"
-  - 코드 작업의 일반 변환 패턴:
-    - "검증 추가" → 무효 입력 테스트 먼저 작성 → 통과시키기
-    - "버그 수정" → 재현 테스트 먼저 작성 → 통과시키기
-    - "리팩토링" → 변경 전후 동일 테스트 통과 확인
-- **정확성 우선**: 속도보다 정확성. 검증을 생략하고 결과를 빨리 내는 것은 금지
-  - ✗ "수식 대조는 나중에 하고 일단 실험 돌려봅시다" (검증 건너뛰기)
-  - ✓ 수식/정의 검증 완료 → 실험 설계 → 실행
-- **속도 최적화 조건부**: 속도 최적화는 사용자가 명시적으로 요청하거나, 실제 타임아웃이 있거나, 진행 없음이 반복될 때만 수행. 그 외에는 정확성 우선
-- **리소스 제약 추측 금지**: 충분한 CPU/RAM/GPU가 있다고 가정. 리소스 제약을 추측하여 분석을 생략하지 않기
-- **시간 소요 작업 인내**: 빌드, 테스트, 검색 등 시간이 걸리는 작업에서 조급해하지 않기. 멈춘 구체적 증거가 없으면 기다리기
-- **산출물 정리**: 테스트·실험·디버그 과정에서 본인이 만든 파일(임시 스크립트, 데모, 로그, 실험 결과, 체크포인트 등)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 이동하여 작업 경로 루트를 깨끗하게 유지. **보존이 목적이므로 `rm` 금지** (대신 이동). 사용자가 명시적으로 삭제를 요청한 경우만 예외
-  - ✗ 테스트하다 나온 `demo.html`, `test_output.json`을 루트에 방치
-  - ✗ 불필요해 보여서 `rm` (나중에 참조 불가)
-  - ✓ `mv demo.html test_output.json .archive/2026-04-24_hw-design-demo/`
-  - 관련 없는 기존 파일/데드 코드는 대상 아님 (범위 준수 규칙 우선 — 언급만)
-- **훅 ask 발동 명령 사용 금지**: 다음 명령은 hook이 사용자 승인 요청(`ask`)을 발동시켜 **자율 작업 흐름이 중단됩니다**. 자율 작업 중에는 **시도 자체 금지** — 필요 시 사용자에게 먼저 묻고 명시 승인 후 실행. 사용자가 직접 요청한 경우에만 ask로 안전하게 진행:
-  - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
-  - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
-  - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash` (전체), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
-  - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
-  - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
-  - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
+  - 일반 변환 패턴: "검증 추가"→무효 입력 테스트 먼저 작성, "버그 수정"→재현 테스트 먼저 작성, "리팩토링"→전후 동일 테스트 통과
+- **정확성 우선**: 속도보다 정확성. 검증을 생략하고 결과를 빨리 내는 것 금지. 속도 최적화는 명시 요청·실제 타임아웃·진행 없음 반복 시에만
+- **리소스 제약 추측 금지**: 충분한 CPU/RAM/GPU가 있다고 가정. 제약을 추측해 분석을 생략하지 않기
+- **시간 소요 작업 인내**: 빌드/테스트/검색이 진행 중이면 멈춘 구체적 증거 없이 조급해하지 않기
+- **산출물 정리**: 본인이 만든 임시 파일(스크립트·데모·로그·실험 결과·체크포인트)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 **이동** — 보존 목적이므로 `rm` 금지, 사용자가 명시적으로 삭제를 요청한 경우만 예외. 관련 없는 기존 파일/데드 코드는 대상 아님(언급만)
+- **훅 ask 발동 명령 사용 금지**: 아래 명령은 hook이 사용자 승인(`ask`)을 발동시켜 **자율 작업 흐름이 중단됩니다**. 자율 작업 중 시도 자체 금지 — 필요하면 사용자에게 먼저 묻고, 사용자가 직접 요청한 경우에만 ask로 진행:
+  - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate` — 보존 원칙상 `.archive/`로 `mv`가 기본
+  - **Git 쓰기**: `push`, `commit`, `reset`, `clean`, `rebase`, `merge`, `cherry-pick`, `revert`, `am`, `apply`, `branch -d/-D`, `tag -d/-f`
+  - **Git 상태 변경**: `checkout`, `switch`, `restore`, `stash`, `add` — working tree·staging 변경
+  - **GitHub CLI 쓰기**: `gh pr/issue/release create·close·delete·merge·edit·comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`-F`/`--field`/`--raw-field`/`--input`), `gh auth login/logout`
+  - **시스템**: `sudo`, `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`
+  - **in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf`, `chmod`, `chown` — 파일 수정은 Read+Edit 도구 사용
   - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
-  - **셸 우회**: `echo "..." | bash` / `curl ... | bash` (파이프로 셸 전달 — 따옴표 stripping 우회), `bash <(...)` (process substitution), `find ... -delete` (rm 없이 동일 효과) — 위험 명령을 직접 호출하지 않고 우회 실행하는 패턴
-  - **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴 (hook이 regex로 잡기 어려워 차단 우회됨, 시도 자체 금지)
-  - **빌드툴/셸 설정 파일 쓰기** (Claude Code 2.1.160+ 내장 동작 — hook 아님): `.npmrc`, `.yarnrc*`, `.bazelrc` 등 빌드툴 설정과 `.bashrc`/`.zshrc`/`.profile` 등 셸 시작 파일은 코드 실행 권한을 부여할 수 있어 Edit/Write로 쓸 때 `acceptEdits` 모드에서도 ask 발동. 수정 필요 시 사용자에게 먼저 고지 후 진행
-  - **백그라운드 `&` 연산자** (Claude Code 내장 동작 — hook 아님): `cmd &`, `nohup cmd ... &` 처럼 `&`로 백그라운드 실행하면 hook이 allow해도 내장 안전 검사("defers execution past approval-time safety checks")가 ask 발동. 비활성화 설정 없음. **대안**: Bash 도구의 `run_in_background: true` 파라미터로 실행(harness 백그라운드 태스크 인프라 사용, ask 없음) → 후속 확인(`sleep`+`curl` 등)은 별도 명령으로 분리
-    - ✗ `nohup uvicorn app --port 8013 > /tmp/.../log 2>&1 & sleep 6; curl ...`
-    - ✓ Bash(`uvicorn app --port 8013`, run_in_background: true) → 이후 별도 Bash로 `curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8013/docs`
-  - (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 allow)
+  - **셸/인터프리터 우회**: `... | bash`, `bash <(...)`, `find -delete`, `bash -c "rm ..."`, `python -c "os.system/shutil.rmtree(...)"`, `node -e "rmSync(...)"` 등 — hook이 못 잡는 형태여도 시도 자체 금지
+  - **빌드툴/셸 설정 파일 쓰기** (Claude Code 내장 동작): `.npmrc`·`.yarnrc*`·`.bazelrc`·`.bashrc`·`.zshrc`·`.profile` 등은 Edit/Write도 ask — 수정 필요 시 사용자에게 먼저 고지
+  - **백그라운드 `&` 연산자** (Claude Code 내장 동작): `cmd &`·`nohup ... &`는 hook allow와 무관하게 ask. 대신 Bash 도구 `run_in_background: true`로 실행하고 후속 확인은 별도 명령으로 분리
+  - (참고: `cp`·`mv`·`>`·`>>`·`tee`·`kill`/`pkill`, 빌드·테스트·패키지 설치는 allow)
 
-  > **`/tmp` 예외 (경로 기반 정책)**: 위 "대상 경로형" 명령(`rm`·`rmdir`·`unlink`·`shred`·`truncate`·`chmod`·`chown`·`sed -i`·`awk -i`·`ln -sf`·`find -delete`)은 **대상이 모두 `/tmp/` 하위면 hook이 자동 허용**한다(임시 디렉토리=프로젝트 무관). 허용 형태 4종: ① `/tmp/x` 절대경로 ② `cd /tmp/... && <cmd> 상대경로` 단일 체인 ③ **선두 `&&` 체인** — `cd /tmp/... && rm ... && <기타 명령> ; <기타>`처럼 뒤에 다른 명령이 이어져도, 파일조작 세그먼트가 `cd /tmp` 직후의 `&&` 체인 안에 있고(사이에 다른 파일조작·리터럴 `/tmp` cd만 허용) 상대경로·`/tmp` 절대경로만 다루면 자동 허용 ④ **위치 무관 `/tmp` 절대경로 세그먼트** — 파일조작 세그먼트가 멀티라인·`;`·파이프 뒤 등 어디에 있든, 그 세그먼트가 파일조작 명령으로 시작하고 대상 절대경로가 전부 `/tmp` 하위(최소 1개, `$`·리다이렉트·`..` 없음)면 자동 허용. 절대경로는 cwd 이동과 무관하게 같은 파일을 가리키기 때문 (`find -delete`만 ①·② 형태 한정). 임시 작업·테스트·정리는 `/tmp`에서 마음껏 하면 된다.
-  > 단 ① `..` 경로탈출 ② **상대경로 대상**의 파일조작 세그먼트가 `;`/`|`/단독 `&` **뒤**에 오거나 멀티라인에 섞인 경우(cd 실패·cwd 이동 경로로 /tmp 보장 불가 — `/tmp` 절대경로 대상이면 케이스④로 위치 무관 허용) ③ `/tmp` 외 절대경로·`$` 확장·리다이렉트가 파일조작 세그먼트에 혼합 ④ 래퍼·인터프리터 경유(`env`·`nohup`·`timeout`·`bash -c`·`python -c` 등 — 파일조작 명령으로 **직접 시작**해야 함)는 여전히 ask. **경로 무관 위험**(`sudo`·`git`·`gh`·`docker`·`echo|bash`)은 `/tmp`여도 항상 ask — 이들은 대상 경로와 무관하게 시스템·외부·이력에 영향을 주기 때문.
-  > **작성 요령**: `/tmp` 파일조작은 **`/tmp/...` 절대경로로 쓰면** 멀티라인·복합 명령 어디에 있어도 통과한다(케이스④). 상대경로를 쓸 때만 `cd /tmp/... &&` 바로 뒤 배치 또는 별도 명령 분리가 필요하다. 단 파일조작 세그먼트에 `$` 변수·리다이렉트를 섞으면(예: `rm $TMPFILE`, `for`+`$()` 파이프라인 내부) 정적 판정이 불가해 ask가 뜬다 — 이때는 삭제만 리터럴 경로로 먼저 단독 실행하고 나머지를 이어서 실행할 것.
-
-  > **원칙**: 영향도 적은 read-only 명령만 자동 허용. 빌드/테스트/패키지 설치(`npm install`, `pytest` 등)는 자율 작업 흐름 유지를 위해 allow.
+  > **`/tmp` 예외**: 위 명령 중 "대상 경로형"(파일 삭제류·`chmod`·`chown`·`sed -i`·`awk -i`·`ln -sf`·`find -delete`)은 **대상이 전부 `/tmp/` 하위면 hook이 자동 허용**한다(임시 디렉토리=프로젝트 무관). 작성 요령 4가지:
+  > 1. **`/tmp/...` 절대경로로 쓰기** — 멀티라인·복합 명령 어디에 있어도 통과 (`find -delete`만 단일 명령 한정)
+  > 2. 상대경로 대상은 `cd /tmp/... &&` 체인 안에서만 — `&&` 뒤 줄바꿈은 괜찮고(라인 연속으로 정규화), `;`·파이프·단독 줄바꿈으로 끊기면 ask
+  > 3. 파일조작 세그먼트는 해당 명령으로 **직접 시작** — `env`/`nohup`/`timeout`/`bash -c` 등 래퍼 경유는 ask
+  > 4. 파일조작 세그먼트에 `$` 변수·리다이렉트·`..` 혼합 금지(정적 판정 불가) — 상대경로 체인(요령 2)은 `..`가 **명령 전체**에 없어야 함. 걸리면 삭제만 리터럴 경로로 분리 실행
+  >
+  > `sudo`·`git`·`gh`·`docker`·`echo|bash`는 `/tmp`여도 항상 ask(경로 무관 위험). 상세 판정 명세는 `auto-approve-readonly.sh` 주석 참조.
