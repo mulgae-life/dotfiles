@@ -136,7 +136,10 @@ is_tmp_scoped() {
   if [[ "$cmd" =~ ^[[:space:]]*cd[[:space:]] ]]; then
     # 케이스2: cd /tmp[/...] && <cmd> (정확히 하나의 cd…&&)
     # cd 대상에 $·백틱 금지 — 런타임 확장(예: $DIR=..)으로 /tmp 탈출 가능하므로 리터럴 경로만
-    local re='^[[:space:]]*cd[[:space:]]+(/tmp|/tmp/[^[:space:]$`]+)[[:space:]]+&&[[:space:]]+([^[:space:]].*)$'
+    # 셸 메타문자(| ; & < > 괄호)도 금지 — 경로 클래스가 `|cat` 등을 흡수하면
+    # `cd /tmp/x|cat && sed -i f`가 케이스2로 오인식되는데, 실제 bash는 (cd|cat) && sed로
+    # 파싱해 cd가 파이프 서브셸에 격리 → 부모 cwd 불변 → sed가 프로젝트 파일 수정 (v2.5 봉쇄)
+    local re='^[[:space:]]*cd[[:space:]]+(/tmp|/tmp/[^[:space:]$`|;&<>(){}]+)[[:space:]]+&&[[:space:]]+([^[:space:]].*)$'
     [[ "$cmd" =~ $re ]] || return 1
     local rest="${BASH_REMATCH[2]}"
     case "$rest" in
@@ -154,49 +157,76 @@ is_tmp_scoped() {
   fi
 }
 
-# 케이스3(선두 && 체인): `cd /tmp/… && <파일조작> && … ; 기타` 처럼 뒤에 다른 명령이
-# 이어지는 복합 명령에서, 위반 세그먼트가 "선두 && 체인 구간" 안에 있으면 /tmp 한정으로 판정.
-# 안전 근거: cd가 리터럴 /tmp 경로이고 &&로 직결되므로 cd 실패 시 후속이 실행되지 않고(단락),
-# 성공 시 cwd가 /tmp 하위로 고정된다. 구간 내 선행 세그먼트를 전부 "검증된 파일조작 외부명령"
-# (cwd 변경 불가)으로 제한하므로 위반 세그먼트 실행 시점의 cwd가 /tmp임이 보장된다.
-# 선두 구간 밖(; 이후 등)은 eval/따옴표 트릭/cd 실패 경로로 cwd 보장 불가 → 비적용(ask 유지).
+# 케이스3+5(&&-직결 cd /tmp 체인 — 위치 무관): `A ; B && cd /tmp/… && <파일조작> && C | D`
+# 처럼 복합 명령 어디에 있든, 위반 세그먼트가 "리터럴 cd /tmp에 &&로 직결된 체인" 안에 있으면
+# /tmp 한정으로 판정. (v2.5: 선두 한정이던 케이스3을 위치 무관으로 일반화 — 케이스5)
+# 안전 근거 — "seg 실행 시점 cwd=/tmp"의 정적 증명 4요소:
+#   ① 런(run) 경계는 진짜 독립 문장 경계인 `;`/줄바꿈만 인정 → 런 내부 파싱이 외부와 무관.
+#      `|`(선행 파이프는 cd를 서브셸로 격리)·`||`(cd 스킵 경로 존재)·단독`&`·리다이렉트·
+#      서브셸 문자는 경계가 아니라 절단 문자 → 체인 무효화(보수적 거부).
+#   ② && 직결 단락: anchor cd 실패 시 seg 미실행, 성공 시 cwd가 /tmp 하위로 고정.
+#      이 보장은 체인이 명령 어디에 있든 동일 — "선두" 요건은 불필요한 과잉 제약이었음.
+#   ③ 런 내 seg 이전 모든 조각을 "단독으로도 auto-allow되는 비-빌트인 화이트리스트"
+#      (조회성 READ_CMD·검증된 파일조작·cd)로 제한 → eval/source/export(PATH 변조)/
+#      변수대입/함수정의 등 셸 의미 변조(명령 섀도잉) 조각 발견 시 런 전체 무효.
+#      (따옴표 스트리핑이 eval 인자를 소거해 hook이 내용을 못 보므로 명령어 단위로 차단)
+#   ④ anchor 상태 추적: 리터럴 /tmp cd → 성립, 그 외 cd → 소멸(이후 재성립 가능),
+#      조회성/파일조작 조각 → cwd 변경 불가라 유지. seg 도달 시점에 성립 상태여야 allow.
+# 런타임에 경계를 소거하는 이스케이프(\; 리터럴 인자, \줄바꿈 라인 연속)와 파이프 끝
+# 줄바꿈(| 뒤 개행 = 라인 연속)은 정적 경계 판정을 깨므로 명령 전체에서 발견 시 거부.
+# 의도적 미확장(케이스6 없음 — 정적 증명 불가 영역): $ 확장(워드 스플리팅으로 런타임에
+# 대상 파일 추가 주입 가능), 서브셸 (cd /tmp && …), 루프/래퍼(xargs·bash -c) 경유.
 is_tmp_scoped_chain() {
-  local cmd="$1" seg="$2"
-  [[ "$cmd" == *$'\n'* ]]  && return 1   # 줄바꿈 = 다중 명령 우회 차단
-  [[ "$cmd" == *".."* ]]   && return 1   # 경로 탈출 차단
+  local cmd="$1" seg="$2" nl=$'\n'
+  [[ "$cmd" == *".."* ]]    && return 1  # 경로 탈출 차단
   [[ "$cmd" == *$'\x01'* ]] && return 1  # 내부 마커 문자 충돌 방지
+  # 경계 소거 형태 거부 — 런 분할(;/줄바꿈)의 전제 보호
+  [[ "$cmd" == *'\;'* ]]     && return 1  # \; = 리터럴 인자(find -exec 등) → 경계 아님
+  [[ "$cmd" == *'\'"$nl"* ]] && return 1  # \줄바꿈 = 라인 연속 → 경계 아님
+  local pipe_eol='\|[[:blank:]]*'$'\n'
+  [[ "$cmd" =~ $pipe_eol ]]  && return 1  # |/|| 끝 줄바꿈 = 파이프 라인 연속 → 경계 아님
   # 위반 세그먼트 자체: 확장/리다이렉트 금지 + 파일조작 명령 시작 + 비-/tmp 절대경로 없음
   case "$seg" in *'$'*|*'<'*|*'>'*) return 1 ;; esac
   _is_fileop_first "$seg" || return 1
   _tmp_targets_ok "$seg" tmp_relative || return 1
-  # 동일 문자열 세그먼트가 2회 이상 등장하면 선두 구간 밖 실행분과 위치 구분 불가 → 거부
-  # (printf에 개행 필수 — 미종결 마지막 줄은 read 루프가 버림)
+  # 동일 문자열 세그먼트가 2회 이상 등장하면 체인 안/밖 실행분과 위치 구분 불가 → 거부
+  # (caller와 동일 분할 기준 — printf에 개행 필수, 미종결 마지막 줄은 read 루프가 버림)
   local n=0 s
   while IFS= read -r s; do
     [[ "$s" == "$seg" ]] && n=$((n+1))
-  done < <(printf '%s\n' "$cmd" | tr ';|&`(){}' '\n')
+  done < <(printf '%s\n' "$cmd" | tr ';|&`(){}'"$nl" '\n')
   [[ $n -eq 1 ]] || return 1
-  # 선두 && 체인 구간 추출: &&를 마커로 보호한 뒤 첫 구분자(;|단독&/리다이렉트/서브셸)에서 절단
+  # &&를 마커로 보호 → 안전 경계(;/줄바꿈)로 런 분할 → seg가 속한 런에서 anchor 판정
   # 주의: 클래스는 변수 경유 필수 — ${...%%[...}]} 인라인은 클래스 내 }가 확장 종결자로 파싱됨
-  local m=$'\x01' prefix cutcls='[;|&<>`(){}]*'
-  prefix="${cmd//&&/$m}"
-  prefix="${prefix%%$cutcls}"
-  # 구간 내 순서 검사: 첫 세그먼트는 리터럴 cd /tmp…($ 확장 금지), 이후 세그먼트는
-  # 위반 세그먼트에 도달할 때까지 전부 "검증된 파일조작" 또는 "리터럴 /tmp cd"여야 한다
-  # (리터럴 /tmp cd는 성공 시 cwd가 여전히 /tmp 하위, 실패 시 && 단락 → 어느 쪽도 안전)
-  local i=0 piece cd_re='^[[:space:]]*cd[[:space:]]+/tmp(/[^[:space:]$]+)?[[:space:]]*$'
-  while IFS= read -r piece; do
-    if [[ $i -eq 0 ]]; then
-      [[ "$piece" =~ $cd_re ]] || return 1
-    elif ! [[ "$piece" =~ $cd_re ]]; then
-      [[ "$piece" == "$seg" ]] && return 0
-      case "$piece" in *'$'*) return 1 ;; esac
-      _is_fileop_first "$piece" || return 1
-      _tmp_targets_ok "$piece" tmp_relative || return 1
-    fi
-    i=$((i+1))
-  done < <(printf '%s\n' "$prefix" | tr "$m" '\n')
-  return 1   # 위반 세그먼트가 선두 구간 밖 → 비적용
+  local m=$'\x01' run prefix piece first anchored cutcls='[|&<>`(){}]*'
+  local cd_re='^[[:space:]]*cd[[:space:]]+/tmp(/[^[:space:]$]+)?[[:space:]]*$'
+  local runs="${cmd//&&/$m}"
+  runs="${runs//;/$nl}"
+  while IFS= read -r run; do
+    prefix="${run%%$cutcls}"   # 첫 절단 문자(| & < > ` ( ) { })부터 뒤를 제거
+    anchored=0
+    while IFS= read -r piece; do
+      if [[ "$piece" == "$seg" ]]; then
+        [[ $anchored -eq 1 ]] && return 0
+        return 1               # seg 도달했으나 anchor 미성립 (유일성 보장 → 즉시 확정)
+      fi
+      if [[ "$piece" =~ $cd_re ]]; then
+        anchored=1             # 리터럴 /tmp cd → cwd 고정 (실패 시 && 단락이라 안전)
+      else
+        first=$(echo "$piece" | awk '{print $1}')
+        if [[ "$first" == cd ]]; then
+          anchored=0           # 비-/tmp·비리터럴 cd → cwd 보장 소멸 (이후 재anchor 가능)
+        elif [[ -n "$first" && "$first" =~ $READ_CMD_RE ]]; then
+          :                    # 조회성 명령 — cwd·셸 의미 변경 불가 ($ 포함해도 인자 효과뿐)
+        elif [[ "$piece" != *'$'* ]] && _is_fileop_first "$piece" && _tmp_targets_ok "$piece" tmp_relative; then
+          :                    # 검증된 파일조작 — cwd 변경 불가 (대상 검증은 심층 방어)
+        else
+          break                # 화이트리스트 밖 조각(eval/대입/미지 명령) → 이 런 무효
+        fi
+      fi
+    done < <(printf '%s\n' "$prefix" | tr "$m" '\n')
+  done < <(printf '%s\n' "$runs")
+  return 1   # seg가 어떤 유효 체인에도 속하지 않음 → 비적용
 }
 
 # 케이스4(위치 무관 /tmp 절대경로): 위반 세그먼트 자체가 파일조작 명령으로 시작하고
@@ -351,7 +381,8 @@ fi
 # `&&` 직후 줄바꿈은 bash에서 순수 라인 연속(list 미완성 → 다음 줄로 이어짐)이라
 # `a &&\nb` == `a && b`. 새 명령 경계를 만들지 못하므로 공백으로 정규화해도 의미 동일.
 # 가독성용 멀티라인 `&&` 체인(cd /tmp/... && sed -i ... &&\npython ...)이
-# is_tmp_scoped/is_tmp_scoped_chain의 멀티라인 차단에 걸리지 않게 한다.
+# is_tmp_scoped(케이스1·2)의 멀티라인 차단에 걸리지 않게 하고, is_tmp_scoped_chain
+# (케이스3+5 — v2.5부터 멀티라인 자체는 런 경계로 처리)의 체인 조각이 갈라지지 않게 한다.
 # `;`/단독 줄바꿈은 독립 명령 경계(cd 실패 후에도 실행됨)라 정규화하지 않는다.
 # 주의: ${var/pat/&& } 형태는 bash 5.2 patsub_replacement의 `&`(=매치 텍스트) 확장으로
 # 무한 루프가 되므로, `&`를 치환문에 쓰지 않는 prefix/suffix 조립으로 처리한다.
@@ -394,7 +425,7 @@ while IFS= read -r seg; do
     pattern="${entry#*:}"
     if [[ "$seg" =~ $pattern ]]; then
       # 대상이 전부 /tmp인 파일조작이면 무시 — 명령 전체(케이스1·2),
-      # 선두 && 체인 내 세그먼트(케이스3), 위치 무관 /tmp 절대경로 세그먼트(케이스4) 판정
+      # 위치 무관 cd /tmp && 체인 내 세그먼트(케이스3+5), 위치 무관 /tmp 절대경로 세그먼트(케이스4) 판정
       if [[ "$TMP_EXEMPT_CATEGORIES" == *" $category "* ]]; then
         if is_tmp_scoped "$TARGET" || is_tmp_scoped_chain "$TARGET" "$seg" || is_tmp_scoped_abs "$seg"; then
           continue
