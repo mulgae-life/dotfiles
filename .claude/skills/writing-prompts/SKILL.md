@@ -31,8 +31,8 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
 | **Examples** | 3-5개 권장 | Few-shot | Multishot (동일 개념) |
 | **XML 태그** | ✅ 권장 | ✅ | ✅ |
-| **특화 파라미터** | - | `reasoning_effort`, `verbosity`, `phase`, `image_detail` | - |
-| **Prefilling** | - | ❌ | ✅ (JSON/캐릭터 강제) |
+| **특화 파라미터** | - | `reasoning.effort`, `reasoning.mode`/`context` (5.6), `verbosity`, `phase`, `image_detail` | `output_config.effort` (Fable 5/4.6+) |
+| **Prefilling** | - | ❌ | ⚠️ Claude 4.5 이하 전용 (Fable 5·4.6+는 400) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
 | **모순 제거** | 충돌 지시 금지 | ✅ | ✅ |
@@ -88,8 +88,8 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
-| OpenAI | Outcome-first, 구조화 출력, Personality 분리 | `references/gpt5-params.md`, `references/gpt55-patterns.md` ⭐ (5.5), `references/gpt54-patterns.md` (5.4) |
-| Anthropic | Prefilling, 긴 컨텍스트 최적화 | `references/prefilling.md`, `references/long-context.md` |
+| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 티어 선택(5.6) | `references/gpt5-params.md`, `references/gpt56-patterns.md` ⭐ (5.6), `references/gpt55-patterns.md` (5.5) |
+| Anthropic | De-prescribe(Fable 5), 긴 컨텍스트 최적화, Prefilling(4.5 이하) | `references/claude-5-specifics.md` ⭐ (Fable 5), `references/prefilling.md`, `references/long-context.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` 🆕 |
 | Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` 🆕 |
 
@@ -156,16 +156,18 @@ system_prompt: |
 
 ### 플랫폼별 최적화 (선택)
 
-**OpenAI GPT-5.5** (최신, 권장):
-- [ ] **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의
+**OpenAI GPT-5.6** (최신, 권장):
+- [ ] **티어 선택**: `gpt-5.6-sol`(플래그십)/`terra`(균형)/`luna`(고속저가) — 비용 레버리지는 effort보다 티어 라우팅
+- [ ] **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의 (5.5 계승)
 - [ ] **Personality + Collaboration Style 분리** (각 1-2문단 이내)
-- [ ] `reasoning.effort`: `medium` 출발점, 많은 워크로드는 `low`도 충분
+- [ ] `reasoning.effort`: 신규는 `medium` 출발점 / 5.5·5.4에서 마이그레이션은 **기존 값 baseline + 한 단계 낮춰 비교**
 - [ ] `text.verbosity`: `low` 권장
-- [ ] **Markdown 절제** (plain prose 기본, 헤더·불릿 sparingly)
+- [ ] **"Be concise"류 일반 간결 지시 금지** → 우선순위 지시 ("결론 먼저, 근거, 중대 caveat, 다음 액션") — 5.6이 5.5보다 민감
+- [ ] **Markdown 절제** (plain prose 기본 — 5.6은 기본이 이미 compression 편향)
 - [ ] **Retrieval Budget** 명시 (도구 사용 시 stopping conditions)
 - [ ] **Structured Outputs API**로 스키마 강제 (프롬프트 대신)
-- [ ] **Tool Validation**: 출력 검증을 도구로 (테스트·린트·렌더링)
-- [ ] 5.4에서 마이그레이션: **fresh baseline 재구성** (드롭인 금지)
+- [ ] **Tool Validation**: 출력 검증을 도구로 (테스트·린트·렌더링) — 5.6은 overstep 경향이 5.5보다 커 검증 루프 중요도 상승
+- [ ] 마이그레이션: 5.5→5.6은 **tuning pass** (프롬프트 유지, 설정 재튜닝) / 5.4 이전→는 fresh baseline 재구성 먼저
 - [ ] Message Roles (developer/user)
 
 **OpenAI GPT-5.4 이전**:
@@ -173,8 +175,16 @@ system_prompt: |
 - [ ] verbosity 설정 (응답 길이)
 - [ ] Message Roles (developer/user)
 
-**Anthropic Claude**:
-- [ ] Prefilling 활용 (JSON/형식 강제)
+**Anthropic Claude Fable 5 / Claude 5 세대** (최신, 권장):
+- [ ] **De-prescribe**: 절차 열거 대신 목표·제약·이유 서술 (과잉 지시는 품질 저하)
+- [ ] **Prefill 금지**: 400 에러 → Structured Outputs(`output_config.format`)로 대체
+- [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발
+- [ ] `output_config.effort`: `high` 기본, 최고 난도만 `xhigh`, 루틴은 `medium`/`low`
+- [ ] 장기 자율 런: 진행 보고 근거화 + 자기검증 서브에이전트 + 메모리 파일 → [claude-5-specifics.md](references/claude-5-specifics.md)
+- [ ] Long context 문서 배치 (맨 위)
+
+**Anthropic Claude 4.x 이하**:
+- [ ] Prefilling 활용 (JSON/형식 강제) — 4.5 이하 전용
 - [ ] Long context 문서 배치 (맨 위)
 
 **Google Gemma 4** (오픈웨이트, 2026-04-02):
@@ -229,15 +239,17 @@ system_prompt: |
 
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
 - **[gpt5-params.md](references/gpt5-params.md)** - GPT-5 API 파라미터 (`reasoning`, `verbosity` 코드 예시)
-- **[gpt55-patterns.md](references/gpt55-patterns.md)** ⭐ GPT-5.5 프롬프트 패턴 (Outcome-first, Personality 분리, Retrieval Budget, Tool Validation, Markdown 절제) 🆕
-- **[gpt54-patterns.md](references/gpt54-patterns.md)** GPT-5.4 프롬프트 패턴 (출력 계약, 도구 지속성, 검증 루프) — 5.5에서도 호환
+- **[gpt56-patterns.md](references/gpt56-patterns.md)** ⭐ GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) 🆕
+- **[gpt55-patterns.md](references/gpt55-patterns.md)** GPT-5.5 프롬프트 패턴 (Outcome-first, Personality 분리, Retrieval Budget, Tool Validation, Markdown 절제) — 5.6에서도 호환
+- **[gpt54-patterns.md](references/gpt54-patterns.md)** GPT-5.4 프롬프트 패턴 (출력 계약, 도구 지속성, 검증 루프) — 5.5/5.6에서도 호환
 - **[optimization.md](references/optimization.md)** - GPT-5 최적화 팁
 
 ### Anthropic (Claude) 특화
 
-- **[prefilling.md](references/prefilling.md)** ⭐ Prefilling (JSON/캐릭터 강제)
+- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 (Fable 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫 🆕
+- **[claude-4-specifics.md](references/claude-4-specifics.md)** Claude 4.x 베스트 프랙티스 (구세대)
+- **[prefilling.md](references/prefilling.md)** Prefilling (JSON/캐릭터 강제) — Claude 4.5 이하 전용
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
-- **[claude-4-specifics.md](references/claude-4-specifics.md)** ⭐ Claude 4.x 베스트 프랙티스
 
 ### Google Gemma 특화 (오픈웨이트)
 
@@ -250,17 +262,21 @@ system_prompt: |
 ## 참고 자료
 
 ### OpenAI
+- [GPT-5.6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) ⭐ 최신 (2026-07) — 티어·마이그레이션·신규 파라미터 수록
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
-- [GPT-5.5 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/) ⭐ 최신 (2026-04)
-- [Using GPT-5.5](https://developers.openai.com/api/docs/guides/latest-model)
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/) ⭐ 최신 (2026-07)
+- [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model)
 - [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 - [GPT-5 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5_prompting_guide)
-- [GPT-5.4 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.4)
+- [GPT-5.5 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.5)
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
 ### Anthropic
+- [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) ⭐ 최신 (2026-07) — 스니펫 원문 전체 수록
+- [Prompting Claude Fable 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
+- [Introducing Claude Fable 5 (공식)](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
-- [Claude 4.x Best Practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices)
+- [Claude 4.x Best Practices (이전)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices)
 
 ### Google Gemma 4 (2026-04-02)
 - [Gemma 4 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemma-4-prompt-guide.md) ⭐ 16섹션 + 외부 노하우

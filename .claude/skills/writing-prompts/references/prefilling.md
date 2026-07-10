@@ -13,6 +13,8 @@
 
 Anthropic Claude만의 고유 기능으로, `assistant` 메시지를 미리 채워 출력을 제어합니다.
 
+> ⚠️ **Claude 4.5 이하 전용.** Fable 5·Opus 4.6/4.7/4.8·Sonnet 4.6/5에서는 마지막 assistant 턴 prefill이 **400 에러**를 반환합니다. 최신 모델에서는 Structured Outputs(`output_config.format`) 또는 시스템 프롬프트 지시로 대체하세요 → [claude-5-specifics.md](claude-5-specifics.md). 이 문서의 예시가 `claude-sonnet-4-5`를 쓰는 이유입니다.
+
 ## 개요
 
 Prefilling은 **Anthropic Claude에서만 사용 가능**하며, OpenAI GPT에는 없는 기능입니다.
@@ -328,6 +330,7 @@ response = client.responses.create(
 | 항목 | 설명 |
 |------|------|
 | **플랫폼** | Anthropic Claude만 (OpenAI ❌) |
+| **모델** | Claude 4.5 이하 전용 (Fable 5·4.6+는 400 → Structured Outputs 사용) |
 | **용도** | JSON/XML 강제, 프리앰블 제거, 캐릭터 유지 |
 | **방법** | `assistant` 메시지에 시작 텍스트 prefill |
 | **주의** | Trailing whitespace 금지, Extended thinking 미지원 |

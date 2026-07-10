@@ -3,7 +3,7 @@
 ## 목차
 - [기본 사용법](#기본-사용법)
 - [Message 구조](#message-구조)
-- [Extended Thinking](#extended-thinking)
+- [Thinking (추론 제어)](#thinking-추론-제어)
 - [대화 이력 관리](#대화-이력-관리)
 - [Tool Use (Function Calling)](#tool-use-function-calling)
 - [스트리밍](#스트리밍)
@@ -11,6 +11,7 @@
 - [Vision (이미지 분석)](#vision-이미지-분석)
 - [에러 핸들링](#에러-핸들링)
 - [모델 선택](#모델-선택)
+- [Fable 5 주의사항](#fable-5-주의사항)
 - [Usage 정보](#usage-정보)
 - [참고 자료](#참고-자료)
 
@@ -29,7 +30,7 @@ from anthropic import Anthropic
 client = Anthropic()
 
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[
         {"role": "user", "content": "Hello, world!"}
     ],
@@ -43,7 +44,7 @@ print(response.content[0].text)
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     system="You are a helpful assistant that speaks Korean formally.",
     messages=[
         {"role": "user", "content": "What is the capital of Korea?"}
@@ -89,21 +90,21 @@ messages = [
 
 ---
 
-## Extended Thinking
+## Thinking (추론 제어)
 
-Claude의 추론 기능 (OpenAI의 reasoning과 유사):
+Claude의 추론 기능 (OpenAI의 reasoning과 유사). **모델 세대에 따라 설정 방법이 다릅니다.**
+
+### 현행 모델 (4.6+, Sonnet 5, Fable 5): Adaptive Thinking
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 10000  # 추론에 할당할 토큰 수
-    },
+    model="claude-sonnet-5",
+    thinking={"type": "adaptive"},          # Claude가 사고 시점·깊이를 스스로 결정
+    output_config={"effort": "high"},       # low | medium | high | xhigh | max
     messages=[
         {"role": "user", "content": "복잡한 수학 문제..."}
     ],
-    max_tokens=16000  # thinking + output 합계
+    max_tokens=16000
 )
 
 # thinking 결과 접근
@@ -114,10 +115,35 @@ for block in response.content:
         print("Output:", block.text)
 ```
 
-### budget_tokens 가이드
+- 추론 깊이는 `budget_tokens`가 아니라 **`output_config.effort`** 로 제어
+- **Fable 5**: thinking이 항상 켜져 있음 — `thinking` 파라미터를 **생략** (`disabled`·`budget_tokens` 모두 400). thinking 텍스트가 필요하면 `thinking={"type": "adaptive", "display": "summarized"}` (기본 `"omitted"`은 빈 문자열)
+- **Opus 4.7+/Sonnet 5**: `budget_tokens`는 400 에러
 
-| 작업 복잡도 | 권장 budget_tokens |
-|-------------|-------------------|
+### effort 가이드
+
+| effort | 용도 |
+|--------|------|
+| `low` / `medium` | 루틴·저지연 작업, 서브에이전트 |
+| `high` | 기본값 — 대부분 작업의 균형점 |
+| `xhigh` | 코딩·에이전트 고난도 작업 |
+| `max` | 비용보다 정확성이 중요할 때 |
+
+### 구모델 (Sonnet 4.5 이하): Extended Thinking + budget_tokens
+
+```python
+response = client.messages.create(
+    model="claude-sonnet-4-5",              # 구모델 전용 — 4.7+에서는 400
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 10000              # 추론에 할당할 토큰 수 (< max_tokens, 최소 1024)
+    },
+    messages=[{"role": "user", "content": "복잡한 수학 문제..."}],
+    max_tokens=16000                        # thinking + output 합계
+)
+```
+
+| 작업 복잡도 | 권장 budget_tokens (구모델) |
+|-------------|---------------------------|
 | 간단한 질문 | 5,000 ~ 10,000 |
 | 복잡한 문제 | 10,000 ~ 50,000 |
 | 매우 어려운 문제 | 50,000+ |
@@ -134,7 +160,7 @@ messages = []
 # 첫 요청
 messages.append({"role": "user", "content": "안녕하세요"})
 response1 = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     system="격식체로 응답하세요",
     messages=messages,
     max_tokens=1024
@@ -144,7 +170,7 @@ messages.append({"role": "assistant", "content": response1.content[0].text})
 # 후속 요청
 messages.append({"role": "user", "content": "이전 대화를 요약해주세요"})
 response2 = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     system="격식체로 응답하세요",  # 매번 재전송
     messages=messages,
     max_tokens=1024
@@ -177,7 +203,7 @@ class ConversationManager:
         return assistant_message
 
 # 사용
-conv = ConversationManager(client, "claude-sonnet-4-5", "격식체로 응답하세요")
+conv = ConversationManager(client, "claude-sonnet-5", "격식체로 응답하세요")
 print(conv.send("안녕하세요"))
 print(conv.send("이전 대화를 요약해주세요"))
 ```
@@ -216,7 +242,7 @@ tools = [
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[{"role": "user", "content": "서울 날씨 알려줘"}],
     tools=tools,
     max_tokens=1024
@@ -234,7 +260,7 @@ for block in response.content:
 
         # 결과 전달
         response2 = client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-5",
             messages=[
                 {"role": "user", "content": "서울 날씨 알려줘"},
                 {"role": "assistant", "content": response.content},
@@ -259,7 +285,7 @@ for block in response.content:
 ```python
 # 특정 도구 강제
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[...],
     tools=tools,
     tool_choice={"type": "tool", "name": "get_weather"},
@@ -268,7 +294,7 @@ response = client.messages.create(
 
 # 도구 사용 필수
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[...],
     tools=tools,
     tool_choice={"type": "any"},  # 아무 도구나 사용해야 함
@@ -277,7 +303,7 @@ response = client.messages.create(
 
 # 자동 (기본값)
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[...],
     tools=tools,
     tool_choice={"type": "auto"},
@@ -293,7 +319,7 @@ response = client.messages.create(
 
 ```python
 with client.messages.stream(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[{"role": "user", "content": "Hello"}],
     max_tokens=1024
 ) as stream:
@@ -305,7 +331,7 @@ with client.messages.stream(
 
 ```python
 async with client.messages.stream(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[{"role": "user", "content": "Hello"}],
     max_tokens=1024
 ) as stream:
@@ -317,7 +343,7 @@ async with client.messages.stream(
 
 ```python
 with client.messages.stream(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[{"role": "user", "content": "Hello"}],
     max_tokens=1024
 ) as stream:
@@ -335,11 +361,13 @@ with client.messages.stream(
 
 Assistant 응답을 미리 채워 출력 형식을 강제:
 
+> ⚠️ **Claude 4.5 이하 전용.** Fable 5·Opus 4.6/4.7/4.8·Sonnet 4.6/5에서는 마지막 assistant 턴 prefill이 **400 에러**입니다. 최신 모델에서는 Structured Outputs(`output_config.format`)를 사용하세요. 아래 예시가 `claude-sonnet-4-5`인 이유입니다.
+
 ### JSON 출력 강제
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-4-5",  # prefill은 구모델 전용
     messages=[
         {"role": "user", "content": "Extract name and age from: John is 30 years old."},
         {"role": "assistant", "content": "{"}  # JSON 시작 강제
@@ -354,7 +382,7 @@ response = client.messages.create(
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-4-5",  # prefill은 구모델 전용
     system="You are a pirate. Always speak like a pirate.",
     messages=[
         {"role": "user", "content": "Hello!"},
@@ -366,6 +394,7 @@ response = client.messages.create(
 
 ### 주의사항
 
+- **Fable 5·4.6+ 계열에서는 400 에러** — Structured Outputs로 대체
 - Prefilling은 stop reason을 `end_turn`에서 `stop_sequence`로 변경할 수 있음
 - Extended thinking과 함께 사용 시 제한이 있을 수 있음
 
@@ -382,7 +411,7 @@ with open("image.png", "rb") as f:
     image_data = base64.standard_b64encode(f.read()).decode("utf-8")
 
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[
         {
             "role": "user",
@@ -407,7 +436,7 @@ response = client.messages.create(
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[
         {
             "role": "user",
@@ -463,11 +492,67 @@ except APIError as e:
 
 ## 모델 선택
 
-| 모델 | 용도 |
-|------|------|
-| `claude-opus-4-5` | 가장 지능적, 복잡한 작업 |
-| `claude-sonnet-4-5` | 균형 (권장) |
-| `claude-haiku-4` | 빠르고 저렴, 단순 작업 |
+| 모델 | 가격 (입력/출력, MTok) | 용도 |
+|------|----------------------|------|
+| `claude-fable-5` | $10 / $50 | 최상위 — 최고 난도 추론·장기 자율 작업 ([주의사항](#fable-5-주의사항) 필독) |
+| `claude-opus-4-8` | $5 / $25 | 고지능, 복잡한 작업 |
+| `claude-sonnet-5` | $3 / $15 | 균형 (권장 기본값) |
+| `claude-haiku-4-5` | $1 / $5 | 빠르고 저렴, 단순 작업 |
+
+> 구모델(`claude-opus-4-5`, `claude-sonnet-4-5` 등)도 여전히 서비스 중이지만, 신규 코드는 위 표 기준. prefill·`budget_tokens` 등 구모델 전용 기법이 필요한 경우에만 구모델 지정.
+
+---
+
+## Fable 5 주의사항
+
+`claude-fable-5`는 API 동작이 Opus 계열과 다릅니다. 3가지를 반드시 처리하세요.
+
+### 1. thinking 파라미터 생략 (항상 켜짐)
+
+```python
+# ❌ 400 에러
+thinking={"type": "disabled"}
+thinking={"type": "enabled", "budget_tokens": 10000}
+
+# ✅ 생략(기본 adaptive) 또는 명시적 adaptive + effort로 깊이 제어
+response = client.messages.create(
+    model="claude-fable-5",
+    output_config={"effort": "high"},
+    messages=[...],
+    max_tokens=16000
+)
+```
+
+`temperature`/`top_p`/`top_k`도 400 — 프롬프트로 제어합니다.
+
+### 2. refusal 처리 + fallback 구성
+
+Safety classifier가 요청을 거절할 수 있습니다(HTTP 200 + `stop_reason: "refusal"`). `response.content[0]`를 무조건 읽는 코드는 깨집니다. `fallbacks` 파라미터로 Opus 4.8 자동 재시도를 기본 구성하세요:
+
+```python
+response = client.beta.messages.create(
+    model="claude-fable-5",
+    max_tokens=16000,
+    betas=["server-side-fallback-2026-06-01"],
+    fallbacks=[{"model": "claude-opus-4-8"}],   # 거절 시 같은 호출 내 자동 재시도
+    messages=[...],
+)
+
+if response.stop_reason == "refusal":
+    handle_refusal()          # 체인 전체가 거절한 경우
+else:
+    print(response.content[0].text)
+```
+
+### 3. 데이터 보존 요건
+
+30일 데이터 보존 필수 — ZDR(zero data retention) 조직은 **모든 요청이 400**. 요청 본문에 문제가 없는데 400이 나면 조직의 보존 설정부터 확인.
+
+### 기타
+
+- 마지막 assistant 턴 prefill 400 (4.6+ 공통)
+- raw chain of thought는 절대 반환 안 됨 — `display: "summarized"`로 요약만 수신
+- 프롬프트 작성 요령은 writing-prompts 스킬의 `claude-5-specifics.md` 참조
 
 ---
 
@@ -485,7 +570,10 @@ print(f"Output tokens: {usage.output_tokens}")
 
 ## 참고 자료
 
-- [Messages API Reference](https://docs.anthropic.com/en/api/messages)
-- [Extended Thinking Guide](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
-- [Tool Use Guide](https://docs.anthropic.com/en/docs/build-with-claude/tool-use)
-- [Vision Guide](https://docs.anthropic.com/en/docs/build-with-claude/vision)
+- [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
+- [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking)
+- [Effort Parameter](https://platform.claude.com/docs/en/build-with-claude/effort)
+- [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
+- [Refusals and Fallback](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback)
+- [Tool Use Guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
+- [Vision Guide](https://platform.claude.com/docs/en/build-with-claude/vision)

@@ -7,8 +7,6 @@ tools:
   - Bash
   - Grep
   - Glob
-model: opus
-effort: max
 ---
 
 # Build Resolver Agent

@@ -12,8 +12,8 @@ prj_dir="${prj_dir/#$HOME/\~}"
 # 모델 표시명 (괄호 접미사 제거: "Opus 4.6 (1M context)" → "Opus 4.6")
 model=$(echo "$input" | jq -r '.model.display_name // empty' | sed 's/ *(.*//')
 
-# 노력 수준(effort)
-effort=$(echo "$input" | jq -r '.output_style.name // empty')
+# 노력 수준(effort) — 미지원 모델은 필드 자체가 없어 표시 생략됨
+effort=$(echo "$input" | jq -r '.effort.level // empty')
 
 # 컨텍스트 사용률
 used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
@@ -27,8 +27,8 @@ parts=$(printf "\033[01;34m%s\033[00m" "$prj_dir")
 # 모델 (노란색)
 [ -n "$model" ] && parts="$parts $(printf "\033[0;33m%s\033[00m" "$model")"
 
-# 노력 수준 (회색, "default" 생략)
-[ -n "$effort" ] && [ "$effort" != "default" ] && parts="$parts $(printf "\033[0;37m[%s]\033[00m" "$effort")"
+# 노력 수준 (회색)
+[ -n "$effort" ] && parts="$parts $(printf "\033[0;37m[%s]\033[00m" "$effort")"
 
 # ── 2번째 줄: 컨텍스트 + rate limits ──────────
 line2=""

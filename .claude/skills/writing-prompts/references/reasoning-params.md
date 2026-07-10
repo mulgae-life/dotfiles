@@ -196,14 +196,14 @@ system_prompt: |
 
 ## 6. 모델별 팁
 
-### OpenAI (GPT-5 / 5.4)
+### OpenAI (GPT-5 / 5.6)
 
 **API 파라미터로 직접 제어**:
 
 ```python
 response = client.responses.create(
-    model="gpt-5.4",
-    reasoning={"effort": "high"},  # none, low, medium, high, xhigh (GPT-5+)
+    model="gpt-5.6-sol",
+    reasoning={"effort": "high"},  # none, low, medium, high, xhigh (+ max: 5.6, 문서 간 등재 불일치 — 실호출 확인 후 사용)
     text={"verbosity": "low"},      # low, medium, high
     instructions="...",
     input="..."
@@ -214,15 +214,17 @@ response = client.responses.create(
 - `reasoning.effort`: 추론 깊이
   - `none`: 추론 없이 실행 중심 (GPT-5.2/5.4 기본값)
   - `low`: 빠른 응답
-  - `medium`: 기본값 (GPT-5 기본값)
+  - `medium`: 기본값 (GPT-5 / 5.5 / 5.6 기본값)
   - `high`: 깊은 추론 (코딩, Agentic에 적합)
   - `xhigh`: 최대 추론 (GPT-5+, 명확한 eval 이점이 있을 때만)
+  - 5.5/5.4 → 5.6 마이그레이션: **기존 값을 baseline으로 두고 한 단계 낮춰 비교** (공식 지침)
+- `reasoning.mode`: `"pro"` (5.6 신규) — 오답 비용이 큰 지점만 선별 적용
 - `text.verbosity`: 응답 길이
   - `low`: 간결
   - `medium`: 기본값
   - `high`: 상세
 
-**GPT-5.4 프롬프트 우선 접근법**:
+**프롬프트 우선 접근법 (5.4+)**:
 
 reasoning effort를 올리기 전에 먼저 프롬프트 패턴을 추가:
 1. `<output_contract>` (출력 계약)
@@ -230,13 +232,13 @@ reasoning effort를 올리기 전에 먼저 프롬프트 패턴을 추가:
 3. `<verification_loop>` (검증 루프)
 4. 이후에도 부족하면 effort 증가
 
-→ 상세: [gpt54-patterns.md](gpt54-patterns.md)
+→ 상세: [gpt56-patterns.md](gpt56-patterns.md), [gpt54-patterns.md](gpt54-patterns.md)
 
 **자연어 오버라이드**: 전역 설정을 프롬프트에서 컨텍스트별로 재정의 가능
 
 ```python
 response = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-sol",
     text={"verbosity": "low"},  # 전역: 간결
     instructions="""
     코드 작성 시에는 높은 verbosity를 사용하세요.

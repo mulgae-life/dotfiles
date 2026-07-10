@@ -33,7 +33,7 @@
 |------|--------|------|------|
 | **활성** | 컨텍스트 윈도우 | 현재 대화 | 진행 중 작업 |
 | **세션** | `agent-guide/SESSION.md` | 세션 간 | 작업 상태, 결정사항 |
-| **교훈** | `memory/lessons.md` (auto memory) | 영구 | 실수 패턴, 에러 해결법 |
+| **교훈** | auto memory `lessons_*.md` (인덱스: `MEMORY.md`) | 영구 | 실수 패턴, 에러 해결법 |
 | **프로젝트** | `agent-guide/PROJECT.md` | 영구 | 구조, 스택, 핵심 파일 |
 
 ## 장기 세션 관리

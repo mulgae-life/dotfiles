@@ -14,6 +14,7 @@
 - [Usage 정보](#usage-정보)
 - [GPT-5.2 특화 기능](#gpt-52-특화-기능)
 - [GPT-5.4 특화 기능](#gpt-54-특화-기능)
+- [GPT-5.6 특화 기능](#gpt-56-특화-기능)
 - [마이그레이션 가이드](#마이그레이션-가이드)
 - [참고 자료](#참고-자료)
 
@@ -119,9 +120,12 @@ response = client.responses.create(
 |--------|------|-----------|
 | `none` | 추론 없음 (GPT-5.2/5.4 기본값) | 단순 질문, 빠른 응답 |
 | `low` | 최소 추론 | 간단한 작업 |
-| `medium` | 균형 (GPT-5 기본값) | 일반적인 작업 |
+| `medium` | 균형 (GPT-5/5.5/5.6 기본값) | 일반적인 작업 |
 | `high` | 깊은 추론 | 복잡한 문제 |
 | `xhigh` | 최대 추론 | 매우 어려운 문제 |
+| `max` | 5.6 신설 — 공식 문서 간 등재 불일치, 실호출 확인 후 사용 | quality-first 초고난도 |
+
+> 5.5/5.4 → 5.6 마이그레이션: 기존 effort를 baseline으로 두고 **한 단계 낮춰 비교** (공식 지침)
 
 ### Reasoning Summary (GPT-5.2+)
 
@@ -496,6 +500,60 @@ reasoning effort `none`에서만 지원되는 파라미터:
 
 ---
 
+## GPT-5.6 특화 기능
+
+> 5.6은 Sol/Terra/Luna 3티어: `gpt-5.6-sol`(플래그십, `gpt-5.6` 별칭의 라우팅 대상) / `gpt-5.6-terra`(균형) / `gpt-5.6-luna`(고속저가). 3종 공통 컨텍스트 1.05M / 최대 출력 128K.
+
+### Pro Mode
+
+별도 Pro 모델(5.4 시절) 대신 파라미터로 통합. 표준보다 더 많은 model work — 토큰·지연 증가, 과금은 표준 요율:
+
+```python
+response = client.responses.create(
+    model="gpt-5.6-sol",
+    reasoning={"mode": "pro", "effort": "medium"},
+    input="..."
+)
+```
+
+> 공식 선택 기준: "Use pro mode when a marginal quality improvement materially affects the outcome."
+
+### Reasoning Context (턴 간 추론 보존)
+
+```python
+response = client.responses.create(
+    model="gpt-5.6-sol",
+    reasoning={"context": "all_turns"},  # auto(기본) / current_turn / all_turns
+    input=[...]
+)
+```
+
+- `all_turns`: 이전 턴들의 reasoning 항목까지 렌더링 — 장기 워크플로우에서 컨텍스트 절약
+
+### Programmatic Tool Calling
+
+호스티드 JS 런타임이 한 턴 안에서 도구 호출을 오케스트레이션. 도구에 `allowed_callers`로 opt-in, 클라이언트는 `program`/`program_output` 아이템 처리 필요.
+
+### 명시적 프롬프트 캐싱
+
+`prompt_cache_retention` 대체:
+
+```python
+response = client.responses.create(
+    model="gpt-5.6-sol",
+    prompt_cache_options={"mode": "explicit", "ttl": "..."},
+    input="..."
+)
+```
+
+- **캐시 write는 uncached input의 1.25배 과금**, read는 할인 유지 → `cached_tokens`/`cache_write_tokens` 추적으로 실익 확인
+
+### safety_identifier
+
+요청마다 안정적인 프라이버시 보존 식별자 전송 — 사용자 단위 오남용 추적.
+
+---
+
 ## 마이그레이션 가이드
 
 ### Chat Completions → Responses API
@@ -534,6 +592,8 @@ response = client.responses.create(
 
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
+- [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model) ⭐ 최신 (2026-07)
+- [GPT-5.6 풀 정리 (한국어)](../../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) — 3티어 스펙·가격·마이그레이션
 - [GPT-5.2 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5-2_prompting_guide)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
-- [GPT-5.4 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/)
+- [GPT-5.4 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.4)

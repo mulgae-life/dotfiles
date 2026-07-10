@@ -25,6 +25,7 @@
 9. **[long-context-tips.md](long-context-tips.md)** - 긴 컨텍스트 활용 ⭐ (Anthropic 특화)
 
 ### 모델별 가이드
+- **[claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md)** ⭐ 최신 - Claude Fable 5 / Mythos 5 특화 (De-prescribe, effort, 장기 자율 런, refusal/fallback)
 - **[claude-4-best-practices.md](claude-4-best-practices.md)** - Claude 4.x (Sonnet 4.5, Opus 4.5, Haiku 4.5) 특화 베스트 프랙티스
 
 ## Anthropic vs OpenAI 주요 차이점
@@ -35,6 +36,7 @@
    - JSON 강제: `{"role": "assistant", "content": "{"}`
    - 캐릭터 유지: `[Sherlock Holmes]` prefill
    - OpenAI에는 없는 기능
+   - ⚠️ **Claude 4.5 이하 전용** — Fable 5·Opus 4.6+·Sonnet 4.6+에서는 400 에러, Structured Outputs로 대체
 
 2. **Long Context Tips** - 200K 토큰 활용 최적화
    - 긴 문서는 맨 위 배치 (성능 30%↑)
@@ -73,10 +75,10 @@
 2. 플랫폼별 차이점 확인
 3. 프로젝트에 맞는 기법 선택
 
-### Claude 4.x 사용 시
-1. [claude-4-best-practices.md](claude-4-best-practices.md) 먼저 읽기
-2. 모델별 권장사항 확인
-3. 핵심 9개 기법 적용
+### 모델별 가이드 선택
+- **Claude Fable 5 / Claude 5 세대**: [claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md) 먼저 읽기 — 4.x와 방향이 다른 항목(De-prescribe, prefill 불가, thinking 상시 on)에 주의
+- **Claude 4.x**: [claude-4-best-practices.md](claude-4-best-practices.md) 먼저 읽기
+- 이후 핵심 9개 기법 적용 (단, Prefilling은 Claude 4.5 이하 전용)
 
 ## 출처
 
@@ -87,8 +89,8 @@
 ## 업데이트
 
 - **최초 수집**: 2025-02-01
-- **문서 버전**: Claude 4.x (2025년 1월 기준)
-- **수집 범위**: 9개 핵심 기법 + Claude 4.x 베스트 프랙티스
+- **최근 갱신**: 2026-07-10 — Claude Fable 5 가이드 추가
+- **수집 범위**: 9개 핵심 기법 + Claude 4.x 베스트 프랙티스 + Claude Fable 5 가이드
 
 ## 관련 문서
 

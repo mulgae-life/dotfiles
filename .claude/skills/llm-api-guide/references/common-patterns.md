@@ -146,7 +146,7 @@ from anthropic import (
 def call_anthropic(client: Anthropic, message: str) -> str:
     try:
         response = client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-5",
             messages=[{"role": "user", "content": message}],
             max_tokens=1024
         )
@@ -263,7 +263,7 @@ client = Anthropic()
 
 async def generate_stream(message: str):
     with client.messages.stream(
-        model="claude-sonnet-4-5",
+        model="claude-sonnet-5",
         messages=[{"role": "user", "content": message}],
         max_tokens=1024
     ) as stream:
@@ -372,7 +372,7 @@ async_anthropic = AsyncAnthropic()
 
 async def call_anthropic_async(message: str) -> str:
     response = await async_anthropic.messages.create(
-        model="claude-sonnet-4-5",
+        model="claude-sonnet-5",
         messages=[{"role": "user", "content": message}],
         max_tokens=1024
     )
@@ -440,7 +440,7 @@ response = client.responses.create(
 
 # Anthropic
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[...],
     max_tokens=1024,
     timeout=httpx.Timeout(30.0, connect=5.0)
@@ -500,7 +500,7 @@ client = OpenAI(
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     system=[
         {
             "type": "text",
@@ -523,7 +523,7 @@ response = client.messages.create(
 # OpenAI는 자동 캐싱 — 별도 설정 불필요
 # 동일한 prefix를 반복 사용하면 자동으로 캐시 적용
 response = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-5.6-sol",
     instructions="...(긴 시스템 프롬프트, 자동 캐시)",
     input="질문"
 )
@@ -532,15 +532,16 @@ response = client.responses.create(
 print(response.usage.input_tokens_details.cached_tokens)
 ```
 
-- Cached input: 기본 입력의 **0.5배** 가격
+- Cached input: 기본 입력의 **0.1배** 가격 (5.6 기준, 티어 공통 비율)
 - Batch + Caching 조합: 최대 75% 비용 절감
+- GPT-5.6 신규: `prompt_cache_options={"mode": "explicit", "ttl": ...}`로 명시 캐싱 가능 (기존 `prompt_cache_retention` 대체) — 단 **캐시 write가 uncached input의 1.25배 과금**이므로 read 물량으로 회수되는지 확인
 
 ### 비용 비교
 
 | 제공자 | 캐싱 방식 | 캐시 할인 | 레이턴시 절감 |
 |--------|----------|----------|-------------|
 | Anthropic | 수동 (`cache_control`) | 90% | 85% |
-| OpenAI | 자동 | 50% | 상당 |
+| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (5.6 기준, 구모델 50%) | 상당 |
 | Google | 토큰 저장 기간 기반 | 상당 | 상당 |
 
 **실제 사례**: PDF 50문서 반복 분석 — 쿼리당 $3 → 캐싱 적용 후 $0.15 (95% 절감)
@@ -568,7 +569,7 @@ class WeatherResponse(BaseModel):
     description: str
 
 response = client.responses.parse(
-    model="gpt-5.4",
+    model="gpt-5.6-sol",
     input="서울 날씨 알려줘",
     text_format=WeatherResponse
 )
@@ -600,7 +601,7 @@ tools = [
 ]
 
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     messages=[{"role": "user", "content": "서울 날씨 알려줘"}],
     tools=tools,
     tool_choice={"type": "tool", "name": "format_weather"},

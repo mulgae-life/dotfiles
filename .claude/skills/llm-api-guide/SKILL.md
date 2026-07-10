@@ -40,7 +40,7 @@ Anthropic
 | **엔드포인트** | `/v1/responses` | `/v1/messages` |
 | **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
 | **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
-| **Reasoning** | `reasoning: {effort}` (5.5: `medium` 권장 출발점, 많은 워크로드는 `low`도 충분 / 5.4 이전: 작업 형태별 매트릭스) | 모델 자체 기능 (extended thinking) |
+| **Reasoning** | `reasoning: {effort}` (5.6/5.5 기본 `medium`; 5.5→5.6 마이그레이션은 기존 effort서 한 단계 하향 비교. 5.6 신규: `reasoning.mode: "pro"`, `reasoning.context`) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5는 항상 켜짐, `budget_tokens`는 구모델 전용) |
 | **스트리밍** | `stream: true` | `stream: True` |
 | **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 |
 
@@ -52,7 +52,7 @@ Anthropic
 |------|----------|------------|
 | 클라이언트 초기화 | 앱 수명주기로 관리, 요청마다 생성 금지 | `references/common-patterns.md` |
 | Message Roles | system/user/assistant 역할 분리, 우선순위 준수 | 각 API references |
-| Reasoning | OpenAI: `reasoning.effort`, Anthropic: extended thinking `budget_tokens` | 각 API references |
+| Reasoning | OpenAI: `reasoning.effort`, Anthropic: adaptive thinking + `output_config.effort` (구모델만 `budget_tokens`) | 각 API references |
 | 스트리밍 | SSE 기반, 청크 조립 + 에러 핸들링 | `references/common-patterns.md` |
 | 에러 핸들링 | 타입별 분기 + 지수 백오프 재시도 | `references/common-patterns.md` |
 | 대화 이력 | OpenAI: `previous_response_id`, Anthropic: 수동 메시지 배열 관리 | 각 API references |
@@ -98,12 +98,14 @@ Anthropic
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
-- [GPT-5.5 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/) ⭐ 최신 (2026-04)
-- [Using GPT-5.5](https://developers.openai.com/api/docs/guides/latest-model)
-- [GPT-5.4 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.4)
+- [GPT-5.6 풀 정리 (한국어)](../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) ⭐ 최신 (2026-07) — 3티어 스펙·가격·신규 파라미터
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/) ⭐ 최신 (2026-07)
+- [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model)
+- [GPT-5.5 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.5)
 
 ### Anthropic
 
-- [Messages API Reference](https://docs.anthropic.com/en/api/messages)
-- [Extended Thinking Guide](https://docs.anthropic.com/en/docs/build-with-claude/extended-thinking)
-- [Tool Use Guide](https://docs.anthropic.com/en/docs/build-with-claude/tool-use)
+- [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
+- [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (4.6+/Fable 5)
+- [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5) — refusal/fallback·30일 보존 등 통합 시 필독
+- [Tool Use Guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)

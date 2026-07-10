@@ -7,8 +7,6 @@ tools:
   - Glob
   - Grep
   - Bash
-model: opus
-effort: max
 memory: project
 ---
 

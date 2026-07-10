@@ -7,8 +7,6 @@ tools:
   - Grep
   - WebFetch
   - WebSearch
-model: opus
-effort: max
 ---
 
 # Planner Agent
