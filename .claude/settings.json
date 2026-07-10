@@ -348,7 +348,7 @@
       "Bash(poweroff)",
       "Bash(halt)"
     ],
-    "defaultMode": "default"
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PreToolUse": [
