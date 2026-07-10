@@ -327,7 +327,8 @@ DANGEROUS_PATTERNS=(
   'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'checkout\b'
   'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'switch\b'
   'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'restore\b'
-  'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'stash\b'
+  # stash: list/show(조회)는 allow, push/pop/apply/drop/clear/branch/create/store·옵션(-u 등)·단독(=push)만 ask
+  'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'stash([[:blank:]]+(push|save|pop|apply|drop|clear|branch|create|store)\b|[[:blank:]]+-|[[:blank:]]*$)'
   'GIT_STATE:\bgit[[:blank:]]+'"$SKIP"'add\b'
 
   # GitHub CLI 쓰기

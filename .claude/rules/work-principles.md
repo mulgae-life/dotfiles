@@ -20,7 +20,7 @@
 - **훅 ask 발동 명령 사용 금지**: 아래 명령은 hook이 사용자 승인(`ask`)을 발동시켜 **자율 작업 흐름이 중단됩니다**. 자율 작업 중 시도 자체 금지 — 필요하면 사용자에게 먼저 묻고, 사용자가 직접 요청한 경우에만 ask로 진행:
   - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate` — 보존 원칙상 `.archive/`로 `mv`가 기본
   - **Git 쓰기**: `push`, `commit`, `reset`, `clean`, `rebase`, `merge`, `cherry-pick`, `revert`, `am`, `apply`, `branch -d/-D`, `tag -d/-f`
-  - **Git 상태 변경**: `checkout`, `switch`, `restore`, `stash`, `add` — working tree·staging 변경
+  - **Git 상태 변경**: `checkout`, `switch`, `restore`, `stash`(단, `stash list`/`stash show` 조회는 제외), `add` — working tree·staging 변경
   - **GitHub CLI 쓰기**: `gh pr/issue/release create·close·delete·merge·edit·comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`-F`/`--field`/`--raw-field`/`--input`), `gh auth login/logout`
   - **시스템**: `sudo`, `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`
   - **in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf`, `chmod`, `chown` — 파일 수정은 Read+Edit 도구 사용
