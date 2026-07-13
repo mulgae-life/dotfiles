@@ -146,7 +146,12 @@ safe_merge_json() {
     rm -f "$tmp"
   fi
 
-  # jq 실패 시 폴백
+  # jq 부재/병합 실패 폴백: 레포=정본 원칙대로 덮어쓰되, 이 함수의 계약(런타임 전용 필드
+  # 보존 — 예: Gemini security.auth.selectedType)이 깨지므로 기존 파일을 백업 후 복사
+  if ! $DRY_RUN; then
+    cp "$dst" "${dst}.pre-merge.bak"
+    warn "JSON 병합 불가 → 덮어쓰기 폴백. 기존 파일 백업: ${dst}.pre-merge.bak (런타임 필드 필요 시 수동 병합)"
+  fi
   safe_copy "$src" "$dst"
 }
 

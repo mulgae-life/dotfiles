@@ -113,20 +113,67 @@ _is_fileop_first() {
 
 _tmp_targets_ok() {
   # 인자: $1=명령 문자열, $2=모드(abs_only|tmp_relative)
-  # 절대경로(/...)·홈(~...) 토큰만 검사 — 옵션/mode/size/스크립트 인자는 자동 무시
   # 서브셸 + set -f 로 glob(/tmp/*) 확장을 막아 hook cwd 오염을 방지
+  #
+  # tmp_relative(케이스2·3·5): cwd=/tmp가 체인으로 보장 → 상대경로도 /tmp 하위.
+  #   비-/tmp 절대경로·홈(~)만 거부하고 bare 토큰은 무시.
+  # abs_only(케이스1·4): cwd 미상(프로젝트일 수 있음) → bare 상대 토큰이 프로젝트 파일일 수
+  #   있다. v2.5까지는 bare를 전부 옵션/인자로 간주해 무시했으나 `rm 상대파일 /tmp/x`가
+  #   통과하는 혼합 대상 구멍이 됨(2026-07-10 리뷰). v2.6: 명령별 positional 문법으로
+  #   정당한 비경로 bare(mode/owner/size/스크립트/find 표현식)만 소거하고, 남는 bare는
+  #   상대경로 대상으로 보고 거부. 소거 판정이 애매한 형태는 거부(과탐=안전측, ask로 폴백).
   ( set -f
-    local found_tmp=0 tok
-    for tok in $1; do
+    local mode="$2" found_tmp=0 tmp_count=0 tok
+    if [[ "$mode" == tmp_relative ]]; then
+      for tok in $1; do
+        case "$tok" in
+          /tmp/?*) : ;;            # /tmp 하위 절대경로
+          /*)      exit 1 ;;       # 그 외 절대경로 → 프로젝트/시스템 대상, 거부
+          '~'*)    exit 1 ;;       # 홈 확장 거부
+        esac
+      done
+      exit 0
+    fi
+    # ── abs_only: 명령별 bare 토큰 소거 규칙 ──
+    set -- $1
+    [[ $# -ge 1 ]] || exit 1
+    local name="$1"; shift
+    local consumed=0   # chmod/chown/sed/awk: 첫 bare 1개(mode/owner/스크립트) 소거 여부
+    local in_expr=0    # find: 첫 '-' 토큰 이후 = 표현식 영역 (경로 positional 종료)
+    local expect_val=0 # truncate -s 등 분리형 값 옵션의 다음 토큰 소거
+    for tok in "$@"; do
+      if [[ $expect_val -eq 1 ]]; then expect_val=0; continue; fi
       case "$tok" in
-        /tmp/?*) found_tmp=1 ;;  # /tmp 하위 절대경로
-        /*)      exit 1 ;;       # 그 외 절대경로 → 프로젝트/시스템 대상, 거부
-        '~'*)    exit 1 ;;       # 홈 확장 거부
+        /tmp/?*) found_tmp=1; tmp_count=$((tmp_count+1)); continue ;;
+        /*|'~'*) exit 1 ;;
+      esac
+      case "$name" in
+        find)
+          # find [경로...] [표현식...]: 첫 '-' 전의 bare는 검색 경로 → /tmp 아니면 거부
+          if [[ "$tok" == -* ]]; then in_expr=1; continue; fi
+          [[ $in_expr -eq 1 ]] && continue   # 표현식 인자(-name foo 등)는 경로 아님
+          exit 1 ;;
+        truncate)
+          if [[ "$tok" == -s || "$tok" == --size ]]; then expect_val=1; continue; fi
+          [[ "$tok" == -* ]] && continue
+          exit 1 ;;                           # 값 옵션 밖 bare = 파일 대상 → 거부
+        chmod|chown|sed|awk|gawk)
+          [[ "$tok" == -* ]] && continue
+          if [[ $consumed -eq 0 ]]; then consumed=1; continue; fi  # mode/owner/스크립트
+          exit 1 ;;                           # 두 번째 bare부터는 파일 대상 → 거부
+        *)
+          # rm/rmdir/unlink/shred/ln: 모든 positional이 경로 → bare 상대 토큰 즉시 거부
+          [[ "$tok" == -* ]] && continue
+          exit 1 ;;
       esac
     done
-    if [[ "$2" == abs_only ]]; then
-      [[ $found_tmp -eq 1 ]]     # 명시적 /tmp 절대경로 대상 최소 1개 필수
-    fi )                         # tmp_relative: 비-/tmp 절대경로만 없으면 통과
+    # ln -sf /tmp/a 단독형은 cwd(프로젝트일 수 있음)에 링크를 생성 → TARGET·LINK 둘 다
+    # /tmp 명시(2개 이상)를 요구. 그 외 명령은 /tmp 대상 최소 1개.
+    if [[ "$name" == ln ]]; then
+      [[ $tmp_count -ge 2 ]]
+    else
+      [[ $found_tmp -eq 1 ]]
+    fi )
 }
 
 is_tmp_scoped() {
@@ -234,7 +281,7 @@ is_tmp_scoped_chain() {
 # 안전 근거: 절대경로는 cwd가 어디로 이동했든 항상 같은 파일을 가리키므로, 케이스2·3처럼
 # "cwd가 /tmp임"을 보장할 필요가 없다. 선행 세그먼트(cd 실패·비-/tmp cd 등)는 판정에 무관.
 # 세그먼트 내 $·리다이렉트·`..`는 여전히 거부 — 런타임 확장/탈출로 /tmp 밖을 겨냥할 수 있으므로.
-# (상대경로 인자는 케이스1과 동일하게 옵션/스크립트 인자로 간주되어 미검사 — 기존 정책 유지)
+# (bare 상대 토큰은 케이스1과 동일하게 v2.6 명령별 positional 문법으로 검사 — 혼합 대상 거부)
 is_tmp_scoped_abs() {
   local seg="$1"
   [[ "$seg" == *".."* ]] && return 1

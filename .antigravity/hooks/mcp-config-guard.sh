@@ -19,7 +19,12 @@ parse_path() {
 
 TARGET=$(parse_path)
 
-if [[ "$TARGET" == *"/.agent/mcp_config.json"* ]] || [[ "$TARGET" == *"/.agents/mcp_config.json"* ]]; then
+# 선두 상대경로(.agent/...)와 중간 경로(*/.agent/...) 모두 매칭 — 상대경로 전달 시 우회 방지 (2026-07-10)
+case "$TARGET" in
+  .agent/mcp_config.json*|*/.agent/mcp_config.json*|.agents/mcp_config.json*|*/.agents/mcp_config.json*) MATCHED=1 ;;
+  *) MATCHED=0 ;;
+esac
+if [[ "$MATCHED" -eq 1 ]]; then
   REASON="MCP 설정 파일(.agent/mcp_config.json) 변경입니다. 이 경로는 글로벌 디렉토리로 자동 복사되는 영속 백도어 벡터로 보고됨(Mindgard). 사용자 명시 승인 후에만 변경하세요. 신뢰할 수 없는 레포에서는 거부 권장."
   if command -v jq &>/dev/null; then
     jq -nc --arg r "$REASON" '{hookSpecificOutput:{hookEventName:"before_tool_call",permissionDecision:"ask",permissionDecisionReason:$r}}'

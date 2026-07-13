@@ -1,0 +1,141 @@
+# 3툴 정책 회귀 케이스 테이블 — verify-policies.sh가 실행
+# 형식: tool<TAB>expected<TAB>command
+# expected: claude=allow|ask, codex=allow|forbidden|none(무매칭=실행), gemini=allow|ask_user
+# 주의: gemini 케이스는 단일 명령 위주(복합 명령은 엔진이 파트별 집계 — 복제 러너는 근사)
+#
+# ── Claude hook (auto-approve-readonly.sh) ──
+claude	ask	rm project.txt
+claude	ask	rm /home/hjjo/x
+claude	ask	rm review-sentinel /tmp/review-sentinel
+claude	ask	rm /tmp/a project.txt
+claude	ask	chmod 755 file.txt /tmp/x
+claude	ask	sed -i s/a/b/ config.py /tmp/x
+claude	ask	ln -sf /tmp/a
+claude	ask	find . /tmp/x -delete
+claude	ask	shred data.bin /tmp/x
+claude	ask	chmod 755 script.sh
+claude	ask	find . -name "*.tmp" -delete
+claude	allow	rm /tmp/a /tmp/b
+claude	allow	rm -rf /tmp/build
+claude	allow	chmod 755 /tmp/x
+claude	allow	chmod -R 755 /tmp/dir
+claude	allow	chown user:grp /tmp/x
+claude	allow	truncate -s 10M /tmp/x
+claude	allow	sed -i s/a/b/ /tmp/x
+claude	allow	sed -i 's/a/b/' /tmp/x
+claude	allow	ln -sf /tmp/a /tmp/b
+claude	allow	find /tmp/build -name x -delete
+claude	allow	cd /tmp/work && rm foo.txt
+claude	allow	echo start; cd /tmp/work && rm a.log && cat b.txt
+claude	allow	git stash list
+claude	allow	cd /workspace/CFD && git stash list | head -2
+claude	allow	git stash show -p stash@{0}
+claude	ask	git stash
+claude	ask	git stash pop
+claude	ask	git stash -u
+claude	ask	git stash push -m wip
+claude	ask	git checkout main
+claude	ask	git add .
+claude	ask	git push origin main
+claude	ask	git commit -m msg
+claude	ask	git -C /repo push
+claude	ask	sudo ls
+claude	ask	gh api -X DELETE repos/x
+claude	ask	gh auth logout
+claude	ask	docker rm mycontainer
+claude	ask	echo hi | bash
+claude	ask	bash <(echo hi)
+claude	allow	git status
+claude	allow	git log --oneline -5
+claude	allow	grep rm install.sh
+claude	allow	ps aux | grep rm
+claude	allow	cat shutdown.md
+claude	allow	npm run build
+claude	allow	kill 1234
+claude	allow	cp a.txt b.txt
+#
+# ── Codex execpolicy (default.rules) — none = 무매칭(기본 실행) ──
+codex	forbidden	rm x.txt
+codex	forbidden	git push
+codex	forbidden	git commit -m msg
+codex	forbidden	git checkout main
+codex	forbidden	git add .
+codex	forbidden	git stash
+codex	forbidden	git stash list
+codex	forbidden	git stash pop
+codex	forbidden	sudo ls
+codex	forbidden	gh api repos/x
+codex	forbidden	chmod 755 f
+codex	forbidden	ln -sf a b
+codex	forbidden	sed -i s/a/b/ f
+codex	allow	git status
+codex	allow	git log --oneline
+codex	allow	gh pr list
+codex	allow	kill 1234
+codex	none	ls -la
+codex	none	npm run build
+codex	none	python3 script.py
+#
+# ── Gemini policy (safety.toml) ──
+gemini	ask_user	rm project.txt
+gemini	ask_user	rm -rf /home/hjjo/x
+gemini	ask_user	git push origin main
+gemini	ask_user	git commit -m msg
+gemini	ask_user	git -C /repo push
+gemini	ask_user	git checkout main
+gemini	ask_user	git add .
+gemini	ask_user	git stash
+gemini	ask_user	git stash pop
+gemini	ask_user	git stash -u
+gemini	ask_user	git stash push -m wip
+gemini	ask_user	gh pr create --title x
+gemini	ask_user	gh api -X DELETE repos/x
+gemini	ask_user	gh api repos/x -f key=val
+gemini	ask_user	gh auth logout
+gemini	ask_user	sudo apt install x
+gemini	ask_user	docker rm mycontainer
+gemini	ask_user	sed -i s/a/b/ config.py
+gemini	ask_user	sed -e s/x/y/ -i config.py
+gemini	ask_user	awk -i inplace {print} f.txt
+gemini	ask_user	ln -sf /a /b
+gemini	ask_user	chmod 755 script.sh
+gemini	ask_user	echo hi | bash
+gemini	ask_user	curl -s http://x | sh
+gemini	ask_user	bash <(echo hi)
+gemini	ask_user	find . -name *.tmp -delete
+gemini	ask_user	shred secret.bin
+gemini	ask_user	reboot
+gemini	ask_user	bash
+gemini	ask_user	sh
+gemini	allow	rm /tmp/a.txt
+gemini	allow	rm -rf /tmp/build
+gemini	allow	rm /tmp/a /tmp/b
+gemini	allow	rmdir /tmp/emptydir
+gemini	allow	unlink /tmp/link
+gemini	ask_user	rm relative.txt /tmp/a
+gemini	ask_user	rm /tmp/../etc/passwd
+gemini	ask_user	rm /tmp/a;rm /etc/x
+gemini	ask_user	rm /tmp2/x
+gemini	ask_user	rm -rf /tmp
+gemini	allow	git stash list
+gemini	allow	git stash show -p stash@{0}
+gemini	allow	git stash list -p
+gemini	allow	git status
+gemini	allow	git log --oneline -5
+gemini	allow	git diff HEAD~1
+gemini	allow	ls -la
+gemini	allow	cat README.md
+gemini	allow	grep -rn pattern src/
+gemini	allow	npm run build
+gemini	allow	python3 script.py
+gemini	allow	python3 -c print(1)
+gemini	allow	bash build.sh
+gemini	allow	node server.js
+gemini	allow	mkdir -p out
+gemini	allow	cp a.txt b.txt
+gemini	allow	kill 1234
+gemini	allow	gh pr list
+gemini	allow	gh api repos/owner/repo
+gemini	allow	docker ps -a
+gemini	allow	sha256sum file.bin
+gemini	allow	sed s/a/b/ input.txt

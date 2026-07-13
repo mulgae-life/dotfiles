@@ -61,7 +61,10 @@ prefix_rule(pattern = ["git", "tag", ["-d", "-f", "--delete"]],    decision = "f
 # work-principles.md 정합: stash·add도 "Git 상태 변경" 카테고리로 통일
 # checkout/switch: 브랜치 전환 시 작업 컨텍스트 손실 + detached HEAD 위험
 # restore: working tree 변경 폐기 위험
-# stash: working tree 비우는 상태 변경 (list/show 포함 전체 차단)
+# stash: list/show 포함 전체 차단 — Claude(hook)·Gemini(policy)는 조회를 allow로 분리했으나
+#   Codex는 불가(0.144.1 실측): forbidden이 더 긴 prefix의 allow보다 항상 우선하고,
+#   서브커맨드 열거 forbidden 방식은 미열거 형태(단독 stash·--all 등)가 기본 통과(무규칙=실행)로
+#   새는 구조라 fail-safe 위반. 도구 간 의도적 차이로 문서화 (조회 필요 시 git log 등으로 대체)
 # add: staging 상태 변경
 prefix_rule(pattern = ["git", "checkout"], decision = "forbidden", justification = _MSG_GIT_STATE)
 prefix_rule(pattern = ["git", "switch"],   decision = "forbidden", justification = _MSG_GIT_STATE)

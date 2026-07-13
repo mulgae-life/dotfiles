@@ -40,7 +40,8 @@ def validate_skill(skill_path):
 
     # Define allowed properties
     # when_to_use: Claude Code Skills 공식 필드. skill-creator 원본에서 누락되어 있어 보강.
-    ALLOWED_PROPERTIES = {'name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility', 'when_to_use'}
+    # model/effort: Claude Code 전용 확장 필드(타 도구는 무시, 실측 검증) — 레포 스킬 3종이 사용 중
+    ALLOWED_PROPERTIES = {'name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility', 'when_to_use', 'model', 'effort'}
 
     # Check for unexpected properties (excluding nested keys under metadata)
     unexpected_keys = set(frontmatter.keys()) - ALLOWED_PROPERTIES
