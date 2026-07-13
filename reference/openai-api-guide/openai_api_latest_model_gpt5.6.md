@@ -40,7 +40,7 @@ Context window and output
 
 All three model cards list identical context window, max output, and knowledge cutoff (re-verified against the Sol/Terra/Luna cards on 2026-07-13; an earlier revision of this doc wrongly listed Luna at 400K).
 
-> **Codex client note** (codex-cli 0.144.1 embedded registry, 2026-07-13): inside Codex, the client-side context window is **372,000 tokens for all three tiers** (GPT-5.5 was 272,000) — the ~1M window above applies to the raw API. Codex product defaults also differ from the API default `medium`: Sol starts at `low` ("Sol is highly capable at lower reasoning efforts — try starting lower, then turn it up for harder jobs"), Terra/Luna at `medium`.
+> **Codex client note** (2026-07-13, codex-cli 0.144.1): client-side model values are **volatile — check the live server cache** (`~/.codex/models_cache.json`) instead of citing them as fixed. Live cache (fetched 2026-07-13): context window **272,000 tokens and default effort `medium` for all three tiers** (272K matches the long-context billing threshold). The binary's offline-fallback registry differs (372K, Sol default `low`) — treat those as staged values, not current behavior. Both sources agree on effort sets and `multi_agent_version` (Sol/Terra v2, Luna v1); `minimal_client_version: "0.144.0"` appears only in the embedded registry (the live cache omits the field — the 0.144.0 minimum is separately documented by OpenAI). Sol's onboarding copy in both: "Sol is highly capable at lower reasoning efforts — try starting lower, then turn it up for harder jobs." The ~1M window above applies to the raw API.
 
 Pricing
 -------
@@ -85,7 +85,7 @@ Default is `medium` for GPT-5.6 (both standard and pro modes).
 
 > API-supported values for GPT-5.6 are `none|low|medium|high|xhigh|max` per the latest-model guide and all three model cards. ⚠️ Cross-doc gap persists (2026-07-13): the reasoning guide's enum still lists `none, low, medium, high, xhigh` **without `max`** — validators built on that page may reject `max`. Naming duality: the API's minimum is `none`, while the Codex config's minimum is called `minimal` (no `none` in Codex config, no `minimal` in the API).
 >
-> Codex product: also offers Max, and Sol/Terra additionally expose `ultra` ("maximum reasoning with automatic task delegation" — parallel subagents; Luna has no ultra). The official `config.toml` reference lists the `model_reasoning_effort` enum as `minimal|low|medium|high|xhigh`; locally verified (codex-cli 0.144.1), the client does not validate this enum — the value passes through to the API, and the embedded per-tier registry lists `low|medium|high|xhigh|max(+ultra)`. Prefer selecting Max/Ultra in the product's model picker instead of pinning them in global TOML.
+> Codex product: also offers Max, and Sol/Terra additionally expose `ultra` ("maximum reasoning with automatic task delegation" — parallel subagents; Luna has no ultra). The official `config.toml` reference lists the `model_reasoning_effort` enum as `minimal|low|medium|high|xhigh`; locally verified (codex-cli 0.144.1), the client does not validate this enum — the value passes through to the API, and both the live model cache and the embedded fallback registry list `low|medium|high|xhigh|max(+ultra)` per tier. Prefer selecting Max/Ultra in the product's model picker instead of pinning them in global TOML.
 
 ### Reasoning Mode (new)
 
@@ -136,7 +136,7 @@ Implicit caching remains available without code changes. `prompt_cache_options.m
 
 The Responses API exposes multi-agent orchestration as a beta ("Multi-agent is available as a beta feature with all GPT-5.6 models") — enable with the `OpenAI-Beta: responses_multi_agent=v1` header; default `max_concurrent_subagents` is 3. Codex surfaces parallel subagents as Ultra rather than a separate model (subagents are trained to cooperate and can communicate with each other during a task). OpenAI's Codex model guide states that most tasks do not need Max or Ultra; use Ultra only when work divides into meaningful independent parts.
 
-Cost/reliability caveats (community-verified 2026-07-13): reported gains are modest relative to cost — Terminal-Bench 2.1 goes 88.8% (Sol) → 91.9% (Ultra, 4 parallel subagents) while third-party aggregations report **6–12× tokens per task**, amplified by a harness over-spawn bug and by openai/codex #31814 (a Sol main session cannot route subagents to a cheaper tier — they all run Sol). METR rates Sol's reward-hacking rate the "highest of any public model it has assessed" — attach that caveat when citing agentic benchmark numbers. Validate multipliers on representative tasks.
+Cost/reliability caveats (2026-07-13): reported gains are modest relative to cost — Terminal-Bench 2.1 goes 88.8% (Sol) → 91.9% (Ultra, 4 parallel subagents) while third-party analysis ([tokenkarma](https://tokenkarma.app/blog/codex-sol-ultra-subagent-token-cost-2026/)) reports **6–12× tokens per task**, amplified by a harness over-spawn bug and by openai/codex #31814 (a Sol main session cannot route subagents to a cheaper tier — they all run Sol). [METR's predeployment evaluation](https://metr.org/blog/2026-06-26-gpt-5-6-sol/) found Sol gamed its SW-engineering eval at the highest rate of any publicly tested model in METR's history — the time-horizon estimate collapsed to an unusable 11h–270h+ range. Attach that caveat when citing agentic benchmark numbers, and validate multipliers on representative tasks.
 
 ### safety_identifier
 
@@ -191,5 +191,5 @@ Sources
 - [Codex models | OpenAI](https://learn.chatgpt.com/docs/models)
 - [Codex configuration reference | OpenAI](https://learn.chatgpt.com/docs/config-file/config-reference)
 - [GPT-5.6 in ChatGPT and Codex | OpenAI Help](https://help.openai.com/en/articles/20001354-gpt-56-in-chatgpt)
-- [GPT-5.6 system card (preview)](https://deploymentsafety.openai.com/gpt-5-6-preview)
+- [GPT-5.6 system card (final, 2026-07-09)](https://deploymentsafety.openai.com/gpt-5-6)
 - 프롬프팅 상세: [GPT-5.6 Prompting Guide](../openai-prompt-guide/gpt-5.6-prompt-guide.md)

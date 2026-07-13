@@ -45,7 +45,7 @@ OpenAI 내부 코딩 에이전트 평가에서는 더 간결한 시스템 프롬
 
 - `gpt-5.6`은 별칭으로 **Sol로 라우팅**된다
 - 3종 공통: 컨텍스트 1,050,000 토큰 / 최대 출력 128,000 / knowledge cutoff 2026-02-16 (모델 카드 3종 재검증 2026-07-13 — 이전 판의 "Luna 400K" 표기는 오류였음)
-- Codex 클라이언트 내부 윈도우는 3종 모두 372K로 API와 별개 (codex-cli 0.144.1 내장 레지스트리)
+- Codex 클라이언트 윈도우는 API와 별개이며 **변동 가능** — 라이브 서버 캐시(`~/.codex/models_cache.json`, 2026-07-13) 기준 3종 모두 272K(장문 과금 임계값과 일치). 바이너리 오프라인 폴백에는 372K로 다르게 잡혀 있으므로, 인용 전 라이브 캐시를 확인
 - 티어 선택의 비용 레버리지는 effort 튜닝보다 크다 — Luna는 Sol 대비 단가 1/5 (위 가격표)
 - ⚠️ "price-per-million 비교는 무의미해지는 중" — reasoning 토큰 수가 모델·effort마다 달라 실청구액이 갈린다. 대표 작업으로 실측 비교할 것 (Willison)
 
@@ -73,7 +73,7 @@ OpenAI 내부 코딩 에이전트 평가에서는 더 간결한 시스템 프롬
 
 - **기본값: `medium`** (standard·pro 모드 공통, API 기준)
 - GPT-5.6 지원 레벨: `none`, `low`, `medium`, `high`, `xhigh`, `max` — 단 ⚠️ reasoning 가이드의 열거에는 2026-07-13 현재 `max`가 미반영(latest-model 가이드·모델 카드에는 등재). 그 페이지 기준으로 검증하는 도구는 `max`를 거부할 수 있음
-- **Codex 제품 기본값은 API와 다릅니다** — Sol `low`, Terra/Luna `medium` (codex-cli 0.144.1 내장 레지스트리 실측, 2026-07-13). 공식 안내문도 "Sol is highly capable at lower reasoning efforts — try starting lower, then turn it up for harder jobs"로 낮게 시작을 권합니다. Sol·Terra는 `ultra`(자동 작업 위임을 포함한 최대 추론)도 노출하며 Luna에는 없습니다.
+- **Codex 제품 기본 effort는 서버가 내려주는 모델 메타데이터가 결정하며 변동 가능** — 라이브 서버 캐시(2026-07-13) 기준 3티어 모두 `medium`(API 기본과 동일), 바이너리 오프라인 폴백에는 Sol `low`로 낮춰 잡혀 있음. 온보딩 문구는 양쪽 모두 "Sol is highly capable at lower reasoning efforts — try starting lower, then turn it up for harder jobs". Sol·Terra는 `ultra`(자동 작업 위임을 포함한 최대 추론)도 노출하며 Luna에는 없습니다(캐시·폴백 일치).
 - Codex 제품은 Max를 지원하지만, 2026-07-13 현재 공식 `config.toml`의 `model_reasoning_effort` 열거형은 `minimal|low|medium|high|xhigh`로 표기되어 있어 Max는 모델 선택 화면에서 사용하고 전역 TOML 값으로 고정하지 않습니다.
 
 | 설정 | 5.6 권장 사용 |
@@ -185,8 +185,8 @@ Stop rules: 재시도·fallback·질문·중단 조건
 
 - 펠리컨 SVG 전수 비교: 3티어 × effort 6레벨(`max` 포함) 18종. 비용 범위는 Luna none 0.71¢ ~ Sol max 48.55¢ (약 68배 스프레드 — 개별 수치는 본문이 아닌 링크된 비교표에 있음)
 - 코딩 비교(원문): "it's definitely very competent, though so far it hasn't struck me as better than Fable at the kind of complex coding tasks I've been using with Anthropic's model"
-- SWE-Bench Pro: Fable 5 **80.3%는 공식**, **Sol 64.6%는 서드파티 추정**(OpenAI 공식 점수 미공개). OpenAI는 별도 감사 *Separating signal from noise in coding evaluations*에서 "30% of SWE-Bench Pro tasks to be broken"을 발표하고 기존 권고를 철회 — 단 GPT-5.6 출시와 동시 발표라 이해충돌 비판이 병존. 모델 선택은 한 벤치마크가 아니라 실제 업무 평가로 결정합니다.
-- 에이전틱 벤치마크(Terminal-Bench 2.1: Sol 88.8% → Ultra 91.9%, 병렬 서브에이전트 4개) 인용 시 주의: METR은 Sol의 리워드 해킹 비율을 "highest of any public model it has assessed"로 평가 — 수치에 이 신뢰성 단서를 함께 붙입니다.
+- SWE-Bench Pro: GPT-5.6 3티어는 **64.6 / 63.4 / 62.7%로 공개 수치**입니다(발표 차트·리더보드 — 이 문서 이전 판의 "서드파티 추정" 표기는 오류였음). Claude 최상위는 80.0~80.3%로 보도되나 Fable 5/Mythos 5(동일 기반 모델) 간 소수점 귀속이 출처마다 갈립니다. OpenAI는 별도 감사 *Separating signal from noise in coding evaluations*에서 "30% of SWE-Bench Pro tasks to be broken"을 발표하고 기존 권고를 철회 — 단 GPT-5.6 출시와 동시 발표라 이해충돌 비판이 병존. 모델 선택은 한 벤치마크가 아니라 실제 업무 평가로 결정합니다.
+- 에이전틱 벤치마크(Terminal-Bench 2.1: Sol 88.8% → Ultra 91.9%, 병렬 서브에이전트 4개) 인용 시 주의: [METR 사전배포 평가](https://metr.org/blog/2026-06-26-gpt-5-6-sol/)는 Sol의 평가 게이밍(리워드 해킹)을 자사가 공개 시험한 모델 중 최고 비율로 기록했고, time-horizon 추정이 11시간~270시간+로 벌어져 산정 불능이었습니다 — 수치에 이 신뢰성 단서를 함께 붙입니다.
 
 ---
 
@@ -194,9 +194,9 @@ Stop rules: 재시도·fallback·질문·중단 조건
 
 아래 내용은 통제된 평가가 아닌 커뮤니티 초기 후기입니다(개별 Reddit 스레드는 미검증 — 서드파티 집계로 교차 확인). 설정 기본값의 근거로 사용하지 않습니다.
 
-- **실행력 vs 분별력**: Sol은 실행력·장기 완주("rottweiler that grabs the problem and doesn't let go"), Fable 5는 분별력·질문 설계("wise owl")가 강점이라는 대비가 중론 — 엔드투엔드 코드베이스 판단은 Fable 우위, 물고 늘어지는 완주는 Sol 강점. 하이브리드 워크플로우 권장.
+- **실행력 vs 분별력**: 커뮤니티 총평은 Sol이 실행력·장기 완주(문제를 물고 늘어져 끝까지 감), Fable 5가 분별력·질문 설계·엔드투엔드 코드베이스 판단에서 앞선다는 대비 — 하이브리드 워크플로우 권장 (집계 기사 기준, 개별 후기 원문 미검증).
 - **품질 평가는 혼재**: 프론트엔드 격차가 대부분 해소됐다(일부 "동급")는 평과 여전히 약하다는 후기가 공존합니다. Sol에서 후속 지시가 더 필요하다는 보고도 있습니다.
-- **사용량 우려**: Ultra·서브에이전트 작업은 태스크당 토큰 6~12× 소모라는 서드파티 집계가 있고, 하네스 버그로 서브에이전트가 과다 스폰된 사례도 보고됩니다. 배율은 작업 의존이므로 대표 작업으로 실측합니다.
+- **사용량 우려**: Ultra·서브에이전트 작업은 태스크당 토큰 6~12× 소모라는 서드파티 분석([tokenkarma](https://tokenkarma.app/blog/codex-sol-ultra-subagent-token-cost-2026/))이 있고, 하네스 버그로 서브에이전트가 과다 스폰된 사례도 보고됩니다. 배율은 작업 의존이므로 대표 작업으로 실측합니다.
 - **설정 우회는 미채택**: "272K"는 강제 컨텍스트 창이 아니라 **과금 임계값**입니다 — 272K 초과 입력은 전체 요청이 입력 2×·출력 1.5×로 과금되며, 기본 설정에서 자동 초과 위험이 보고됨(openai/codex #32486). `[features.multi_agent_v2]`는 실재 플래그지만 쿼터 절감 근거가 없고, Sol은 서브에이전트 모델 지정이 안 되는 이슈(#31814 — 전부 Sol로 실행)와 결합해 비용을 증폭시킬 수 있어 이 저장소에는 반영하지 않습니다.
 - **실무 결론**: 기본 단일 에이전트로 시작하고, 독립 작업으로 분해할 수 있으며 비용 증가를 정당화할 때만 서브에이전트를 사용합니다("요청 시에만 스폰" 지침이 실증적으로 유효). 대표 작업 평가에서 완료율·총토큰·지연·재시도 횟수를 함께 비교합니다.
 
@@ -241,7 +241,8 @@ response = client.responses.create(
 - [GPT-5.6 in ChatGPT and Codex | OpenAI Help](https://help.openai.com/en/articles/20001354-gpt-56-in-chatgpt)
 - [Reasoning | OpenAI API](https://developers.openai.com/api/docs/guides/reasoning)
 - [gpt-5.6-sol](https://developers.openai.com/api/docs/models/gpt-5.6-sol) · [gpt-5.6-terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra) · [gpt-5.6-luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna)
-- [GPT-5.6 시스템 카드 (preview)](https://deploymentsafety.openai.com/gpt-5-6-preview)
+- [GPT-5.6 시스템 카드 (최종, 2026-07-09)](https://deploymentsafety.openai.com/gpt-5-6)
+- [METR: GPT-5.6 Sol 사전배포 평가](https://metr.org/blog/2026-06-26-gpt-5-6-sol/)
 - [The new GPT-5.6 family | Simon Willison (2026-07-09)](https://simonwillison.net/2026/Jul/9/gpt-5-6/)
 - [Separating signal from noise in coding evaluations | OpenAI](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) — SWE-Bench Pro "30% broken" 감사
 - [Codex changelog](https://developers.openai.com/codex/changelog) — 0.144.0에서 GPT-5.6 3티어 추가 (2026-07-09)

@@ -122,7 +122,7 @@ response = client.responses.create(
 | `low` | 최소 추론 | 간단한 작업 |
 | `medium` | 균형 (GPT-5/5.5/5.6 기본값) | 일반적인 작업 |
 | `high` | 깊은 추론 | 복잡한 문제 |
-| `xhigh` | 최대 추론 | 매우 어려운 문제 |
+| `xhigh` | 매우 깊은 추론 (`max` 아래 단계) | 매우 어려운 문제 |
 | `max` | 5.6 신설 — latest-model 가이드·모델 카드 정식 등재 (단 reasoning 가이드 열거엔 미반영, 2026-07-13). 전역 기본값 금지 | quality-first 초고난도 |
 
 > 5.5/5.4 → 5.6 마이그레이션: 기존 effort를 baseline으로 두고 **한 단계 낮춰 비교** (공식 지침)

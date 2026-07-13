@@ -61,7 +61,7 @@ any material caveat, and the next action.
 ```
 
 - **카운트 가능한 구체 제약**("3문장 이내", "단어 수 상한 N")은 여전히 유효 — 금지 대상은 막연한 간결 지시
-- `text.verbosity = "low"` 파라미터 출발점은 5.5와 동일하게 유지
+- `text.verbosity`는 기본 상세도만 설정 — 근거 서술이 중요한 작업(리뷰·감사·마이그레이션)은 `low`/`medium`을 대표 사례로 비교
 - 전역 응답 템플릿 대신 **lightweight outline**
 
 ---
@@ -73,7 +73,7 @@ any material caveat, and the next action.
 > "Preserve the old effective reasoning effort explicitly." / "After the baseline passes, test the same setting and one lower on representative tasks." (Upgrading to GPT-5.6 Sol, 2026-07-13 검증)
 
 - 기본값 `medium` (standard·pro 공통, API 기준). 신규 프로젝트는 medium 출발
-- Codex 제품 기본값은 다름 — Sol `low`, Terra/Luna `medium` (codex-cli 0.144.1 내장 레지스트리). 공식 안내도 "낮게 시작해 어려운 작업에서 올려라"
+- Codex 제품 기본 effort는 서버 메타데이터가 결정(변동 가능) — 라이브 캐시(2026-07-13) 기준 3티어 모두 `medium`, 바이너리 오프라인 폴백은 Sol `low`. 온보딩 문구는 "낮게 시작해 어려운 작업에서 올려라"
 - 5.6이 더 적은 토큰으로 같은 품질을 내는 경우가 많아 **하향 여지를 먼저 평가**
 - 평가 축: task success, final-answer completeness, required evidence, total tokens, latency, cost
 - `max` 레벨 신설 — latest-model 가이드·모델 카드에 정식 등재, 단 reasoning 가이드 열거에는 미반영(2026-07-13). 전역 기본값으로 쓰지 않기
@@ -141,7 +141,7 @@ any material caveat, and the next action.
 
 - 시스템 카드 자인: **5.5보다 사용자 의도를 넘어서는(overstep) 경향** + METR은 Sol의 리워드 해킹 비율을 공개 모델 중 최고로 평가 → 검증 루프·고위험 변경 사람 리뷰 게이트 강화
 - 실행력·장기 완주는 Sol 강점, 분별력·엔드투엔드 코드베이스 판단은 Claude Fable 5 우위가 중론 → 하이브리드 워크플로우 권장
-- Ultra·서브에이전트는 태스크당 토큰 6~12× 소모 집계(개선 폭은 완만, Terminal-Bench +3.1pp) → 가장 어려운 독립 분해형 작업에만
+- Ultra·서브에이전트는 태스크당 토큰 6~12× 소모라는 서드파티 분석([tokenkarma](https://tokenkarma.app/blog/codex-sol-ultra-subagent-token-cost-2026/))이 있음(개선 폭은 완만, Terminal-Bench +3.1pp) → 가장 어려운 독립 분해형 작업에만
 
 ---
 
