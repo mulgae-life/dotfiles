@@ -161,13 +161,13 @@ system_prompt: |
 - [ ] **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의 (5.5 계승)
 - [ ] **Personality + Collaboration Style 분리** (각 1-2문단 이내)
 - [ ] `reasoning.effort`: 신규는 `medium` 출발점 / 5.5·5.4에서 마이그레이션은 **기존 값 baseline + 한 단계 낮춰 비교**
-- [ ] `text.verbosity`: `low` 권장
-- [ ] **"Be concise"류 일반 간결 지시 금지** → 우선순위 지시 ("결론 먼저, 근거, 중대 caveat, 다음 액션") — 5.6이 5.5보다 민감
-- [ ] **Markdown 절제** (plain prose 기본 — 5.6은 기본이 이미 compression 편향)
+- [ ] `text.verbosity`: 기본 상세도만 설정 — 근거 서술이 중요한 작업(리뷰·감사·마이그레이션)은 `low`/`medium`을 대표 사례로 비교
+- [ ] **막연한 간결 지시("Be concise"류) 효용 재평가** → 우선순위 지시로 대체 ("결론 먼저, 근거, 중대 caveat, 다음 액션") — 5.6은 기본 출력이 더 간결해 과작동(지나치게 짧아짐) 위험
+- [ ] **Markdown 절제** (plain prose 기본 — 5.6은 기본 출력이 더 간결)
 - [ ] **Retrieval Budget** 명시 (도구 사용 시 stopping conditions)
 - [ ] **Structured Outputs API**로 스키마 강제 (프롬프트 대신)
 - [ ] **Tool Validation**: 출력 검증을 도구로 (테스트·린트·렌더링) — 5.6은 overstep 경향이 5.5보다 커 검증 루프 중요도 상승
-- [ ] 마이그레이션: 5.5→5.6은 **tuning pass** (프롬프트 유지, 설정 재튜닝) / 5.4 이전→는 fresh baseline 재구성 먼저
+- [ ] 마이그레이션: 5.5→5.6은 **모델만 교체 → 기존 프롬프트·effort 기준선 평가 → 한 그룹씩 프롬프트 축소 → 측정된 회귀에만 최소 수정** / 5.4 이전→는 fresh baseline 재구성 먼저
 - [ ] Message Roles (developer/user)
 
 **OpenAI GPT-5.4 이전**:
@@ -264,8 +264,9 @@ system_prompt: |
 ### OpenAI
 - [GPT-5.6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) ⭐ 최신 (2026-07) — 티어·마이그레이션·신규 파라미터 수록
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
-- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/) ⭐ 최신 (2026-07)
-- [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model)
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) ⭐ 최신 (2026-07)
+- [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
+- [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 - [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 - [GPT-5 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5_prompting_guide)
 - [GPT-5.5 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.5)

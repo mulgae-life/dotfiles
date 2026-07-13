@@ -1,6 +1,8 @@
 Reasoning models
 ================
 
+> **상태**: GPT-5 초기 세대 공식 문서 스냅샷입니다. 최신 GPT-5.6 모델·추론 강도·persisted reasoning·Pro·PTC·캐싱 기준은 [Using GPT-5.6](./openai_api_latest_model_gpt5.6.md)과 [GPT-5.6 Prompting Guide](../openai-prompt-guide/gpt-5.6-prompt-guide.md)를 우선 적용합니다. 아래의 `low|medium|high` 열거와 reasoning 보존 설명을 GPT-5.6 전체 사양으로 해석하지 않습니다.
+
 Explore advanced reasoning and problem-solving models.
 
 **Reasoning models** like [GPT-5](/docs/models/gpt-5) are LLMs trained with reinforcement learning to perform reasoning. Reasoning models [think before they answer](https://openai.com/index/introducing-openai-o1-preview/), producing a long internal chain of thought before responding to the user. Reasoning models excel in complex problem solving, coding, scientific reasoning, and multi-step planning for agentic workflows. They're also the best models for [Codex CLI](https://github.com/openai/codex), our lightweight coding agent.

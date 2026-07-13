@@ -1,38 +1,35 @@
 # GPT-5.6 Prompting Guide
 
 > **출처**:
-> - [Prompt guidance for GPT-5.6 | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance)
-> - [Using GPT-5.6 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model)
+> - [Prompting guidance for GPT-5.6 Sol | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6)
+> - [Upgrading to GPT-5.6 Sol | OpenAI API](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol)
+> - [Using GPT-5.6 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 > - [Reasoning | OpenAI API](https://developers.openai.com/api/docs/guides/reasoning)
 > - [gpt-5.6-sol / terra / luna 모델 카드](https://developers.openai.com/api/docs/models/gpt-5.6-sol)
 > - [The new GPT-5.6 family | Simon Willison (2026-07-09)](https://simonwillison.net/2026/Jul/9/gpt-5-6/)
 >
-> **날짜**: 2026-07-10 (출시 이튿날 작성 — 커뮤니티 표본이 얇아 §9는 이후 갱신 여지 있음)
+> **검증일**: 2026-07-13
 > **이전 버전**: [GPT-5.5 Prompting Guide](./gpt-5.5-prompt-guide.md)
 
 ---
 
 ## ⚠️ 가장 먼저 알아야 할 것 (5.5 → 5.6 핵심 변화)
 
-두 가지가 다르다. **① 단일 모델이 아니라 Sol/Terra/Luna 3티어 패밀리**이고, **② 프롬프팅 기조는 5.5를 계승**하되 마이그레이션 관점이 바뀌었다:
+GPT-5.6은 Sol/Terra/Luna 3티어 패밀리입니다. 프롬프트는 결과·핵심 제약·사용 가능한 근거·완료 기준을 명확히 두고, 해결 경로는 모델에 맡깁니다. 마이그레이션은 모델과 기존 추론 강도를 먼저 유지한 채 평가한 다음, 중복 지시와 무관한 도구를 한 묶음씩 제거하는 방식입니다. 작동 중인 프롬프트를 한 번에 전면 재작성하면 모델·추론 강도·프롬프트·도구·런타임 중 회귀 원인을 분리할 수 없습니다.
 
-> "Prompting best practices for GPT-5.5 remains applicable to GPT-5.6."
-> "Treat migration as a tuning pass, not only a model-slug change."
-
-5.5 때의 "fresh baseline 재구성"(전면 재작성)이 아니라, **기존 5.5 프롬프트를 유지한 채 effort·verbosity·지시 민감도를 재튜닝**하는 접근. 단 5.4 이전 스택을 아직 쓰고 있다면 5.5 가이드의 fresh baseline 원칙이 먼저다.
+OpenAI 내부 코딩 에이전트 평가에서는 더 간결한 시스템 프롬프트가 점수 약 10~15% 향상, 총토큰 41~66% 감소, 비용 33~67% 감소를 보였습니다. 이 수치는 방향성 있는 내부 결과이며 실제 서비스의 대표 평가셋으로 재검증해야 합니다.
 
 ### 한 페이지 변화 요약
 
 | 항목 | 5.5 | 5.6 |
 |------|-----|------|
 | 모델 라인업 | 단일 `gpt-5.5` | **Sol(플래그십)/Terra(균형)/Luna(고속저가) 3티어** + `gpt-5.6` 별칭(→Sol) |
-| 마이그레이션 | fresh baseline 재구성 | **tuning pass** — 프롬프트 유지, 설정 재튜닝 |
+| 마이그레이션 | 기존 프롬프트 기준선 | **모델만 교체 → 기존 평가 → 한 그룹씩 프롬프트 축소 → 회귀별 최소 수정** |
 | Reasoning effort 출발점 | `medium` 권장 | **기존 effort를 baseline으로 두고 한 단계 낮춰 비교** |
-| effort 레벨 | none~xhigh | none~xhigh + **`max` 신설** (단 문서 간 불일치, §3 참조) |
-| 간결 지시 | verbosity `low` 권장 | **"Be concise"류 일반 지시에 더 민감** → 우선순위 지시로 대체 |
-| 응답 기본값 | plain prose 권장 | 기본이 이미 **compression 편향** (도입부·반복·긴 리스트 감소) |
+| effort 레벨 | none~xhigh | none~xhigh + **`max` 신설** |
+| 간결 지시 | 작업별 출력 계약 | 기본 출력이 더 간결하므로 **막연한 간결 지시의 필요성을 재평가** |
 | Reasoning 지속 | `previous_response_id` | **`reasoning.context`** (auto/current_turn/all_turns) |
-| 고난도 모드 | 별도 Pro 모델(5.4 Pro) | **`reasoning.mode: "pro"`** 파라미터로 통합 |
+| 고난도 모드 | 별도 Pro 모델(5.4 Pro) | **`reasoning.mode: "pro"`** 파라미터 신설 — 권장 경로 (기존 Pro 모델 ID는 동작·과금 유지) |
 | 도구 오케스트레이션 | 수동 병렬 지시 | **Programmatic Tool Calling** (호스티드 JS 런타임) |
 | 캐싱 | `prompt_cache_retention` | **`prompt_cache_options` (explicit mode + ttl)**, write 1.25배 과금 |
 
@@ -47,67 +44,56 @@
 | GPT-5.6 Luna | `gpt-5.6-luna` | 고속·저가. "efficient, high-volume workloads" | $1.00 / $0.10 / $6.00 |
 
 - `gpt-5.6`은 별칭으로 **Sol로 라우팅**된다
-- 3종 공통: 컨텍스트 1,050,000 토큰 / 최대 출력 128,000 / knowledge cutoff 2026-02-16
+- 3종 공통: 컨텍스트 1,050,000 토큰 / 최대 출력 128,000 / knowledge cutoff 2026-02-16 (모델 카드 3종 재검증 2026-07-13 — 이전 판의 "Luna 400K" 표기는 오류였음)
+- Codex 클라이언트 내부 윈도우는 3종 모두 372K로 API와 별개 (codex-cli 0.144.1 내장 레지스트리)
 - 티어 선택의 비용 레버리지는 effort 튜닝보다 크다 — Luna는 Sol 대비 단가 1/5 (위 가격표)
 - ⚠️ "price-per-million 비교는 무의미해지는 중" — reasoning 토큰 수가 모델·effort마다 달라 실청구액이 갈린다. 대표 작업으로 실측 비교할 것 (Willison)
 
-**멀티모델 라우팅 패턴** (커뮤니티): Sol = 계획·검증·최종 종합, Terra = 일상 생성, Luna = 소규모 서브태스크. 서브에이전트 워크플로우에서 토큰 폭식을 막는 기본기.
+**Codex 공식 선택 기준**: Sol은 복잡하고 개방형인 고가치 작업, Terra는 GPT-5.5가 담당하던 일상 작업, Luna는 완료 기준이 명확한 반복·추출·분류·변환 작업에 사용합니다.
 
 ---
 
-## 2. Migration: 5.5 → 5.6 (tuning pass)
-
-공식 원문:
-
-> "If you are migrating from GPT-5.5 or GPT-5.4, preserve your current reasoning effort as the baseline, then compare one level lower."
-> "Start with your current GPT-5.5 or GPT-5.4 reasoning setting, then test the same setting and one level lower on representative tasks."
+## 2. Migration: 5.5 → 5.6
 
 평가 축: **task success, final-answer completeness, required evidence, total tokens, latency, cost**.
 
 ### 마이그레이션 체크리스트
 
-1. [ ] 모델명 → `gpt-5.6-sol` (또는 작업 특성에 맞는 terra/luna)
-2. [ ] 기존 `reasoning.effort`를 baseline으로 유지 → **한 단계 낮춘 값과 대표 작업으로 비교** → 품질이 유지되면 낮은 쪽 채택
-3. [ ] "Be concise"류 일반 간결 지시 제거 → 우선순위 지시로 대체 (§4)
-4. [ ] 전역 응답 템플릿 → lightweight outline으로 완화
-5. [ ] 5.4 이전에서 상속한 장황한 프롬프트 축소 — 내부 평가에서 짧은 프롬프트 대체 시 스코어 +10~15%, 토큰 41~66% 절감 사례
-6. [ ] `prompt_cache_retention` → `prompt_cache_options` (explicit + ttl) 이전 검토
-7. [ ] 장기 워크플로우면 `reasoning.context` 설정 검토 (§6)
-8. [ ] role-play 프레이밍·"think step by step"류 CoT 넛지 잔재 제거 (네이티브 추론과 충돌)
-
-5.5 가이드의 체크리스트(outcome-first 재구조화, personality/collaboration 분리, Structured Outputs, retrieval budget)는 **이미 적용돼 있다는 전제**. 미적용이면 [5.5 가이드](./gpt-5.5-prompt-guide.md) §13부터.
+1. [ ] 사용처별 역할을 확인하고 Sol/Terra/Luna 또는 유지 대상으로 분류
+2. [ ] 모델만 교체하고 기존 프롬프트·유효 추론 강도를 유지한 기준선 평가
+3. [ ] 같은 추론 강도와 한 단계 낮은 값을 대표 작업에서 비교
+4. [ ] 반복 규칙·행동을 바꾸지 않는 예시·절차·무관한 도구를 한 그룹씩 제거하고 매번 재평가
+5. [ ] 측정된 회귀에만 가장 작은 지시를 추가
+6. [ ] Chat Completions의 함수 도구 사용처는 유효 추론 강도 `none`인지 확인하고, 추론과 도구가 모두 필요하면 Responses API 이전을 별도 작업으로 검토
+7. [ ] 캐싱·persisted reasoning·Pro·PTC·multi-agent는 기준선 마이그레이션과 분리하여 평가
 
 ---
 
 ## 3. Reasoning Effort (5.6 변경)
 
-- **기본값: `medium`** (standard·pro 모드 공통)
-- 지원 레벨 — ⚠️ **공식 문서 간 불일치가 있다** (2026-07-10 기준):
-  - latest-model 가이드: "`none`, `low`, `medium`, `high`, `xhigh`, and `max`" — "가장 어려운 quality-first 작업엔 `max`"
-  - reasoning 가이드: `none`, `minimal`, `low`, `medium`, `high`, `xhigh` (`max` 미언급)
-  - → `max`/`minimal`은 실제 API 호출로 지원 여부를 확인한 뒤 채택 권장 (Willison이 3티어 모두 `max` 호출 결과를 공개해 작동 자체는 시사됨 — 단 공식 enum 등재는 문서마다 다름)
+- **기본값: `medium`** (standard·pro 모드 공통, API 기준)
+- GPT-5.6 지원 레벨: `none`, `low`, `medium`, `high`, `xhigh`, `max` — 단 ⚠️ reasoning 가이드의 열거에는 2026-07-13 현재 `max`가 미반영(latest-model 가이드·모델 카드에는 등재). 그 페이지 기준으로 검증하는 도구는 `max`를 거부할 수 있음
+- **Codex 제품 기본값은 API와 다릅니다** — Sol `low`, Terra/Luna `medium` (codex-cli 0.144.1 내장 레지스트리 실측, 2026-07-13). 공식 안내문도 "Sol is highly capable at lower reasoning efforts — try starting lower, then turn it up for harder jobs"로 낮게 시작을 권합니다. Sol·Terra는 `ultra`(자동 작업 위임을 포함한 최대 추론)도 노출하며 Luna에는 없습니다.
+- Codex 제품은 Max를 지원하지만, 2026-07-13 현재 공식 `config.toml`의 `model_reasoning_effort` 열거형은 `minimal|low|medium|high|xhigh`로 표기되어 있어 Max는 모델 선택 화면에서 사용하고 전역 TOML 값으로 고정하지 않습니다.
 
 | 설정 | 5.6 권장 사용 |
 |------|--------------|
 | `none` | latency-critical (분류, 빠른 검색) |
 | `low` | 도구 사용, 계획, 다단계 결정 |
 | `medium` | **기본값**. 품질·신뢰성 균형 |
-| `high` | 복잡한 디버깅, 깊은 계획 |
-| `xhigh` | 비동기·장시간 워크플로우 |
-| `max` | quality-first 초고난도 (문서 불일치 — 검증 후 사용) |
+| `high` | 평가에서 추가 깊이가 필요한 복잡한 작업 |
+| `xhigh` | high보다 유의미한 품질 향상이 확인된 고난도 작업 |
+| `max` | 가장 어려운 quality-first 작업. 전역 기본값으로 사용하지 않음 |
 
-**effort를 올리기 전에**: 5.5와 동일 — 높은 effort가 자동으로 낫지 않다. 지시 충돌·약한 정지 기준·개방형 도구 접근이 있으면 overthinking과 불필요한 탐색만 늘어난다. **eval로 측정 가능한 개선이 확인될 때만 올릴 것.**
+**effort를 올리기 전에** 성공 기준·의존성·도구 라우팅·검증 반복의 누락을 확인합니다. 높은 effort가 자동으로 더 나은 결과를 보장하지 않으므로 평가에서 유의미한 개선이 확인될 때만 올립니다.
 
-**외부 실측** (Willison 펠리컨 비교, 3티어×6레벨 — `max` 포함 18종): effort 상향의 비용 곡선이 가파르다 — Sol 기준 none 5.90¢(출력 1,961토큰) → high 10.38¢(3,454토큰). 품질이 비용만큼 오르는지는 각자 eval로 확인할 것 — 공식 권고("한 단계 낮춰 비교")와 같은 방향.
+**외부 실측**: Simon Willison의 펠리컨 비교는 3티어×6개 effort 18종을 실행했으며, Luna none은 0.71¢, Sol max는 48.55¢였습니다. 품질 대비 비용은 대표 작업 평가로 결정해야 합니다.
 
 ---
 
 ## 4. 간결성: 일반 지시 → 우선순위 지시 (5.6 핵심 변경)
 
-5.6은 기본 출력이 이미 짧다(compression 편향). 그 위에 일반 간결 지시를 얹으면 **작업 우선순위 자체가 왜곡**된다:
-
-> "GPT-5.6 is more sensitive than GPT-5.5 to instructions such as 'Be concise,' 'Keep it short,' or 'Use minimal text.'"
-> "An instruction such as 'Be concise. Use minimal text.' does more than remove filler—it can change how the model prioritizes the task."
+5.6은 5.5보다 기본 출력이 더 간결합니다. `Be concise`, `Keep it short` 같은 막연한 지시는 불필요하거나 결과를 지나치게 짧게 만들 수 있으므로 실제 평가에서 효용을 확인합니다.
 
 **대체 패턴** — 무엇을 자를지가 아니라 **무엇을 먼저 내놓을지**를 지시:
 
@@ -120,19 +106,29 @@ Lead with the conclusion. Include the evidence needed to support it,
 any material caveat, and the next action.
 ```
 
-주의: 이 원칙은 **일반적(막연한) 간결 지시**에 대한 것이다. "단순 질문은 1-2문장", "단어 수 상한 N" 같은 **카운트 가능한 구체 제약**은 여전히 유효하다. `text.verbosity = "low"` 파라미터 출발점도 5.5와 동일하게 유지 — 단 코드 리뷰·마이그레이션·감사 설명처럼 근거 서술이 필요한 출력엔 low가 부적합하다는 실전 보고가 있다.
+이 원칙은 막연한 간결 지시에 대한 것입니다. 작업별 필수 내용·길이·구조·톤은 계속 명시하며, `text.verbosity`는 기본 상세도만 설정합니다. 코드 리뷰·마이그레이션·감사처럼 근거 서술이 중요한 작업은 `low`와 `medium`을 대표 사례로 비교합니다.
 
 ---
 
-## 5. 5.5에서 그대로 유지되는 것
+## 5. GPT-5.6 프롬프트 계약
 
-아래는 5.6 공식 가이던스가 재확인한 5.5 원칙 — 상세는 [5.5 가이드](./gpt-5.5-prompt-guide.md) 해당 섹션:
+복잡한 프롬프트는 아래 구조에서 시작하고 행동을 바꾸는 내용만 추가합니다.
 
-- **Outcome-first** (5.5 §3): 최소 프롬프트에서 시작, eval로 gap이 드러날 때만 지시 추가. "Add detail only where it changes behavior"
-- **Personality + Collaboration Style 분리** (5.5 §4): 막연한 friendliness 대신 구체 지시 — "Be direct and tactful. 마찰은 구체적으로 인정. canned reassurance와 불필요한 sign-off 회피"
-- **Plain prose 기본** (5.5 §10): 5.6은 기본값이 더 짧아져 별도 지시 필요성이 오히려 줄었다
-- **Retrieval budget / stop rules** (5.5 §5), **출력 검증 도구** (5.5 §7.1), **Structured Outputs** (5.5 §9.3)
-- **구조 지시**: 전역 응답 템플릿 대신 **lightweight outline**
+```text
+Role: 모델의 역할과 업무 맥락
+Personality: 톤과 협업 방식
+Goal: 사용자에게 전달될 결과
+Success criteria: 완료 전에 참이어야 할 조건과 필수 근거
+Constraints: 정책·안전·사업·증거·부작용 한계
+Tools: 사용할 도구, 선행 조회, 금지 경로, 오류 처리
+Output: 필수 섹션·길이·형식·톤
+Stop rules: 재시도·fallback·질문·중단 조건
+```
+
+- **권한 경계**: 답변·분석, 범위 안 로컬 변경, 외부·파괴적·비용 발생 작업을 구분하고 같은 규칙은 한 곳에서 한 번만 씁니다.
+- **도구 라우팅**: 독립적인 읽기는 병렬화하고, 다음 행동이 결과에 의존하면 순차 실행합니다. 빈 값·부분 결과·비정상적으로 좁은 결과에는 의미 있는 fallback을 1~2회 시도합니다.
+- **검색 예산**: 필요한 근거가 확보되면 멈추고, 필수 사실·식별자·출처가 없을 때만 가장 작은 추가 검색을 수행합니다.
+- **검증**: 코드에는 관련 테스트·타입·린트·빌드·스모크 테스트를, 시각 결과물에는 렌더링 검사를 적용합니다.
 
 ---
 
@@ -152,14 +148,17 @@ any material caveat, and the next action.
 |----|------|
 | `auto` (기본) | 모델 기본 동작 |
 | `current_turn` | 현재 턴 추론만 사용 |
-| `all_turns` | 이전 턴들의 reasoning 항목까지 렌더링 — 장기 워크플로우에서 컨텍스트 절약 |
+| `all_turns` | 사용 가능한 이전 턴의 reasoning 항목을 다음 컨텍스트에 포함 |
+
+목표·가정·우선순위가 안정적인 장기 작업에는 `all_turns`, 이전 추론이 더 이상 관련 없으면 `current_turn`을 사용합니다. 오래된 추론은 토큰·지연을 늘리고 낡은 접근에 고정할 수 있으므로 항상 켜지 않습니다.
 
 ### 6.3 Programmatic Tool Calling
 
-호스티드 JS 런타임이 도구 호출을 오케스트레이션. 도구에 `allowed_callers`로 opt-in, `program`/`program_output` 아이템 처리 필요. 프롬프팅 포인트:
+호스티드 JavaScript 런타임이 여러 도구 결과를 필터링·조인·정렬·중복 제거·집계하고 작은 구조로 축약합니다. 도구에 `allowed_callers`로 opt-in하며 클라이언트는 `program`/`program_output` 항목과 호출 연결을 보존해야 합니다.
 
-> "When both direct and programmatic calling are available, explicitly state: Which bounded stage should use Programmatic Tool Calling."
-> "Evaluate the final user-visible answer, not only the program result."
+- 적합: 큰 구조화 중간 결과의 결정론적 축약, 반복 검증, 다수 유사 레코드 처리
+- 부적합: 한 번의 호출, 승인 작업, 호출 사이 의미 판단, 인용·원본 산출물 보존, 최종 검증
+- 프롬프트에는 적용할 bounded stage, 허용 도구, 출력 스키마, 동시성·재시도·중단 한도, 직접 호출로 돌아갈 handoff를 명시
 
 ### 6.4 명시적 프롬프트 캐싱
 
@@ -171,33 +170,35 @@ any material caveat, and the next action.
 
 ---
 
-## 7. Key Takeaways
+## 7. 핵심 정리
 
-1. **3티어 선택이 첫 결정**: Sol/Terra/Luna — 티어 라우팅이 effort 튜닝보다 비용 레버리지가 크다
-2. **Tuning pass, not rewrite**: 5.5 프롬프트 유지, 설정 재튜닝
-3. **effort는 기존 값 baseline + 한 단계 하향 비교** — effort 상향의 비용 곡선이 가파르다 (Sol none 5.90¢ → high 10.38¢ 실측)
-4. **"Be concise" 금지 → 우선순위 지시** ("결론 먼저, 근거, 중대 caveat, 다음 액션")
-5. **5.5 원칙 전부 유효**: outcome-first, personality/collaboration 분리, plain prose, retrieval budget
-6. **pro mode·PTC·explicit caching은 선별 적용** — 기본 off, 실익 확인 후
-
----
-
-## 8. 외부 노하우 (Simon Willison, 2026-07-09)
-
-- 펠리컨 SVG 전수 비교: 3티어 × effort 6레벨(**`max` 포함**) 18종 — `max`가 API에서 실제 작동함을 시사. Sol 비용은 none 5.90¢ → high 10.38¢
-- 코딩 비교(원문): "it hasn't struck me as better than Fable at the kind of complex coding tasks I've been using with Anthropic's model"
-- 벤치마크 읽을 때 주의: OpenAI 발표의 Agents' Last Exam 그래프는 y축이 30%에서 시작(과장 효과). SWE-Bench Pro는 OpenAI 스스로 열세 인정(Fable 5 80% vs Sol 64.6%), SWE-bench Verified 공식 점수는 미공개
+1. 작업 역할에 맞춰 Sol/Terra/Luna를 선택합니다.
+2. 모델만 교체한 기준선을 먼저 만들고 프롬프트·effort·신규 기능을 한 번에 바꾸지 않습니다.
+3. 기존 effort와 한 단계 낮은 값을 비교하고 `max`는 가장 어려운 quality-first 작업에만 사용합니다.
+4. 막연한 간결 지시보다 보존할 내용과 먼저 생략할 내용을 지정합니다.
+5. 결과·성공 기준·근거·권한·도구·검증·중단 계약은 남기고 중복 절차와 무관한 예시는 줄입니다.
+6. Pro·persisted reasoning·PTC·explicit caching·multi-agent는 측정 가능한 문제를 해결할 때 각각 독립 평가합니다.
 
 ---
 
-## 9. 커뮤니티 초기 관찰 (2026-07-10, 출시 +1일 — 표본 얇음, 참고용)
+## 8. 외부 관찰 (Simon Willison 외 — 2026-07-13 재검증)
 
-> 원문·출처: `dotfiles/.claude/scratch/research-gpt56.md`. HN 출시 스레드(item?id=48849066)와 언론 2차 요약 기반. Reddit 원문 미확인.
+- 펠리컨 SVG 전수 비교: 3티어 × effort 6레벨(`max` 포함) 18종. 비용 범위는 Luna none 0.71¢ ~ Sol max 48.55¢ (약 68배 스프레드 — 개별 수치는 본문이 아닌 링크된 비교표에 있음)
+- 코딩 비교(원문): "it's definitely very competent, though so far it hasn't struck me as better than Fable at the kind of complex coding tasks I've been using with Anthropic's model"
+- SWE-Bench Pro: Fable 5 **80.3%는 공식**, **Sol 64.6%는 서드파티 추정**(OpenAI 공식 점수 미공개). OpenAI는 별도 감사 *Separating signal from noise in coding evaluations*에서 "30% of SWE-Bench Pro tasks to be broken"을 발표하고 기존 권고를 철회 — 단 GPT-5.6 출시와 동시 발표라 이해충돌 비판이 병존. 모델 선택은 한 벤치마크가 아니라 실제 업무 평가로 결정합니다.
+- 에이전틱 벤치마크(Terminal-Bench 2.1: Sol 88.8% → Ultra 91.9%, 병렬 서브에이전트 4개) 인용 시 주의: METR은 Sol의 리워드 해킹 비율을 "highest of any public model it has assessed"로 평가 — 수치에 이 신뢰성 단서를 함께 붙입니다.
 
-- **개선 컨센서스**: 장기 실행·완주력 — 조기 중단 없이 물고 늘어짐. 서브에이전트 오케스트레이션(Sol Ultra: Terminal-Bench 2.1 88.8→91.9%)
-- **한계**: 프론트엔드 산출물 품질 여전히 약함. 복잡 코딩은 Fable 5 우위가 다수 의견
-- **⚠️ 오버스텝·허위 보고**: OpenAI 시스템 카드 자인 — "5.5보다 사용자 의도를 넘어서는 경향". 승인 안 된 파괴적 행동·허위 완료 보고 사례(METR 플래그) → **검증 루프 강제 + 고위험 변경 사람 리뷰 게이트**가 5.5 때보다 더 중요
-- **Ultra 토큰 폭식**: 표준 Sol 대비 2~3배 → rollout budget 캡(예: 500k), 티어 라우팅(§1), 반복 상한(N회 실패 시 에스컬레이션)
+---
+
+## 9. 커뮤니티 초기 관찰 (2026-07-13, 참고용)
+
+아래 내용은 통제된 평가가 아닌 커뮤니티 초기 후기입니다(개별 Reddit 스레드는 미검증 — 서드파티 집계로 교차 확인). 설정 기본값의 근거로 사용하지 않습니다.
+
+- **실행력 vs 분별력**: Sol은 실행력·장기 완주("rottweiler that grabs the problem and doesn't let go"), Fable 5는 분별력·질문 설계("wise owl")가 강점이라는 대비가 중론 — 엔드투엔드 코드베이스 판단은 Fable 우위, 물고 늘어지는 완주는 Sol 강점. 하이브리드 워크플로우 권장.
+- **품질 평가는 혼재**: 프론트엔드 격차가 대부분 해소됐다(일부 "동급")는 평과 여전히 약하다는 후기가 공존합니다. Sol에서 후속 지시가 더 필요하다는 보고도 있습니다.
+- **사용량 우려**: Ultra·서브에이전트 작업은 태스크당 토큰 6~12× 소모라는 서드파티 집계가 있고, 하네스 버그로 서브에이전트가 과다 스폰된 사례도 보고됩니다. 배율은 작업 의존이므로 대표 작업으로 실측합니다.
+- **설정 우회는 미채택**: "272K"는 강제 컨텍스트 창이 아니라 **과금 임계값**입니다 — 272K 초과 입력은 전체 요청이 입력 2×·출력 1.5×로 과금되며, 기본 설정에서 자동 초과 위험이 보고됨(openai/codex #32486). `[features.multi_agent_v2]`는 실재 플래그지만 쿼터 절감 근거가 없고, Sol은 서브에이전트 모델 지정이 안 되는 이슈(#31814 — 전부 Sol로 실행)와 결합해 비용을 증폭시킬 수 있어 이 저장소에는 반영하지 않습니다.
+- **실무 결론**: 기본 단일 에이전트로 시작하고, 독립 작업으로 분해할 수 있으며 비용 증가를 정당화할 때만 서브에이전트를 사용합니다("요청 시에만 스폰" 지침이 실증적으로 유효). 대표 작업 평가에서 완료율·총토큰·지연·재시도 횟수를 함께 비교합니다.
 
 ---
 
@@ -213,7 +214,7 @@ response = client.responses.create(
         # "mode": "pro",                  # 오답 비용 큰 지점만 선별
         # "context": "all_turns",         # 장기 워크플로우만
     },
-    text={"verbosity": "low"},            # 근거 서술 필요한 출력은 medium
+    text={"verbosity": "medium"},         # 작업별 필수 길이·구조는 프롬프트에서 지정
     input=[ ... ],
     tools=[ ... ],
 )
@@ -227,17 +228,22 @@ response = client.responses.create(
 + any material caveat, and the next action.
 ```
 
-시스템 프롬프트 골격은 5.5와 동일 — [5.5 가이드 §16](./gpt-5.5-prompt-guide.md) 참조.
+복잡한 시스템 프롬프트는 §5의 5.6 공식 골격에서 시작합니다.
 
 ---
 
 ## Sources
 
-- [Prompt guidance for GPT-5.6 | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance)
-- [Using GPT-5.6 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model)
+- [Prompting guidance for GPT-5.6 Sol | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6)
+- [Upgrading to GPT-5.6 Sol | OpenAI API](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol)
+- [Using GPT-5.6 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
+- [Codex models | OpenAI](https://learn.chatgpt.com/docs/models)
+- [GPT-5.6 in ChatGPT and Codex | OpenAI Help](https://help.openai.com/en/articles/20001354-gpt-56-in-chatgpt)
 - [Reasoning | OpenAI API](https://developers.openai.com/api/docs/guides/reasoning)
 - [gpt-5.6-sol](https://developers.openai.com/api/docs/models/gpt-5.6-sol) · [gpt-5.6-terra](https://developers.openai.com/api/docs/models/gpt-5.6-terra) · [gpt-5.6-luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna)
 - [GPT-5.6 시스템 카드 (preview)](https://deploymentsafety.openai.com/gpt-5-6-preview)
 - [The new GPT-5.6 family | Simon Willison (2026-07-09)](https://simonwillison.net/2026/Jul/9/gpt-5-6/)
-- [HN 출시 스레드](https://news.ycombinator.com/item?id=48849066)
+- [Separating signal from noise in coding evaluations | OpenAI](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) — SWE-Bench Pro "30% broken" 감사
+- [Codex changelog](https://developers.openai.com/codex/changelog) — 0.144.0에서 GPT-5.6 3티어 추가 (2026-07-09)
+- Reddit 초기 후기: 개별 스레드 URL은 존재 미검증이라 인용하지 않음 — 서드파티 집계 기사로 교차 확인 (2026-07-13)
 - [GPT-5.5 Prompting Guide (이전 버전 비교)](./gpt-5.5-prompt-guide.md)

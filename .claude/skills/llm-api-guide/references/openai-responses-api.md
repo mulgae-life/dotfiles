@@ -123,7 +123,7 @@ response = client.responses.create(
 | `medium` | 균형 (GPT-5/5.5/5.6 기본값) | 일반적인 작업 |
 | `high` | 깊은 추론 | 복잡한 문제 |
 | `xhigh` | 최대 추론 | 매우 어려운 문제 |
-| `max` | 5.6 신설 — 공식 문서 간 등재 불일치, 실호출 확인 후 사용 | quality-first 초고난도 |
+| `max` | 5.6 신설 — latest-model 가이드·모델 카드 정식 등재 (단 reasoning 가이드 열거엔 미반영, 2026-07-13). 전역 기본값 금지 | quality-first 초고난도 |
 
 > 5.5/5.4 → 5.6 마이그레이션: 기존 effort를 baseline으로 두고 **한 단계 낮춰 비교** (공식 지침)
 
@@ -528,7 +528,7 @@ response = client.responses.create(
 )
 ```
 
-- `all_turns`: 이전 턴들의 reasoning 항목까지 렌더링 — 장기 워크플로우에서 컨텍스트 절약
+- `all_turns`: 이전 턴들의 호환 reasoning 항목을 다음 컨텍스트에 포함 — 목표·가정이 안정적인 장기 워크플로우에서 연속성·캐시 효율 개선. 오래된 추론은 토큰·지연·앵커링을 늘리므로 항상 켜지 않기
 
 ### Programmatic Tool Calling
 
@@ -592,7 +592,7 @@ response = client.responses.create(
 
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
-- [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model) ⭐ 최신 (2026-07)
+- [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6) ⭐ 최신 (2026-07)
 - [GPT-5.6 풀 정리 (한국어)](../../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) — 3티어 스펙·가격·마이그레이션
 - [GPT-5.2 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5-2_prompting_guide)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)

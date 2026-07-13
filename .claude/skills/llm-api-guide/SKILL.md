@@ -99,8 +99,9 @@ Anthropic
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
 - [GPT-5.6 풀 정리 (한국어)](../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) ⭐ 최신 (2026-07) — 3티어 스펙·가격·신규 파라미터
-- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/) ⭐ 최신 (2026-07)
-- [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model)
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) ⭐ 최신 (2026-07)
+- [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
+- [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 - [GPT-5.5 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.5)
 
 ### Anthropic

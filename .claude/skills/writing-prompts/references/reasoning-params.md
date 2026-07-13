@@ -203,7 +203,7 @@ system_prompt: |
 ```python
 response = client.responses.create(
     model="gpt-5.6-sol",
-    reasoning={"effort": "high"},  # none, low, medium, high, xhigh (+ max: 5.6, 문서 간 등재 불일치 — 실호출 확인 후 사용)
+    reasoning={"effort": "high"},  # none, low, medium, high, xhigh, max (max: 5.6 정식 등재 — 단 reasoning 가이드 열거엔 미반영, 전역 기본값 금지)
     text={"verbosity": "low"},      # low, medium, high
     instructions="...",
     input="..."
