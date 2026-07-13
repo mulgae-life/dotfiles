@@ -340,7 +340,7 @@ main() {
       fi
       ;;
     *)
-      info "Antigravity IDE는 Linux 미지원 — agy CLI 참조 경로만 활성화 (~/.antigravity, ~/.gemini/antigravity-cli/skills). agy 바이너리는 별도 설치 필요."
+      info "Antigravity IDE는 Linux 공식 지원(.deb/.tar.gz/apt) — 단 이 스크립트는 IDE settings 동기화 경로(추정 ~/.config/Antigravity/User/settings.json, 미검증) 미반영이라 현재 agy CLI 참조 경로만 활성화 (~/.antigravity, ~/.gemini/antigravity-cli/skills). IDE 설치 시 실제 settings 경로 확인 후 동기화 추가 필요."
       ;;
   esac
 

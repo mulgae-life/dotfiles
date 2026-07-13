@@ -43,7 +43,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **설정** | `settings.json` (복사) | `config.toml` (복사) | `settings.json` (merge·인증 보존) | `.antigravity/settings.json` (워크스페이스) |
 | **권한** | hooks + permissions | `approval_policy` + `rules/` | `policies/*.toml` (Policy Engine) | `permissions.{allow,ask,deny}` + hooks |
 | **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) | Subagents (병렬 실행) |
-| **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `PostCompact` | `Stop`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `before_tool_call` (Claude hook 재사용) |
+| **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `PostCompact` | `Stop`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `PreToolUse`/`PostToolUse` — 별도 hooks.json (현 초안은 재작성 대상, `.antigravity/README.md` 검증 상태 참조) |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
 | **기본 모델** | Claude Opus | 권장 기본 추종 (GPT-5.6 세대, 미고정) | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
 | **CLI 버전 (검증 기준)** | 2.1.206 | 0.144.1 | 0.38.1 | IDE 2.1.x / `agy` |
@@ -115,7 +115,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `notify.sh` | Stop | 턴 완료 시 `notify-send` 알림 |
 | `post-compact-reminder.sh` | PostCompact (manual/auto) | 한국어 응답·변경 이유 리마인더 |
 
-> Codex 실패알림 훅(PostToolUse)은 제거됨 — payload(`tool_response`)에 exit code가 없고 `PostToolUseFailure` 이벤트도 미지원(0.142.5 소스 검증)이라 실패 감지가 구조적으로 불가. Codex가 exit_code를 노출하면 `.archive/2026-07-02_codex-dead-hook/`에서 복원
+> Codex 실패알림 훅(PostToolUse)은 제거됨 — PostToolUse는 비정상 종료한 Bash에도 발화하지만, payload(`tool_response`)가 exit code 없는 포맷된 출력 문자열이고 `PostToolUseFailure` 이벤트도 없어(0.142.5 + 0.144.1 `shell.rs`·`protocol.rs` 소스 재검증) 실패의 종료 상태를 범용적·신뢰성 있게 판정할 수 없다(출력 문자열에서 특정 오류 문구를 grep하는 것은 가능하나 일반적 실패 감지는 불가). Codex가 exit_code를 노출하면 `.archive/2026-07-02_codex-dead-hook/`에서 복원
 
 > Codex PreToolUse는 의도적 미설정 — `approval_policy = "never"` + `.codex/rules/default.rules`(Starlark DSL)가 이미 통제
 

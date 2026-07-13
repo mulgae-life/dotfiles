@@ -1,5 +1,5 @@
 {
-  "_doc": "Antigravity 워크스페이스 권한 정책 — .claude/settings.json 188+73+47 패턴을 1:1 포팅. permissions 키 구조와 Bash() 매처 문법은 Claude Code와 동형으로 추정(공식 docs SPA로 확정 미검증). 실제 설치 후 ~/Library/Application Support/Antigravity/User/settings.json diff로 키 이름 역공학 필요. 평가 순서 deny → ask → allow.",
+  "_doc": "Antigravity 워크스페이스 권한 정책 — .claude/settings.json 패턴을 포팅한 초안. ⚠️ 2026-07-13 검증(공식 docs는 공개돼 있으나 SPA/JS 렌더링이라 자동 페칭으로는 원문 미확인, 2차 출처 다수 교차): 실제 Antigravity CLI 문법이 이 파일과 다름 — (1) 권한 매처는 Bash(...)/Read/Write가 아니라 command(...)/read_file(...)/write_file(...) 형태 (2) allow/ask/deny 3단과 우선순위 Deny>Ask>Allow는 일치 (3) 훅은 settings.json이 아니라 별도 hooks.json(워크스페이스 <project>/.agents/hooks.json은 출처 일치, 글로벌 경로는 출처 간 ~/.gemini/antigravity-cli/hooks.json vs ~/.gemini/config/hooks.json으로 갈림 — 실설치 후 확정), 이벤트는 PreToolUse/PostToolUse(before_tool_call 아님), 매처는 셸 도구명 run_command(2차 출처 2건 모두 run_command 확인, run_shell_command 아님). Antigravity는 Linux 공식 지원(.deb/.tar.gz/apt, glibc≥2.28)이나 이 환경엔 미설치라 현재 작동 대상 없음 → 실제 설치 후 위 문법으로 재작성 필요. 평가 순서 deny → ask → allow.",
   "permissions": {
     "allow": [
       "Read",
@@ -345,7 +345,7 @@
     "autoContinue": false
   },
   "hooks": {
-    "_doc": "Antigravity 2.0 hooks. 이벤트 명칭(before_tool_call 등)은 secondary 소스 기준 추정 — 실제 설치 후 확정 필요. Claude Code의 PreToolUse 훅 재사용.",
+    "_doc": "⚠️ 2026-07-13 검증: 실제 Antigravity 훅은 이 위치(settings.json)가 아니라 별도 hooks.json(.agents/hooks.json)에 두며, 이벤트는 PreToolUse/PostToolUse(아래 before_tool_call은 오류), 매처는 셸 도구명 run_command(Bash 아님). 실설치 시 재작성 대상. auto-approve-readonly.sh는 Claude hook을 재사용하나 기술적 강제 수단으로 보장하지 않음 — 인용부호 분할('rm'·git 'push'·r'm')로 토큰이 쪼개지면 안전 명령으로 오판정되는 우회가 재현됨(2026-07-13). minimal-safety 원칙상 셸 파서 교체는 범위 밖이며, 시스템 프롬프트·지침이 1차 통제·훅은 최소 안전망.",
     "before_tool_call": [
       {
         "matcher": "Bash",

@@ -166,7 +166,7 @@ Stop rules: 재시도·fallback·질문·중단 조건
 
 ### 6.5 safety_identifier
 
-요청마다 안정적인 프라이버시 보존 식별자 전송 — 사용자 단위 오남용 추적용.
+안정적인 프라이버시 보존 식별자 전송 — 사용자 단위 오남용 추적용. 개별 사용자가 모델과 상호작용하는 제품에 권장(recommended)하나 필수는 아니며(not required), 적용 시 각 요청에 전달한다. 값은 사용자명·이메일의 해시 등 안정적 식별자. (Deprecated `user`를 `safety_identifier` + `prompt_cache_key`가 대체)
 
 ---
 

@@ -140,7 +140,7 @@ Cost/reliability caveats (2026-07-13): reported gains are modest relative to cos
 
 ### safety_identifier
 
-Send a stable, privacy-preserving `safety_identifier` with each request for per-user abuse tracking.
+Send a stable, privacy-preserving `safety_identifier` for per-user abuse tracking. 공식 가이드는 개별 사용자가 모델과 상호작용하는 제품에 이를 권장(recommended)하지만 필수는 아니다(not required). 값은 사용자명·이메일의 해시 등 안정적 식별자를 쓴다. (Deprecated `user` 필드를 `safety_identifier` + `prompt_cache_key`가 대체)
 
 Compatibility note: Chat Completions tools
 ------------------------------------------
@@ -152,7 +152,7 @@ Supported features
 
 Streaming, Function calling, Structured outputs, Web search, File search, Code interpreter, Computer use, MCP, Programmatic tool calling, Explicit prompt caching, Persisted reasoning, Pro mode. Fine-tuning not supported (Sol).
 
-Available endpoints: Chat Completions, Responses, Realtime, Assistants, Batch, Embeddings (full list per model card).
+Available endpoints: Chat Completions, Responses, Batch (Sol/Terra/Luna 공통). Realtime · Assistants · Embeddings는 미지원 — 모델 카드는 전체 endpoint를 나열하되 미지원 항목을 회색+사선 아이콘으로 표시하므로, 지원 여부는 [models/compare](https://developers.openai.com/api/docs/models/compare) 표를 근거로 확인할 것.
 
 Migration guidance
 ------------------
