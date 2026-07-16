@@ -18,8 +18,8 @@
   - ✓ `data = MySchema.model_validate(req.json()); process(data.key)`
 - **에러 처리**: 예외를 삼키지 않기. Fail-fast 원칙
   - ✗ `except: pass`, `except Exception: return default_value`
-  - ✗ `value = config.get("key") or "fallback"` (에러를 기본값으로 흡수)
-  - ✓ 타입별 catch + 로그 + 사용자 메시지 분리. 폴백은 최상위 에러 경계에서만 허용
+  - ✗ `value = config.get("key") or "fallback"`, `.catch(() => fallback)` (실패를 기본값으로 흡수 — 원인 추적 불가)
+  - ✓ 타입별 catch + 로그 + 사용자 메시지 분리. 폴백은 최상위 에러 경계(global error boundary)에서만 허용
 - **리소스 수명주기**: HTTP client/DB pool/모델/토크나이저는 요청마다 생성 금지, 앱 수명주기로 관리
 - **설정 분리**: 하드코딩 대신 env/설정 파일. 안전한 기본값 + 명확한 실패
 
@@ -32,10 +32,6 @@
 ## AVOID
 
 - **에러 뭉개기**: 검증 실패(400)/권한(401)/외부 장애(502) 구분 없이 "그냥 500" 금지
-- **과도한 방어적 코딩**: 실패를 숨기는 패턴 금지
-  - ✗ `result = api_call() ?? default_value` (실패가 버그인데 기본값으로 숨김)
-  - ✗ `.catch(() => fallback)` (에러 원인 추적 불가)
-  - ✓ 에러를 내서 원인을 추적하고 제대로 고치기. 폴백은 global error boundary에서만
 - **느슨한 계약**: dict/str 기반 지양. API/LLM 출력은 Pydantic/Zod 등 스키마 사용
 
 ## 언어별

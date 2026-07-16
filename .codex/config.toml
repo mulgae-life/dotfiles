@@ -8,7 +8,6 @@
 # model = "gpt-5.6-sol"
 model_reasoning_effort = "high"    # 5.6 마이그레이션 기준선: 기존 xhigh에서 한 단계 낮춘 값. 실제 작업 평가에서 xhigh와 비교
 model_reasoning_summary = "concise"
-model_verbosity = "low"            # 기본 상세도. 5.6은 원래 더 간결하므로 근거 누락이 생기면 대표 작업에서 medium과 비교
 plan_mode_reasoning_effort = "high"  # 어려운 계획은 high, xhigh는 평가에서 유의미한 개선이 확인될 때만
 personality = "pragmatic"
 # service_tier = "fast"            # 대표님이 /fast 또는 수동으로 토글
@@ -30,7 +29,7 @@ developer_instructions = """
 <response_format>
 결론 먼저, 뒷받침 근거·중대한 caveat·다음 액션 순서로 작성합니다. 필수 사실·판단·리스크·다음 단계를 보존하고 도입부·반복·일반론을 먼저 줄입니다. Markdown은 가독성을 실질적으로 개선할 때만 사용합니다.
 
-분량:
+분량 (기준치 — 상한 준수보다 필수 사실·근거·리스크 보존이 우선. GPT-5.6은 기본이 간결하므로 근거를 잘라내면서까지 줄이지 않기):
 - 단순 질문(yes/no, 사실 확인): 1-2문장
 - 일반 답변: 3-6문장 또는 5개 이하 bullet
 - 복잡 멀티스텝: 1문장 개요 + 섹션별 bullet (변경 내용, 위치, 리스크, 다음 단계)
@@ -83,10 +82,7 @@ developer_instructions = """
 - 변경·구현·수정 요청: 범위 안의 로컬 변경과 비파괴 검증은 별도 확인 없이 완료합니다.
 - 외부 쓰기·파괴적 작업·비용 발생·중대한 범위 확대는 먼저 확인합니다.
 - 버그 수정은 해당 버그와 검증에 필요한 범위로 한정합니다.
-- 요청 없는 리팩토링·리네이밍·코드 정리
-- 변경하지 않은 코드에 docstring·주석·타입 추가
-- "개선" 명목으로 인접 코드 주석·포맷·네이밍 변경
-- 요청 없는 기능·옵션·유틸리티 생성
+- 다음은 요청 없이 수행하지 않습니다: 리팩토링·리네이밍·코드 정리 / 변경하지 않은 코드에 docstring·주석·타입 추가 / "개선" 명목의 인접 코드 주석·포맷·네이밍 변경 / 기능·옵션·유틸리티 생성
 - 범위 밖 개선점·미사용 코드는 변경하지 않고 각각 "[선택사항]", "[참고]"로 보고합니다.
 - 3줄 이하 유사 코드와 1회용 구현에는 새 추상화를 만들지 않습니다.
 - 완료 전 "변경한 모든 라인이 사용자 요청과 직결되는가?"를 확인하고 아니면 제거합니다.
@@ -151,6 +147,9 @@ approval_policy = "never"
 # ── AGENTS.md 한도 ─────────────────────────
 project_doc_max_bytes = 65536
 
+# under-development 기능 사용 시 경고 메시지 끄기 (최상위 필드 — [features] 안에 두면 0.144.4에서 미인식, --strict-config 실측)
+suppress_unstable_features_warning = true
+
 # ── 샌드박스 설정 ──────────────────────────
 # danger-full-access: 샌드박스 완전 해제.
 # 이유: Codex exec 샌드박스는 /dev를 tmpfs nodev로 덮어 GPU 장치(/dev/nvidia*)를
@@ -171,7 +170,6 @@ ignore_default_excludes = false                                  # 기본 exclud
 [features]
 multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agent, send_input, resume_agent, wait_agent, close_agent)
 # goals: 0.133.0부터 기본 활성 + non-experimental로 승격 → [features] 토글에서 제거됨 (명시 불필요, /goal 정상 작동)
-suppress_unstable_features_warning = true  # under-development 기능 사용 시 경고 메시지 끄기
 
 # ── 멀티 에이전트 설정 ──────────────────────
 # 사용자 정의 에이전트 파일에서 model·model_reasoning_effort를 생략하면 부모 설정을 상속한다.

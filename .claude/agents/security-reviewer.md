@@ -34,57 +34,30 @@ memory: project
 - 데이터베이스 쿼리 작성
 - 사용자 입력 처리 코드
 
-## OWASP Top 10 분석
+## OWASP Top 10 점검 축 (2021)
 
-### 1. Injection (인젝션)
+| # | 축 | 핵심 점검 |
+|----|----|----------|
+| A01 | 접근 제어 | 권한 체크 누락, IDOR, 소유자 확인 없는 리소스 접근 |
+| A02 | 암호화 실패 | 민감 데이터 평문 저장·전송, 약한 해시, 시크릿 하드코딩 |
+| A03 | 인젝션 | 문자열 연결 쿼리(SQL/NoSQL/OS), 파라미터 바인딩 여부, XSS(`dangerouslySetInnerHTML` + 미검증 입력) |
+| A04 | 안전하지 않은 설계 | 인증 우회 가능한 플로우, 신뢰 경계 부재 |
+| A05 | 설정 오류 | CORS 과대 허용, 디버그 모드 노출, 기본 자격증명, 보안 헤더 누락 |
+| A06 | 취약 컴포넌트 | `npm audit`/`pnpm audit`로 알려진 취약점 스캔 |
+| A07 | 인증 실패 | 세션 관리, 비밀번호 정책, MFA, 세션 타임아웃 |
+| A08 | 무결성 실패 | 신뢰할 수 없는 데이터 역직렬화, 검증 없는 외부 코드/업데이트 로드 |
+| A09 | 로깅·모니터링 부족 | 보안 이벤트 미로깅, 로그·에러 메시지에 민감 정보 노출 |
+| A10 | SSRF | 사용자 입력 URL을 검증 없이 서버에서 fetch |
 
-```typescript
-// ❌ 취약: SQL 인젝션
-const query = `SELECT * FROM users WHERE id = ${userId}`
-
-// ✓ 안전: 파라미터 바인딩
-const { data } = await supabase
-  .from('users')
-  .select('*')
-  .eq('id', userId)
-```
-
-### 2. Broken Authentication (인증 취약점)
-
-점검 항목:
-- 세션 관리 적절한가?
-- 비밀번호 정책 충분한가?
-- 다중 인증(MFA) 고려되었는가?
-- 세션 타임아웃 설정되었는가?
-
-### 3. Sensitive Data Exposure (민감 데이터 노출)
+대표 예시 — 판단 기준은 "권한·입력·출력 경계에 검증이 있는가":
 
 ```typescript
-// ❌ 취약: 민감 정보 로깅
-console.log('User password:', password)
-console.log('API Key:', apiKey)
-
-// ❌ 취약: 에러에 내부 정보 노출
-return { error: `DB Error: ${dbError.message}` }
-
-// ✓ 안전: 일반적인 에러 메시지
-return { error: 'An error occurred. Please try again.' }
-```
-
-### 4. XML External Entities (XXE)
-
-- XML 파서 설정 확인
-- 외부 엔티티 비활성화 확인
-
-### 5. Broken Access Control (접근 제어 취약점)
-
-```typescript
-// ❌ 취약: 권한 체크 없음
+// ❌ 취약: 권한 체크 없이 삭제 (A01)
 async function deleteUser(userId: string) {
   await db.users.delete(userId)
 }
 
-// ✓ 안전: 권한 체크 포함
+// ✓ 안전: 소유자/관리자 확인 후 실행
 async function deleteUser(userId: string, currentUser: User) {
   if (currentUser.role !== 'admin' && currentUser.id !== userId) {
     throw new ForbiddenError('Permission denied')
@@ -93,47 +66,9 @@ async function deleteUser(userId: string, currentUser: User) {
 }
 ```
 
-### 6. Security Misconfiguration (보안 설정 오류)
+## 알려진 예외 (오탐 방지)
 
-점검 항목:
-- CORS 설정 적절한가?
-- 보안 헤더 설정되었는가?
-- 디버그 모드 비활성화되었는가?
-- 기본 자격증명 변경되었는가?
-
-### 7. Cross-Site Scripting (XSS)
-
-```typescript
-// ❌ 취약: 직접 HTML 삽입
-<div dangerouslySetInnerHTML={{ __html: userInput }} />
-
-// ✓ 안전: 텍스트로 렌더링
-<div>{userInput}</div>
-
-// 필요 시 sanitize
-import DOMPurify from 'dompurify'
-<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userInput) }} />
-```
-
-### 8. Insecure Deserialization (안전하지 않은 역직렬화)
-
-- JSON.parse 사용 시 검증
-- 신뢰할 수 없는 데이터 역직렬화 주의
-
-### 9. Using Components with Known Vulnerabilities
-
-```bash
-# 취약점 스캔
-npm audit
-pnpm audit
-```
-
-### 10. Insufficient Logging & Monitoring
-
-점검 항목:
-- 보안 이벤트 로깅되는가?
-- 로그에 민감 정보 포함되지 않는가?
-- 모니터링 설정되었는가?
+- 이 사용자 환경에서 MCP 도구 전역 자동 승인(`mcp__.*`)은 **의도된 정책**이다. 설정 리뷰 시 취약점으로 지적하지 않는다.
 
 ## 분석 프로세스
 
@@ -148,33 +83,14 @@ Grep: SELECT, INSERT, UPDATE, DELETE (SQL)
 
 ### 2단계: 취약점 분류
 
-```markdown
-## 발견된 취약점
-
-### 🔴 Critical (즉시 수정)
-- 하드코딩된 시크릿
-- SQL 인젝션 가능
-
-### 🟠 High (빠른 수정)
-- XSS 가능성
-- 권한 체크 누락
-
-### 🟡 Medium (개선 권장)
-- 입력 검증 미흡
-- 에러 메시지에 정보 노출
-
-### 🟢 Low (참고)
-- 보안 헤더 미설정
-- 로깅 부족
-```
+- 🔴 **Critical** (즉시 수정): 하드코딩된 시크릿, 인젝션 가능
+- 🟠 **High** (빠른 수정): XSS 가능성, 권한 체크 누락
+- 🟡 **Medium** (개선 권장): 입력 검증 미흡, 에러 메시지에 정보 노출
+- 🟢 **Low** (참고): 보안 헤더 미설정, 로깅 부족
 
 ### 3단계: 수정 제안
 
-각 취약점에 대해:
-1. 문제 설명
-2. 취약한 코드
-3. 안전한 코드
-4. 추가 권장사항
+각 취약점에 대해: ① 문제 설명 ② 취약한 코드 ③ 안전한 코드 ④ 추가 권장사항
 
 ## 출력 형식
 
@@ -191,7 +107,7 @@ Grep: SELECT, INSERT, UPDATE, DELETE (SQL)
 
 ### 🔴 [취약점 제목]
 - **위치**: `파일:라인`
-- **유형**: OWASP A01 - Injection
+- **유형**: OWASP A01 - 접근 제어
 - **문제**:
   ```typescript
   // 취약한 코드
