@@ -205,93 +205,7 @@
       "Bash(nvm *)",
       "Bash(pyenv *)"
     ],
-    "ask": [
-      "Bash(rm)", "Bash(rm *)",
-      "Bash(rmdir)", "Bash(rmdir *)",
-      "Bash(unlink)", "Bash(unlink *)",
-      "Bash(shred *)",
-      "Bash(truncate *)",
-
-      "Bash(git push*)",
-      "Bash(git commit*)",
-      "Bash(git reset*)",
-      "Bash(git clean*)",
-      "Bash(git rebase*)",
-      "Bash(git merge*)",
-      "Bash(git cherry-pick*)",
-      "Bash(git revert*)",
-      "Bash(git am*)",
-      "Bash(git apply*)",
-      "Bash(git branch -d*)",
-      "Bash(git branch -D*)",
-      "Bash(git branch --delete*)",
-      "Bash(git tag -d*)",
-      "Bash(git tag -f*)",
-      "Bash(git tag --delete*)",
-
-      "Bash(gh pr create*)",
-      "Bash(gh pr close*)",
-      "Bash(gh pr delete*)",
-      "Bash(gh pr merge*)",
-      "Bash(gh pr edit*)",
-      "Bash(gh pr comment*)",
-      "Bash(gh issue create*)",
-      "Bash(gh issue close*)",
-      "Bash(gh issue delete*)",
-      "Bash(gh issue edit*)",
-      "Bash(gh issue comment*)",
-      "Bash(gh release create*)",
-      "Bash(gh release delete*)",
-      "Bash(gh release edit*)",
-      "Bash(gh repo create*)",
-      "Bash(gh repo delete*)",
-      "Bash(gh repo edit*)",
-      "Bash(gh api -X*)",
-      "Bash(gh api -f*)",
-      "Bash(gh api -F*)",
-      "Bash(gh api --method*)",
-      "Bash(gh api --field*)",
-      "Bash(gh api --raw-field*)",
-      "Bash(gh api --input*)",
-      "Bash(gh api * -X*)",
-      "Bash(gh api * -f *)",
-      "Bash(gh api * -F *)",
-      "Bash(gh api * --method*)",
-      "Bash(gh api * --field*)",
-      "Bash(gh api * --raw-field*)",
-      "Bash(gh api * --input*)",
-      "Bash(gh auth login*)",
-      "Bash(gh auth logout*)",
-
-      "Bash(sudo *)",
-      "Bash(reboot*)",
-      "Bash(shutdown*)",
-      "Bash(poweroff*)",
-      "Bash(halt*)",
-      "Bash(dd if=*)",
-      "Bash(dd of=*)",
-      "Bash(mkfs*)",
-      "Bash(fdisk*)",
-      "Bash(parted*)",
-
-      "Bash(docker rm *)",
-      "Bash(docker rmi *)",
-      "Bash(docker-compose down*)",
-      "Bash(docker-compose rm*)",
-      "Bash(docker compose down*)",
-      "Bash(docker compose rm*)",
-
-      "Bash(sed -i*)",
-      "Bash(awk -i inplace*)",
-      "Bash(gawk -i inplace*)",
-
-      "Bash(ln -sf*)",
-      "Bash(ln -f*)",
-      "Bash(chmod *)",
-      "Bash(chown *)",
-
-      "Bash(find * -delete*)"
-    ],
+    "ask": [],
     "deny": [
       "Bash(rm -rf /)",
       "Bash(rm -rf /*)",
@@ -337,29 +251,22 @@
 
       "Bash(shred /dev/*)",
 
-      "Bash(chmod -R 777 /)",
-      "Bash(chmod -R 000 /)",
-      "Bash(chmod 777 /)",
-      "Bash(chown -R * /)",
-
       "Bash(reboot)",
       "Bash(shutdown*)",
       "Bash(poweroff)",
-      "Bash(halt)"
+      "Bash(halt)",
+      "Bash(systemctl reboot*)",
+      "Bash(systemctl poweroff*)",
+      "Bash(systemctl halt*)",
+      "Bash(loginctl reboot*)",
+      "Bash(loginctl poweroff*)",
+
+      "Bash(crontab -r*)"
     ],
     "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$HOME/.claude/hooks/auto-approve-readonly.sh"
-          }
-        ]
-      },
       {
         "matcher": "mcp__.*",
         "hooks": [
@@ -386,7 +293,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat > /dev/null; echo '{\"message\": \"리마인더: 한국어 응답 유지. 변경 이유 설명 필수. 현재 작업 상태를 먼저 확인하세요.\"}'"
+            "command": "cat > /dev/null; echo '{\"message\": \"리마인더: 방금 컨텍스트가 요약·압축됐다. 요약은 손실 압축이다 — 요약 속 파일 상태·수치·결정사항을 사실로 단정하지 말고, 작업 재개 전 관련 파일을 직접 다시 읽어 확인하라. 진행 중이던 작업과 다음 단계를 먼저 파악하라. (한국어 응답·변경 이유 설명 유지)\"}'"
           }
         ]
       }

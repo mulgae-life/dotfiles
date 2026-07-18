@@ -4,7 +4,7 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
 
 한 번 설치하면 어떤 프로젝트에서든 동일한 **규칙 · 에이전트 · 스킬 · 훅**이 자동 적용된다.
 
-> **🎯 설계 원칙 — 자율성 우선, 최소 차단**: 웬만한 작업은 확인 없이 자동 승인해 장기 작업이 중단되지 않게 하고, 되돌리기 어렵거나 외부로 나가는 **진짜 위험한 명령**(`rm` · `git push` · `sudo` 등)만 확인을 요청한다. "혹시 몰라서" 식의 과잉 차단은 지양한다 — 안전 훅은 자율성을 깨지 않는 선의 최소 안전망이다.
+> **🎯 설계 원칙 — 자율성 우선, 최소 차단**: 모든 작업을 확인 프롬프트 없이 실행해 장기 작업이 중단되지 않게 한다(Claude Code는 ask 계층 전면 해제). 위험 명령(`rm` · `git push` · `sudo` 등)의 통제는 지침(rules)이 담당하고 — 자율 작업 중 사용 금지, 사용자 요청 시에만 — 시스템을 파괴하는 파국형 명령만 `permissions.deny`가 프롬프트 없이 차단한다.
 
 ## 🔄 어떻게 동작하나?
 
@@ -14,7 +14,7 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
 세션 시작 시 자동 로드
   ├── rules/         8개 규칙이 항상 적용 (코딩 스타일, 보안, 한국어 응답 등)
   ├── agents/        조건 충족 시 서브에이전트가 자동 위임 (빌드 에러, 보안 등)
-  ├── hooks/         Bash 명령어 자동 승인, 알림, compact 리마인더
+  ├── hooks/         실패 가이던스, 알림, compact 리마인더
   ├── settings.json  권한, 언어, 모델 등 전역 설정 (복사)
   └── config.toml    Codex 모델, 커뮤니케이션 규칙 (복사)
   ↓
@@ -105,10 +105,11 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 | 훅 | 이벤트 | 동작 |
 |----|--------|------|
-| `auto-approve-readonly.sh` | PreToolUse (Bash) | 진짜 위험한 명령만 ask로 승인 요청, 안전 명령·`/tmp` 파일조작은 자동 승인 |
 | `on-tool-failure.sh` | PostToolUseFailure (Bash) | 빌드/테스트/린트 실패 시 대응 가이던스 주입 |
 | Notification | 알림 발생 시 | `notify-send`로 데스크톱 알림 |
 | PostCompact | 컨텍스트 압축 후 | 핵심 규칙 리마인더 재주입 |
+
+> Bash 자동승인 훅(`auto-approve-readonly.sh`)은 은퇴, `permissions.ask`도 전면 해제 — 497줄 텍스트 매칭이 따옴표 속 문구("rm 금지" 등)를 명령으로 오인하는 오탐이 누적됐고, ask 규칙도 bypass 모드에서 발동해(실측 확인) 자율 흐름을 끊었다. 이제 `defaultMode: bypassPermissions`로 전 명령 무프롬프트 실행이며, 위험 명령은 지침(work-principles)이 자율 사용을 금지하고 파국형(루트 삭제·디스크 파괴·전원 조작·크론탭 삭제)만 `permissions.deny` 49건이 차단한다. 훅 원본·회귀 케이스·기존 ask 목록(복원용)은 `.archive/2026-07-18_hook-retirement/`
 
 **Codex (v0.129+)**
 
@@ -213,11 +214,10 @@ dotfiles/
 │   ├── settings.json          # permissions(allow/ask/deny) + agentSettings + hooks
 │   ├── policies/              # (예약) 정책 디렉토리
 │   └── hooks/
-│       ├── auto-approve-readonly.sh → ../../.claude/hooks/auto-approve-readonly.sh
 │       └── mcp-config-guard.sh      # .agent/mcp_config.json 백도어 차단
 ├── scripts/                   # 유지보수 스크립트
-│   ├── verify-policies.sh     # 3툴 정책 회귀 테스트 단일 실행기
-│   ├── policy-cases.tsv       # 정책 케이스 테이블 (claude/codex/gemini)
+│   ├── verify-policies.sh     # 2툴(Codex/Gemini) 정책 회귀 테스트 단일 실행기
+│   ├── policy-cases.tsv       # 정책 케이스 테이블 (codex/gemini)
 │   ├── gemini-policy-engine.mjs  # Gemini 정책 엔진 복제 러너 (0.38.1 소스 대조)
 │   └── setup-apparmor.sh      # Codex bwrap용 AppArmor 프로필 설치 (1회 실행)
 └── reference/                 # 레퍼런스 자료
@@ -244,6 +244,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.10** | 확인 프롬프트 전면 해제 — Bash 자동승인 훅(497줄) 은퇴 + `permissions.ask` 81건 해제. 멀티라인 인용 오탐(따옴표 속 "rm 금지"를 명령 오인) 재현·수정 후, ask 규칙이 bypass 모드에서도 발동함을 실측 확인하고 두 ask 계층을 모두 제거. 위험 명령 통제는 지침 + `deny` 49건으로 일원화(권한변경 4건 해제, `systemctl`/`loginctl` 전원 조작·`crontab -r` 6건 보강), work-principles 훅 조항·`/tmp` 요령 4종 삭제 + PostCompact 리마인더를 요약 불신·파일 재확인 중심으로 개정 (복원 자료는 `.archive/2026-07-18_hook-retirement/`) |
 | **v2.9** | Codex 스킬 재검토 2라운드(쟁점 52건) 전건 재현 판정·선별 수용 — skill-creator 하위 호출 격리(`--safe-mode`)·zip 심링크 차단·name 표준 정합, LLM API 병렬 도구 배칭(Anthropic·OpenAI)·thinking 호환 text 추출, token-audit 파이프 절단 수정, Stitch MCP 표기·경로 계약 정합·중첩 스킬 이름 충돌 해소 |
 | **v2.8** | 한국어 문체 심층 조사(출처 21건, 주장 상위 25건 적대 검증) + 블라인드 실측 — 간결화 개정 기각, 스몰톡 해요체 허용·압축체(전보문) 금지·표준 용어 조항 3-tool 반영, style-check 정량 마커 증보 |
 | **v2.7** | 최신 모델 프롬프팅 가이드 기준 지침 감량(에이전트 4종·Codex 설정) + scratch 임시 의미 복원 — 오버트리거 방지 |

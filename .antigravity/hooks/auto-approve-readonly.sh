@@ -1,1 +1,0 @@
-/home/hjjo/dotfiles/.claude/hooks/auto-approve-readonly.sh

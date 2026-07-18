@@ -345,12 +345,8 @@
     "autoContinue": false
   },
   "hooks": {
-    "_doc": "⚠️ 2026-07-13 검증: 실제 Antigravity 훅은 이 위치(settings.json)가 아니라 별도 hooks.json(.agents/hooks.json)에 두며, 이벤트는 PreToolUse/PostToolUse(아래 before_tool_call은 오류), 매처는 셸 도구명 run_command(Bash 아님). 실설치 시 재작성 대상. auto-approve-readonly.sh는 Claude hook을 재사용하나 기술적 강제 수단으로 보장하지 않음 — 인용부호 분할('rm'·git 'push'·r'm')로 토큰이 쪼개지면 안전 명령으로 오판정되는 우회가 재현됨(2026-07-13). minimal-safety 원칙상 셸 파서 교체는 범위 밖이며, 시스템 프롬프트·지침이 1차 통제·훅은 최소 안전망.",
+    "_doc": "⚠️ 2026-07-13 검증: 실제 Antigravity 훅은 이 위치(settings.json)가 아니라 별도 hooks.json(.agents/hooks.json)에 두며, 이벤트는 PreToolUse/PostToolUse(아래 before_tool_call은 오류), 매처는 셸 도구명 run_command(Bash 아님). 실설치 시 재작성 대상. Bash 자동승인 훅(auto-approve-readonly.sh)은 은퇴 — 텍스트 매칭 오탐 누적으로 폐기, 위험 명령 통제는 시스템 프롬프트·지침이 1차, settings 권한 규칙(ask/deny)이 2차.",
     "before_tool_call": [
-      {
-        "matcher": "Bash",
-        "command": "$HOME/.antigravity/hooks/auto-approve-readonly.sh"
-      },
       {
         "matcher": "Write|Edit",
         "pattern": "**/.agent/mcp_config.json",
