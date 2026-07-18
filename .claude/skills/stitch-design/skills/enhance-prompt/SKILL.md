@@ -45,7 +45,7 @@ Evaluate what's missing from the user's prompt:
 
 ### Step 2: Check for DESIGN.md
 
-Look for a `DESIGN.md` file in the current project:
+Look for a `.stitch/DESIGN.md` file in the current project:
 
 **If DESIGN.md exists:**
 1. Read the file to extract the design system block

@@ -379,4 +379,7 @@ if (format === "json") {
 
 const hasError = findings.some(f => f.severity === "error");
 const hasWarn  = findings.some(f => f.severity === "warning");
-process.exit(hasError || (strict && hasWarn) ? 1 : 0);
+// process.exit() 는 stdout 이 파이프일 때 pending 비동기 쓰기를 절단한다
+// (출력 >64KB 에서 발현: node ... | jq 가 "Unfinished string at EOF"). 종료 코드만
+// 지정하고 이벤트 루프가 stdout 을 배수한 뒤 자연 종료하도록 둔다.
+process.exitCode = hasError || (strict && hasWarn) ? 1 : 0;

@@ -105,7 +105,7 @@
 | `hanwha-tricircle-mono-white.png` | 모든 비투명 픽셀의 RGB 를 흰색으로 변환 + 컬러 픽셀의 luminance 중앙값 기준으로 짙은 영역=알파 100%, 옅은 영역=알파 50% 이산 매핑 (트리서클 3원 구분 보존 목적). |
 | `tricircle-symbol-white.png` | `favicon.png` 에 위와 동일한 매핑 적용. |
 
-**비율·형태는 100% 보존**되며, 픽셀 색상만 변환했다. 변환 스크립트는 `~/dotfiles/.archive/2026-05-01_logo-variants-draft/` 에 보관.
+**비율·형태는 100% 보존**되며, 픽셀 색상만 변환했다. 변환 스크립트 자체는 보관하지 않으며, 변환 방식은 위 표를 참조한다. 변형 PNG 사본은 `~/dotfiles/.archive/2026-05-03_hw-internal-doc-assistant/logo/` 에 있다.
 
 ### 교체 권장 조건
 

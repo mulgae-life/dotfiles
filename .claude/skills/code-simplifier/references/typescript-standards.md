@@ -24,7 +24,7 @@ interface EventCardProps {
 }
 
 // 함수 선언 + 명시적 반환 타입
-function EventCard({ event, onSelect }: EventCardProps): JSX.Element {
+function EventCard({ event, onSelect }: EventCardProps): React.JSX.Element {
   return (
     <div onClick={() => onSelect(event.id)}>
       {event.title}

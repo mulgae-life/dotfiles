@@ -136,13 +136,19 @@ def load_run_results(benchmark_dir: Path) -> dict:
                 # Extract timing — check grading.json first, then sibling timing.json
                 timing = grading.get("timing", {})
                 result["time_seconds"] = timing.get("total_duration_seconds", 0.0)
+                result["tokens"] = timing.get("total_tokens", 0)
+                # total_tokens actually lives in timing.json — the timing block
+                # copied into grading.json carries duration but not tokens — so
+                # read timing.json even when grading.json already gave a duration.
                 timing_file = run_dir / "timing.json"
-                if result["time_seconds"] == 0.0 and timing_file.exists():
+                if timing_file.exists() and (result["time_seconds"] == 0.0 or not result["tokens"]):
                     try:
                         with open(timing_file) as tf:
                             timing_data = json.load(tf)
-                        result["time_seconds"] = timing_data.get("total_duration_seconds", 0.0)
-                        result["tokens"] = timing_data.get("total_tokens", 0)
+                        if result["time_seconds"] == 0.0:
+                            result["time_seconds"] = timing_data.get("total_duration_seconds", 0.0)
+                        if not result["tokens"]:
+                            result["tokens"] = timing_data.get("total_tokens", 0)
                     except json.JSONDecodeError:
                         pass
 
@@ -203,10 +209,16 @@ def aggregate_results(results: dict) -> dict:
             "tokens": calculate_stats(tokens)
         }
 
-    # Calculate delta between the first two configs (if two exist)
+    # Calculate delta = primary (with-skill) minus baseline. Identify the
+    # baseline by name (matching the viewer's convention) rather than by
+    # discovery order: configs are gathered alphabetically, so an "old_skill"
+    # baseline sorts before "with_skill" and would otherwise flip the sign.
+    BASELINE_NAMES = {"without_skill", "old_skill"}
     if len(configs) >= 2:
-        primary = run_summary.get(configs[0], {})
-        baseline = run_summary.get(configs[1], {})
+        baseline_config = next((c for c in configs if c in BASELINE_NAMES), configs[1])
+        primary_config = next((c for c in configs if c != baseline_config), configs[0])
+        primary = run_summary.get(primary_config, {})
+        baseline = run_summary.get(baseline_config, {})
     else:
         primary = run_summary.get(configs[0], {}) if configs else {}
         baseline = {}

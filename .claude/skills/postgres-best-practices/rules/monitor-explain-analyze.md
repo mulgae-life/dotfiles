@@ -9,6 +9,8 @@ tags: explain, analyze, diagnostics, query-plan
 
 EXPLAIN ANALYZE executes the query and shows actual timings, revealing the true performance bottlenecks.
 
+> **Warning:** Because it runs the statement for real, `EXPLAIN ANALYZE` on `INSERT`/`UPDATE`/`DELETE` will modify data. Wrap DML in `BEGIN; ... ROLLBACK;` to inspect the plan without persisting changes.
+
 **Incorrect (guessing at performance issues):**
 
 ```sql

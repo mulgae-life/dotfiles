@@ -168,6 +168,8 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `/init-project` | 새 프로젝트 agent-guide 자동 생성 |
 | `/skill-creator` | 새 스킬 생성 가이드 |
 
+> `/start`는 스킬이 아니라 커스텀 명령(`.claude/commands/start.md`)이다. 호출 방식이 같아 함께 표기하며, 19개 집계에는 포함하지 않는다.
+
 ## 🌐 전역 vs 프로젝트별
 
 | 범위 | 내용 | 관리 위치 |
@@ -242,6 +244,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.9** | Codex 스킬 재검토 2라운드(쟁점 52건) 전건 재현 판정·선별 수용 — skill-creator 하위 호출 격리(`--safe-mode`)·zip 심링크 차단·name 표준 정합, LLM API 병렬 도구 배칭(Anthropic·OpenAI)·thinking 호환 text 추출, token-audit 파이프 절단 수정, Stitch MCP 표기·경로 계약 정합·중첩 스킬 이름 충돌 해소 |
 | **v2.8** | 한국어 문체 심층 조사(출처 21건, 주장 상위 25건 적대 검증) + 블라인드 실측 — 간결화 개정 기각, 스몰톡 해요체 허용·압축체(전보문) 금지·표준 용어 조항 3-tool 반영, style-check 정량 마커 증보 |
 | **v2.7** | 최신 모델 프롬프팅 가이드 기준 지침 감량(에이전트 4종·Codex 설정) + scratch 임시 의미 복원 — 오버트리거 방지 |
 | **v2.6** | 외부 코드 리뷰 9건 검증·선별 수용 — Gemini 정책 전면 소생, hook 혼합 대상 봉쇄, 정책 회귀 테스트 영속화(131케이스) |

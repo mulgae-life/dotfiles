@@ -39,9 +39,20 @@ def validate_skill(skill_path):
         return False, f"Invalid YAML in frontmatter: {e}"
 
     # Define allowed properties
-    # when_to_use: Claude Code Skills 공식 필드. skill-creator 원본에서 누락되어 있어 보강.
-    # model/effort: Claude Code 전용 확장 필드(타 도구는 무시, 실측 검증) — 레포 스킬 3종이 사용 중
-    ALLOWED_PROPERTIES = {'name', 'description', 'license', 'allowed-tools', 'metadata', 'compatibility', 'when_to_use', 'model', 'effort'}
+    # 표준 필드: Agent Skills 공개 표준(agentskills.io/specification)이 정의하는 6종.
+    # 확장 필드: Claude Code 프론트매터 레퍼런스(code.claude.com/docs/en/skills)에 문서화된
+    #   도구별 확장(disallowed-tools 포함) — 타 도구는 무시하므로(실측) 크로스툴 스킬에도 안전.
+    #   누락 시 유효한 스킬이 거부됨. model/effort는 레포 스킬 3종이 사용 중.
+    ALLOWED_PROPERTIES = {
+        # Agent Skills 표준 필드
+        'name', 'description', 'license', 'metadata', 'compatibility',
+        'allowed-tools',
+        # Claude Code 확장 필드
+        'when_to_use', 'model', 'effort',
+        'disallowed-tools', 'argument-hint', 'arguments',
+        'disable-model-invocation', 'user-invocable', 'context', 'agent',
+        'hooks', 'paths', 'shell',
+    }
 
     # Check for unexpected properties (excluding nested keys under metadata)
     unexpected_keys = set(frontmatter.keys()) - ALLOWED_PROPERTIES
@@ -62,25 +73,24 @@ def validate_skill(skill_path):
     if not isinstance(name, str):
         return False, f"Name must be a string, got {type(name).__name__}"
     name = name.strip()
-    if name:
-        # Check naming convention (kebab-case with optional `:` namespace)
-        # `:` 허용: 외부 스킬 생태계(google-labs-code/stitch-skills 등)에서 네임스페이스 구분자로 사용
-        # 예: react:components, ui:button
-        if not re.match(r'^[a-z0-9:-]+$', name):
-            return False, f"Name '{name}' should be lowercase letters, digits, hyphens, and colons only"
-        if name.startswith('-') or name.endswith('-') or '--' in name:
-            return False, f"Name '{name}' cannot start/end with hyphen or contain consecutive hyphens"
-        if name.startswith(':') or name.endswith(':') or '::' in name:
-            return False, f"Name '{name}' cannot start/end with colon or contain consecutive colons"
-        # Check name length (max 64 characters per spec)
-        if len(name) > 64:
-            return False, f"Name is too long ({len(name)} characters). Maximum is 64 characters."
+    if not name:
+        return False, "Name is present but empty"
+    # Check naming convention (Agent Skills 표준: 소문자·숫자·하이픈만)
+    if not re.match(r'^[a-z0-9-]+$', name):
+        return False, f"Name '{name}' should be lowercase letters, digits, and hyphens only"
+    if name.startswith('-') or name.endswith('-') or '--' in name:
+        return False, f"Name '{name}' cannot start/end with hyphen or contain consecutive hyphens"
+    # Check name length (max 64 characters per spec)
+    if len(name) > 64:
+        return False, f"Name is too long ({len(name)} characters). Maximum is 64 characters."
 
     # Extract and validate description
     description = frontmatter.get('description', '')
     if not isinstance(description, str):
         return False, f"Description must be a string, got {type(description).__name__}"
     description = description.strip()
+    if not description:
+        return False, "Description is present but empty"
     if description:
         # Check for angle brackets
         if '<' in description or '>' in description:

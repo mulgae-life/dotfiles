@@ -150,7 +150,7 @@ def call_anthropic(client: Anthropic, message: str) -> str:
             messages=[{"role": "user", "content": message}],
             max_tokens=1024
         )
-        return response.content[0].text
+        return "".join(b.text for b in response.content if b.type == "text")
 
     except RateLimitError as e:
         logger.warning(f"Rate limited: {e}")
@@ -222,23 +222,26 @@ def call_llm(client, input):
 ### SSE (Server-Sent Events) with FastAPI
 
 ```python
+import json
 from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 app = FastAPI()
-client = OpenAI()
+client = AsyncOpenAI()
 
 async def generate_stream(message: str):
-    stream = client.responses.create(
+    stream = await client.responses.create(
         model="gpt-5",
         input=message,
         stream=True
     )
 
-    for event in stream:
+    async for event in stream:
         if event.type == "response.output_text.delta":
-            yield f"data: {event.delta}\n\n"
+            # 델타에 개행이 있으면 raw `data: {delta}`는 SSE 프레이밍이 깨진다.
+            # JSON 인코딩으로 한 줄에 담고, 클라이언트는 JSON.parse로 복원.
+            yield f"data: {json.dumps(event.delta)}\n\n"
 
     yield "data: [DONE]\n\n"
 
@@ -257,18 +260,20 @@ async def stream_chat(message: str):
 ### Anthropic 스트리밍 SSE
 
 ```python
-from anthropic import Anthropic
+import json
+from anthropic import AsyncAnthropic
 
-client = Anthropic()
+client = AsyncAnthropic()
 
 async def generate_stream(message: str):
-    with client.messages.stream(
+    async with client.messages.stream(
         model="claude-sonnet-5",
         messages=[{"role": "user", "content": message}],
         max_tokens=1024
     ) as stream:
-        for text in stream.text_stream:
-            yield f"data: {text}\n\n"
+        async for text in stream.text_stream:
+            # 텍스트 청크에 개행이 섞여도 프레이밍이 안 깨지도록 JSON 인코딩
+            yield f"data: {json.dumps(text)}\n\n"
 
     yield "data: [DONE]\n\n"
 ```
@@ -278,23 +283,24 @@ async def generate_stream(message: str):
 ```python
 async def generate_stream_safe(message: str):
     try:
-        stream = client.responses.create(
+        stream = await client.responses.create(
             model="gpt-5",
             input=message,
             stream=True
         )
 
-        for event in stream:
+        async for event in stream:
             if event.type == "response.output_text.delta":
-                yield f"data: {event.delta}\n\n"
+                yield f"data: {json.dumps(event.delta)}\n\n"
 
         yield "data: [DONE]\n\n"
 
     except Exception as e:
         # 스트리밍 중 에러는 전역 예외 핸들러 미적용
-        # 제너레이터 내부에서 안전한 포맷으로 변환
+        # 예외 원문(API 키·내부 URL 등 노출 위험)은 서버 로그에만 남기고,
+        # 클라이언트에는 일반화 메시지만 전송
         logger.error(f"Stream error: {e}")
-        yield f"data: [ERROR] {str(e)}\n\n"
+        yield "data: [ERROR] stream failed\n\n"
 ```
 
 ---
@@ -376,7 +382,7 @@ async def call_anthropic_async(message: str) -> str:
         messages=[{"role": "user", "content": message}],
         max_tokens=1024
     )
-    return response.content[0].text
+    return "".join(b.text for b in response.content if b.type == "text")
 ```
 
 ### 병렬 호출
@@ -541,7 +547,7 @@ print(response.usage.input_tokens_details.cached_tokens)
 | 제공자 | 캐싱 방식 | 캐시 할인 | 레이턴시 절감 |
 |--------|----------|----------|-------------|
 | Anthropic | 수동 (`cache_control`) | 90% | 85% |
-| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (5.6 기준, 구모델 50%) | 상당 |
+| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x 공통, 캐시 read 0.1배) | 상당 |
 | Google | 토큰 저장 기간 기반 | 상당 | 상당 |
 
 **실제 사례**: PDF 50문서 반복 분석 — 쿼리당 $3 → 캐싱 적용 후 $0.15 (95% 절감)

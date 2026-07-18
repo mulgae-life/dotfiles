@@ -27,9 +27,9 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 | 항목 | 공통 | OpenAI (GPT) | Anthropic (Claude) |
 |------|------|--------------|-------------------|
 | **구조** | Identity → Instructions → Examples → Context | ✅ | ✅ |
-| **어조** | 격식체 (습니다, 입니다, 하세요) | ✅ | ✅ |
+| **어조** | 제품 용도별 분기 (공식=격식체, 캐주얼=해요체) | ✅ | ✅ |
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
-| **Examples** | 3-5개 권장 | Few-shot | Multishot (동일 개념) |
+| **Examples** | Frontier 0~2개(포맷 정렬), 소형 3-5개 | Few-shot | Multishot (동일 개념) |
 | **XML 태그** | ✅ 권장 | ✅ | ✅ |
 | **특화 파라미터** | - | `reasoning.effort`, `reasoning.mode`/`context` (5.6), `verbosity`, `phase`, `image_detail` | `output_config.effort` (Fable 5/4.6+) |
 | **Prefilling** | - | ❌ | ⚠️ Claude 4.5 이하 전용 (Fable 5·4.6+는 400) |
@@ -53,7 +53,9 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 
 ## 빠른 참조
 
-### 1. 격식체 규칙 (한국어 특화)
+### 1. 어조 규칙 (한국어 특화)
+
+제품 용도에 맞는 어조를 고릅니다. 격식체(~습니다)는 B2B·공공·공지 등 공식 응대의 기본값이고, 캐주얼 서비스는 친근한 존댓말(~요, ~해요)이 적합합니다. 용도별 톤 스펙트럼은 [templates.md](references/templates.md) 7장을 따르세요. 아래는 격식체 예시입니다.
 
 ```yaml
 # Instructions

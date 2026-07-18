@@ -221,7 +221,7 @@ Blocks are organized by category:
 
 ## Accessibility
 
-All shadcn/ui components are built on Radix UI primitives, ensuring:
+All shadcn/ui components are built on accessible primitives (Radix UI or Base UI), ensuring:
 - **Keyboard navigation**: Full keyboard support out of the box
 - **Screen reader support**: Proper ARIA attributes
 - **Focus management**: Logical focus flow

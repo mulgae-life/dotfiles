@@ -262,27 +262,26 @@ response = client.responses.create(
     tools=tools
 )
 
-# Tool call 처리
+# Tool call 처리 — 한 응답에 function_call이 0·1·여러 개 올 수 있으므로
+# 결과를 전부 모아 후속 요청 1회로 전달 (호출마다 별도 continuation을 만들면 병렬 호출이 깨짐)
+tool_outputs = []
 for item in response.output:
     if item.type == "function_call":
-        func_name = item.name
         func_args = json.loads(item.arguments)
-
-        # 함수 실행
         result = get_weather(**func_args)
+        tool_outputs.append({
+            "type": "function_call_output",
+            "call_id": item.call_id,
+            "output": json.dumps(result)
+        })
 
-        # 결과 전달
-        response2 = client.responses.create(
-            model="gpt-5",
-            previous_response_id=response.id,
-            input=[
-                {
-                    "type": "function_call_output",
-                    "call_id": item.call_id,
-                    "output": json.dumps(result)
-                }
-            ]
-        )
+if tool_outputs:
+    response2 = client.responses.create(
+        model="gpt-5",
+        previous_response_id=response.id,   # reasoning item 포함 이전 맥락은 서버가 보존
+        input=tool_outputs,
+        tools=tools
+    )
 ```
 
 ### Custom Tools (GPT-5.2+)
@@ -347,12 +346,22 @@ for event in stream:
 ### 비동기 스트리밍
 
 ```python
-async with client.responses.stream(
-    model="gpt-5",
-    input="Hello"
-) as stream:
-    async for text in stream.text_stream:
-        print(text, end="", flush=True)
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI()
+
+async def stream_response():
+    stream = await client.responses.create(
+        model="gpt-5",
+        input="Hello",
+        stream=True
+    )
+
+    async for event in stream:
+        if event.type == "response.output_text.delta":
+            print(event.delta, end="", flush=True)
+        elif event.type == "response.completed":
+            print("\n--- Done ---")
 ```
 
 ---

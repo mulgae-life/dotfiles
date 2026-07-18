@@ -318,7 +318,7 @@ system_prompt: |
 ## 팁
 
 - **Identity**: 1-2문장으로 간결하게
-- **Examples**: 3-5개, Edge case 포함
+- **Examples**: Frontier 0~2개(포맷 정렬), 소형 3-5개, Edge case 포함
 - **Constraints**: 명시적으로 ("~하지 마세요")
 - **Style**: 격식체 항상 명시
 

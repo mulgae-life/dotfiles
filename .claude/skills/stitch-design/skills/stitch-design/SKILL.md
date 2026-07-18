@@ -1,5 +1,6 @@
 ---
-name: stitch-design
+# name이 디렉토리명과 다른 이유: 루트 스킬(stitch-design)과 이름이 겹치면 재귀 탐색 도구(Codex 등)의 카탈로그에 중복 등록됨
+name: stitch-design-core
 description: Unified entry point for Stitch design work. Handles prompt enhancement (UI/UX keywords, atmosphere), design system synthesis (.stitch/DESIGN.md), and high-fidelity screen generation/editing via Stitch MCP.
 allowed-tools:
   - "StitchMCP"

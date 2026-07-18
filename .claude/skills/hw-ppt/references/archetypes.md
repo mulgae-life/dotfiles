@@ -1,7 +1,7 @@
 # 9개 슬라이드 아키타입 — 좌표 · 구성 · 코드
 
 > 모든 슬라이드는 이 9개 중 하나다. 생성 시 코드 주석에 아키타입 번호와 이름을 명시한다.
-> 좌표는 **1920×1080 px 디자인 그리드** (144dpi Full HD 가정). PPTX EMU 변환은 `round(px × 6350)` (= 12,191,996/1920). HTML deck은 그대로 1920×1080 CSS px. ⚠️ 96dpi 변환 `× 9525`는 표준 슬라이드 밖으로 나가므로 사용 금지.
+> 좌표는 **1920×1080 px 디자인 그리드** (144dpi Full HD 가정). PPTX EMU 변환은 `round(px × 6350)` (= 12,192,000/1920). HTML deck은 그대로 1920×1080 CSS px. ⚠️ 96dpi 변환 `× 9525`는 표준 슬라이드 밖으로 나가므로 사용 금지.
 >
 > **PowerPoint 실측 좌표 룰**:
 > - 헤더 strip: **y = 0–80** (시그니처 이미지 64 px 수용)
@@ -51,13 +51,13 @@
   <header class="hw-header">
     <span class="hw-chapter-label">신상품 소개</span>
     <div class="hw-signature">
-      <img src="assets/logo/hanwha-signature.png" alt="한화손보" />
+      <img src="assets/logo/hanwha-signature-ink.png" alt="한화손보" />
     </div>
   </header>
 
   <div class="cover-left">
     <p class="chapter-cue">2026 신상품</p>
-    <h1>운전자 보험 리뉴얼<span class="page-ind">1 / 4</span></h1>
+    <h1>운전자 보험 리뉴얼</h1>
     <p class="intro">
       자율주행 시대를 준비하는 한화손해보험의 새로운 운전자 보험.<br>
       음주·과속·신호위반 등 12대 중과실 사고에 대한 보장을 강화하고,<br>
@@ -69,6 +69,9 @@
   <div class="cover-right">
     <img src="hero-illustration.png" alt="" />
   </div>
+
+  <!-- 페이지 인디케이터: 우측 하단 y=1040 독립 요소 (Cover도 다른 슬라이드와 동일, 타이틀 인라인 금지) -->
+  <span class="page-ind">1 / 4</span>
 </section>
 ```
 
@@ -221,7 +224,7 @@
 ### 구성
 
 - 헤더 strip 존재
-- 타이틀: 오렌지 Bold 48 px, 서브타이틀 Bold 22 px
+- 타이틀: 오렌지 Bold 48 px, 서브타이틀 Bold 24 px
 - 본문 zone에 **두 차트 가로 배치**, 각 ~720×460 px
   - 좌측 (x = 80), 우측 (x = 920)
 - 각 차트:
@@ -297,7 +300,7 @@
 ### 구성
 
 - 헤더 strip 존재
-- 타이틀: 오렌지 Bold 48 px, 서브타이틀 Bold 22 px, Regular 15 px 본문 2줄
+- 타이틀: 오렌지 Bold 48 px, 서브타이틀 Bold 24 px, Regular 15 px 본문 2줄
 - 본문 zone (y = 360–880):
   - **5개 상승 마운틴/화살표**, 좌→우
   - 각 위 라벨: 연도+분기 (Light 22 px)
@@ -336,7 +339,7 @@
 
 ## 부록: PPTX EMU 좌표 (1920×1080 디자인 → 13.333"×7.5" 표준 슬라이드)
 
-> **단위 가정**: 디자인 좌표 1920×1080은 144dpi Full HD 가정. PowerPoint Widescreen 16:9 표준 슬라이드 13.333" × 7.5"에 매핑. 변환 비율 **`1 디자인 px = 6,350 EMU`** (= 12,191,996 EMU / 1920 px). 일반적인 96dpi 변환 `× 9525`는 **사용 금지** — 1920×1080 디자인을 적용하면 20"×11.25" 비표준 슬라이드가 되거나 콘텐츠가 표준 슬라이드 밖으로 나간다.
+> **단위 가정**: 디자인 좌표 1920×1080은 144dpi Full HD 가정. PowerPoint Widescreen 16:9 표준 슬라이드 13.333" × 7.5"에 매핑. 변환 비율 **`1 디자인 px = 6,350 EMU`** (= 12,192,000 EMU / 1920 px). 일반적인 96dpi 변환 `× 9525`는 **사용 금지** — 1920×1080 디자인을 적용하면 20"×11.25" 비표준 슬라이드가 되거나 콘텐츠가 표준 슬라이드 밖으로 나간다.
 
 | 위치 | 디자인 px | EMU | 인치 |
 |------|-----------|------|------|

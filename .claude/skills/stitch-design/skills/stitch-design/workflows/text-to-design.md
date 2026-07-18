@@ -18,7 +18,7 @@ Before calling the Stitch MCP tool, apply the [Prompt Enhancement Pipeline](../S
 Use `list_projects` to find the correct `projectId` if it is not already known.
 
 ### 3. Generate the Screen
-Call the `mcp_StitchMCP_generate_screen_from_text` tool with the enhanced prompt.
+Call the `mcp__stitch__generate_screen_from_text` tool with the enhanced prompt.
 
 ```json
 {

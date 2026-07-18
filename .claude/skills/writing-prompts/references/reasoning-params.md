@@ -251,7 +251,23 @@ response = client.responses.create(
 
 ### Anthropic (Claude)
 
-**Extended Thinking 모드**:
+#### Claude 5 (Fable 5) — `output_config.effort`
+
+```python
+response = client.messages.create(
+    model="claude-fable-5",
+    max_tokens=16000,
+    output_config={"effort": "high"},  # low, medium, high, xhigh, max
+    messages=[...]
+)
+```
+
+**특징**:
+- thinking이 상시 adaptive로 켜져 있어 `output_config.effort`로만 깊이 제어
+- `thinking`/`budget_tokens`·sampling 파라미터는 **400 에러** → [claude-5-specifics.md](claude-5-specifics.md)
+- 기본 `high`, 최고 난도만 `xhigh`/`max`, 루틴은 `medium`/`low`
+
+#### Claude 4.x — Extended Thinking (`budget_tokens`)
 
 ```python
 response = client.messages.create(
@@ -267,10 +283,10 @@ response = client.messages.create(
 
 **특징**:
 - 복잡한 작업에서 품질 향상
-- `budget_tokens`로 추론 깊이 간접 제어
+- `budget_tokens`로 추론 깊이 간접 제어 (Fable 5·4.6+에서는 400)
 - 추론 과정이 별도로 반환됨
 
-**프롬프트로 제어**:
+**프롬프트로 제어** (세대 공통):
 
 ```xml
 <thinking_instructions>
@@ -279,7 +295,7 @@ response = client.messages.create(
 </thinking_instructions>
 ```
 
-**주의**: Extended thinking 모드에서는 prefilling 사용 불가
+**주의**: Extended thinking(4.x) 모드에서는 prefilling 사용 불가
 
 ### 공통 팁
 

@@ -23,7 +23,12 @@ def _call_claude(prompt: str, model: str | None, timeout: int = 300) -> str:
     Prompt goes over stdin (not argv) because it embeds the full SKILL.md
     body and can easily exceed comfortable argv length.
     """
-    cmd = ["claude", "-p", "--output-format", "text"]
+    # This call only rewrites text: the whole SKILL.md body is inlined into the
+    # prompt, so no tools are needed. `--tools ""` disables built-in tools only;
+    # `--safe-mode` additionally drops user/project customizations (CLAUDE.md,
+    # skills, plugins, hooks, MCP servers), so injected instructions in an
+    # untrusted SKILL.md cannot reach Bash/Write or any writable MCP tool.
+    cmd = ["claude", "-p", "--output-format", "text", "--tools", "", "--safe-mode"]
     if model:
         cmd.extend(["--model", model])
 

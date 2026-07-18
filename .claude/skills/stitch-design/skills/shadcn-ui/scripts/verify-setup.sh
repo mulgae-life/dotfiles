@@ -21,13 +21,11 @@ else
     exit 1
 fi
 
-# Check if tailwind.config exists
+# Check Tailwind config (v3 uses tailwind.config.*; v4 is CSS-first and omits it)
 if [ -f "tailwind.config.js" ] || [ -f "tailwind.config.ts" ]; then
-    echo -e "${GREEN}✓${NC} Tailwind config found"
+    echo -e "${GREEN}✓${NC} Tailwind config found (v3-style)"
 else
-    echo -e "${RED}✗${NC} tailwind.config.js not found"
-    echo -e "  ${YELLOW}Install Tailwind:${NC} npm install -D tailwindcss postcss autoprefixer"
-    exit 1
+    echo -e "${YELLOW}⚠${NC} No tailwind.config.* — expected for Tailwind v4 (CSS-first via @theme)"
 fi
 
 # Check if tsconfig.json has path aliases
@@ -49,14 +47,13 @@ if [ -f "src/index.css" ] || [ -f "src/globals.css" ] || [ -f "app/globals.css" 
     
     # Check for Tailwind directives
     CSS_FILE=$(find . -name "globals.css" -o -name "index.css" | head -n 1)
-    if grep -q "@tailwind base" "$CSS_FILE"; then
+    if grep -qE "@import ['\"]tailwindcss" "$CSS_FILE" || grep -q "@tailwind base" "$CSS_FILE"; then
         echo -e "${GREEN}✓${NC} Tailwind directives present"
     else
         echo -e "${RED}✗${NC} Tailwind directives missing"
         echo "  Add to your CSS file:"
-        echo "  @tailwind base;"
-        echo "  @tailwind components;"
-        echo "  @tailwind utilities;"
+        echo '  v4: @import "tailwindcss";'
+        echo "  v3: @tailwind base; @tailwind components; @tailwind utilities;"
     fi
     
     # Check for CSS variables
@@ -104,8 +101,8 @@ if [ -f "package.json" ]; then
     
     # Required dependencies
     REQUIRED_DEPS=("react" "tailwindcss")
-    RECOMMENDED_DEPS=("class-variance-authority" "clsx" "tailwind-merge" "tailwindcss-animate")
-    
+    RECOMMENDED_DEPS=("class-variance-authority" "clsx" "tailwind-merge")
+
     for dep in "${REQUIRED_DEPS[@]}"; do
         if grep -q "\"$dep\"" package.json; then
             echo -e "${GREEN}✓${NC} $dep installed"
@@ -113,7 +110,7 @@ if [ -f "package.json" ]; then
             echo -e "${RED}✗${NC} $dep not installed"
         fi
     done
-    
+
     echo ""
     echo "Recommended dependencies:"
     for dep in "${RECOMMENDED_DEPS[@]}"; do
@@ -123,6 +120,13 @@ if [ -f "package.json" ]; then
             echo -e "${YELLOW}⚠${NC} $dep not installed (recommended)"
         fi
     done
+
+    # Animation library: v4 uses tw-animate-css, v3 used tailwindcss-animate
+    if grep -q '"tw-animate-css"' package.json || grep -q '"tailwindcss-animate"' package.json; then
+        echo -e "${GREEN}✓${NC} animation library installed (tw-animate-css or tailwindcss-animate)"
+    else
+        echo -e "${YELLOW}⚠${NC} animation library not installed (recommended: tw-animate-css for v4)"
+    fi
 fi
 
 echo ""

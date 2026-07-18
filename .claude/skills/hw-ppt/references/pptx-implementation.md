@@ -27,7 +27,14 @@ Anthropic 공식 `pptx` 스킬은 python-pptx 기반의 .pptx 생성·편집 엔
 5. 셀프 체크 → 산출
 ```
 
-Claude Code 환경에서는 `pptx` 스킬이 별도 플러그인으로 설치되어 있어야 한다 (`/plugin install pptx@anthropic-skills` 또는 동등). 미설치 시 [§2 직접 사용](#2-python-pptx-직접-사용)으로 fallback.
+Claude Code 환경에서는 `pptx` 스킬이 별도 플러그인으로 설치되어 있어야 한다. Anthropic 공식 skills 저장소를 마켓플레이스로 추가한 뒤 `pptx`가 포함된 document-skills 번들을 설치한다 (`pptx`는 단독 플러그인이 아니라 번들 소속):
+
+```
+/plugin marketplace add anthropics/skills
+/plugin install document-skills@anthropic-agent-skills
+```
+
+미설치 시 [§2 직접 사용](#2-python-pptx-직접-사용)으로 fallback.
 
 ---
 
@@ -66,17 +73,17 @@ HW_PAPER        = RGBColor(0xFF, 0xFF, 0xFF)
 FONT_NAME = "Hanwha"  # 한화체
 
 # px → EMU 변환 (1920×1080 디자인 좌표를 13.333"×7.5" 슬라이드에 매핑)
-# ⚠️ 96dpi 가정의 9525가 아니라 6350 (= 12,191,996/1920) 사용해야 슬라이드 안에 맞음
+# ⚠️ 96dpi 가정의 9525가 아니라 6350 (= 12,192,000/1920) 사용해야 슬라이드 안에 맞음
 def px(n):
     """1920×1080 디자인 좌표 → PPTX EMU."""
     return Emu(round(n * 6350))
 
 # Slide setup — PowerPoint Widescreen 16:9 표준 (PPT 2013+ 기본값)
-# 슬라이드 크기는 EMU 12,191,996 × 6,858,000 으로 고정 (13.333" × 7.5").
+# 슬라이드 크기는 EMU 12,192,000 × 6,858,000 으로 고정 (13.333" × 7.5").
 # 디자인 좌표 1920×1080 는 "144dpi Full HD 디자이너 관행" 으로, 이 슬라이드에
-# 정확히 매핑하려면 1 디자인 px = 6,350 EMU (=12,191,996/1920) 비율 사용.
+# 정확히 매핑하려면 1 디자인 px = 6,350 EMU (=12,192,000/1920) 비율 사용.
 prs = Presentation()
-prs.slide_width  = Inches(13.333)  # = 12,191,996 EMU = 1920 px @144dpi
+prs.slide_width  = Inches(13.333)  # = 12,192,000 EMU = 1920 px @144dpi
 prs.slide_height = Inches(7.5)     # =  6,858,000 EMU = 1080 px @144dpi
 ```
 
@@ -173,7 +180,7 @@ def add_title_band(slide, title: str, subtitle: str = "",
         # subtitle y = title 박스 끝 + 24 (font_px 기준 계산은 부정확, +8 이하는 시각상 붙음)
         sub_y = y + title_h + 24
         add_text(slide, subtitle, x=band_x, y=sub_y, w=1760, h=50,
-                 size_px=22, bold=True, color=HW_INK, align=align)
+                 size_px=24, bold=True, color=HW_INK, align=align)
 ```
 
 ### Density Zone — Stat strip 예시
@@ -239,7 +246,7 @@ def build_deck(output_path: str, signature_path: str):
 if __name__ == "__main__":
     build_deck(
         "out.pptx",
-        signature_path=str(Path.home() / ".claude/skills/hw-ppt/assets/logo/hanwha-signature.png"),
+        signature_path=str(Path.home() / ".claude/skills/hw-ppt/assets/logo/hanwha-signature-ink.png"),
     )
 ```
 
@@ -307,7 +314,7 @@ if __name__ == "__main__":
   /* subtitle y = title 박스 끝(165 + font_px × 1.6) + 24. font 40 → top 253 */
   .subtitle {
     position: absolute; left: 80px; top: 253px;
-    font-weight: 700; font-size: 22px; color: var(--hw-ink); margin: 0;
+    font-weight: 700; font-size: 24px; color: var(--hw-ink); margin: 0;
   }
 
   /* Body zone — y = 300–820 */
@@ -328,7 +335,7 @@ if __name__ == "__main__":
 
   /* Page indicator */
   .page-ind {
-    position: absolute; right: 80px; top: 1040px;
+    position: absolute; right: 40px; top: 1040px;
     font-weight: 400; font-size: 13px; color: var(--hw-mute);
   }
 </style>
@@ -404,7 +411,7 @@ def embed_fonts_subset(pptx_path: Path, font_map: list):
       - 원본 .ttf 1.27MB × 2 (R/B) = 2.5MB
       - subset 후 37KB × 2 = 74KB (3% 수준, 라이센스 fsType=4 호환)
     """
-    import zipfile, shutil
+    import os, tempfile, zipfile, shutil
     from lxml import etree as ET
     from fontTools import subset
     from fontTools.ttLib import TTFont
@@ -419,9 +426,8 @@ def embed_fonts_subset(pptx_path: Path, font_map: list):
                 for r in p.runs:
                     codepoints.update(ord(c) for c in r.text)
 
-    # 2. ZIP 풀기
-    tmp = pptx_path.with_suffix(".unzip")
-    if tmp.exists(): shutil.rmtree(tmp)
+    # 2. ZIP 풀기 — 스테이징은 /tmp 하위 (산출물 디렉토리 오염·전역 삭제 규칙 회피)
+    tmp = Path(tempfile.mkdtemp(prefix="hwppt-fontsubset-"))
     with zipfile.ZipFile(pptx_path, "r") as z: z.extractall(tmp)
 
     # 3. ppt/fonts/fontN.fntdata 생성 (subset 적용)
@@ -485,12 +491,15 @@ def embed_fonts_subset(pptx_path: Path, font_map: list):
     ct.write(str(tmp / "[Content_Types].xml"),
              xml_declaration=True, encoding="UTF-8", standalone=True)
 
-    # 7. 재패키징
-    pptx_path.unlink()
-    with zipfile.ZipFile(pptx_path, "w", zipfile.ZIP_DEFLATED) as z:
+    # 7. 재패키징 — 산출물 옆 임시 파일에 쓴 뒤 os.replace로 원자적 교체
+    #    (원본 unlink 없이 덮어쓰기, 같은 파일시스템이라 원자적. 스테이징 삭제는 /tmp 하위로 한정)
+    fd, staged = tempfile.mkstemp(prefix=".hwppt-", suffix=".pptx", dir=str(pptx_path.parent))
+    os.close(fd)
+    with zipfile.ZipFile(staged, "w", zipfile.ZIP_DEFLATED) as z:
         for f in tmp.rglob("*"):
             if f.is_file(): z.write(f, str(f.relative_to(tmp)))
-    shutil.rmtree(tmp)
+    os.replace(staged, pptx_path)   # 원자적 교체 — 별도 unlink 불필요
+    shutil.rmtree(tmp)              # /tmp 스테이징만 정리
 
 
 # 사용
@@ -566,9 +575,9 @@ PYEOF
 
 ## 5. 로고 알파 변환 + 시그니처 텍스트 ink 재페인트
 
-### 5-1. 검정 배경 JPEG → 알파 PNG
+### 5-1. 알파 PNG 재생성 (원본에서 다시 만들 때만)
 
-`assets/logo/hanwha-signature.png`와 `hanwha-symbol.png`는 검정 배경 JPEG (사용자가 클로드 웹에서 사용하던 원본). 알파 PNG로 변환 권장.
+`assets/logo/`의 세 PNG(`hanwha-signature.png`·`hanwha-signature-ink.png`·`hanwha-symbol.png`)는 **이미 투명 배경 RGBA PNG로 변환 완료** 상태다(실측: 투명 픽셀 82~89%). 평상시엔 그대로 쓰면 되고, 아래 절차는 검정 배경 원본에서 자산을 **다시 만들어야 할 때만** 사용한다.
 
 ### Pillow 사용
 
@@ -606,7 +615,7 @@ for f in hanwha-signature.png hanwha-symbol.png; do
 done
 ```
 
-> Pillow도 ImageMagick도 없으면 SKILL.md 안내에 따라 .pptx에서 검정 배경 그대로 사용 가능 (단, 슬라이드 헤더 배경이 `--hw-mist` 회색이면 검정이 도드라짐 — 알파 변환 권장).
+> 재생성 시 Pillow도 ImageMagick도 없으면 임시로 검정 배경 그대로 쓸 수 있으나, 현행 헤더 배경은 `--hw-orange-tint`(#FCE6D6)라 검정이 크게 도드라진다 — 알파 변환 후 사용을 권장한다.
 
 ### 5-2. 시그니처 텍스트 ink 재페인트 (헤더 가시성 확보)
 
@@ -655,7 +664,7 @@ slide.shapes.add_picture(str(SIGNATURE_PATH), px(1752), px(8), height=px(64))
 
 PPTX 내부 단위는 EMU (English Metric Unit). 1 inch = 914,400 EMU.
 
-**중요**: PowerPoint Widescreen 16:9 슬라이드는 13.333" × 7.5" (= 12,191,996 × 6,858,000 EMU) 고정. 디자인 좌표 1920×1080은 144dpi Full HD 가정이므로 1 디자인 px = **6,350 EMU** (= 12,191,996 / 1920).
+**중요**: PowerPoint Widescreen 16:9 슬라이드는 13.333" × 7.5" (= 12,192,000 × 6,858,000 EMU) 고정. 디자인 좌표 1920×1080은 144dpi Full HD 가정이므로 1 디자인 px = **6,350 EMU** (= 12,192,000 / 1920).
 
 ```python
 from pptx.util import Emu, Inches, Pt
@@ -681,6 +690,8 @@ def px_to_pt(px_size):
 #     24px → 18pt (Subtitle), 15px → 11.25pt (Body)
 ```
 
+> **좌표와 폰트의 변환 기준이 다른 이유 (의도된 관례)**: 좌표는 1920×1080 디자인 그리드를 13.333"×7.5" 슬라이드에 매핑하므로 `1 px = 6,350 EMU`(1/144 inch) 기준을 쓰고, 폰트는 CSS·PowerPoint 관례대로 `1 px = 0.75 pt`(96dpi, 1/96 inch) 기준을 쓴다. 두 기준이 달라 같은 40 px 타이틀이 HTML deck에선 40 px(높이의 약 3.7%), PPTX에선 30 pt(약 5.6%)로 렌더되어 **PPTX 타이포가 HTML deck보다 1.5배 큰 스케일**이 된다. 이는 PowerPoint 실측으로 보정한 폰트 크기(타이틀 30 pt, 본문 11.25 pt)에 §4 박스 룰(`font_px × 1.6` 등)이 맞춰진 결과로 **의도된 관례**다 — 두 포맷은 각자 고정 템플릿이며, 스킬이 보장하는 것은 포맷 간 픽셀 동등이 아니라 세션 간 결정성이다.
+
 ### 주요 좌표 EMU 표 (1920×1080 디자인 → PPTX EMU)
 
 | 위치 | 디자인 px | EMU | 인치 |
@@ -703,7 +714,7 @@ def px_to_pt(px_size):
 - 1920 × 9525 = 18,288,000 EMU = **20 inch** (= 표준 슬라이드 폭 13.333"의 1.5배 밖)
 - 결과: 모든 우측 콘텐츠가 슬라이드 경계 밖으로 나가 보이지 않음
 
-올바른 변환: **`× 6350`** (= 12,191,996/1920). 또는 슬라이드 크기를 20" × 11.25"로 키우면 9525 사용 가능하나 비표준이라 권장 X.
+올바른 변환: **`× 6350`** (= 12,192,000/1920). 또는 슬라이드 크기를 20" × 11.25"로 키우면 9525 사용 가능하나 비표준이라 권장 X.
 
 ---
 

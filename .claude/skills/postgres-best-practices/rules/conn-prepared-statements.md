@@ -39,8 +39,9 @@ Check your driver settings:
 
 ```sql
 -- Many drivers use prepared statements by default
--- Node.js pg: { prepare: false } to disable
+-- postgres.js (porsager): { prepare: false } to disable
 -- JDBC: prepareThreshold=0 to disable
+-- Note: node-postgres (pg) does NOT prepare by default; it opts in per-query via a `name` field, so there is no global prepare flag to disable
 ```
 
 Reference: [Prepared Statements with Pooling](https://supabase.com/docs/guides/database/connecting-to-postgres#connection-pool-modes)

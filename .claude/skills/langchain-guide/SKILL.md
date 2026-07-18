@@ -62,7 +62,7 @@ agent = create_agent("openai:gpt-5", tools=tools)
 ```python
 from langchain.agents import create_agent
 from langchain.tools import tool
-from langchain.middleware import ModelRetryMiddleware
+from langchain.agents.middleware import ModelRetryMiddleware
 from langgraph.checkpoint.postgres import PostgresSaver
 
 @tool
@@ -70,19 +70,22 @@ def search(query: str) -> str:
     """Search the web for information."""
     return search_engine.search(query)
 
-agent = create_agent(
-    "openai:gpt-5",
-    tools=[search],
-    system_prompt="You are a research assistant.",
-    middleware=[ModelRetryMiddleware(max_retries=3)],
-    checkpointer=PostgresSaver(conn_string="..."),
-)
+# from_conn_string은 컨텍스트 매니저 — with 블록 안에서 연결이 유지된다
+with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
+    checkpointer.setup()  # 최초 1회: 체크포인트 테이블 생성
+    agent = create_agent(
+        "openai:gpt-5",
+        tools=[search],
+        system_prompt="You are a research assistant.",
+        middleware=[ModelRetryMiddleware(max_retries=3)],
+        checkpointer=checkpointer,
+    )
 
-# 실행
-result = agent.invoke(
-    {"messages": [{"role": "user", "content": "한국 GDP는?"}]},
-    config={"configurable": {"thread_id": "session-1"}}
-)
+    # 실행
+    result = agent.invoke(
+        {"messages": [{"role": "user", "content": "한국 GDP는?"}]},
+        config={"configurable": {"thread_id": "session-1"}}
+    )
 ```
 
 ### 2.3 LCEL 체인
@@ -123,12 +126,30 @@ structured_llm = model.with_structured_output(Answer)
 ### 2.5 도구 정의
 
 ```python
+import ast
+import operator
 from langchain.tools import tool
+
+# 허용 연산자만 화이트리스트로 평가 (LLM이 만든 문자열을 eval에 직접 넣지 않는다)
+_OPS = {
+    ast.Add: operator.add, ast.Sub: operator.sub,
+    ast.Mult: operator.mul, ast.Div: operator.truediv, ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+}
+
+def _safe_eval(node: ast.AST) -> float:
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return node.value
+    if isinstance(node, ast.BinOp) and type(node.op) in _OPS:
+        return _OPS[type(node.op)](_safe_eval(node.left), _safe_eval(node.right))
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _OPS:
+        return _OPS[type(node.op)](_safe_eval(node.operand))
+    raise ValueError("허용되지 않은 수식")
 
 @tool
 def calculate(expression: str) -> str:
     """Perform mathematical calculations."""
-    return str(eval(expression))
+    return str(_safe_eval(ast.parse(expression, mode="eval").body))
 
 # RAG 도구 (content_and_artifact)
 @tool(response_format="content_and_artifact")
@@ -144,7 +165,11 @@ def retrieve(query: str):
 LangChain 1.0+의 cross-cutting concern 처리 패턴.
 
 ```python
-from langchain.middleware import ModelRetryMiddleware
+from langchain.agents.middleware import (
+    ModelRetryMiddleware,
+    wrap_model_call,
+    wrap_tool_call,
+)
 
 # 모델 호출 미들웨어
 @wrap_model_call

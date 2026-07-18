@@ -10,7 +10,7 @@ master Phase 맵에서 이 part에 매핑된 **Phase 범위**를 다룬다. part
 ```markdown
 # Part N: [Part 이름] — Phase [M 또는 M-N]
 
-> master: [../master.md](../master.md)
+> master: [master.md](master.md)
 > 선행 Part: part{N-1} (없으면 `-`) | 후속 Part: part{N+1} (없으면 `-`)
 > 담당 Phase: [M 또는 M-N] | 변경 파일: N개 | 상태: 초안
 
@@ -35,8 +35,8 @@ master Phase 맵에서 이 part에 매핑된 **Phase 범위**를 다룬다. part
 import { z } from "zod";
 
 export const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   role: z.enum(["admin", "member"]),
 });
 
@@ -57,6 +57,6 @@ npm test -- user   # user 관련 테스트 통과
 ## 완료 기준 (필수 — 다음 Part로 진행 전)
 - [ ] 모든 작업 목록 완료
 - [ ] 검증 명령어 통과
-- [ ] master의 Phase 맵에서 이 Phase 상태를 ✅로 갱신
+- [ ] master의 Phase 맵에서 이 Part 행의 상태를 ✅로 갱신
 - [ ] 후속 Part의 "전제 조건"이 모두 충족되는지 확인
 ```

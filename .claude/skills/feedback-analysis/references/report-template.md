@@ -1,7 +1,7 @@
 # 피드백 분석 리포트 템플릿
 
 > 이 템플릿을 복사하여 `agent-guide/reviews/feedback_YYMMDD.md`에 작성합니다.
-> agent-guide/ 디렉토리가 없으면 `.claude/scratch/`에 작성합니다.
+> `agent-guide/reviews/` 디렉토리가 없으면 `.claude/scratch/`에 작성합니다.
 
 ## [프로젝트명] 피드백 분석 리포트 — YYYY-MM-DD
 
@@ -32,6 +32,7 @@
 - **원인 추정**: 코드/설계 관점 분석
 - **해결 방안**: 구체적 수정 제안
 - **영향 범위**: 영향받는 사용자/기능 범위
+- **영향 파일**: 수정 필요 파일 목록
 
 (항목 반복)
 

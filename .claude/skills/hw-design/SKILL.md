@@ -1,6 +1,6 @@
 ---
 name: hw-design
-description: 한화(Hanwha) 브랜드 톤으로 UI를 만들 때 DESIGN.md + tokens.css + 한화체 3w + 한화고딕 5w + IBM Plex 웹폰트 + Tailwind 프리셋 + 공식 트리서클 로고(PNG) + token-audit 스크립트를 한 번에 프로젝트에 배포해 AI 세션 간 룩앤필을 고정하는 스킬. 오렌지 #F37321 + 네이비 #1A2B4A 2색축·3단계 모션·네이비 톤 그림자 DNA를 Google 공식 DESIGN.md v0.1.0 포맷 + Hardik Pandya 3-layer token 패턴으로 토큰화했다. 진실의 원천은 DESIGN.md 하나 — 프로젝트 CLAUDE.md 에 별도 규칙을 주입하지 않는다. stitch-design(Stitch MCP로 새 DESIGN.md 생성)이나 frontend-design(코드 UI 구현)과 달리 이미 확정된 한화 표준을 고정 배포한다. "한화", "hw", "Hanwha" 키워드 또는 한화 계열사 프로젝트 맥락이면 명시적 요청이 없어도 최우선 참조한다.
+description: 한화(Hanwha) 브랜드 톤으로 UI를 만들 때 DESIGN.md + tokens.css + 한화체 3w + 한화고딕 5w + IBM Plex 웹폰트 + Tailwind 프리셋 + 공식 트리서클 로고(PNG) + token-audit 스크립트를 한 번에 프로젝트에 배포해 AI 세션 간 룩앤필을 고정하는 스킬. 오렌지 #F37321 + 네이비 #1A2B4A 2색축·3단계 모션·네이비 톤 그림자 DNA를 Google 공식 DESIGN.md v0.1.0 포맷 + Hardik Pandya 3-layer token 패턴으로 토큰화했다. 진실의 원천은 DESIGN.md 하나 — 프로젝트 CLAUDE.md 에 별도 규칙을 주입하지 않는다. stitch-design(Stitch MCP로 새 DESIGN.md 생성)이나 frontend-design(코드 UI 구현)과 달리 이미 확정된 한화 표준을 고정 배포한다. "한화", "hw", "Hanwha" 키워드 또는 한화 계열사 프로젝트 맥락이면 명시적 요청이 없어도 최우선 참조한다. 단, PPT·슬라이드 산출물은 hw-ppt 스킬이 담당한다.
 when_to_use: "한화 디자인으로 만들어줘, 한화 톤으로 UI 만들어줘, hw 적용해줘, 한화 스타일 랜딩페이지/대시보드/웹앱/컴포넌트 만들어줘 요청 시. 한화 관련 신규 프로젝트 초기 세팅, 기존 프로젝트에 한화 브랜드 덧씌우기, 팀원이 여러 명이라 디자인 일관성이 필요한 바이브 코딩 세션 등에서 사용."
 allowed-tools:
   - "Read"
@@ -79,9 +79,9 @@ cp "$SKILL/tailwind.preset.js" ./tailwind.preset.hw.js
 ### 2) 진입점 CSS 에 tokens/폰트 import
 
 ```css
-/* app/globals.css 또는 src/index.css 맨 위에 */
-@import "./public/fonts/fonts.css";
-@import "./tokens.css";
+/* app/globals.css 또는 src/index.css 맨 위에 (경로는 진입점 파일 기준 — 둘 다 루트 한 단계 하위라 ../) */
+@import "../public/fonts/fonts.css";
+@import "../tokens.css";
 ```
 
 Tailwind 쓰면 `tailwind.config.js` 에 프리셋 추가:
@@ -183,7 +183,7 @@ LLM이 다음 결정을 내렸으면 표에 1행씩 추가한다:
 | 다크모드 | `[data-theme="dark"]` 활성화 / 비활성 |
 | 컨텐츠 폭 | 1280 (기본) / 1440 (대시보드 와이드) / 모바일 우선 단일 컬럼 |
 | Primary 강도 | 면적 ≤ 20% (기본) / Hero에만 / 절제(테두리만) |
-| 라운딩 키 | `lg`(12, 기본) / `xl`(16) / `2xl`(20) — 한 페이지 3종 이하 유지 |
+| 라운딩 키 | 버튼·인풋 `lg`(12) / 카드 `xl`(16, 기본) / CTA `2xl`(20) — 한 페이지 3종 이하 유지 |
 | 그림자 강도 | flat / `card` / `card-hover` / `modal` — 3단계 계층 |
 | 모션 속도 | `fast`(250) / `base`(350, 기본) / `slow`(550) |
 | 외부 공유 파일 | `standalone.html` (`--fonts all` mirror, ~12MB, 데모 표준) / `--fonts core` (~1.5MB, 사이즈 절약) / `--fonts none` (~200KB, 가벼운 미리보기) |
@@ -231,7 +231,7 @@ npx @google/design.md export --format dtcg ./DESIGN.md > tokens.hw.dtcg.json
 | `assets/logo/hanwha-tricircle.png` (707×353, RGBA) | symbol(컬러) + wordmark(**검정**) | **on-white 기본** — 일반 페이지·푸터 |
 | `assets/logo/hanwha-tricircle-on-navy.png` | symbol(컬러) + wordmark(**흰색**) | **on-navy 헤더 기본** (가장 자주 사용) |
 | `assets/logo/hanwha-tricircle-mono-white.png` | symbol(흰색, 농도 분리) + wordmark(흰색) | on-navy 스플래시·히어로·풋터 inverse |
-| `assets/logo/favicon.png` (154×140, RGBA) | symbol only(컬러) | 파비콘 |
+| `assets/logo/favicon.png` (154×140, 8-bit 팔레트) | symbol only(컬러) | 파비콘 |
 | `assets/logo/tricircle-symbol-white.png` | symbol only(흰색) | on-navy 모바일 헤더 축약·뱃지 |
 
 > ⚠️ `*-on-navy.png` / `*-mono-white.png` / `tricircle-symbol-white.png` 는 원본의 **색상 변환 시안**입니다. 비율·형태는 100% 보존. 한화손보 BI 공식 mono/inverse 자산이 도착하면 교체 권장 (자세한 내용: `references/brand-identity.md`).
@@ -256,7 +256,7 @@ npx @google/design.md export --format dtcg ./DESIGN.md > tokens.hw.dtcg.json
 
 ```html
 <div class="brand">
-  <img src="/public/logo/hanwha-tricircle-on-navy.png" alt="한화손보" class="brand__logo" />
+  <img src="/logo/hanwha-tricircle-on-navy.png" alt="한화" class="brand__logo" />
 </div>
 ```
 
@@ -275,7 +275,7 @@ npx @google/design.md export --format dtcg ./DESIGN.md > tokens.hw.dtcg.json
 #### on-navy — 스플래시·히어로 (Variant B: 전체 흰색)
 
 ```html
-<img src="/public/logo/hanwha-tricircle-mono-white.png" alt="한화손보" class="brand__logo brand__logo--hero" />
+<img src="/logo/hanwha-tricircle-mono-white.png" alt="한화" class="brand__logo brand__logo--hero" />
 ```
 
 ```css
@@ -285,7 +285,7 @@ npx @google/design.md export --format dtcg ./DESIGN.md > tokens.hw.dtcg.json
 #### on-navy — 모바일 헤더 축약 (Variant C: 심볼만 흰색)
 
 ```html
-<img src="/public/logo/tricircle-symbol-white.png" alt="한화손보" class="brand__logo brand__logo--symbol" />
+<img src="/logo/tricircle-symbol-white.png" alt="한화" class="brand__logo brand__logo--symbol" />
 ```
 
 ```css
@@ -295,7 +295,7 @@ npx @google/design.md export --format dtcg ./DESIGN.md > tokens.hw.dtcg.json
 #### on-white — 일반 페이지·푸터 (원본)
 
 ```html
-<img src="/public/logo/hanwha-tricircle.png" alt="한화손보" class="brand__logo" />
+<img src="/logo/hanwha-tricircle.png" alt="한화" class="brand__logo" />
 ```
 
 ### React / Next.js
@@ -308,16 +308,16 @@ import logoMono    from "@/public/logo/hanwha-tricircle-mono-white.png";
 import logoSymbol  from "@/public/logo/tricircle-symbol-white.png";
 
 // on-navy 헤더 기본
-<Image src={logoOnNavy}  alt="한화손보" height={56} priority className="brand__logo" />
+<Image src={logoOnNavy}  alt="한화" height={56} priority className="brand__logo" />
 
 // on-navy 스플래시
-<Image src={logoMono}    alt="한화손보" height={96} priority className="brand__logo brand__logo--hero" />
+<Image src={logoMono}    alt="한화" height={96} priority className="brand__logo brand__logo--hero" />
 
 // on-navy 모바일 축약
-<Image src={logoSymbol}  alt="한화손보" height={32} priority className="brand__logo brand__logo--symbol" />
+<Image src={logoSymbol}  alt="한화" height={32} priority className="brand__logo brand__logo--symbol" />
 
 // on-white 푸터
-<Image src={logoOnWhite} alt="한화손보" height={28} priority className="brand__logo" />
+<Image src={logoOnWhite} alt="한화" height={28} priority className="brand__logo" />
 ```
 
 ### 사이즈

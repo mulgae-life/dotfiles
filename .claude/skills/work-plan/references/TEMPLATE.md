@@ -114,7 +114,7 @@ Lite / Standard 모드용. 규모에 맞는 섹션만 사용한다.
 \`\`\`json
 {
   "dependencies": {
-+   "zod": "^3.22.0"
++   "zod": "^4.0.0"
   }
 }
 \`\`\`
@@ -141,8 +141,8 @@ npm install && npm run build
 import { z } from "zod";
 
 export const UserSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
+  id: z.uuid(),
+  email: z.email(),
   role: z.enum(["admin", "member"]),
 });
 

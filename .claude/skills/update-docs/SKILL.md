@@ -40,9 +40,12 @@ TaskList 도구 호출하여 완료된 task 확인
 
 ### 3단계: git에서 수집
 
+세션 변경의 1차 신호는 **미커밋 상태**입니다. `HEAD~10`은 고정 창이라 이전 세션 커밋이 섞일 수 있으니, 세션 범위는 대화 컨텍스트로 확정합니다.
+
 ```bash
-git diff --name-only              # 미커밋 변경 파일
-git diff --stat HEAD~10           # 최근 10커밋 변경 범위
+git status --porcelain            # 미커밋 변경 파일 목록 — 스테이징·untracked 포함 (세션 1차 신호)
+git diff HEAD                     # 미커밋 변경 내용 상세 (untracked 파일은 직접 열람)
+git diff --stat HEAD~10           # 커밋된 작업 참고 (이전 세션 포함 가능)
 git log --oneline -10             # 커밋 메시지
 ```
 
@@ -60,6 +63,8 @@ git log --oneline -10             # 커밋 메시지
 
 ## 업데이트 체크리스트
 
+> 편집 전에 아래 기준으로 **수정 대상 파일 목록을 먼저 제시**한 뒤 업데이트합니다.
+
 ### 필수 업데이트
 
 - [ ] `agent-guide/SESSION.md`
@@ -73,8 +78,8 @@ git log --oneline -10             # 커밋 메시지
 | 프로젝트 구조 변경 | `agent-guide/PROJECT.md` |
 | 설정 방식 변경 | `agent-guide/PROJECT.md` |
 | 작업 원칙/코드 스타일 변경 | `agent-guide/GUIDE.md` |
-| API 추가/수정 | `docs/API_SPEC.md` |
-| 새 기능 추가 | `docs/PLANNING.md` |
+| API 추가/수정 | `docs/API_SPEC.md` (프로젝트에 존재하는 경우만) |
+| 새 기능 추가 | `docs/PLANNING.md` (프로젝트에 존재하는 경우만) |
 
 ---
 
@@ -93,7 +98,7 @@ git log --oneline -10             # 커밋 메시지
 #### 변경 파일
 | 파일 | 변경 유형 | 요약 |
 |------|----------|------|
-[git diff --name-only + 대화 컨텍스트에서 수집]
+[git status --porcelain + 대화 컨텍스트에서 수집]
 
 #### 결정 사항
 - [대화 중 내린 설계/기술 결정과 근거]

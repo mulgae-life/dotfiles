@@ -125,7 +125,7 @@ instruction: respond-only, do-not-call-back
 ---
 
 검토 대상: 논문 결과 해석 섹션 (수정본 v2)
-현재 문서: .collab-loop/20260314-results/results_v2.md
+현재 문서: paper/results_v2.md
 
 ## 운영 지침
 - 당신은 하위 검토자가 아니라 대등한 지적 파트너입니다.
@@ -134,6 +134,7 @@ instruction: respond-only, do-not-call-back
 
 ## 라운드 정책
 - 현재 round: 2
+- 최소 3라운드, 권장 기본 5라운드, 절대 상한 10라운드입니다.
 - 최소 3라운드 전에는 정상 종료를 제안하지 마세요.
 - 미합의 항목이나 신규 핵심 쟁점이 남으면 다음 라운드로 넘기세요.
 
@@ -156,7 +157,7 @@ instruction: respond-only, do-not-call-back
 
 | 미합의 쟁점 | A측 주장+근거 | B측 주장+근거 | 이번 라운드 검증 방법 |
 |-------------|---------------|---------------|----------------------|
-| 비용 비교 근거 부족 | "실험 조건이 다르지만 상대적 비용 순위는 유효합니다." (`reply_round1_claude.md:42`) table_3.csv의 비용 열 참조 | "조건 차이가 비용에 직접 영향하므로 정량 비교는 아직 불가합니다." (`reply_round1_codex.md:37`) 조건별 분리 실험 필요 | table_3.csv와 실험 조건 파일을 대조해 직접 비교 가능 여부 판단 |
+| 비용 비교 근거 부족 | "실험 조건이 다르지만 상대적 비용 순위는 유효합니다." (`packet_round1.md` 핵심 주장) table_3.csv의 비용 열 참조 | "조건 차이가 비용에 직접 영향하므로 정량 비교는 아직 불가합니다." (`reply_round1_codex.md:37`) 조건별 분리 실험 필요 | table_3.csv와 실험 조건 파일을 대조해 직접 비교 가능 여부 판단 |
 
 이번 라운드에서 #2에 대해 추가 논증 또는 절충안을 제시해 주세요.
 
@@ -324,6 +325,7 @@ instruction: respond-only, do-not-call-back
 
 ## 라운드 정책
 - 현재 round: 3
+- 최소 3라운드, 권장 기본 5라운드, 절대 상한 10라운드입니다.
 - 최소 라운드는 충족했지만, 미합의 또는 신규 핵심 쟁점이 남으면 종료하지 마세요.
 
 ## 판단 기준
@@ -355,7 +357,8 @@ instruction: respond-only, do-not-call-back
 - 반영한 항목과 변경 내용 요약
 
 [Unresolved]
-- 반영하지 못한 항목과 이유
+- 미합의(Disputed) 항목과 양쪽 근거 요약
+- 각 항목에 evidence: 파일/URL/데이터/논리 근거 1개 이상 또는 evidence: 미확인
 
 [Round Control]
 - 현재 round에서 종료 가능한지 여부

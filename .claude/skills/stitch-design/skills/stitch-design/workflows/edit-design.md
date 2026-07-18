@@ -18,7 +18,7 @@ Be specific about the changes you want to make. Do not just say "fix it".
 - **Structure**: "Add a secondary button next to the primary one with the text 'Learn More'."
 
 ### 3. Apply the Edit
-Call the `mcp_StitchMCP_edit_screens` tool.
+Call the `mcp__stitch__edit_screens` tool.
 
 ```json
 {

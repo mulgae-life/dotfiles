@@ -43,7 +43,7 @@ page: about
 A page describing how jules.top tracking works.
 
 **DESIGN SYSTEM (REQUIRED):**
-[Copy from .stitch/DESIGN.md Section 6]
+[Copy the design system from .stitch/DESIGN.md]
 
 **Page Structure:**
 1. Header with navigation
@@ -242,7 +242,7 @@ The skill is orchestration-agnostic — focus on the pattern, not the trigger me
 This skill works best with the `design-md` skill:
 
 1. **First time setup**: Generate `.stitch/DESIGN.md` using the `design-md` skill from an existing Stitch screen
-2. **Every iteration**: Copy Section 6 ("Design System Notes for Stitch Generation") into your baton prompt
+2. **Every iteration**: Copy the design system from `.stitch/DESIGN.md` into your baton prompt
 3. **Consistency**: All generated pages will share the same visual language
 
 ## Common Pitfalls

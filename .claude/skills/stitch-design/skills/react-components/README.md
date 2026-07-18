@@ -33,4 +33,4 @@ When activated, the agent follows a high-fidelity engineering pipeline:
 2. **Mapping**: Cross-references Stitch metadata with the local `style-guide.json` to ensure token consistency.
 3. **Generation**: Scaffolds components using a strict Atomic Design pattern.
 4. **Validation**: Runs an automated AST check using `@swc/core` to prevent hardcoded hex values or missing interfaces.
-5. **Audit**: Performs a final self-correction check against a 20-point architecture checklist.
+5. **Audit**: Performs a final self-correction check against an 8-point architecture checklist.

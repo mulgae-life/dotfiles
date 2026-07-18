@@ -6,7 +6,7 @@
 
 Chain of Thought (CoT) 프롬프팅은 **OpenAI와 Anthropic 모두에서 권장**하는 핵심 기법입니다.
 
-**핵심 원칙**: 모델이 사고 과정을 **출력**해야 실제로 추론이 발생합니다.
+**핵심 원칙(표준·비추론 모델 기준)**: 모델이 사고 과정을 **출력**해야 실제로 추론이 발생합니다. 내장 추론을 갖춘 최신 모델(추론 모델·Claude 5·GPT-5.x 등)은 예외이며, 아래 "CoT 분기: 모델 유형별 주의사항" 섹션을 따릅니다.
 
 ## 플랫폼별 용어
 
@@ -14,7 +14,7 @@ Chain of Thought (CoT) 프롬프팅은 **OpenAI와 Anthropic 모두에서 권장
 |--------|------|------|
 | **OpenAI** | Chain of Thought | "Think step-by-step" |
 | **Anthropic** | Let Claude think | "Think step-by-step" / 3단계 구분 |
-| **공통** | ✅ 동일 개념 | 사고 과정 출력 필수 |
+| **공통** | ✅ 동일 개념 | 사고 과정 출력(표준 모델 한정, 아래 "CoT 분기" 참조) |
 
 ## 왜 사용하는가?
 
@@ -170,7 +170,7 @@ certainty, which is invaluable for such a crucial financial milestone.
 
 ## Best Practices
 
-1. **항상 사고 출력** - 출력 없이는 사고가 발생하지 않음
+1. **표준 모델은 사고 출력** - 출력 없이는 사고가 발생하지 않음 (추론 모델·Claude 5는 아래 "CoT 분기"에 따라 출력 지시 금지)
 2. **구조화된 태그 사용** - `<thinking>`, `<answer>` 태그로 파싱 용이
 3. **작업 복잡도에 맞추기** - 단순 작업에는 복잡한 CoT 불필요
 4. **사고 단계 안내** - Claude가 무엇을 고려해야 할지 명시
@@ -189,7 +189,8 @@ certainty, which is invaluable for such a crucial financial milestone.
 | 표준 모델 (GPT-4, Claude 3.5 등) | ✅ 20~40% 정확도 향상 | Structured CoT (XML 태그) 사용 |
 | Frontier (GPT-5, Claude 4.5+) | ⚠️ 제한적 향상 | 복잡한 작업에만 선택적 사용 |
 | Reasoning (o1, o3, DeepSeek-R1) | ❌ **성능 저하** | CoT 프롬프팅 금지. 내장 추론 사용 |
-| Extended Thinking (Claude) | ⚠️ 중복 | thinking 파라미터 사용, 수동 CoT 불필요 |
+| Extended Thinking (Claude 4.x) | ⚠️ 중복 | thinking 파라미터 사용, 수동 CoT 불필요 |
+| Claude 5 (Fable 5) | ❌ 지시 시 refusal | Structured CoT의 "사고 과정을 답변에 서술" 지시는 `reasoning_extraction` refusal 유발. thinking 상시 on이므로 CoT 출력 지시 금지, thinking 블록(`display: "summarized"`) 사용 → [claude-5-specifics.md](claude-5-specifics.md) |
 
 ### Reasoning 모델에서 CoT가 유해한 이유
 

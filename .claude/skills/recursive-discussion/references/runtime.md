@@ -171,7 +171,7 @@ codex exec \
 
 | 항목 | 충족 수단 |
 |------|----------|
-| 비파괴 실행 (샌드박스) | Claude Code는 별도 read-only 모드 매핑 없음 (현재 시점). 미적용 시 `decision_log.md` §7 메타에 사유 기록 |
+| 비파괴 실행 (샌드박스) | Claude Code는 OS 수준 read-only 샌드박스는 없음. `--permission-mode plan`이 변경 도구를 차단하는 권한 수준의 읽기 전용 근사(OS 격리는 아님). 미적용 시 `decision_log.md` §7 메타에 사유 기록 |
 | 호출 시간 상한 | `timeout 240s` (사용 가능 시 적용) |
 | MCP 비활성화 | `--mcp-config '{"mcpServers":{}}' --strict-mcp-config` |
 
@@ -181,6 +181,7 @@ PACKET="$SESSION_DIR/packet_round1.md"
 OUT="$SESSION_DIR/reply_round1_claude.md"
 
 timeout 240s claude -p \
+  --permission-mode plan \
   --output-format text \
   --mcp-config '{"mcpServers":{}}' \
   --strict-mcp-config \

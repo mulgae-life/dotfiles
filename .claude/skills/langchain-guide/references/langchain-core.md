@@ -241,19 +241,37 @@ def search(query: str) -> str:
 ### 클래스 기반 (복잡한 입력/검증)
 
 ```python
+import ast
+import operator
 from langchain.tools import BaseTool
 from pydantic import BaseModel
 
 class CalculatorInput(BaseModel):
     expression: str
 
+# 허용 연산자만 화이트리스트로 평가 (LLM 출력 문자열을 eval에 직접 넣지 않는다)
+_OPS = {
+    ast.Add: operator.add, ast.Sub: operator.sub,
+    ast.Mult: operator.mul, ast.Div: operator.truediv, ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+}
+
+def _safe_eval(node: ast.AST) -> float:
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return node.value
+    if isinstance(node, ast.BinOp) and type(node.op) in _OPS:
+        return _OPS[type(node.op)](_safe_eval(node.left), _safe_eval(node.right))
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _OPS:
+        return _OPS[type(node.op)](_safe_eval(node.operand))
+    raise ValueError("허용되지 않은 수식")
+
 class Calculator(BaseTool):
-    name = "calculator"
-    description = "Perform math calculations"
-    args_schema = CalculatorInput
+    name: str = "calculator"
+    description: str = "Perform math calculations"
+    args_schema: type[BaseModel] = CalculatorInput
 
     def _run(self, expression: str) -> str:
-        return str(eval(expression))
+        return str(_safe_eval(ast.parse(expression, mode="eval").body))
 
     async def _arun(self, expression: str) -> str:
         return self._run(expression)
@@ -430,10 +448,10 @@ def handle_tool_errors(request, handler):
 | `ModelRetryMiddleware` | 자동 재시도 + 지수 백오프 |
 | `ModelFallbackMiddleware` | 1차 모델 실패 시 백업 모델 전환 |
 | `SummarizationMiddleware` | 긴 대화 자동 요약 (Model Profiles 기반 트리거) |
-| `ContentModerationMiddleware` | OpenAI 모더레이션 API 적용 |
+| `OpenAIModerationMiddleware` | OpenAI 모더레이션 API 적용 (프로바이더 전용, `langchain_openai.middleware`) |
 
 ```python
-from langchain.middleware import ModelRetryMiddleware
+from langchain.agents.middleware import ModelRetryMiddleware
 
 agent = create_agent(
     model, tools,

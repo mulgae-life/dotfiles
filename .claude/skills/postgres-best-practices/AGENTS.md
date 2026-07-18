@@ -16,49 +16,49 @@ Comprehensive Postgres performance optimization guide for developers using Supab
 
 ## Table of Contents
 
-1. [Query Performance](#query-performance) - **CRITICAL**
+1. [Query Performance](#1-query-performance) - **CRITICAL**
    - 1.1 [Add Indexes on WHERE and JOIN Columns](#11-add-indexes-on-where-and-join-columns)
    - 1.2 [Choose the Right Index Type for Your Data](#12-choose-the-right-index-type-for-your-data)
    - 1.3 [Create Composite Indexes for Multi-Column Queries](#13-create-composite-indexes-for-multi-column-queries)
    - 1.4 [Use Covering Indexes to Avoid Table Lookups](#14-use-covering-indexes-to-avoid-table-lookups)
    - 1.5 [Use Partial Indexes for Filtered Queries](#15-use-partial-indexes-for-filtered-queries)
 
-2. [Connection Management](#connection-management) - **CRITICAL**
+2. [Connection Management](#2-connection-management) - **CRITICAL**
    - 2.1 [Configure Idle Connection Timeouts](#21-configure-idle-connection-timeouts)
    - 2.2 [Set Appropriate Connection Limits](#22-set-appropriate-connection-limits)
    - 2.3 [Use Connection Pooling for All Applications](#23-use-connection-pooling-for-all-applications)
    - 2.4 [Use Prepared Statements Correctly with Pooling](#24-use-prepared-statements-correctly-with-pooling)
 
-3. [Security & RLS](#security-rls) - **CRITICAL**
+3. [Security & RLS](#3-security--rls) - **CRITICAL**
    - 3.1 [Apply Principle of Least Privilege](#31-apply-principle-of-least-privilege)
    - 3.2 [Enable Row Level Security for Multi-Tenant Data](#32-enable-row-level-security-for-multi-tenant-data)
    - 3.3 [Optimize RLS Policies for Performance](#33-optimize-rls-policies-for-performance)
 
-4. [Schema Design](#schema-design) - **HIGH**
+4. [Schema Design](#4-schema-design) - **HIGH**
    - 4.1 [Choose Appropriate Data Types](#41-choose-appropriate-data-types)
    - 4.2 [Index Foreign Key Columns](#42-index-foreign-key-columns)
    - 4.3 [Partition Large Tables for Better Performance](#43-partition-large-tables-for-better-performance)
    - 4.4 [Select Optimal Primary Key Strategy](#44-select-optimal-primary-key-strategy)
    - 4.5 [Use Lowercase Identifiers for Compatibility](#45-use-lowercase-identifiers-for-compatibility)
 
-5. [Concurrency & Locking](#concurrency-locking) - **MEDIUM-HIGH**
+5. [Concurrency & Locking](#5-concurrency--locking) - **MEDIUM-HIGH**
    - 5.1 [Keep Transactions Short to Reduce Lock Contention](#51-keep-transactions-short-to-reduce-lock-contention)
    - 5.2 [Prevent Deadlocks with Consistent Lock Ordering](#52-prevent-deadlocks-with-consistent-lock-ordering)
    - 5.3 [Use Advisory Locks for Application-Level Locking](#53-use-advisory-locks-for-application-level-locking)
    - 5.4 [Use SKIP LOCKED for Non-Blocking Queue Processing](#54-use-skip-locked-for-non-blocking-queue-processing)
 
-6. [Data Access Patterns](#data-access-patterns) - **MEDIUM**
+6. [Data Access Patterns](#6-data-access-patterns) - **MEDIUM**
    - 6.1 [Batch INSERT Statements for Bulk Data](#61-batch-insert-statements-for-bulk-data)
    - 6.2 [Eliminate N+1 Queries with Batch Loading](#62-eliminate-n1-queries-with-batch-loading)
    - 6.3 [Use Cursor-Based Pagination Instead of OFFSET](#63-use-cursor-based-pagination-instead-of-offset)
    - 6.4 [Use UPSERT for Insert-or-Update Operations](#64-use-upsert-for-insert-or-update-operations)
 
-7. [Monitoring & Diagnostics](#monitoring-diagnostics) - **LOW-MEDIUM**
+7. [Monitoring & Diagnostics](#7-monitoring--diagnostics) - **LOW-MEDIUM**
    - 7.1 [Enable pg_stat_statements for Query Analysis](#71-enable-pgstatstatements-for-query-analysis)
    - 7.2 [Maintain Table Statistics with VACUUM and ANALYZE](#72-maintain-table-statistics-with-vacuum-and-analyze)
    - 7.3 [Use EXPLAIN ANALYZE to Diagnose Slow Queries](#73-use-explain-analyze-to-diagnose-slow-queries)
 
-8. [Advanced Features](#advanced-features) - **LOW**
+8. [Advanced Features](#8-advanced-features) - **LOW**
    - 8.1 [Index JSONB Columns for Efficient Querying](#81-index-jsonb-columns-for-efficient-querying)
    - 8.2 [Use tsvector for Full-Text Search](#82-use-tsvector-for-full-text-search)
 
@@ -94,6 +94,11 @@ create index orders_customer_id_idx on orders (customer_id);
 select * from orders where customer_id = 123;
 
 -- EXPLAIN shows: Index Scan using orders_customer_id_idx (cost=0.42..8.44 rows=100 width=85)
+```
+
+For JOIN columns, always index the foreign key side:
+
+```sql
 -- Index the referencing column
 create index orders_customer_id_idx on orders (customer_id);
 
@@ -101,8 +106,6 @@ select c.name, o.total
 from customers c
 join orders o on o.customer_id = c.id;
 ```
-
-For JOIN columns, always index the foreign key side:
 
 Reference: https://supabase.com/docs/guides/database/query-optimization
 
@@ -129,6 +132,11 @@ select * from products where attributes @> '{"color": "red"}';
 -- GIN supports @>, ?, ?&, ?| operators
 create index products_attrs_idx on products using gin (attributes);
 select * from products where attributes @> '{"color": "red"}';
+```
+
+Index type guide:
+
+```sql
 -- B-tree (default): =, <, >, BETWEEN, IN, IS NULL
 create index users_created_idx on users (created_at);
 
@@ -141,8 +149,6 @@ create index events_time_idx on events using brin (created_at);
 -- Hash: equality-only (slightly faster than B-tree for =)
 create index sessions_token_idx on sessions using hash (token);
 ```
-
-Index type guide:
 
 Reference: https://www.postgresql.org/docs/current/indexes-types.html
 
@@ -173,6 +179,11 @@ create index orders_status_created_idx on orders (status, created_at);
 
 -- Query uses one efficient index scan
 select * from orders where status = 'pending' and created_at > '2024-01-01';
+```
+
+**Column order matters** - place equality columns first, range columns last:
+
+```sql
 -- Good: status (=) before created_at (>)
 create index idx on orders (status, created_at);
 
@@ -180,8 +191,6 @@ create index idx on orders (status, created_at);
 -- Works for: WHERE status = 'pending' AND created_at > '2024-01-01'
 -- Does NOT work for: WHERE created_at > '2024-01-01' (leftmost prefix rule)
 ```
-
-**Column order matters** - place equality columns first, range columns last:
 
 Reference: https://www.postgresql.org/docs/current/indexes-multicolumn.html
 
@@ -210,13 +219,16 @@ create index users_email_idx on users (email) include (name, created_at);
 
 -- All columns served from index, no table access needed
 select email, name, created_at from users where email = 'user@example.com';
+```
+
+Use INCLUDE for columns you SELECT but don't filter on:
+
+```sql
 -- Searching by status, but also need customer_id and total
 create index orders_status_idx on orders (status) include (customer_id, total);
 
 select status, customer_id, total from orders where status = 'shipped';
 ```
-
-Use INCLUDE for columns you SELECT but don't filter on:
 
 Reference: https://www.postgresql.org/docs/current/indexes-index-only-scans.html
 
@@ -247,6 +259,11 @@ where deleted_at is null;
 
 -- Query uses the smaller, faster index
 select * from users where email = 'user@example.com' and deleted_at is null;
+```
+
+Common use cases for partial indexes:
+
+```sql
 -- Only pending orders (status rarely changes once completed)
 create index orders_pending_idx on orders (created_at)
 where status = 'pending';
@@ -255,8 +272,6 @@ where status = 'pending';
 create index products_sku_idx on products (sku)
 where sku is not null;
 ```
-
-Common use cases for partial indexes:
 
 Reference: https://www.postgresql.org/docs/current/indexes-partial.html
 
@@ -289,7 +304,7 @@ where state = 'idle in transaction';
 
 **Correct (automatic cleanup of idle connections):**
 
-```ini
+```sql
 -- Terminate connections idle in transaction after 30 seconds
 alter system set idle_in_transaction_session_timeout = '30s';
 
@@ -298,12 +313,15 @@ alter system set idle_session_timeout = '10min';
 
 -- Reload configuration
 select pg_reload_conf();
+```
+
+For pooled connections, configure at the pooler level:
+
+```ini
 # pgbouncer.ini
 server_idle_timeout = 60
 client_idle_timeout = 300
 ```
-
-For pooled connections, configure at the pooler level:
 
 Reference: https://www.postgresql.org/docs/current/runtime-config-client.html#GUC-IDLE-IN-TRANSACTION-SESSION-TIMEOUT
 
@@ -339,10 +357,13 @@ alter system set max_connections = 100;
 -- Also set work_mem appropriately
 -- work_mem * max_connections should not exceed 25% of RAM
 alter system set work_mem = '8MB';  -- 8MB * 100 = 800MB max
-select count(*), state from pg_stat_activity group by state;
 ```
 
 Monitor connection usage:
+
+```sql
+select count(*), state from pg_stat_activity group by state;
+```
 
 Reference: https://supabase.com/docs/guides/platform/performance#connection-management
 
@@ -416,12 +437,16 @@ deallocate get_user;
 
 -- Option 3: Use session mode pooling (port 5432 vs 6543)
 -- Connection is held for entire session, prepared statements persist
--- Many drivers use prepared statements by default
--- Node.js pg: { prepare: false } to disable
--- JDBC: prepareThreshold=0 to disable
 ```
 
 Check your driver settings:
+
+```sql
+-- Many drivers use prepared statements by default
+-- postgres.js (porsager): { prepare: false } to disable
+-- JDBC: prepareThreshold=0 to disable
+-- Note: node-postgres (pg) does NOT prepare by default; it opts in per-query via a `name` field, so there is no global prepare flag to disable
+```
 
 Reference: https://supabase.com/docs/guides/database/connecting-to-postgres#connection-pool-modes
 
@@ -471,12 +496,15 @@ grant usage on sequence orders_id_seq to app_writer;
 -- Login role inherits from these
 create role app_user login password 'xxx';
 grant app_writer to app_user;
+```
+
+Revoke public defaults:
+
+```sql
 -- Revoke default public access
 revoke all on schema public from public;
 revoke all on all tables in schema public from public;
 ```
-
-Revoke public defaults:
 
 Reference: https://supabase.com/blog/postgres-roles-and-privileges
 
@@ -515,13 +543,16 @@ alter table orders force row level security;
 -- Set user context and query
 set app.current_user_id = '123';
 select * from orders;  -- Only returns orders for user 123
+```
+
+Policy for authenticated role:
+
+```sql
 create policy orders_user_policy on orders
   for all
   to authenticated
   using (user_id = auth.uid());
 ```
-
-Policy for authenticated role:
 
 Reference: https://supabase.com/docs/guides/database/postgres/row-level-security
 
@@ -549,6 +580,11 @@ create policy orders_policy on orders
   using ((select auth.uid()) = user_id);  -- Called once, cached
 
 -- 100x+ faster on large tables
+```
+
+Use security definer functions for complex checks:
+
+```sql
 -- Create helper function (runs as definer, bypasses RLS)
 create or replace function is_team_member(team_id bigint)
 returns boolean
@@ -565,11 +601,13 @@ $$;
 -- Use in policy (indexed lookup, not per-row check)
 create policy team_orders_policy on orders
   using ((select is_team_member(team_id)));
-create index orders_user_id_idx on orders (user_id);
 ```
 
-Use security definer functions for complex checks:
 Always add indexes on columns used in RLS policies:
+
+```sql
+create index orders_user_id_idx on orders (user_id);
+```
 
 Reference: https://supabase.com/docs/guides/database/postgres/row-level-security#rls-performance-recommendations
 
@@ -609,14 +647,17 @@ create table users (
   is_active boolean default true, -- 1 byte vs variable string length
   price numeric(10,2)             -- Exact decimal arithmetic
 );
+```
+
+Key guidelines:
+
+```sql
 -- IDs: use bigint, not int (future-proofing)
 -- Strings: use text, not varchar(n) unless constraint needed
 -- Time: use timestamptz, not timestamp
 -- Money: use numeric, not float (precision matters)
 -- Enums: use text with check constraint or create enum type
 ```
-
-Key guidelines:
 
 Reference: https://www.postgresql.org/docs/current/datatype.html
 
@@ -658,6 +699,11 @@ create index orders_customer_id_idx on orders (customer_id);
 -- Now JOINs and cascades are fast
 select * from orders where customer_id = 123;  -- Index Scan
 delete from customers where id = 123;          -- Uses index, fast cascade
+```
+
+Find missing FK indexes:
+
+```sql
 select
   conrelid::regclass as table_name,
   a.attname as fk_column
@@ -669,8 +715,6 @@ where c.contype = 'f'
     where i.indrelid = c.conrelid and a.attnum = any(i.indkey)
   );
 ```
-
-Find missing FK indexes:
 
 Reference: https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-FK
 
@@ -758,9 +802,9 @@ create table users (
 );
 
 -- For distributed systems needing UUIDs, use UUIDv7 (time-ordered)
--- Requires pg_uuidv7 extension: create extension pg_uuidv7;
+-- PG18+ has built-in uuidv7(); earlier versions need the pg_uuidv7 extension (uuid_generate_v7)
 create table orders (
-  id uuid default uuid_generate_v7() primary key  -- Time-ordered, no fragmentation
+  id uuid default uuidv7() primary key  -- Time-ordered, no fragmentation
 );
 
 -- Alternative: time-prefixed IDs for sortable, distributed IDs (no extension needed)
@@ -774,7 +818,7 @@ create table events (
 
 Guidelines:
 - Single database: `bigint identity` (sequential, 8 bytes, SQL-standard)
-- Distributed/exposed IDs: UUIDv7 (requires pg_uuidv7) or ULID (time-ordered, no
+- Distributed/exposed IDs: UUIDv7 (PG18+ built-in uuidv7(), earlier versions pg_uuidv7 extension) or ULID (time-ordered, no
   fragmentation)
 - `serial` works but `identity` is SQL-standard and preferred for new
   applications
@@ -820,6 +864,11 @@ CREATE TABLE users (
 
 -- Works without quotes, recognized by all tools
 SELECT first_name FROM users WHERE user_id = 1;
+```
+
+Common sources of mixed-case identifiers:
+
+```sql
 -- ORMs often generate quoted camelCase - configure them to use snake_case
 -- Migrations from other databases may preserve original casing
 -- Some GUI tools quote identifiers by default - disable this
@@ -827,8 +876,6 @@ SELECT first_name FROM users WHERE user_id = 1;
 -- If stuck with mixed-case, create views as a compatibility layer
 CREATE VIEW users AS SELECT "userId" AS user_id, "firstName" AS first_name FROM "Users";
 ```
-
-Common sources of mixed-case identifiers:
 
 Reference: https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
 
@@ -872,14 +919,17 @@ set status = 'paid', payment_id = $1
 where id = $2 and status = 'pending'
 returning *;
 commit;  -- Lock held for milliseconds
+```
+
+Use `statement_timeout` to prevent runaway transactions:
+
+```sql
 -- Abort queries running longer than 30 seconds
 set statement_timeout = '30s';
 
 -- Or per-session
 set local statement_timeout = '5s';
 ```
-
-Use `statement_timeout` to prevent runaway transactions:
 
 Reference: https://www.postgresql.org/docs/current/tutorial-transactions.html
 
@@ -919,6 +969,11 @@ select * from accounts where id in (1, 2) order by id for update;
 update accounts set balance = balance - 100 where id = 1;
 update accounts set balance = balance + 100 where id = 2;
 commit;
+```
+
+Alternative: use a single statement to update atomically:
+
+```sql
 -- Single statement acquires all locks atomically
 begin;
 update accounts
@@ -928,6 +983,11 @@ set balance = balance + case id
 end
 where id in (1, 2);
 commit;
+```
+
+Detect deadlocks in logs:
+
+```sql
 -- Check for recent deadlocks
 select * from pg_stat_database where deadlocks > 0;
 
@@ -935,9 +995,6 @@ select * from pg_stat_database where deadlocks > 0;
 set log_lock_waits = on;
 set deadlock_timeout = '1s';
 ```
-
-Alternative: use a single statement to update atomically:
-Detect deadlocks in logs:
 [Deadlocks](https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-DEADLOCKS)
 
 ---
@@ -975,6 +1032,11 @@ begin;
 select pg_advisory_xact_lock(hashtext('daily_report'));
 -- ... do work ...
 commit;  -- Lock automatically released
+```
+
+Try-lock for non-blocking operations:
+
+```sql
 -- Returns immediately with true/false instead of waiting
 select pg_try_advisory_lock(hashtext('resource_name'));
 
@@ -986,8 +1048,6 @@ if (acquired) {
   -- Skip or retry later
 }
 ```
-
-Try-lock for non-blocking operations:
 
 Reference: https://www.postgresql.org/docs/current/explicit-locking.html#ADVISORY-LOCKS
 
@@ -1023,6 +1083,11 @@ for update skip locked;
 
 update jobs set status = 'processing' where id = $1;
 commit;
+```
+
+Complete queue pattern:
+
+```sql
 -- Atomic claim-and-update in one statement
 update jobs
 set status = 'processing', worker_id = $1, started_at = now()
@@ -1035,8 +1100,6 @@ where id = (
 )
 returning *;
 ```
-
-Complete queue pattern:
 
 Reference: https://www.postgresql.org/docs/current/sql-select.html#SQL-FOR-UPDATE-SHARE
 
@@ -1078,6 +1141,11 @@ insert into events (user_id, action) values
   (999, 'view');
 
 -- One round trip for 1000 rows
+```
+
+For large imports, use COPY:
+
+```sql
 -- COPY is fastest for bulk loading
 copy events (user_id, action, created_at)
 from '/path/to/data.csv'
@@ -1090,8 +1158,6 @@ copy events (user_id, action) from stdin with (format csv);
 2,click
 \.
 ```
-
-For large imports, use COPY:
 
 Reference: https://www.postgresql.org/docs/current/sql-copy.html
 
@@ -1131,6 +1197,11 @@ left join orders o on o.user_id = u.id
 where u.active = true;
 
 -- Total: 1 round trip
+```
+
+Application pattern:
+
+```sql
 -- Instead of looping in application code:
 -- for user in users: db.query("SELECT * FROM orders WHERE user_id = $1", user.id)
 
@@ -1138,8 +1209,6 @@ where u.active = true;
 select * from orders where user_id = any($1::bigint[]);
 -- Application passes: [1, 2, 3, 4, 5, ...]
 ```
-
-Application pattern:
 
 Reference: https://supabase.com/docs/guides/database/query-optimization
 
@@ -1177,14 +1246,17 @@ select * from products where id > 20 order by id limit 20;
 
 -- Page 10000: same speed as page 1
 select * from products where id > 199980 order by id limit 20;
+```
+
+For multi-column sorting:
+
+```sql
 -- Cursor must include all sort columns
 select * from products
 where (created_at, id) > ('2024-01-15 10:00:00', 12345)
 order by created_at, id
 limit 20;
 ```
-
-For multi-column sorting:
 
 Reference: https://supabase.com/docs/guides/database/pagination
 
@@ -1223,13 +1295,16 @@ values (123, 'theme', 'dark')
 on conflict (user_id, key)
 do update set value = excluded.value
 returning *;
+```
+
+Insert-or-ignore pattern:
+
+```sql
 -- Insert only if not exists (no update)
 insert into page_views (page_id, user_id)
 values (1, 123)
 on conflict (page_id, user_id) do nothing;
 ```
-
-Insert-or-ignore pattern:
 
 Reference: https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT
 
@@ -1278,14 +1353,17 @@ limit 10;
 
 -- Reset statistics after optimization
 select pg_stat_statements_reset();
+```
+
+Key metrics to monitor:
+
+```sql
 -- Queries with high mean time (candidates for optimization)
 select query, mean_exec_time, calls
 from pg_stat_statements
 where mean_exec_time > 100  -- > 100ms average
 order by mean_exec_time desc;
 ```
-
-Key metrics to monitor:
 
 Reference: https://supabase.com/docs/guides/database/extensions/pg_stat_statements
 
@@ -1325,6 +1403,11 @@ select
   last_autoanalyze
 from pg_stat_user_tables
 order by last_analyze nulls first;
+```
+
+Autovacuum tuning for busy tables:
+
+```sql
 -- Increase frequency for high-churn tables
 alter table orders set (
   autovacuum_vacuum_scale_factor = 0.05,     -- Vacuum at 5% dead tuples (default 20%)
@@ -1335,8 +1418,6 @@ alter table orders set (
 select * from pg_stat_progress_vacuum;
 ```
 
-Autovacuum tuning for busy tables:
-
 Reference: https://supabase.com/docs/guides/database/database-size#vacuum-operations
 
 ---
@@ -1346,6 +1427,8 @@ Reference: https://supabase.com/docs/guides/database/database-size#vacuum-operat
 **Impact: LOW-MEDIUM (Identify exact bottlenecks in query execution)**
 
 EXPLAIN ANALYZE executes the query and shows actual timings, revealing the true performance bottlenecks.
+
+> **Warning:** Because it runs the statement for real, `EXPLAIN ANALYZE` on `INSERT`/`UPDATE`/`DELETE` will modify data. Wrap DML in `BEGIN; ... ROLLBACK;` to inspect the plan without persisting changes.
 
 **Incorrect (guessing at performance issues):**
 
@@ -1368,14 +1451,17 @@ select * from orders where customer_id = 123 and status = 'pending';
 --   Buffers: shared hit=5000 read=15000
 -- Planning Time: 0.150 ms
 -- Execution Time: 450.500 ms
+```
+
+Key things to look for:
+
+```sql
 -- Seq Scan on large tables = missing index
 -- Rows Removed by Filter = poor selectivity or missing index
 -- Buffers: read >> hit = data not cached, needs more memory
 -- Nested Loop with high loops = consider different join strategy
 -- Sort Method: external merge = work_mem too low
 ```
-
-Key things to look for:
 
 Reference: https://supabase.com/docs/guides/database/inspect
 
@@ -1418,14 +1504,17 @@ select * from products where attributes @> '{"color": "red"}';
 -- For specific key lookups, use expression index
 create index products_brand_idx on products ((attributes->>'brand'));
 select * from products where attributes->>'brand' = 'Nike';
+```
+
+Choose the right operator class:
+
+```sql
 -- jsonb_ops (default): supports all operators, larger index
 create index idx1 on products using gin (attributes);
 
 -- jsonb_path_ops: only @> operator, but 2-3x smaller index
 create index idx2 on products using gin (attributes jsonb_path_ops);
 ```
-
-Choose the right operator class:
 
 Reference: https://www.postgresql.org/docs/current/datatype-json.html#JSON-INDEXING
 
@@ -1465,6 +1554,11 @@ select *, ts_rank(search_vector, query) as rank
 from articles, to_tsquery('english', 'postgresql') query
 where search_vector @@ query
 order by rank desc;
+```
+
+Search multiple terms:
+
+```sql
 -- AND: both terms required
 to_tsquery('postgresql & performance')
 
@@ -1474,8 +1568,6 @@ to_tsquery('postgresql | mysql')
 -- Prefix matching
 to_tsquery('post:*')
 ```
-
-Search multiple terms:
 
 Reference: https://supabase.com/docs/guides/database/full-text-search
 

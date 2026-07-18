@@ -217,7 +217,7 @@ def filter_output(llm_output: str) -> str:
 
 ```python
 def safe_parse(raw_output: str) -> dict:
-    """안전한 JSON 파싱"""
+    """JSON 파싱 — 실패 시 예외 전파 (fail-fast)"""
     try:
         return json.loads(raw_output)
     except json.JSONDecodeError:
@@ -225,8 +225,9 @@ def safe_parse(raw_output: str) -> dict:
         match = re.search(r'\{[\s\S]*\}', raw_output)
         if match:
             return json.loads(match.group())
-        # 실패 시 기본값 또는 재시도
-        return {"error": "파싱 실패", "raw": raw_output[:200]}
+        # 파싱 실패를 기본값 dict로 흡수하지 않고 예외 전파 (원인 추적 가능)
+        # 재시도·폴백은 호출부의 최상위 에러 경계에서 처리
+        raise ValueError(f"JSON 파싱 실패: {raw_output[:200]}")
 ```
 
 ---

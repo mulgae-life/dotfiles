@@ -381,7 +381,7 @@ prompt: |
 
 ### OpenAI (GPT-4V/GPT-5)
 
-- **고해상도 모드**: 세밀한 분석이 필요할 때
+- **고해상도 모드**: 세밀한 분석이 필요할 때 (`detail` 값과 5.5+ 신규 기본값 `original`은 [gpt55-patterns.md](gpt55-patterns.md) §7 참조)
   ```python
   message = {
       "role": "user",
@@ -391,7 +391,7 @@ prompt: |
               "type": "image_url",
               "image_url": {
                   "url": image_url,
-                  "detail": "high"  # low, auto, high
+                  "detail": "high"  # low, auto, high, original(5.5+ 기본)
               }
           }
       ]

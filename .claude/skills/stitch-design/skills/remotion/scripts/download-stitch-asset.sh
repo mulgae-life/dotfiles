@@ -18,13 +18,13 @@ OUTPUT_PATH="$2"
 OUTPUT_DIR=$(dirname "$OUTPUT_PATH")
 mkdir -p "$OUTPUT_DIR"
 
-echo "Downloading from: $DOWNLOAD_URL"
+# Strip the query string so signed-URL credentials are not printed to logs
+echo "Downloading from: ${DOWNLOAD_URL%%\?*}"
 echo "Saving to: $OUTPUT_PATH"
 
-# Use curl with follow redirects and authentication handling
-curl -L -o "$OUTPUT_PATH" "$DOWNLOAD_URL"
-
-if [ $? -eq 0 ]; then
+# Use curl with follow redirects; -f makes HTTP errors (4xx/5xx) fail instead
+# of silently writing an error page to the output file.
+if curl -fL -o "$OUTPUT_PATH" "$DOWNLOAD_URL"; then
   echo "✓ Successfully downloaded to $OUTPUT_PATH"
   
   # Display file size for verification

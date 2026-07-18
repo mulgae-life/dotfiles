@@ -142,7 +142,7 @@ To use this skill for the Furniture Collection project:
    - Organize information according to the DESIGN.md structure
 
 5. **Generate the file:**
-   - Create `DESIGN.md` in the project directory
+   - Create `.stitch/DESIGN.md` in the project directory
    - Follow the prescribed format exactly
    - Ensure all color codes are accurate
    - Use evocative, designer-friendly language

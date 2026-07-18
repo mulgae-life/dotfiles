@@ -122,7 +122,7 @@ master.md에는 다음 형식의 Phase 맵이 반드시 포함된다. **Part 기
 
 ### 일관성 유지
 
-- 각 part 상단에 `> master: [../master.md]` 역참조 필수
+- 각 part 상단에 `> master: [master.md]` 역참조 필수
 - master Phase 맵의 파일 링크와 실제 part 파일 존재 여부 일치 필수
 - verifier 점검 시 master ↔ part 정합성 확인
 
@@ -191,7 +191,7 @@ master.md에는 다음 형식의 Phase 맵이 반드시 포함된다. **Part 기
 | `agent-guide/plans/{파일 또는 디렉토리}` | `agent-guide/.archive/` |
 | `.claude/plans/{파일 또는 디렉토리}` | `.claude/.archive/` |
 
-> `.claude/rules/agents.md` 규칙: 구현 완료 후 계획서(Split은 디렉토리째)를 위 매핑대로 `.archive/`로 이동.
+> `.claude/rules/context-management.md` 규칙: 구현 완료 후 계획서(Split은 디렉토리째)를 위 매핑대로 `.archive/`로 이동.
 
 ## 체크리스트
 
@@ -202,8 +202,8 @@ master.md에는 다음 형식의 Phase 맵이 반드시 포함된다. **Part 기
 - [ ] 파일명/디렉토리명이 규칙을 따르는가
 - [ ] 성공 기준이 측정 가능한 체크리스트 형식(3-5개)인가
 - [ ] 범위에 포함/제외가 명시적인가
-- [ ] 정량 요약(Phase 수, 파일 수)이 있는가
-- [ ] 모든 Phase(또는 작업 항목)에 **변경 예시 + 검증 방법**이 있는가
+- [ ] 정량 요약(Phase 수, 파일 수)이 있는가 (Standard/Split — Lite는 TL;DR 범위 줄로 갈음)
+- [ ] 모든 Phase(또는 작업 항목)에 **변경 예시 + 검증 방법**이 있는가 (Lite는 변경 예시 생략, 작업 목록·검증만 필수)
 - [ ] **변경 예시**가 핵심 시그니처/구조 수준인가 (전체 구현 복붙 X)
 - [ ] 리스크가 있다면 각각에 대응 방안이 있는가
 - [ ] **No Placeholder** — TBD/유사참조/`...` 생략 없는가
@@ -212,7 +212,7 @@ master.md에는 다음 형식의 Phase 맵이 반드시 포함된다. **Part 기
 ### Split 모드 추가
 
 - [ ] master에 **Phase 맵(상태 포함)**이 있는가
-- [ ] 각 part가 `> master: [../master.md]`로 역참조하는가
+- [ ] 각 part가 `> master: [master.md]`로 역참조하는가
 - [ ] master Phase 맵의 파일 링크와 실제 part 파일이 모두 존재하는가
 - [ ] 각 part에 **전제 조건**과 **완료 기준**이 있는가
 

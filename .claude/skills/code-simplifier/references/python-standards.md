@@ -17,7 +17,7 @@ def sanitize_text(text: str) -> str:
 
 ## 타입 힌트
 - 모든 함수의 매개변수와 반환값에 타입 명시
-- 복잡한 타입은 `TypeAlias` 또는 `TypedDict` 활용
+- 복잡한 타입은 `type` 문(Python 3.12+ PEP 695) 또는 `TypedDict` 활용 (3.11 이하 지원 시 `TypeAlias`)
 ```python
 # Good
 def fetch_events(region: str, limit: int = 10) -> list[Event]:

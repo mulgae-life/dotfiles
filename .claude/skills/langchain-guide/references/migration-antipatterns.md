@@ -68,11 +68,12 @@ memory = ConversationBufferMemory()
 
 # ✅ 대체: LangGraph 체크포인터
 from langgraph.checkpoint.postgres import PostgresSaver
-checkpointer = PostgresSaver(conn_string="...")
-agent = create_agent(model, tools, checkpointer=checkpointer)
+with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
+    checkpointer.setup()  # 최초 1회: 체크포인트 테이블 생성
+    agent = create_agent(model, tools, checkpointer=checkpointer)
 
-# thread_id로 대화 관리
-config = {"configurable": {"thread_id": "user-123"}}
+    # thread_id로 대화 관리
+    config = {"configurable": {"thread_id": "user-123"}}
 ```
 
 ### 임포트 경로 마이그레이션

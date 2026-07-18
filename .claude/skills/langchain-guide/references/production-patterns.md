@@ -31,11 +31,13 @@
 ```python
 from langgraph.checkpoint.postgres import PostgresSaver
 
-checkpointer = PostgresSaver(conn_string="postgresql://user:pass@host/db")
-graph = builder.compile(checkpointer=checkpointer)
+# from_conn_string은 컨텍스트 매니저 — with 블록 안에서 연결이 유지된다
+with PostgresSaver.from_conn_string("postgresql://user:pass@host/db") as checkpointer:
+    checkpointer.setup()  # 최초 1회: 체크포인트 테이블 생성
+    graph = builder.compile(checkpointer=checkpointer)
 
-config = {"configurable": {"thread_id": "user-123"}}
-result = graph.invoke(input_data, config)
+    config = {"configurable": {"thread_id": "user-123"}}
+    result = graph.invoke(input_data, config)
 ```
 
 ### StateSnapshot
@@ -185,7 +187,7 @@ builder.add_node(
 ### 2계층: 재시도 미들웨어 (모델 레벨)
 
 ```python
-from langchain.middleware import ModelRetryMiddleware
+from langchain.agents.middleware import ModelRetryMiddleware
 
 agent = create_agent(
     model, tools,

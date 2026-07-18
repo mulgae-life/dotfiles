@@ -43,7 +43,7 @@
   --hw-info:            #3B82F6;   --hw-info-bg:     #EFF6FF;
 
   /* Typography raw */
-  --hw-font-hanwha:        "Hanwha", "AtoZ", system-ui, sans-serif;                /* 한화체 — 로고·Display */
+  --hw-font-hanwha:        "Hanwha", "HanwhaGothic", "AtoZ", "Pretendard", system-ui, sans-serif;  /* 한화체 — 로고·Display */
   --hw-font-hanwha-gothic: "HanwhaGothic", "AtoZ", "Pretendard", system-ui, sans-serif;  /* 한화고딕 — 본문 */
   --hw-font-sans:          "HanwhaGothic", "Hanwha", "AtoZ", "Pretendard", -apple-system, BlinkMacSystemFont,
                            "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;

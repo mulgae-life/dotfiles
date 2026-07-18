@@ -33,9 +33,9 @@ create table users (
 );
 
 -- For distributed systems needing UUIDs, use UUIDv7 (time-ordered)
--- Requires pg_uuidv7 extension: create extension pg_uuidv7;
+-- PG18+ has built-in uuidv7(); earlier versions need the pg_uuidv7 extension (uuid_generate_v7)
 create table orders (
-  id uuid default uuid_generate_v7() primary key  -- Time-ordered, no fragmentation
+  id uuid default uuidv7() primary key  -- Time-ordered, no fragmentation
 );
 
 -- Alternative: time-prefixed IDs for sortable, distributed IDs (no extension needed)
@@ -50,7 +50,7 @@ create table events (
 Guidelines:
 
 - Single database: `bigint identity` (sequential, 8 bytes, SQL-standard)
-- Distributed/exposed IDs: UUIDv7 (requires pg_uuidv7) or ULID (time-ordered, no
+- Distributed/exposed IDs: UUIDv7 (PG18+ built-in uuidv7(), earlier versions pg_uuidv7 extension) or ULID (time-ordered, no
   fragmentation)
 - `serial` works but `identity` is SQL-standard and preferred for new
   applications

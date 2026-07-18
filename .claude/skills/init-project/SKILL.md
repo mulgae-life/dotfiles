@@ -29,7 +29,7 @@ effort: medium
 | 목적 (1-2문장) | O | PROJECT |
 | 기술 스택 (영역별) | O | PROJECT |
 | MVP 기능 목록 | O | PROJECT |
-| 작업 관리 도구 | - | GUIDE, SESSION |
+| 작업 관리 도구 | - | GUIDE, PROJECT, SESSION |
 | 프로젝트 구조 | - | PROJECT |
 | 빠른 시작 명령어 | - | PROJECT |
 | 다음 작업 | - | SESSION |
@@ -95,3 +95,5 @@ effort: medium
 | `templates/GUIDE.md.template` | agent-guide/GUIDE.md | terms_table, task_check_step 등 |
 | `templates/PROJECT.md.template` | agent-guide/PROJECT.md | project_name, purpose, tech_stack_table 등 |
 | `templates/SESSION.md.template` | agent-guide/SESSION.md | task_management_table, next_tasks_table, date 등 |
+
+> 변수 치환 후, 각 템플릿에 포함된 **생성 안내용 인용구**(`> 예시:`, `> 대화에서 …가 언급되었으면`, `> …가 없으면` 등 채우는 방법을 설명하는 blockquote)는 제거합니다. 단 GUIDE의 "시작 예시" 섹션처럼 산출물 본문에 해당하는 인용구는 유지합니다.

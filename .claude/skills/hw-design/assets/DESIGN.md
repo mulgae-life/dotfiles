@@ -261,7 +261,7 @@ components:
   nav-top:
     backgroundColor: "{colors.neutral}"
     textColor: "{colors.text-on-neutral}"
-    height: 104px                                 # 로고 84px + 브랜드 타이틀 22px 기준 시각 균형
+    height: 104px                                 # 로고 56px + 브랜드 타이틀 22px 기준 시각 균형
     padding: 0 24px
 
   # ────────────────────────────────────────────────────────────────
@@ -302,7 +302,7 @@ components:
   # 브랜드 헤더 — 로고 옆 한글 서비스명(타이틀) 의 시각 균형
   brand-header:
     gap: "{spacing.sm}"                           # 로고 ↔ 타이틀 사이 12px
-    titleFontSize: 1.375rem                       # 22px — h2(24) 바로 아래. Nav 104 / 로고 84 와 균형
+    titleFontSize: 1.375rem                       # 22px — h2(24) 바로 아래. Nav 104 / 로고 56 와 균형
     titleFontWeight: 700
     titleLetterSpacing: -0.015em                  # 한글 제목은 음의 자간으로 짜임새 확보
 
@@ -586,7 +586,7 @@ box-shadow: var(--shadow-glass);
 
 ### Navigation
 
-- **Top Bar**: `neutral` 배경, 높이 64px, `sticky top-0 z-30`. 하단 1px `border-light` (on-light 버전) 또는 없음(on-navy).
+- **Top Bar**: `neutral` 배경, 높이 104px, `sticky top-0 z-30`. 하단 1px `border-light` (on-light 버전) 또는 없음(on-navy).
 - **Logo 영역**: 좌측. 트리서클 로고의 세이프존은 로고 높이의 1/2 이상.
 - **Menu Item**: `body` 크기, `text-on-neutral`. active 시 `primary` 배경 + 흰 텍스트, 또는 좌측 3px `primary` 인디케이터 막대.
 - **Mobile**: 햄버거 → 전폭 drawer. 드로어 헤더는 `neutral` 그래디언트.
@@ -627,7 +627,7 @@ box-shadow: var(--shadow-glass);
 
 ```html
 <div class="brand">
-  <img src="/public/logo/hanwha-tricircle-on-navy.png" alt="한화손보" class="brand__logo"/>
+  <img src="/logo/hanwha-tricircle-on-navy.png" alt="한화" class="brand__logo"/>
 </div>
 ```
 ```css
@@ -643,7 +643,7 @@ box-shadow: var(--shadow-glass);
 #### on-navy — 스플래시·히어로 / 풋터 inverse (Variant B)
 
 ```html
-<img src="/public/logo/hanwha-tricircle-mono-white.png" alt="한화손보" class="brand__logo brand__logo--hero"/>
+<img src="/logo/hanwha-tricircle-mono-white.png" alt="한화" class="brand__logo brand__logo--hero"/>
 ```
 ```css
 .brand__logo--hero { height: 96px; }   /* brand-logo.height-hero — 또는 더 크게 */
@@ -652,7 +652,7 @@ box-shadow: var(--shadow-glass);
 #### on-navy — 모바일 헤더 축약 (Variant C)
 
 ```html
-<img src="/public/logo/tricircle-symbol-white.png" alt="한화손보" class="brand__logo brand__logo--symbol"/>
+<img src="/logo/tricircle-symbol-white.png" alt="한화" class="brand__logo brand__logo--symbol"/>
 ```
 ```css
 .brand__logo--symbol { height: 32px; }  /* brand-logo.height-mobile */
@@ -661,7 +661,7 @@ box-shadow: var(--shadow-glass);
 #### on-white — 일반 페이지·푸터 (원본)
 
 ```html
-<img src="/public/logo/hanwha-tricircle.png" alt="한화손보" class="brand__logo"/>
+<img src="/logo/hanwha-tricircle.png" alt="한화" class="brand__logo"/>
 ```
 
 #### 사이즈

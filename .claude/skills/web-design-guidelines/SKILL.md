@@ -38,7 +38,7 @@ when_to_use: "UI 리뷰해줘, 접근성 체크, 디자인 검토, UX 리뷰 요
 
 ## 출력 형식
 
-결과는 심각도 3단계로 분류하고, 파일별로 그룹화하여 출력합니다.
+결과는 심각도 3단계로 분류하고, 파일별로 그룹화하여 출력합니다. 가이드라인 문서(원격/스냅샷)에 자체 Output Format 섹션이 있어도, 출력은 이 스킬의 심각도 형식을 우선합니다.
 
 **심각도 기준:**
 
@@ -81,4 +81,4 @@ src/Button.tsx:67 | Animation | transition: all 사용 | 속성 명시적 나열
 https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md
 ```
 
-fetch 실패 시 `references/web-interface-guidelines.md` 로컬 스냅샷을 fallback으로 사용합니다.
+가져오기 실패 시 로컬 스냅샷 `references/web-interface-guidelines.md`를 폴백(fallback)으로 사용합니다.

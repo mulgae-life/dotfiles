@@ -111,7 +111,7 @@ class AgentState(TypedDict):
 | `add_messages` | 메시지 ID 기반 병합 | LLM 대화 |
 | 커스텀 함수 | 사용자 정의 | 복잡한 병합 |
 
-> **흔한 실수:** 리스트 필드에 Reducer를 빠뜨리면 마지막 값이 이전 값을 **덮어씀**. `messages: list` → 데이터 유실. 반드시 `messages: Annotated[list, operator.add]` 사용.
+> **흔한 실수:** 리스트 필드에 Reducer를 빠뜨리면 마지막 값이 이전 값을 **덮어씀**. `messages: list` → 데이터 유실. 대화 메시지는 반드시 `messages: Annotated[list, add_messages]`를, 로그·이력 같은 일반 리스트 누적에는 `operator.add`를 사용.
 
 ### Reducer 바이패스
 
@@ -410,13 +410,14 @@ builder.add_node("sub", sub_graph)
 
 ### 격리 상태 서브그래프
 
-명시적 변환 함수로 데이터 교환:
+부모와 서브그래프의 스키마가 다를 때는 래퍼 노드 함수에서 입력·출력을 명시적으로 변환한다 (`sub_graph.invoke()` 직접 호출):
 
 ```python
-def transform_input(parent_state):
-    return {"sub_messages": parent_state["messages"][-3:]}
+def call_sub(parent_state):
+    sub_result = sub_graph.invoke({"sub_messages": parent_state["messages"][-3:]})
+    return {"messages": sub_result["sub_messages"]}
 
-builder.add_node("sub", sub_graph, input=transform_input)
+builder.add_node("sub", call_sub)
 ```
 
 ### 부모-자식 통신

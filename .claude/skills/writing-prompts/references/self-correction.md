@@ -385,7 +385,7 @@ confidence_based: |
   </final>
   ```
 - **Extended thinking**: 내부 추론으로 자연스러운 자기 검토
-- **Prefilling**: 단계 시작 강제
+- **Prefilling** (Claude 4.5 이하 전용 — Fable 5·4.6+는 400, Structured Outputs 사용): 단계 시작 강제
   ```python
   messages=[
       {"role": "user", "content": "코드를 작성하고 검토해 주세요"},

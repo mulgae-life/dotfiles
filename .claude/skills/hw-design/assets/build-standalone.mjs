@@ -35,7 +35,7 @@ Usage:
 Options:
   --fonts core     한화체 R/B + 한화고딕 R/B 만 인라인 (~1.5MB, 사이즈 절약)
   --fonts all      fonts.css 통째 mirror — 한화체 3w + 한화고딕 5w
-                   + AtoZ 9w + IBM Plex 2개 모두 인라인 (~4MB,
+                   + AtoZ 9w + IBM Plex 2개 모두 인라인 (~12MB,
                    index.html 과 시각적으로 100% 동일)
   --fonts none     폰트 제외, 시스템 폴백 (~200KB)
   -h, --help       이 도움말

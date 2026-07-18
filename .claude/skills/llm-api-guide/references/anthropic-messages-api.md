@@ -37,7 +37,9 @@ response = client.messages.create(
     max_tokens=1024
 )
 
-print(response.content[0].text)
+# text 블록만 추출 — content[0]을 직접 읽지 않기: thinking이 켜진 모델
+# (Sonnet 5는 기본 on, Fable 5는 상시 on)은 첫 블록이 thinking입니다
+print("".join(b.text for b in response.content if b.type == "text"))
 ```
 
 ### System Prompt 사용
@@ -165,7 +167,7 @@ response1 = client.messages.create(
     messages=messages,
     max_tokens=1024
 )
-messages.append({"role": "assistant", "content": response1.content[0].text})
+messages.append({"role": "assistant", "content": response1.content})  # 블록 전체 보존 (thinking 포함)
 
 # 후속 요청
 messages.append({"role": "user", "content": "이전 대화를 요약해주세요"})
@@ -197,10 +199,8 @@ class ConversationManager:
             max_tokens=1024
         )
 
-        assistant_message = response.content[0].text
-        self.messages.append({"role": "assistant", "content": assistant_message})
-
-        return assistant_message
+        self.messages.append({"role": "assistant", "content": response.content})
+        return "".join(b.text for b in response.content if b.type == "text")
 
 # 사용
 conv = ConversationManager(client, "claude-sonnet-5", "격식체로 응답하세요")
@@ -249,35 +249,31 @@ response = client.messages.create(
 )
 
 # Tool use 처리
+# 한 assistant 턴에 tool_use 블록이 여러 개일 수 있다(병렬 도구 호출).
+# Anthropic 계약: 모든 tool_use의 결과(tool_result)를 '하나의 user 메시지'에 모아
+# 후속 호출을 1회만 한다. 블록마다 호출을 나누면 결과 누락으로 400이 난다.
+tool_results = []
 for block in response.content:
     if block.type == "tool_use":
-        tool_name = block.name
-        tool_input = block.input
-        tool_use_id = block.id
+        # 도구가 여러 개면 block.name으로 분기
+        result = get_weather(**block.input)
+        tool_results.append({
+            "type": "tool_result",
+            "tool_use_id": block.id,
+            "content": json.dumps(result)
+        })
 
-        # 함수 실행
-        result = get_weather(**tool_input)
-
-        # 결과 전달
-        response2 = client.messages.create(
-            model="claude-sonnet-5",
-            messages=[
-                {"role": "user", "content": "서울 날씨 알려줘"},
-                {"role": "assistant", "content": response.content},
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": tool_use_id,
-                            "content": json.dumps(result)
-                        }
-                    ]
-                }
-            ],
-            tools=tools,
-            max_tokens=1024
-        )
+# 모든 tool_result를 하나의 user 메시지로 묶어 후속 호출 1회
+response2 = client.messages.create(
+    model="claude-sonnet-5",
+    messages=[
+        {"role": "user", "content": "서울 날씨 알려줘"},
+        {"role": "assistant", "content": response.content},
+        {"role": "user", "content": tool_results}
+    ],
+    tools=tools,
+    max_tokens=1024
+)
 ```
 
 ### Tool Choice
@@ -330,13 +326,18 @@ with client.messages.stream(
 ### 비동기 스트리밍
 
 ```python
-async with client.messages.stream(
-    model="claude-sonnet-5",
-    messages=[{"role": "user", "content": "Hello"}],
-    max_tokens=1024
-) as stream:
-    async for text in stream.text_stream:
-        print(text, end="", flush=True)
+from anthropic import AsyncAnthropic
+
+client = AsyncAnthropic()
+
+async def stream_response():
+    async with client.messages.stream(
+        model="claude-sonnet-5",
+        messages=[{"role": "user", "content": "Hello"}],
+        max_tokens=1024
+    ) as stream:
+        async for text in stream.text_stream:
+            print(text, end="", flush=True)
 ```
 
 ### 이벤트 기반 스트리밍
@@ -541,7 +542,7 @@ response = client.beta.messages.create(
 if response.stop_reason == "refusal":
     handle_refusal()          # 체인 전체가 거절한 경우
 else:
-    print(response.content[0].text)
+    print("".join(b.text for b in response.content if b.type == "text"))
 ```
 
 ### 3. 데이터 보존 요건
