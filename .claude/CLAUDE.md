@@ -13,13 +13,3 @@
 ## 커뮤니케이션
 
 → 상세 규칙은 `.claude/rules/communication.md` 참조 (한국어 응답, 용어 병기, 변경 이유 설명)
-
-## 도구 힌트
-
-| 도구 | 용도 |
-|------|------|
-| **파일 탐색** | Glob, Grep으로 코드베이스 검색 |
-| **작업 관리** | TaskCreate/TaskUpdate로 진행 상황 추적 |
-| **컨텍스트 관리** | 대량 출력은 `.claude/scratch/`에 저장, 요약만 컨텍스트에 유지 |
-
-> 프로젝트별 MCP 도구는 `agent-guide/GUIDE.md`의 MCP 섹션 참고.

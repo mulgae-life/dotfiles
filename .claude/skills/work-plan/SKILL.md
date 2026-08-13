@@ -53,7 +53,7 @@ when_to_use: "계획서 작성해줘, 구현 계획 세워줘, 작업 계획 만
 | **중** | 파일 3-9개, 명확한 단계 | **Standard** | `references/TEMPLATE.md` |
 | **대** | 파일 10+ **OR** Phase 4+ **OR** 예상 500줄+ | **Split** | `references/TEMPLATE-master.md` + `references/TEMPLATE-part.md` |
 
-> **Split 트리거 3가지 중 하나라도 해당하면 분할**. 긴 단일 계획서는 작업 중 중간부 요구사항 누락 위험이 크다 (`.claude/rules/context-management.md` 중간 망각 패턴).
+> **Split 트리거 3가지 중 하나라도 해당하면 분할**. 긴 단일 계획서는 작업 중 중간부 요구사항 누락 위험이 크다.
 
 ## 파일 위치 결정
 

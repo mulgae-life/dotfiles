@@ -12,14 +12,14 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
 설치 (심볼릭 링크 + 일부 복사)
   ↓
 세션 시작 시 자동 로드
-  ├── rules/         8개 규칙이 항상 적용 (코딩 스타일, 보안, 한국어 응답 등)
+  ├── rules/         7개 규칙이 항상 적용 (코딩 스타일, 보안, 한국어 응답 등)
   ├── agents/        조건 충족 시 서브에이전트가 자동 위임 (빌드 에러, 보안 등)
   ├── hooks/         실패 가이던스, 알림, compact 리마인더
   ├── settings.json  권한, 언어, 모델 등 전역 설정 (복사)
   └── config.toml    Codex 모델, 커뮤니케이션 규칙 (복사)
   ↓
 사용자가 필요할 때 호출
-  └── skills/        /code-review, /writing-prompts 등 19개 전문 스킬
+  └── skills/        /code-review, /writing-prompts 등 20개 전문 스킬
 ```
 
 ## 📦 설치
@@ -60,7 +60,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 기능 | 설명 |
 |------|------|
 | 규칙 적용 | 코딩 스타일, 보안, 한국어 응답 등 `rules/` 규칙이 매 세션 자동 적용 |
-| 명령어 자동 승인 | 위험한 명령(`rm`, `git push` 등)만 확인 요청, 나머지는 자동 승인 → 장기 작업이 중단 없이 진행 |
+| 명령어 자동 실행 | 전 명령 무프롬프트 실행(bypass) → 장기 작업이 중단 없이 진행. 위험 명령은 지침이 자율 사용을 금지하고 파국형만 `deny` 차단 |
 | 에이전트 위임 | 빌드 실패 → `build-resolver`, 보안 민감 코드 → `security-reviewer` 등 자동 위임 |
 | 데스크톱 알림 | Claude가 입력 대기 중일 때 `notify-send`로 알림 |
 | compact 리마인더 | 긴 세션에서 컨텍스트 압축 후 핵심 규칙(한국어, 변경 이유 설명 등) 자동 재주입 |
@@ -77,7 +77,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 ## 🧩 구성요소
 
-### 📏 Rules (8개) — 매 세션 자동 적용
+### 📏 Rules (7개) — 매 세션 자동 적용
 
 | 파일 | 역할 |
 |------|------|
@@ -85,10 +85,11 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `security.md` | 시크릿 관리, 입력 검증, 취약점 방지 |
 | `architecture.md` | 파일 구조, 단일 역할, 의존성 방향 |
 | `communication.md` | 한국어 응답, 변경 이유 설명, 용어 병기, 이모지 활용 |
-| `context-management.md` | 컨텍스트 절약, 스크래치패드, 메모리 계층 |
-| `work-principles.md` | 작업 원칙 (정확성 우선, 리소스 제약 추측 금지 등) |
+| `context-management.md` | 대량 출력·계획 영속화·부에이전트 공유 정책 (하네스 내장 동작 위의 로컬 정책만) |
+| `work-principles.md` | 작업 원칙 (정확성 우선, 위험 명령 통제, 산출물 정리 등) |
 | `agents.md` | 에이전트 자동 위임 조건과 우선순위 |
-| `reference-verification.md` | 논문/레퍼런스 인용 시 원문 검증 의무화 |
+
+> 레퍼런스 검증 규칙은 상시 로드에서 온디맨드로 전환 — `/reference-verification` 스킬 참고 (work-principles에 호출 트리거 1줄 유지)
 
 ### 🤖 Agents (4개) — 조건 충족 시 자동 위임
 
@@ -122,7 +123,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 > Codex PreToolUse는 의도적 미설정 — `approval_policy = "never"` + `.codex/rules/default.rules`(Starlark DSL)가 이미 통제
 
-### ⚙️ Skills (19개) — `/skill-name`으로 호출
+### ⚙️ Skills (20개) — `/skill-name`으로 호출
 
 **코드 품질**
 
@@ -158,6 +159,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 스킬 | 용도 |
 |------|------|
 | `/writing-prompts` | LLM 프롬프트 작성 |
+| `/reference-verification` | 논문 인용·수식→코드 구현·benchmark 비교 시 원문 검증 절차 (rules에서 온디맨드 스킬로 전환) |
 | `/update-docs` | 프로젝트 문서 업데이트 |
 | `/recursive-discussion` | Claude↔Codex 대등 토론으로 결과물 개선 — 라운드 정책(최소 3 / 권장 5 / 상한 10) + packet 공통 블록 + 토론 상태표 기반 판단 |
 
@@ -169,7 +171,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `/init-project` | 새 프로젝트 agent-guide 자동 생성 |
 | `/skill-creator` | 새 스킬 생성 가이드 |
 
-> `/start`는 스킬이 아니라 커스텀 명령(`.claude/commands/start.md`)이다. 호출 방식이 같아 함께 표기하며, 19개 집계에는 포함하지 않는다.
+> `/start`는 스킬이 아니라 커스텀 명령(`.claude/commands/start.md`)이다. 호출 방식이 같아 함께 표기하며, 20개 집계에는 포함하지 않는다.
 
 ## 🌐 전역 vs 프로젝트별
 
@@ -184,11 +186,11 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 dotfiles/
 ├── .claude/
 │   ├── CLAUDE.md              # 전역 진입점
-│   ├── rules/                 # 규칙 (8개)
+│   ├── rules/                 # 규칙 (7개)
 │   ├── agents/                # 서브에이전트 (4개)
 │   ├── commands/              # 슬래시 커맨드
 │   ├── hooks/                 # 이벤트 훅
-│   ├── skills/                # 스킬 (19개)
+│   ├── skills/                # 스킬 (20개)
 │   ├── scratch/               # 임시 작업 파일 (대량 출력 등 — gitignored, 보존물은 reference/로 승격)
 │   ├── statusline-command.sh  # 상태줄 스크립트
 │   └── settings.json          # 전역 설정
@@ -244,6 +246,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.12** | 상시 로드 지침 감량 — Anthropic의 Claude 5 컨텍스트 엔지니어링 처방(시스템 프롬프트 80% 삭제, "지침의 저주")을 근거로 rules 전 조항을 3축(모델이 스스로 하는가/내장 기능과 중복인가/층간 충돌인가) 감사. reference-verification을 rules에서 온디맨드 스킬로 전환(상시 67줄→트리거 1줄), context-management를 내장 중복 제거 후 로컬 정책 3건으로 축소, CLAUDE.md 도구 힌트 표·security 예시 코드쌍·자기검증 지시 삭제, verifier 트리거·인수 프로토콜을 모델 중립 결과 기준으로 개정. 상시 로드 393→약 250줄 (원본은 `.archive/2026-08-13_rules-slimming/`) |
 | **v2.11** | Claude Opus 5 조사·반영 — 서브에이전트 3개(공식 문서/Claude Code·SDK/커뮤니티) 병렬 조사로 `research-opus5.md` 신설, Opus 5 프롬프트 가이드 신설(검증 스캐폴딩 삭제·위임 상한·effort 역전·thinking 기본 켜짐), llm-api-guide에 Opus 5 주의사항 섹션·`fallbacks: "default"` 반영, writing-prompts `claude-5-specifics.md`를 Fable 5·Opus 5 공통 문서로 확장. 스킬 캐시 대비 실측 차이(web fetch 미지원, Sonnet 5 $2/$10 정가 확정) 정정 |
 | **v2.10** | 확인 프롬프트 전면 해제 — Bash 자동승인 훅(497줄) 은퇴 + `permissions.ask` 81건 해제. 멀티라인 인용 오탐(따옴표 속 "rm 금지"를 명령 오인) 재현·수정 후, ask 규칙이 bypass 모드에서도 발동함을 실측 확인하고 두 ask 계층을 모두 제거. 위험 명령 통제는 지침 + `deny` 49건으로 일원화(권한변경 4건 해제, `systemctl`/`loginctl` 전원 조작·`crontab -r` 6건 보강), work-principles 훅 조항·`/tmp` 요령 4종 삭제 + PostCompact 리마인더를 요약 불신·파일 재확인 중심으로 개정 (복원 자료는 `.archive/2026-07-18_hook-retirement/`) |
 | **v2.9** | Codex 스킬 재검토 2라운드(쟁점 52건) 전건 재현 판정·선별 수용 — skill-creator 하위 호출 격리(`--safe-mode`)·zip 심링크 차단·name 표준 정합, LLM API 병렬 도구 배칭(Anthropic·OpenAI)·thinking 호환 text 추출, token-audit 파이프 절단 수정, Stitch MCP 표기·경로 계약 정합·중첩 스킬 이름 충돌 해소 |

@@ -1,6 +1,6 @@
 # Hanwha Brand Identity — 출처 및 검증 기록
 
-이 문서는 `DESIGN.md` 에 들어간 한화 브랜드 값의 **출처와 확실성 수준**을 기록한다. 레퍼런스 검증 규칙(`.claude/rules/reference-verification.md`)에 따라 공식 출처가 확인된 값과 추정값을 구분한다.
+이 문서는 `DESIGN.md` 에 들어간 한화 브랜드 값의 **출처와 확실성 수준**을 기록한다. 레퍼런스 검증 규칙(`.claude/skills/reference-verification/SKILL.md`)에 따라 공식 출처가 확인된 값과 추정값을 구분한다.
 
 ## 브랜드 에센스
 
