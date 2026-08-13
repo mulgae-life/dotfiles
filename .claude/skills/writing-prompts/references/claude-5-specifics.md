@@ -1,4 +1,4 @@
-# Claude 5 (Fable 5) 특화 기법
+# Claude 5 세대 (Fable 5 · Opus 5) 특화 기법
 
 ## 목차
 - [핵심 특징](#핵심-특징)
@@ -6,12 +6,13 @@
 - [De-prescribe: 4.x와 반대 방향](#de-prescribe-4x와-반대-방향)
 - [권장 스니펫](#권장-스니펫)
 - [Effort 상호작용](#effort-상호작용)
+- [Opus 5 차이점](#opus-5-차이점)
 - [4.x 프롬프트 마이그레이션 체크리스트](#4x-프롬프트-마이그레이션-체크리스트)
 - [요약](#요약)
 
 
-Claude 5 세대(Fable 5 `claude-fable-5`, Mythos 5 `claude-mythos-5`) 특화 베스트 프랙티스입니다.
-전체 가이드(스니펫 원문 전체 + API 변경 상세): [claude-5-fable-prompt-guide.md](../../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md)
+Claude 5 세대(Fable 5 `claude-fable-5`, Mythos 5 `claude-mythos-5`, Opus 5 `claude-opus-5`) 특화 베스트 프랙티스입니다. 본문은 Fable 5 기준이고, Opus 5만 다른 지점은 [Opus 5 차이점](#opus-5-차이점)에 정리했습니다.
+전체 가이드: [Fable 5](../../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) · [Opus 5](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md)
 
 ## 핵심 특징
 
@@ -112,6 +113,21 @@ Store one lesson per file with a one-line summary at the top. Record corrections
 | `xhigh` | 최고 난도 코딩·에이전트 | 과잉 리팩토링 방지 스니펫 권장, `max_tokens` 넉넉히 |
 | `high` | 기본값 (대부분 작업) | — |
 | `medium`/`low` | 루틴·저지연 | Fable 5의 low가 구모델 xhigh를 능가하기도 — 프롬프트로 깊이 보정하지 말고 effort부터 조정 |
+
+## Opus 5 차이점
+
+Opus 5(2026-07 GA, $5/$25 — Fable 5 절반 가격)는 Claude 5 세대 공통 원칙(de-prescribe, 스캐폴딩 삭제)을 공유하되, 다음이 Fable 5와 다릅니다.
+
+| 축 | Fable 5 | Opus 5 |
+|----|---------|--------|
+| **thinking** | 항상 켜짐, `disabled` 400 | 기본 켜짐, `disabled`는 effort `high` 이하에서만 허용 (`xhigh`/`max` 조합 400) |
+| **effort 전략** | `high` 기본, low도 구모델 xhigh급 | **`high` 시작 + `low`/`medium` 적극** — 4.7/4.8의 `xhigh` 권고 역전. 구모델 설정 재사용 금지 |
+| **서브에이전트** | 억제 대신 적극 활용 + 위임 기준 | **과잉 위임 모델 — 상한 명시** ("Do not delegate work you can finish yourself in a handful of tool calls") |
+| **검증 지시** | 자기검증 서브에이전트 권장 | **검증·자기점검 지시 삭제** — 스스로 검증하므로 지시가 과잉 검증 유발. "자기 검증을 요청하라" 통념의 예외 |
+| **거부율** | 생물학·사이버 오탐 잦음 | 낮음 (사이버 분류기만) — Fable 오탐 주제의 우회 경로로 활용됨 |
+| **분업 기준** | 열린 작업 (아키텍처·불분명한 조사·수일 자율 런) | 제약 있는 작업 (스펙·버그 수정·범위 정해진 리팩토링) |
+
+**Opus 5 추가 주의**: 장황함은 effort로 안 줄어듦(사고량만 조절) — 응답·산출물 길이는 프롬프트로 별도 지시. 요청 범위 확장 경향 — 범위 규율 스니펫 권장. 기존 프롬프트는 기본 동작에 **누적**되므로 레거시 워크어라운드는 삭제가 기본. 스니펫 원문은 [Opus 5 풀 가이드](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) 참조.
 
 ## 4.x 프롬프트 마이그레이션 체크리스트
 

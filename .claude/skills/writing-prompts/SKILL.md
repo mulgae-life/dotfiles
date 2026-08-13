@@ -91,7 +91,7 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
 | OpenAI | Outcome-first, 구조화 출력, Personality 분리, 티어 선택(5.6) | `references/gpt5-params.md`, `references/gpt56-patterns.md` ⭐ (5.6), `references/gpt55-patterns.md` (5.5) |
-| Anthropic | De-prescribe(Fable 5), 긴 컨텍스트 최적화, Prefilling(4.5 이하) | `references/claude-5-specifics.md` ⭐ (Fable 5), `references/prefilling.md`, `references/long-context.md` |
+| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화, Prefilling(4.5 이하) | `references/claude-5-specifics.md` ⭐ (Fable 5·Opus 5), `references/prefilling.md`, `references/long-context.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` 🆕 |
 | Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` 🆕 |
 
@@ -248,7 +248,7 @@ system_prompt: |
 
 ### Anthropic (Claude) 특화
 
-- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 (Fable 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫 🆕
+- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Fable 5·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점 🆕
 - **[claude-4-specifics.md](references/claude-4-specifics.md)** Claude 4.x 베스트 프랙티스 (구세대)
 - **[prefilling.md](references/prefilling.md)** Prefilling (JSON/캐릭터 강제) — Claude 4.5 이하 전용
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
@@ -275,8 +275,10 @@ system_prompt: |
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
 ### Anthropic
-- [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) ⭐ 최신 (2026-07) — 스니펫 원문 전체 수록
+- [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) ⭐ (2026-07) — 스니펫 원문 전체 수록
+- [Opus 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) ⭐ 최신 (2026-08) — 스캐폴딩 삭제·위임 상한·effort 역전
 - [Prompting Claude Fable 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
+- [Prompting Claude Opus 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
 - [Introducing Claude Fable 5 (공식)](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
 - [Claude 4.x Best Practices (이전)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices)

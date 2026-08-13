@@ -109,4 +109,5 @@ Anthropic
 - [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
 - [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (4.6+/Fable 5)
 - [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5) — refusal/fallback·30일 보존 등 통합 시 필독
+- [What's new in Claude Opus 5](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5) — thinking 기본 켜짐·`fallbacks: "default"`·web fetch 미지원 등 통합 시 필독
 - [Tool Use Guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)

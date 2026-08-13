@@ -12,6 +12,7 @@
 - [에러 핸들링](#에러-핸들링)
 - [모델 선택](#모델-선택)
 - [Fable 5 주의사항](#fable-5-주의사항)
+- [Opus 5 주의사항](#opus-5-주의사항)
 - [Usage 정보](#usage-정보)
 - [참고 자료](#참고-자료)
 
@@ -119,6 +120,7 @@ for block in response.content:
 
 - 추론 깊이는 `budget_tokens`가 아니라 **`output_config.effort`** 로 제어
 - **Fable 5**: thinking이 항상 켜져 있음 — `thinking` 파라미터를 **생략** (`disabled`·`budget_tokens` 모두 400). thinking 텍스트가 필요하면 `thinking={"type": "adaptive", "display": "summarized"}` (기본 `"omitted"`은 빈 문자열)
+- **Opus 5**: thinking **기본 켜짐** — 생략 시 adaptive로 실행 (사고 없이 실행되던 Opus 4.8과 다름, `max_tokens`는 사고+응답 합산 리밋이라 재검토 필요). `disabled`는 effort `high` 이하에서만 허용 — `xhigh`/`max` 조합은 400
 - **Opus 4.7+/Sonnet 5**: `budget_tokens`는 400 에러
 
 ### effort 가이드
@@ -129,6 +131,8 @@ for block in response.content:
 | `high` | 기본값 — 대부분 작업의 균형점 |
 | `xhigh` | 코딩·에이전트 고난도 작업 |
 | `max` | 비용보다 정확성이 중요할 때 |
+
+> **Opus 5는 `high`에서 시작**해 `low`/`medium`을 비용·지연 제어의 1차 수단으로 적극 활용합니다 (Opus 4.7/4.8의 "코딩엔 `xhigh`" 권고와 방향이 다름). 구모델에서 가져온 effort 설정은 재사용하지 말고 스윕을 다시 돌립니다.
 
 ### 구모델 (Sonnet 4.5 이하): Extended Thinking + budget_tokens
 
@@ -496,11 +500,11 @@ except APIError as e:
 | 모델 | 가격 (입력/출력, MTok) | 용도 |
 |------|----------------------|------|
 | `claude-fable-5` | $10 / $50 | 최상위 — 최고 난도 추론·장기 자율 작업 ([주의사항](#fable-5-주의사항) 필독) |
-| `claude-opus-4-8` | $5 / $25 | 고지능, 복잡한 작업 |
-| `claude-sonnet-5` | $3 / $15 | 균형 (권장 기본값) |
+| `claude-opus-5` | $5 / $25 | 고지능 — 에이전틱 코딩·엔터프라이즈. Fable 5 근접 지능을 절반 가격에 ([주의사항](#opus-5-주의사항) 참조) |
+| `claude-sonnet-5` | $2 / $10 | 균형 (권장 기본값) — 도입가였으나 정가로 확정 (2026-08 확인, $3/$15 인상 미시행) |
 | `claude-haiku-4-5` | $1 / $5 | 빠르고 저렴, 단순 작업 |
 
-> 구모델(`claude-opus-4-5`, `claude-sonnet-4-5` 등)도 여전히 서비스 중이지만, 신규 코드는 위 표 기준. prefill·`budget_tokens` 등 구모델 전용 기법이 필요한 경우에만 구모델 지정.
+> 구모델(`claude-opus-4-8`, `claude-sonnet-4-5` 등)도 여전히 서비스 중이지만, 신규 코드는 위 표 기준. prefill·`budget_tokens` 등 구모델 전용 기법이 필요한 경우에만 구모델 지정. Opus 5는 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다.
 
 ---
 
@@ -557,6 +561,41 @@ else:
 
 ---
 
+## Opus 5 주의사항
+
+`claude-opus-5`(2026-07 GA)는 Opus 4.8의 요청 형태를 대부분 유지하지만, 다음을 확인하세요.
+
+### 1. thinking 기본값 변경 (파괴적)
+
+`thinking` 생략 시 Opus 4.8은 사고 없이 실행됐지만 **Opus 5는 adaptive thinking으로 실행**됩니다. `max_tokens`는 사고+응답 합산 하드 리밋이므로, 사고 없이 돌던 워크로드는 응답이 잘릴 수 있어 재검토가 필요합니다. `thinking: {"type": "disabled"}`는 effort `high` 이하에서만 허용되고 `xhigh`/`max` 조합은 400입니다(요청 단위 검증). 공식 권고는 끄는 대신 thinking을 켠 채 effort를 낮추는 것 — 끄면 도구 호출이 평문으로 유출되거나 `<thinking>` 태그가 새는 결함이 있습니다.
+
+### 2. refusal 처리 + 기본 폴백
+
+사이버보안 분류기가 탑재되어 거절 시 HTTP 200 + `stop_reason: "refusal"`이 반환됩니다. `fallbacks: "default"`(beta `server-side-fallback-2026-07-01`)를 쓰면 거절 카테고리별 권장 폴백 모델로 자동 재실행됩니다 — 모델 목록을 직접 유지하는 구형 배열(`server-side-fallback-2026-06-01`)보다 권장:
+
+```python
+response = client.beta.messages.create(
+    model="claude-opus-5",
+    max_tokens=16000,
+    betas=["server-side-fallback-2026-07-01"],
+    fallbacks="default",
+    messages=[...],
+)
+```
+
+### 3. 미지원 기능
+
+- **web fetch 도구 미지원** — 사용 중이면 대안 필요 (web search는 지원)
+- **Priority Tier 미지원**
+
+### 기타
+
+- 프롬프트 캐시 최소 512 토큰 (4.8은 1,024) — 짧은 프롬프트도 캐시 가능해짐
+- 대화 중 도구 변경: beta `mid-conversation-tool-changes-2026-07-01` (`tool_addition`/`tool_removal` 블록 + `defer_loading`, 캐시 보존)
+- 프롬프팅 요령(검증 지시 삭제, 위임 상한, 장황함 대응)은 writing-prompts 스킬의 `claude-5-specifics.md` 및 [Opus 5 풀 가이드](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) 참조
+
+---
+
 ## Usage 정보
 
 ```python
@@ -575,6 +614,7 @@ print(f"Output tokens: {usage.output_tokens}")
 - [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking)
 - [Effort Parameter](https://platform.claude.com/docs/en/build-with-claude/effort)
 - [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
+- [What's new in Claude Opus 5](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5)
 - [Refusals and Fallback](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback)
 - [Tool Use Guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)
 - [Vision Guide](https://platform.claude.com/docs/en/build-with-claude/vision)

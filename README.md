@@ -244,6 +244,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.11** | Claude Opus 5 조사·반영 — 서브에이전트 3개(공식 문서/Claude Code·SDK/커뮤니티) 병렬 조사로 `research-opus5.md` 신설, Opus 5 프롬프트 가이드 신설(검증 스캐폴딩 삭제·위임 상한·effort 역전·thinking 기본 켜짐), llm-api-guide에 Opus 5 주의사항 섹션·`fallbacks: "default"` 반영, writing-prompts `claude-5-specifics.md`를 Fable 5·Opus 5 공통 문서로 확장. 스킬 캐시 대비 실측 차이(web fetch 미지원, Sonnet 5 $2/$10 정가 확정) 정정 |
 | **v2.10** | 확인 프롬프트 전면 해제 — Bash 자동승인 훅(497줄) 은퇴 + `permissions.ask` 81건 해제. 멀티라인 인용 오탐(따옴표 속 "rm 금지"를 명령 오인) 재현·수정 후, ask 규칙이 bypass 모드에서도 발동함을 실측 확인하고 두 ask 계층을 모두 제거. 위험 명령 통제는 지침 + `deny` 49건으로 일원화(권한변경 4건 해제, `systemctl`/`loginctl` 전원 조작·`crontab -r` 6건 보강), work-principles 훅 조항·`/tmp` 요령 4종 삭제 + PostCompact 리마인더를 요약 불신·파일 재확인 중심으로 개정 (복원 자료는 `.archive/2026-07-18_hook-retirement/`) |
 | **v2.9** | Codex 스킬 재검토 2라운드(쟁점 52건) 전건 재현 판정·선별 수용 — skill-creator 하위 호출 격리(`--safe-mode`)·zip 심링크 차단·name 표준 정합, LLM API 병렬 도구 배칭(Anthropic·OpenAI)·thinking 호환 text 추출, token-audit 파이프 절단 수정, Stitch MCP 표기·경로 계약 정합·중첩 스킬 이름 충돌 해소 |
 | **v2.8** | 한국어 문체 심층 조사(출처 21건, 주장 상위 25건 적대 검증) + 블라인드 실측 — 간결화 개정 기각, 스몰톡 해요체 허용·압축체(전보문) 금지·표준 용어 조항 3-tool 반영, style-check 정량 마커 증보 |
