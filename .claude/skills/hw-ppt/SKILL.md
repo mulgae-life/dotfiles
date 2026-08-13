@@ -1,6 +1,6 @@
 ---
 name: hw-ppt
-description: 한화손해보험(Hanwha Insurance) 공식 톤으로 16:9 1920×1080 슬라이드 덱을 생성하는 스킬. 9가지 슬라이드 아키타입(표지·투칼럼·As-Is/To-Be·파이·비교바·항목별표·상승그래프·섹션·클로징) + Density Zone 룰 + 한화체 타이포 + 오렌지 단색축을 강제하여 매 세션 동일한 한화손보 룩앤필을 보장한다. Anthropic 공식 pptx 스킬과 협업 — 디자인 시스템은 이 스킬이, 파일 생성은 pptx 스킬이 담당. 산출물은 .pptx 우선 + HTML deck 옵션. hw-design(웹 UI 토큰 배포)과 달리 PPT 산출물 전용이며 한화그룹 톤(#F37321 네이비 2색)이 아닌 한화손보 톤(#ED6F1F 오렌지 단색축)을 따른다.
+description: 한화손해보험(Hanwha Insurance) 공식 톤으로 16:9 슬라이드 덱을 생성하는 스킬. 고정 슬라이드 아키타입과 디자인 토큰으로 매 세션 동일한 한화손보 룩앤필을 보장한다. 디자인 시스템은 이 스킬이, 파일 생성은 Anthropic 공식 pptx 스킬이 담당하며 산출물은 .pptx 우선 + HTML deck 옵션. hw-design(웹 UI 토큰 배포)과 달리 PPT 산출물 전용이고 한화그룹 톤이 아닌 한화손보 톤(#ED6F1F 오렌지 단색축)을 따른다.
 when_to_use: "한화손보 PPT 만들어줘, 한화 프레젠테이션 만들어줘, 한화손보 슬라이드 디자인, 한화 보험 제안서, 한화손보 IR 자료, 신상품 소개 덱 요청 시. 한화손해보험 공식 톤이 필요한 프레젠테이션·제안서·IR·보고서 슬라이드 생성에 사용. 단순 PPT는 Anthropic 공식 pptx 스킬, 웹 UI는 hw-design 스킬."
 allowed-tools:
   - "Read"

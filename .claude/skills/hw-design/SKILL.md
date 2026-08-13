@@ -1,6 +1,6 @@
 ---
 name: hw-design
-description: 한화(Hanwha) 브랜드 톤으로 UI를 만들 때 DESIGN.md + tokens.css + 한화체 3w + 한화고딕 5w + IBM Plex 웹폰트 + Tailwind 프리셋 + 공식 트리서클 로고(PNG) + token-audit 스크립트를 한 번에 프로젝트에 배포해 AI 세션 간 룩앤필을 고정하는 스킬. 오렌지 #F37321 + 네이비 #1A2B4A 2색축·3단계 모션·네이비 톤 그림자 DNA를 Google 공식 DESIGN.md v0.1.0 포맷 + Hardik Pandya 3-layer token 패턴으로 토큰화했다. 진실의 원천은 DESIGN.md 하나 — 프로젝트 CLAUDE.md 에 별도 규칙을 주입하지 않는다. stitch-design(Stitch MCP로 새 DESIGN.md 생성)이나 frontend-design(코드 UI 구현)과 달리 이미 확정된 한화 표준을 고정 배포한다. "한화", "hw", "Hanwha" 키워드 또는 한화 계열사 프로젝트 맥락이면 명시적 요청이 없어도 최우선 참조한다. 단, PPT·슬라이드 산출물은 hw-ppt 스킬이 담당한다.
+description: 한화(Hanwha) 브랜드 톤 UI 표준 세트(DESIGN.md + tokens.css + 전용 폰트 + 공식 트리서클 로고 + token-audit)를 프로젝트에 한 번에 배포해 AI 세션 간 룩앤필을 고정하는 스킬. stitch-design(새 DESIGN.md 생성)이나 frontend-design(코드 UI 구현)과 달리 이미 확정된 한화 표준을 고정 배포한다. "한화", "hw", "Hanwha" 키워드 또는 한화 계열사 프로젝트 맥락이면 명시적 요청이 없어도 최우선 참조한다. 단, PPT·슬라이드 산출물은 hw-ppt 스킬이 담당한다.
 when_to_use: "한화 디자인으로 만들어줘, 한화 톤으로 UI 만들어줘, hw 적용해줘, 한화 스타일 랜딩페이지/대시보드/웹앱/컴포넌트 만들어줘 요청 시. 한화 관련 신규 프로젝트 초기 세팅, 기존 프로젝트에 한화 브랜드 덧씌우기, 팀원이 여러 명이라 디자인 일관성이 필요한 바이브 코딩 세션 등에서 사용."
 allowed-tools:
   - "Read"
