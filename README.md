@@ -246,6 +246,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.14** | autocompact 임계값 고정 — settings.json에 `autoCompactWindow: 500000` 추가. 컨텍스트 500K 토큰 도달 시 자동 압축이 발동하도록 기본값(모델별 임계값)을 대체. `/autocompact`는 런타임본만 갱신하므로 레포본에 명시해 install.sh 재배포에도 유지 |
 | **v2.13** | 스킬 층 전수 감사 — SKILL.md 20개를 rules 감량과 같은 3축으로 판정. 상시 노출층인 hw-design·hw-ppt description을 문단 수준에서 트리거·구분 정보만 남기고 압축, work-plan 작성 스타일을 code-review와 같은 완화 문구로 정렬(v2.9 개정 누락분), update-docs의 추상 플레이스홀더 표 삭제. references류(두꺼운 아티팩트)와 Anthropic·Vercel 원본 스킬은 처방에 부합해 무변경 |
 | **v2.12** | 상시 로드 지침 감량 — Anthropic의 Claude 5 컨텍스트 엔지니어링 처방(시스템 프롬프트 80% 삭제, "지침의 저주")을 근거로 rules 전 조항을 3축(모델이 스스로 하는가/내장 기능과 중복인가/층간 충돌인가) 감사. reference-verification을 rules에서 온디맨드 스킬로 전환(상시 67줄→트리거 1줄), context-management를 내장 중복 제거 후 로컬 정책 3건으로 축소, CLAUDE.md 도구 힌트 표·security 예시 코드쌍·자기검증 지시 삭제, verifier 트리거·인수 프로토콜을 모델 중립 결과 기준으로 개정. 상시 로드 393→약 250줄 (원본은 `.archive/2026-08-13_rules-slimming/`) |
 | **v2.11** | Claude Opus 5 조사·반영 — 서브에이전트 3개(공식 문서/Claude Code·SDK/커뮤니티) 병렬 조사로 `research-opus5.md` 신설, Opus 5 프롬프트 가이드 신설(검증 스캐폴딩 삭제·위임 상한·effort 역전·thinking 기본 켜짐), llm-api-guide에 Opus 5 주의사항 섹션·`fallbacks: "default"` 반영, writing-prompts `claude-5-specifics.md`를 Fable 5·Opus 5 공통 문서로 확장. 스킬 캐시 대비 실측 차이(web fetch 미지원, Sonnet 5 $2/$10 정가 확정) 정정 |

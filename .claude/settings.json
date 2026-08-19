@@ -312,6 +312,7 @@
     ]
   },
   "autoDreamEnabled": true,
+  "autoCompactWindow": 500000,
   "language": "한국어",
   "statusLine": {
     "type": "command",
