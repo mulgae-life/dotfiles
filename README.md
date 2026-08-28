@@ -48,7 +48,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `PostCompact` | `Stop`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `PreToolUse`/`PostToolUse` — 별도 hooks.json (현 초안은 재작성 대상, `.antigravity/README.md` 검증 상태 참조) |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
 | **기본 모델** | Claude Opus | 권장 기본 추종 (GPT-5.6 세대, 미고정) | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
-| **CLI 버전 (검증 기준)** | 2.1.206 | 0.144.1 | 0.38.1 | IDE 2.1.x / `agy` |
+| **CLI 버전 (검증 기준)** | 2.1.250 | 0.144.1 | 0.38.1 | IDE 2.1.x / `agy` |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
