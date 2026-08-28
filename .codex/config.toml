@@ -148,7 +148,7 @@ Personality(`pragmatic`)와 분리된 협업 방식:
 """
 
 # ── 승인 정책 ──────────────────────────────
-# "never": 승인 프롬프트 완전 생략 (v0.128부터 deprecated된 --full-auto 대신 permission profiles 권고가 공식 흐름이나,
+# "never": 승인 프롬프트 완전 생략 (--full-auto는 0.147.0에서 제거됨. 공식 흐름은 permission profiles 권고이나,
 #          우리는 sandbox_mode + rules/default.rules Starlark DSL 조합으로 직접 통제하므로 profiles 미사용)
 # 위험 명령어는 rules/default.rules의 Starlark DSL에서 차단
 approval_policy = "never"
@@ -177,13 +177,13 @@ ignore_default_excludes = false                                  # 기본 exclud
 
 # ── 실험적 기능 ──────────────────────────────
 [features]
-multi_agent = true  # 멀티 에이전트 협업 활성화 (spawn_agent, send_input, resume_agent, wait_agent, close_agent)
+multi_agent = true  # 멀티 에이전트 협업 도구 (spawn_agent, send_input, resume_agent, wait_agent, close_agent). 0.150 기준 stable·기본 켜짐 — 의도 표시용 명시
 # goals: 0.133.0부터 기본 활성 + non-experimental로 승격 → [features] 토글에서 제거됨 (명시 불필요, /goal 정상 작동)
 
 # ── 멀티 에이전트 설정 ──────────────────────
 # 사용자 정의 에이전트 파일에서 model·model_reasoning_effort를 생략하면 부모 설정을 상속한다.
-# 주의: Sol 메인 세션은 서브에이전트를 저가 티어로 라우팅하지 못하는 이슈 보고(openai/codex #31814,
-# 전부 Sol로 실행 — 2026-07-13 커뮤니티 검증) → 서브에이전트 사용 시 실제 실행 모델·토큰 소모 확인
+# 서브에이전트별 모델·effort 지정은 0.145.0(멀티 에이전트 V2 안정화)부터 공식 지원 — Sol 메인 세션이 전부 Sol로 실행하던 이슈(openai/codex #31814)는 종결.
+# 서브에이전트 사용 시 실제 실행 모델·토큰 소모는 계속 확인
 [agents]
 max_threads = 12            # 동시 열린 스레드 상한(공식 기본 6). 토큰·지연 비용도 늘므로 실제 스폰 수는 필요한 최소로 제한
 max_depth = 1               # 에이전트 중첩 깊이

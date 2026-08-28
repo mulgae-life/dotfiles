@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────
 # Codex 실행 정책 (Execution Policy)
 # approval_policy = "never" + sandbox_mode = "danger-full-access" 조합에서 위험 명령어만 차단
-# (v0.128부터 --full-auto는 deprecated. 우리는 permission profiles 대신 본 Starlark DSL로 직접 통제)
+# (--full-auto는 0.147.0에서 제거됨. 우리는 permission profiles 대신 본 Starlark DSL로 직접 통제)
 # Claude Code의 auto-approve-readonly.sh에 대응 — 카테고리별 사유 분기로 통일
 # justification은 차단 시점에 사용자/에이전트에게 노출됨 → 대체 방법까지 안내
 # ─────────────────────────────────────────────
