@@ -9,7 +9,7 @@ OpenAI GPT와 Anthropic Claude의 프롬프트 엔지니어링 주요 차이점�
 | **Message Roles** | `developer` (최고 우선순위)<br/>`user`, `assistant` | `system` 파라미터<br/>`user`, `assistant` | `user`, `assistant` |
 | **파라미터** | `reasoning_effort`<br/>`verbosity` | `output_config.effort` (Fable 5/4.6+)<br/>`budget_tokens` (4.x) | - |
 | **Prefilling** | ❌ 없음 | ✅ `assistant` message prefill<br/>(Claude 4.5 이하, Fable 5·4.6+는 400) | - |
-| **Long Context** | 일반적 사용 | ✅ 200K 토큰 최적화<br/>(문서 맨 위 배치 → 30%↑) | - |
+| **Long Context** | 일반적 사용 | ✅ Claude 4.x 200K / Claude 5 세대 1M(출력 128K)<br/>(문서 맨 위 배치 → 30%↑) | - |
 | **CoT** | "Think step-by-step" | "Let Claude think"<br/>3단계 (Basic/Guided/Structured) | ✅ 공통 개념 |
 | **Examples** | Few-shot | Multishot | ✅ 동일 개념 (Frontier 0~2개, 소형 3-5개) |
 | **XML Tags** | ✅ 권장 | ✅ 권장 | ✅ 공통 |
@@ -150,7 +150,23 @@ prompt = """
 #### OpenAI
 - ❌ 없음
 
-#### Anthropic (Claude 4.x) ⭐
+#### Anthropic (Claude 5 세대) ⭐
+```python
+# adaptive thinking 상시 — effort로만 깊이 제어
+response = client.messages.create(
+    model="claude-fable-5-1",
+    max_tokens=16000,
+    output_config={"effort": "high"},  # low, medium, high, xhigh, max
+    messages=[...]
+)
+```
+
+**특징**:
+- thinking이 상시 adaptive로 켜져 있어 `thinking` 파라미터 자체를 보내지 않습니다
+- 깊이는 `output_config.effort` 한 축으로만 제어 → [claude-5-specifics.md](claude-5-specifics.md)
+- `thinking`/`budget_tokens`, `thinking: {type: "disabled"}`는 **400 에러**
+
+#### Anthropic (Claude 4.x)
 ```python
 # Extended thinking 모드
 response = client.messages.create(
@@ -167,8 +183,6 @@ response = client.messages.create(
 - 복잡한 추론 강화
 - Context awareness (token budget 추적)
 - Multi-window workflows
-
-> **Fable 5·4.6+**: `thinking`/`budget_tokens`는 400 에러입니다. thinking이 상시 adaptive로 켜져 있어 `output_config.effort`(`low`~`max`)로만 깊이를 제어합니다 → [claude-5-specifics.md](claude-5-specifics.md).
 
 ### 6. GPT-5 특화 파라미터
 
@@ -204,7 +218,7 @@ response = client.responses.create(
 
 ### Anthropic Claude를 선택하는 경우
 - Prefilling으로 출력 형식 강제 필요
-- 200K 토큰 long context 활용 (30% 성능 향상)
+- Long context 활용 (Claude 4.x 200K / Claude 5 세대 1M, 출력 128K — 30% 성능 향상)
 - Extended thinking으로 복잡한 추론 작업
 - Claude 4.x의 우수한 코딩/비전 능력
 
@@ -283,7 +297,7 @@ response = client.messages.create(
 |----------|--------|-----------|
 | **세밀한 파라미터 제어** | ✅ reasoning_effort, verbosity | ✅ output_config.effort (Fable 5/4.6+) |
 | **Prefilling** | ❌ | ✅ (Claude 4.5 이하, Fable 5·4.6+는 400) |
-| **Long Context 최적화** | - | ✅ (30%↑) |
+| **Long Context 최적화** | - | ✅ 4.x 200K / 5 세대 1M (30%↑) |
 | **Extended Thinking** | ❌ | ✅ |
 | **공통 기법** | ✅ XML, Few-shot, CoT | ✅ XML, Multishot, CoT |
 

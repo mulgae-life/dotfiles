@@ -2,7 +2,7 @@
 name: update-docs
 description: 작업 완료 후 agent-guide/ 프로젝트 문서(SESSION.md, PROJECT.md 등)를 업데이트합니다.
 when_to_use: "문서 업데이트해줘, 세션 정리해줘, 작업 내용 기록해줘, 세션 끝났어 요청 시. 세션 종료나 작업 정리 관련이면 명시적 언급 없이도 사용."
-model: sonnet
+model: opus
 effort: medium
 ---
 
@@ -29,11 +29,9 @@ effort: medium
 3. [발견] API 캐시 리스크 → [해결] Cache-Control 제거
 ```
 
-### 2단계: TaskList에서 수집
+### 2단계: 작업 목록 도구에서 수집 (도구가 있을 때만)
 
-```
-TaskList 도구 호출하여 완료된 task 확인
-```
+작업 목록 도구(`TaskList` 등)를 쓸 수 있는 세션이면 호출해 완료된 task를 확인합니다. Claude 5 세대 모델은 이 도구가 기본 제외라, 없으면 이 단계를 생략하고 1·3단계로 진행합니다.
 
 - status가 `completed`인 모든 작업
 - 진행 중(`in_progress`)이었다가 완료된 작업
@@ -51,7 +49,7 @@ git log --oneline -10             # 커밋 메시지
 
 ### 4단계: 교차 검증
 
-세 소스의 수집 결과를 대조하여, 한 소스에만 잡힌 작업도 빠짐없이 문서화합니다.
+가용한 소스(대화 컨텍스트·git, 있으면 작업 목록)의 수집 결과를 대조하여, 한 소스에만 잡힌 작업도 빠짐없이 문서화합니다.
 
 ---
 

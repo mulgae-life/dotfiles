@@ -1,4 +1,4 @@
-# Claude 5 세대 (Fable 5 · Opus 5) 특화 기법
+# Claude 5 세대 (Fable 5.1 · Opus 5) 특화 기법
 
 ## 목차
 - [핵심 특징](#핵심-특징)
@@ -8,15 +8,16 @@
 - [Effort 상호작용](#effort-상호작용)
 - [Opus 5 차이점](#opus-5-차이점)
 - [4.x 프롬프트 마이그레이션 체크리스트](#4x-프롬프트-마이그레이션-체크리스트)
+- [Fable 5 → 5.1 델타 체크리스트](#fable-5--51-델타-체크리스트)
 - [요약](#요약)
 
 
-Claude 5 세대(Fable 5 `claude-fable-5`, Mythos 5 `claude-mythos-5`, Opus 5 `claude-opus-5`) 특화 베스트 프랙티스입니다. 본문은 Fable 5 기준이고, Opus 5만 다른 지점은 [Opus 5 차이점](#opus-5-차이점)에 정리했습니다.
-전체 가이드: [Fable 5](../../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) · [Opus 5](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md)
+Claude 5 세대(Fable 5.1 `claude-fable-5-1`, Mythos 5.1 `claude-mythos-5-1`, Fable 5 `claude-fable-5`, Mythos 5 `claude-mythos-5`, Opus 5 `claude-opus-5`) 특화 베스트 프랙티스입니다. 본문은 Fable 5.1 기준이고, Fable 5에도 그대로 적용됩니다(5.1 전용 항목은 그때마다 표기). Opus 5만 다른 지점은 [Opus 5 차이점](#opus-5-차이점)에 정리했습니다.
+전체 가이드: [Fable 5.1](../../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) · [Fable 5](../../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) · [Opus 5](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md)
 
 ## 핵심 특징
 
-Fable 5는 **지시 따르기가 매우 강해**, 4.x에서 필요했던 상세 열거식 지시가 오히려 품질을 떨어뜨립니다.
+Fable 5·5.1은 **지시 따르기가 매우 강해**, 4.x에서 필요했던 상세 열거식 지시가 오히려 품질을 떨어뜨립니다. 공식 가이드의 전제도 "기존 Fable 5 프롬프트는 수정 없이 5.1에서 잘 동작한다"입니다.
 
 ### 4.x와의 차이
 - **짧은 지시로 조향**: 행동 패턴을 열거하는 대신 원칙 한 문단이면 충분
@@ -28,7 +29,7 @@ Fable 5는 **지시 따르기가 매우 강해**, 4.x에서 필요했던 상세 
 
 프롬프트/요청을 설계할 때 다음은 **작동하지 않거나 400 에러**입니다:
 
-| 4.x 기법 | Fable 5 결과 | 대체 |
+| 4.x 기법 | Fable 5·5.1 결과 | 대체 |
 |----------|-------------|------|
 | Prefilling (마지막 assistant 턴) | 400 에러 | Structured Outputs (`output_config.format`) 또는 시스템 프롬프트 지시 |
 | `thinking: {budget_tokens}` | 400 에러 | `output_config.effort` (`low`~`max`) |
@@ -36,6 +37,7 @@ Fable 5는 **지시 따르기가 매우 강해**, 4.x에서 필요했던 상세 
 | `temperature`/`top_p`/`top_k` | 400 에러 | 프롬프트로 변주 유도 (예: 4개 방향 제안 후 선택) |
 | "think" 단어 회피 (Opus 4.5 팁) | 불필요 | thinking 상시 on이라 무의미 |
 | **"사고 과정을 답변에 옮겨 써라"** | `reasoning_extraction` refusal 유발 | `thinking` 블록(`display: "summarized"`) 읽기 |
+| 강제 `tool_choice` (`any`/`tool`) | Fable 5.1·Mythos 5.1에서 400 (`{"type":"none"}`은 유효) | `auto` + 지시문에 도구 명시 + 도구 정의 `strict: true`, 또는 JSON outputs(`output_config.format`) |
 
 > ⚠️ 특히 마지막 항목: 기존 프롬프트의 reflection/show-your-thinking 지시("추론 과정을 먼저 서술한 후...")는 Fable 5에서 refusal → fallback 증가로 이어집니다. 마이그레이션 시 반드시 감사(audit)하세요.
 
@@ -114,6 +116,9 @@ Store one lesson per file with a one-line summary at the top. Record corrections
 | `high` | 기본값 (대부분 작업) | — |
 | `medium`/`low` | 루틴·저지연 | Fable 5의 low가 구모델 xhigh를 능가하기도 — 프롬프트로 깊이 보정하지 말고 effort부터 조정 |
 
+**Fable 5.1 단서**: 기본값 `high`에서 시작하되 `low`~`max` 전 레벨을 자체 eval로 다시 측정하세요. effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아, Fable 5에서 정한 값을 그대로 옮기면 안 됩니다(5.1의 `medium`이 Fable 5 성능에 근접).
+`xhigh`/`max`는 긴 산출물을 사고 안에서 먼저 초안 작성한 뒤 답변으로 다시 쓰는 경향이 있어 지연과 출력 토큰이 늘어납니다. 측정된 품질 이득이 있을 때만 쓰고, 쓸 때는 `max_tokens`를 사고 몫까지 잡으세요.
+
 ## Opus 5 차이점
 
 Opus 5(2026-07 GA, $5/$25 — Fable 5 절반 가격)는 Claude 5 세대 공통 원칙(de-prescribe, 스캐폴딩 삭제)을 공유하되, 다음이 Fable 5와 다릅니다.
@@ -138,7 +143,18 @@ Opus 5(2026-07 GA, $5/$25 — Fable 5 절반 가격)는 Claude 5 세대 공통 �
 - [ ] 서브에이전트 억제 문구 → 위임 기준 명시로 교체
 - [ ] 강제 진행 보고 스캐폴딩("N번마다 요약") 제거 — 기본 동작이 이미 우수
 - [ ] 잔여 토큰 카운트를 모델에 노출하는 하네스 수정 (컨텍스트 불안 유발)
-- [ ] refusal 처리 + Opus 4.8 fallback 구성 (API 통합 시)
+- [ ] refusal 처리 + fallback 구성 (API 통합 시 — `fallbacks: "default"` 허용 대상은 Opus 4.8·Opus 5)
+
+## Fable 5 → 5.1 델타 체크리스트
+
+Fable 5 프롬프트는 그대로 동작하지만, 아래 4건은 5.1에서 새로 확인해야 합니다.
+
+- [ ] **강제 `tool_choice` 제거**: `any`/`tool`은 400 → `auto` + 지시문 + `strict: true`. 특정 턴에만 도구 호출이 필요하면 최신 user 턴 뒤 mid-conversation 시스템 메시지로 요구
+- [ ] **대화 이력 append-only**: 사고 블록은 그 대화에서만 유효합니다. 턴별 리마인더 주입·삭제, 이력 요약 덮어쓰기, 세션 중 system·tools 변경은 다음 요청을 400으로 만듭니다. assistant 턴은 반환된 그대로(빈 블록 포함) 다시 보내고, 턴별 리마인더는 턴 한정 시스템 메시지(`clear_at: "next_user_message"`)로 붙이세요
+- [ ] **effort 재측정**: `high` 시작 + 전 레벨 재스윕 → [Effort 상호작용](#effort-상호작용)
+- [ ] **진행 업데이트 수신 설정**: 5.1은 도구 호출 사이 사용자 대상 텍스트를 덜 씁니다. 짧은 메모는 진행 업데이트 `thinking` 블록으로 오므로 `thinking.display`를 `"updates"`(또는 `"summarized"`)로 두고, "결과는 최종 응답에 모아라" 같은 억제 지시를 먼저 제거하세요
+
+5.1 전용 대응 스니펫(산문 밀도, 채팅 서식, 인용 표시, 작업 완주, 범위·테스트 제한, 파일 전체 재작성 억제)의 영문 원문은 [Fable 5.1 풀 가이드](../../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md)를 참조하세요.
 
 ## 요약
 

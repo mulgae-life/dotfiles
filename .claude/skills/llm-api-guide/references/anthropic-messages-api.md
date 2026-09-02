@@ -11,7 +11,7 @@
 - [Vision (이미지 분석)](#vision-이미지-분석)
 - [에러 핸들링](#에러-핸들링)
 - [모델 선택](#모델-선택)
-- [Fable 5 주의사항](#fable-5-주의사항)
+- [Fable 5.1 주의사항](#fable-51-주의사항)
 - [Opus 5 주의사항](#opus-5-주의사항)
 - [Usage 정보](#usage-정보)
 - [참고 자료](#참고-자료)
@@ -39,7 +39,7 @@ response = client.messages.create(
 )
 
 # text 블록만 추출 — content[0]을 직접 읽지 않기: thinking이 켜진 모델
-# (Sonnet 5는 기본 on, Fable 5는 상시 on)은 첫 블록이 thinking입니다
+# (Sonnet 5는 기본 on, Fable 5·5.1은 상시 on)은 첫 블록이 thinking입니다
 print("".join(b.text for b in response.content if b.type == "text"))
 ```
 
@@ -97,7 +97,7 @@ messages = [
 
 Claude의 추론 기능 (OpenAI의 reasoning과 유사). **모델 세대에 따라 설정 방법이 다릅니다.**
 
-### 현행 모델 (4.6+, Sonnet 5, Fable 5): Adaptive Thinking
+### 현행 모델 (4.6+, Sonnet 5, Fable 5·5.1): Adaptive Thinking
 
 ```python
 response = client.messages.create(
@@ -119,7 +119,7 @@ for block in response.content:
 ```
 
 - 추론 깊이는 `budget_tokens`가 아니라 **`output_config.effort`** 로 제어
-- **Fable 5**: thinking이 항상 켜져 있음 — `thinking` 파라미터를 **생략** (`disabled`·`budget_tokens` 모두 400). thinking 텍스트가 필요하면 `thinking={"type": "adaptive", "display": "summarized"}` (기본 `"omitted"`은 빈 문자열)
+- **Fable 5·5.1**: thinking이 항상 켜져 있음 — `thinking` 파라미터를 **생략** (`enabled`·`disabled`·`budget_tokens` 모두 400). thinking 텍스트가 필요하면 `thinking={"type": "adaptive", "display": "summarized"}` (기본 `"omitted"`은 빈 문자열). Fable 5.1은 `disabled`가 **어떤 effort에서도** 400이므로, Opus 5에서 옮겨올 때 이 필드를 제거하고 effort를 낮춰 토큰을 제어합니다
 - **Opus 5**: thinking **기본 켜짐** — 생략 시 adaptive로 실행 (사고 없이 실행되던 Opus 4.8과 다름, `max_tokens`는 사고+응답 합산 리밋이라 재검토 필요). `disabled`는 effort `high` 이하에서만 허용 — `xhigh`/`max` 조합은 400
 - **Opus 4.7+/Sonnet 5**: `budget_tokens`는 400 에러
 
@@ -133,6 +133,8 @@ for block in response.content:
 | `max` | 비용보다 정확성이 중요할 때 |
 
 > **Opus 5는 `high`에서 시작**해 `low`/`medium`을 비용·지연 제어의 1차 수단으로 적극 활용합니다 (Opus 4.7/4.8의 "코딩엔 `xhigh`" 권고와 방향이 다름). 구모델에서 가져온 effort 설정은 재사용하지 말고 스윕을 다시 돌립니다.
+>
+> **Fable 5.1도 `high`에서 시작하되 전 레벨을 다시 측정합니다.** effort 이름이 모델 간 같은 사고량을 뜻하지 않기 때문이며, 5.1의 `medium`이 Fable 5 성능에 근접합니다. 시스템 카드의 FrontierCode 평가에서는 `medium`이 정점이고 `high` 이상은 요청 범위 밖 파일까지 고치면서 점수가 떨어졌습니다. `xhigh`/`max`는 긴 산출물을 사고 안에서 먼저 초안 작성해 지연·토큰이 늘어나므로, 측정된 이득이 있을 때만 씁니다.
 
 ### 구모델 (Sonnet 4.5 이하): Extended Thinking + budget_tokens
 
@@ -185,15 +187,22 @@ response2 = client.messages.create(
 
 ### 대화 이력 클래스
 
+이력은 **append-only**로 다룹니다. Fable 5.1은 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀌면 다음 요청을 400으로 거절합니다([주의사항](#fable-51-주의사항) 3번).
+
 ```python
 class ConversationManager:
     def __init__(self, client: Anthropic, model: str, system: str):
         self.client = client
         self.model = model
+        # system·tools는 세션 시작 시 동결 — 중간에 바꾸면 사고 블록 바인딩이 깨집니다
         self.system = system
         self.messages = []
 
     def send(self, user_message: str) -> str:
+        # 기존 메시지는 수정·삭제하지 않고 추가만 합니다.
+        # 턴별 리마인더가 필요하면 이력을 고치지 말고, user 턴 뒤에
+        # 턴 한정 시스템 메시지({"role": "system", "clear_at": "next_user_message", ...},
+        # beta 헤더 mid-conversation-system-clear-at-2026-08-21)를 덧붙입니다.
         self.messages.append({"role": "user", "content": user_message})
 
         response = self.client.messages.create(
@@ -282,8 +291,10 @@ response2 = client.messages.create(
 
 ### Tool Choice
 
+> ⚠️ **강제 `tool_choice`(`any`·`tool`)는 Fable 5.1·Mythos 5.1에서 400 `invalid_request_error`입니다.** Messages·Batches·토큰 카운트 엔드포인트 모두 해당합니다. 대안은 `auto` + 프롬프트에 쓸 도구를 명시 + 도구 정의에 `strict: true`이고, 스키마 준수 JSON만 필요하면 JSON outputs(`output_config.format`)를 씁니다. CMEK 조직은 structured outputs를 못 쓰므로 지시문만 사용합니다. 특정 턴에만 도구 호출이 필수라면 최신 user 턴 뒤에 턴 한정 시스템 메시지로 요구하세요. `{"type": "none"}`은 5.1에서도 유효합니다.
+
 ```python
-# 특정 도구 강제
+# 특정 도구 강제 — Fable 5.1·Mythos 5.1은 400, 구모델 전용
 response = client.messages.create(
     model="claude-sonnet-5",
     messages=[...],
@@ -292,7 +303,7 @@ response = client.messages.create(
     max_tokens=1024
 )
 
-# 도구 사용 필수
+# 도구 사용 필수 — Fable 5.1·Mythos 5.1은 400, 구모델 전용
 response = client.messages.create(
     model="claude-sonnet-5",
     messages=[...],
@@ -301,12 +312,22 @@ response = client.messages.create(
     max_tokens=1024
 )
 
-# 자동 (기본값)
+# 자동 (기본값) — 최신 모델에서 도구 사용을 유도하는 유일한 방법
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-fable-5-1",
+    system="날씨를 물으면 get_weather 도구를 호출해 답하세요.",  # 쓸 도구를 지시문에 명시
+    messages=[...],
+    tools=tools,                            # 각 도구 정의에 "strict": True를 넣어 스키마 준수 강제
+    tool_choice={"type": "auto"},
+    max_tokens=1024
+)
+
+# 도구 사용 금지 — 5.1에서도 유효
+response = client.messages.create(
+    model="claude-fable-5-1",
     messages=[...],
     tools=tools,
-    tool_choice={"type": "auto"},
+    tool_choice={"type": "none"},
     max_tokens=1024
 )
 ```
@@ -366,7 +387,7 @@ with client.messages.stream(
 
 Assistant 응답을 미리 채워 출력 형식을 강제:
 
-> ⚠️ **Claude 4.5 이하 전용.** Fable 5·Opus 4.6/4.7/4.8·Sonnet 4.6/5에서는 마지막 assistant 턴 prefill이 **400 에러**입니다. 최신 모델에서는 Structured Outputs(`output_config.format`)를 사용하세요. 아래 예시가 `claude-sonnet-4-5`인 이유입니다.
+> ⚠️ **Claude 4.5 이하 전용.** Fable 5·5.1·Opus 4.6/4.7/4.8/5·Sonnet 4.6/5에서는 마지막 assistant 턴 prefill이 **400 에러**입니다. 최신 모델에서는 Structured Outputs(`output_config.format`)를 사용하세요. 아래 예시가 `claude-sonnet-4-5`인 이유입니다.
 
 ### JSON 출력 강제
 
@@ -399,7 +420,7 @@ response = client.messages.create(
 
 ### 주의사항
 
-- **Fable 5·4.6+ 계열에서는 400 에러** — Structured Outputs로 대체
+- **Fable 5·5.1·4.6+ 계열에서는 400 에러** — Structured Outputs로 대체
 - Prefilling은 stop reason을 `end_turn`에서 `stop_sequence`로 변경할 수 있음
 - Extended thinking과 함께 사용 시 제한이 있을 수 있음
 
@@ -499,7 +520,8 @@ except APIError as e:
 
 | 모델 | 가격 (입력/출력, MTok) | 용도 |
 |------|----------------------|------|
-| `claude-fable-5` | $10 / $50 | 최상위 — 최고 난도 추론·장기 자율 작업 ([주의사항](#fable-5-주의사항) 필독) |
+| `claude-fable-5-1` | $10 / $50 | 최상위 — 최고 난도 추론·장기 자율 작업. 캐시 읽기 $0.25, 컨텍스트 1M / 출력 128K, 컷오프 2026-06, 은퇴 하한 2027-09-01 ([주의사항](#fable-51-주의사항) 필독) |
+| `claude-fable-5` | $10 / $50 | 레거시 — 5.1로 대체됨. 캐시 읽기는 $1로 4배 |
 | `claude-opus-5` | $5 / $25 | 고지능 — 에이전틱 코딩·엔터프라이즈. Fable 5 근접 지능을 절반 가격에 ([주의사항](#opus-5-주의사항) 참조) |
 | `claude-sonnet-5` | $2 / $10 | 균형 (권장 기본값) — 도입가였으나 정가로 확정 (2026-08 확인, $3/$15 인상 미시행) |
 | `claude-haiku-4-5` | $1 / $5 | 빠르고 저렴, 단순 작업 |
@@ -508,9 +530,9 @@ except APIError as e:
 
 ---
 
-## Fable 5 주의사항
+## Fable 5.1 주의사항
 
-`claude-fable-5`는 API 동작이 Opus 계열과 다릅니다. 3가지를 반드시 처리하세요.
+`claude-fable-5-1`은 API 동작이 Opus 계열과 다르고, Fable 5에서 옮겨올 때 깨지는 지점도 있습니다. 아래를 반드시 처리하세요.
 
 ### 1. thinking 파라미터 생략 (항상 켜짐)
 
@@ -521,7 +543,7 @@ thinking={"type": "enabled", "budget_tokens": 10000}
 
 # ✅ 생략(기본 adaptive) 또는 명시적 adaptive + effort로 깊이 제어
 response = client.messages.create(
-    model="claude-fable-5",
+    model="claude-fable-5-1",
     output_config={"effort": "high"},
     messages=[...],
     max_tokens=16000
@@ -530,16 +552,27 @@ response = client.messages.create(
 
 `temperature`/`top_p`/`top_k`도 400 — 프롬프트로 제어합니다.
 
-### 2. refusal 처리 + fallback 구성
+### 2. 강제 tool_choice 400 (Fable 5 → 5.1 파괴적 변경)
 
-Safety classifier가 요청을 거절할 수 있습니다(HTTP 200 + `stop_reason: "refusal"`). `response.content[0]`를 무조건 읽는 코드는 깨집니다. `fallbacks` 파라미터로 Opus 4.8 자동 재시도를 기본 구성하세요:
+`tool_choice={"type": "any"}`와 `{"type": "tool", "name": ...}`은 400 `invalid_request_error`입니다. `auto` + 지시문 + `strict: true` 또는 JSON outputs(`output_config.format`)로 대체하세요. 자세한 내용은 [Tool Choice](#tool-choice) 절에 있습니다.
+
+### 3. 사고 블록 바인딩 (Fable 5 → 5.1 파괴적 변경)
+
+- **하위 호환 없음**: 사고 블록은 그것을 생성한 모델 또는 그 이후 모델만 읽습니다. 5.1은 Opus 5·Fable 5·Mythos 5와 그 이전 모델의 블록을 읽지만, 구모델에 5.1 블록을 넘기는 역방향은 안 됩니다. 못 읽는 블록은 API가 조용히 드롭하고 과금하지 않습니다.
+- **이력 편집 금지**: 사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾸면 다음 요청이 400 `The block is bound to a different conversation`입니다. 2026-08-31 이후 생성된 계정은 기본으로 강제되고, 그 이전 계정은 `thinking.block_binding.prefix_mismatch_behavior`를 설정했을 때만 적용됩니다.
+- 허용되는 조작은 선두 사고 블록 연속 제거, 서버측 compaction·context editing, `cache_control` 이동, effort 변경입니다.
+- 실무 요건은 [대화 이력 관리](#대화-이력-관리)의 append-only 원칙입니다. 사고 블록은 받은 그대로(빈 블록 포함) 되돌려 보내세요.
+
+### 4. refusal 처리 + fallback 구성
+
+Safety classifier가 요청을 거절할 수 있습니다(HTTP 200 + `stop_reason: "refusal"`). `response.content[0]`를 무조건 읽는 코드는 깨집니다. `fallbacks="default"`로 거절 카테고리별 권장 모델 자동 재실행을 구성하세요. 폴백 대상은 **Opus 4.8과 Opus 5**입니다.
 
 ```python
 response = client.beta.messages.create(
-    model="claude-fable-5",
+    model="claude-fable-5-1",
     max_tokens=16000,
-    betas=["server-side-fallback-2026-06-01"],
-    fallbacks=[{"model": "claude-opus-4-8"}],   # 거절 시 같은 호출 내 자동 재시도
+    betas=["server-side-fallback-2026-07-01"],
+    fallbacks="default",       # 거절 시 같은 호출 내 자동 재시도 (Opus 4.8·Opus 5)
     messages=[...],
 )
 
@@ -549,14 +582,32 @@ else:
     print("".join(b.text for b in response.content if b.type == "text"))
 ```
 
-### 3. 데이터 보존 요건
+출력 전 거부는 과금되지 않고, 폴백 크레딧이 캐시 전환 비용을 환불합니다.
+
+### 5. 데이터 보존 요건
 
 30일 데이터 보존 필수 — ZDR(zero data retention) 조직은 **모든 요청이 400**. 요청 본문에 문제가 없는데 400이 나면 조직의 보존 설정부터 확인.
+
+### 6. 미지원 기능
+
+- **Priority Tier 미지원** (Fable 5는 지원)
+- **Fast mode 미지원** — Opus 5·Opus 4.8 전용
+- **300K 출력 배치 베타 미지원** — `output-300k-2026-03-24` 헤더의 지원 모델 목록에 없음
+
+### 7. 신규 베타
+
+| 기능 | 베타 헤더 | 용도 |
+|------|----------|------|
+| 메시지별 effort | `mid-conversation-output-config-2026-07-01` | `messages` 안 `role: "system"` 항목에 `output_config: {effort}`만 실어 보내면 다음 user 턴부터 적용. 프롬프트 캐시 유지 |
+| 턴 한정 시스템 메시지 | `mid-conversation-system-clear-at-2026-08-21` | `role: "system"` + `clear_at: "next_user_message"`. 다음 user 메시지가 생기면 렌더링을 멈추되 배열에는 남겨 그대로 재전송 — 토큰 비용 0, 캐시·사고 블록 유지. 이력을 고치지 않고 턴별 리마인더를 주는 공식 수단 |
+| 진행 업데이트 수신 | `thinking-display-updates-2026-08-18` | `thinking={"display": "updates"}` — 추론은 숨기고 도구 호출 직전 진행 업데이트만 텍스트로 받음 |
 
 ### 기타
 
 - 마지막 assistant 턴 prefill 400 (4.6+ 공통)
 - raw chain of thought는 절대 반환 안 됨 — `display: "summarized"`로 요약만 수신
+- 프롬프트 캐시 최소 512 토큰, 캐시 읽기 $0.25/MTok (기본 입력의 0.025배)
+- 도구 호출 사이의 사용자 대상 텍스트는 Opus 5에서 `text` 블록이었으나 5.1은 진행 업데이트 `thinking` 블록으로 옵니다. 기본값 `omitted`이면 빈 블록입니다
 - 프롬프트 작성 요령은 writing-prompts 스킬의 `claude-5-specifics.md` 참조
 
 ---
@@ -613,6 +664,8 @@ print(f"Output tokens: {usage.output_tokens}")
 - [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
 - [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking)
 - [Effort Parameter](https://platform.claude.com/docs/en/build-with-claude/effort)
+- [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1)
+- [Fable 5.1 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide)
 - [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
 - [What's new in Claude Opus 5](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5)
 - [Refusals and Fallback](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback)

@@ -36,8 +36,9 @@ last-updated: {{date}}
 
 1. **프로젝트 파악**: `PROJECT.md` 읽기
 2. **현재 상태 파악**: `SESSION.md` 읽기
-3. **작업 확인**: {{task_check_step}}
-4. **작업 제안**: 1-3개 제안, 큰 변경은 계획 먼저
+3. **교훈 검토**: auto memory에 `lessons_*.md`가 있으면 읽고 반영
+4. **작업 확인**: {{task_check_step}}
+5. **작업 제안**: 1-3개 제안, 큰 변경은 계획 먼저
 
 > {{task_check_step}} 예시:
 > - Notion 사용 시: "Notion 백로그 확인: MCP `get_backlog`로 작업 선택"
@@ -58,6 +59,7 @@ last-updated: {{date}}
 |------|----------|
 | `SESSION.md` | 세션 종료 시 (오늘 한 일, 이슈) |
 | `PROJECT.md` | 범위/아키텍처 변경 시에만 |
+| `GUIDE.md` | 작업 원칙·용어 변경 시에만 |
 
 ---
 

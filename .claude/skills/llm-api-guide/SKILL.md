@@ -40,7 +40,7 @@ Anthropic
 | **엔드포인트** | `/v1/responses` | `/v1/messages` |
 | **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
 | **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
-| **Reasoning** | `reasoning: {effort}` (5.6/5.5 기본 `medium`; 5.5→5.6 마이그레이션은 기존 effort서 한 단계 하향 비교. 5.6 신규: `reasoning.mode: "pro"`, `reasoning.context`) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5는 항상 켜짐, `budget_tokens`는 구모델 전용) |
+| **Reasoning** | `reasoning: {effort}` (5.6/5.5 기본 `medium`; 5.5→5.6 마이그레이션은 기존 effort서 한 단계 하향 비교. 5.6 신규: `reasoning.mode: "pro"`, `reasoning.context`) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1은 항상 켜짐, `budget_tokens`는 구모델 전용) |
 | **스트리밍** | `stream: true` | `stream: True` |
 | **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 |
 
@@ -107,7 +107,10 @@ Anthropic
 ### Anthropic
 
 - [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
-- [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (4.6+/Fable 5)
+- [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (4.6+/Fable 5·5.1)
+- [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1) ⭐ 최신 (2026-09) — 사고 블록 바인딩·신규 베타 3종
+- [Fable 5.1 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide) — 강제 `tool_choice` 400 등 파괴적 변경 3건과 체크리스트
+- [Prompting Claude Fable 5.1](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) — effort 재측정·행동 변화 대응 지시문
 - [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5) — refusal/fallback·30일 보존 등 통합 시 필독
 - [What's new in Claude Opus 5](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5) — thinking 기본 켜짐·`fallbacks: "default"`·web fetch 미지원 등 통합 시 필독
 - [Tool Use Guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)

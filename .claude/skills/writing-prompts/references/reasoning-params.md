@@ -44,7 +44,9 @@ LLM의 "생각하는 정도"를 제어합니다. 작업 복잡도에 맞게 조�
 - 멀티스텝/Agentic? → 높음
 ```
 
-### 프롬프트로 제어 (범용)
+### 프롬프트로 제어 (Claude 4.x 이하·표준 모델 한정)
+
+> ⚠️ 아래 "깊은 추론 유도" 지시는 Claude 5 세대·GPT-5 계열 추론 모델에서는 **삭제가 공식 권고**입니다. 사고 과정을 답변에 옮겨 쓰게 하는 지시는 Claude 5 세대에서 `reasoning_extraction` refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md). 추론 모델의 깊이는 `output_config.effort`/`reasoning.effort`로 조절하세요.
 
 ```yaml
 # 깊은 추론 유도
@@ -251,11 +253,11 @@ response = client.responses.create(
 
 ### Anthropic (Claude)
 
-#### Claude 5 (Fable 5) — `output_config.effort`
+#### Claude 5 세대 (Fable 5.1) — `output_config.effort`
 
 ```python
 response = client.messages.create(
-    model="claude-fable-5",
+    model="claude-fable-5-1",
     max_tokens=16000,
     output_config={"effort": "high"},  # low, medium, high, xhigh, max
     messages=[...]
@@ -266,6 +268,7 @@ response = client.messages.create(
 - thinking이 상시 adaptive로 켜져 있어 `output_config.effort`로만 깊이 제어
 - `thinking`/`budget_tokens`·sampling 파라미터는 **400 에러** → [claude-5-specifics.md](claude-5-specifics.md)
 - 기본 `high`, 최고 난도만 `xhigh`/`max`, 루틴은 `medium`/`low`
+- 기본값 `high`에서 시작하되 전 레벨을 자체 eval로 다시 측정 — effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아 구모델 설정을 그대로 옮기면 안 됩니다
 
 #### Claude 4.x — Extended Thinking (`budget_tokens`)
 
@@ -286,7 +289,7 @@ response = client.messages.create(
 - `budget_tokens`로 추론 깊이 간접 제어 (Fable 5·4.6+에서는 400)
 - 추론 과정이 별도로 반환됨
 
-**프롬프트로 제어** (세대 공통):
+**프롬프트로 제어** (Claude 4.x 이하·표준 모델 한정):
 
 ```xml
 <thinking_instructions>
@@ -295,12 +298,16 @@ response = client.messages.create(
 </thinking_instructions>
 ```
 
+> Claude 5 세대에서는 이 지시를 삭제하는 것이 공식 권고입니다. 사고가 상시 켜져 있고, 사고 과정 서술 요구는 refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md).
+
 **주의**: Extended thinking(4.x) 모드에서는 prefilling 사용 불가
 
 ### 공통 팁
 
 ```yaml
-# 복잡한 작업에서 품질 높이기
+# 복잡한 작업에서 품질 높이기 (Claude 4.x 이하·표준 모델 한정)
+# Claude 5 세대·GPT-5 계열 추론 모델에서는 세 지시 모두 삭제가 공식 권고
+# → claude-5-specifics.md (스스로 검증하므로 지시가 과잉 검증을 부름)
 - 단계별 사고 요청 ("step by step")
 - 근거 제시 요청 ("explain your reasoning")
 - 자기 검토 요청 ("verify your answer")

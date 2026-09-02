@@ -385,6 +385,7 @@ confidence_based: |
   </final>
   ```
 - **Extended thinking**: 내부 추론으로 자연스러운 자기 검토
+- **Claude 5 세대 (Fable 5.1·Opus 5)**: 자기 검토·검증 지시 자체를 삭제하는 것이 공식 권고입니다. 모델이 스스로 검증하므로 지시는 과잉 검증을 부르고, 검토 과정을 답변에 쓰게 하면 `reasoning_extraction` refusal 위험이 있습니다. 검토가 실제로 필요하면 아래 다중 호출 체인으로 모델 밖에서 오케스트레이션하세요 → [claude-5-specifics.md](claude-5-specifics.md)
 - **Prefilling** (Claude 4.5 이하 전용 — Fable 5·4.6+는 400, Structured Outputs 사용): 단계 시작 강제
   ```python
   messages=[
@@ -398,6 +399,8 @@ confidence_based: |
 ## 7. 구현 템플릿
 
 ### 단일 호출 (In-context Self-Correction)
+
+> ⚠️ **Claude 5 세대에서는 사용하지 마세요.** 초안·검토를 출력 형식으로 강제하는 이 템플릿은 사고 과정을 답변에 옮겨 쓰게 하는 구조라 refusal과 과잉 검증을 부릅니다. 아래 [다중 호출 체인](#다중-호출-chain)을 쓰고, 단일 호출 자기검토 지시는 삭제가 공식 권고입니다.
 
 ```yaml
 system_prompt: |

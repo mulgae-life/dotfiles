@@ -65,7 +65,8 @@ Frontier 모델에서 few-shot 예시는 **포맷 정렬**에만 유효합니다
 
 모델 내장 추론 깊이를 API 파라미터로 직접 제어합니다:
 - GPT-5/5.4: `none` / `low` / `medium` / `high` / `xhigh`
-- Claude: Extended Thinking 활성화/비활성화
+- Claude 4.x: Extended Thinking 활성화/비활성화
+- Claude 5 세대: adaptive thinking 상시 + `output_config.effort` (`low`~`max`)가 유일한 제어축
 - → [reasoning-params.md](reasoning-params.md) 참조
 
 ### 4. 긍정 프레이밍 (Positive Framing)
@@ -188,6 +189,15 @@ npx promptfoo@latest eval  # https://github.com/promptfoo/promptfoo
 | 공격적 언어 | **비권장** | "CRITICAL!", ALL-CAPS 등은 출력 품질 저하 |
 | 차분하고 직접적 | **권장** | 침착하고 직접적인 요청이 최적 성능 |
 | 프롬프트 캐싱 | **적극 활용** | 캐시 읽기 토큰이 기본 입력의 0.1배 가격 |
+
+### Claude 5 세대 (Fable 5.1 · Opus 5)
+
+| 기법 | 상태 | 비고 |
+|------|------|------|
+| 지시 열거 | **비권장** | 절차를 나열하면 품질이 떨어짐. 목표·제약·이유 서술로 대체 → [claude-5-specifics.md](claude-5-specifics.md) |
+| CoT 출력 지시 | **비권장** | "사고 과정을 답변에 써라"는 `reasoning_extraction` refusal 유발. `thinking` 블록으로 받기 |
+| `output_config.effort` | **권장** | `high` 시작 + 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님) |
+| 프롬프트 캐싱 | **적극 활용** | Fable 5.1은 캐시 읽기가 기본 입력의 0.025배 ($0.25/MTok) |
 
 ### Gemini 3.x (Google)
 

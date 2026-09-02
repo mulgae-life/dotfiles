@@ -91,7 +91,7 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
 | OpenAI | Outcome-first, 구조화 출력, Personality 분리, 티어 선택(5.6) | `references/gpt5-params.md`, `references/gpt56-patterns.md` ⭐ (5.6), `references/gpt55-patterns.md` (5.5) |
-| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화, Prefilling(4.5 이하) | `references/claude-5-specifics.md` ⭐ (Fable 5·Opus 5), `references/prefilling.md`, `references/long-context.md` |
+| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화, Prefilling(4.5 이하) | `references/claude-5-specifics.md` ⭐ (Fable 5.1·Opus 5), `references/prefilling.md`, `references/long-context.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` 🆕 |
 | Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` 🆕 |
 
@@ -177,12 +177,17 @@ system_prompt: |
 - [ ] verbosity 설정 (응답 길이)
 - [ ] Message Roles (developer/user)
 
-**Anthropic Claude Fable 5 / Claude 5 세대** (최신, 권장):
+**Anthropic Claude Fable 5.1 / Claude 5 세대** (최신, 권장):
 - [ ] **De-prescribe**: 절차 열거 대신 목표·제약·이유 서술 (과잉 지시는 품질 저하)
 - [ ] **Prefill 금지**: 400 에러 → Structured Outputs(`output_config.format`)로 대체
 - [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발
-- [ ] `output_config.effort`: `high` 기본, 최고 난도만 `xhigh`, 루틴은 `medium`/`low`
-- [ ] 장기 자율 런: 진행 보고 근거화 + 자기검증 서브에이전트 + 메모리 파일 → [claude-5-specifics.md](references/claude-5-specifics.md)
+- [ ] **강제 `tool_choice` 금지** (5.1): `any`/`tool`은 400 → `auto` + 지시문 + `strict: true`
+- [ ] **대화 이력 append-only** (5.1): 턴별 리마인더는 턴 한정 시스템 메시지로, 이력·system·tools 사후 편집 금지
+- [ ] `output_config.effort`: `high` 시작 + 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님)
+- [ ] **산문 밀도 지시** (5.1): 문장이 길고 단락이 적으면 "mannered prose" 정의문 추가
+- [ ] **범위·테스트 제한** (5.1): 요청 밖 수정·과다 테스트 커밋을 막는 지시문 추가
+- [ ] **반서식 규칙 제거** (5.1): 구모델용 "불릿·헤더 쓰지 마라"가 필요한 구조까지 억제 → 언제 서식이 적절한지로 교체
+- [ ] 장기 자율 런: 진행 보고 근거화 + 메모리 파일 → [claude-5-specifics.md](references/claude-5-specifics.md)
 - [ ] Long context 문서 배치 (맨 위)
 
 **Anthropic Claude 4.x 이하**:
@@ -226,7 +231,6 @@ system_prompt: |
 - **[few-shot.md](references/few-shot.md)** - Few-shot/Multishot 예시 패턴
 - **[chain-of-thought.md](references/chain-of-thought.md)** - CoT 프롬프팅 (단계별 추론)
 - **[templates.md](references/templates.md)** - 실전 템플릿 + 한국어 톤 가이드 🆕
-- **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드
 - **[reasoning-params.md](references/reasoning-params.md)** - 추론 깊이/응답 길이 제어 (범용 원칙 + 프롬프트 패턴) 🆕
 
 ### 고급 기법 (범용)
@@ -240,6 +244,7 @@ system_prompt: |
 ### OpenAI (GPT) 특화
 
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
+- **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드 (패턴 출처는 OpenAI 가이드 — Claude 5 세대에는 그대로 적용 금지)
 - **[gpt5-params.md](references/gpt5-params.md)** - GPT-5 API 파라미터 (`reasoning`, `verbosity` 코드 예시)
 - **[gpt56-patterns.md](references/gpt56-patterns.md)** ⭐ GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) 🆕
 - **[gpt55-patterns.md](references/gpt55-patterns.md)** GPT-5.5 프롬프트 패턴 (Outcome-first, Personality 분리, Retrieval Budget, Tool Validation, Markdown 절제) — 5.6에서도 호환
@@ -248,7 +253,7 @@ system_prompt: |
 
 ### Anthropic (Claude) 특화
 
-- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Fable 5·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점 🆕
+- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Fable 5.1·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Fable 5 → 5.1 델타 🆕
 - **[claude-4-specifics.md](references/claude-4-specifics.md)** Claude 4.x 베스트 프랙티스 (구세대)
 - **[prefilling.md](references/prefilling.md)** Prefilling (JSON/캐릭터 강제) — Claude 4.5 이하 전용
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
@@ -275,8 +280,10 @@ system_prompt: |
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
 ### Anthropic
-- [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) ⭐ (2026-07) — 스니펫 원문 전체 수록
+- [Fable 5.1 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) ⭐ 최신 (2026-09) — 행동 변화 대응 스니펫 원문 수록
+- [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) (2026-07) — 스니펫 원문 전체 수록
 - [Opus 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) ⭐ 최신 (2026-08) — 스캐폴딩 삭제·위임 상한·effort 역전
+- [Prompting Claude Fable 5.1 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) ⭐ 최신
 - [Prompting Claude Fable 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
 - [Prompting Claude Opus 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
 - [Introducing Claude Fable 5 (공식)](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)

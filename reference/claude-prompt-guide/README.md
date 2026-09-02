@@ -25,7 +25,9 @@
 9. **[long-context-tips.md](long-context-tips.md)** - 긴 컨텍스트 활용 ⭐ (Anthropic 특화)
 
 ### 모델별 가이드
-- **[claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md)** ⭐ 최신 - Claude Fable 5 / Mythos 5 특화 (De-prescribe, effort, 장기 자율 런, refusal/fallback)
+- **[claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md)** ⭐ 최신 - Claude Fable 5.1 / Mythos 5.1 특화 (effort 재측정, 행동 변화 7건, append-only 이력, 작업 완주·범위 제한)
+- **[claude-opus-5-prompt-guide.md](claude-opus-5-prompt-guide.md)** - Claude Opus 5 특화 (스캐폴딩 삭제, effort, thinking 비활성화 결함)
+- **[claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md)** - Claude Fable 5 / Mythos 5 특화 (De-prescribe, effort, 장기 자율 런, refusal/fallback)
 - **[claude-4-best-practices.md](claude-4-best-practices.md)** - Claude 4.x (Sonnet 4.5, Opus 4.5, Haiku 4.5) 특화 베스트 프랙티스
 
 ## Anthropic vs OpenAI 주요 차이점
@@ -76,6 +78,7 @@
 3. 프로젝트에 맞는 기법 선택
 
 ### 모델별 가이드 선택
+- **Claude Fable 5.1 / Mythos 5.1**: [claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md) 먼저 읽기 — Fable 5 가이드와 방향이 다른 항목(반서식 규칙 제거, 서식 규칙 반전, 강제 tool_choice 금지)에 주의
 - **Claude Fable 5 / Claude 5 세대**: [claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md) 먼저 읽기 — 4.x와 방향이 다른 항목(De-prescribe, prefill 불가, thinking 상시 on)에 주의
 - **Claude 4.x**: [claude-4-best-practices.md](claude-4-best-practices.md) 먼저 읽기
 - 이후 핵심 9개 기법 적용 (단, Prefilling은 Claude 4.5 이하 전용)

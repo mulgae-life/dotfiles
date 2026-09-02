@@ -520,8 +520,8 @@ response = client.messages.create(
 ```
 
 - 캐시 히트 시 비용 90% 절감, 레이턴시 85% 절감
-- 캐시 읽기 토큰: 기본 입력의 **0.1배** 가격
-- 최소 1024 토큰 이상의 prefix에서 효과적
+- 캐시 읽기 토큰: 기본 입력의 **0.1배** 가격 (대부분 모델). **Fable 5.1·Mythos 5.1은 0.025배 = $0.25/MTok**으로 절감률이 97.5%
+- 최소 1024 토큰 이상의 prefix에서 효과적 (Opus 5·Fable 5.1은 512 토큰)
 
 ### OpenAI (자동 캐싱)
 
@@ -546,7 +546,7 @@ print(response.usage.input_tokens_details.cached_tokens)
 
 | 제공자 | 캐싱 방식 | 캐시 할인 | 레이턴시 절감 |
 |--------|----------|----------|-------------|
-| Anthropic | 수동 (`cache_control`) | 90% | 85% |
+| Anthropic | 수동 (`cache_control`) | 90% (Fable 5.1·Mythos 5.1은 97.5%) | 85% |
 | OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x 공통, 캐시 read 0.1배) | 상당 |
 | Google | 토큰 저장 기간 기반 | 상당 | 상당 |
 
@@ -593,6 +593,7 @@ tools = [
     {
         "name": "format_weather",
         "description": "Format weather data as structured output",
+        "strict": True,     # 스키마 준수 강제
         "input_schema": {
             "type": "object",
             "properties": {
@@ -607,10 +608,12 @@ tools = [
 ]
 
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-fable-5-1",
+    # 쓸 도구를 지시문에 명시 — 강제 tool_choice를 대신하는 유도 수단
+    system="날씨 질문에는 반드시 format_weather 도구로만 답하세요.",
     messages=[{"role": "user", "content": "서울 날씨 알려줘"}],
     tools=tools,
-    tool_choice={"type": "tool", "name": "format_weather"},
+    tool_choice={"type": "auto"},
     max_tokens=1024
 )
 
@@ -619,6 +622,8 @@ for block in response.content:
     if block.type == "tool_use":
         weather = block.input  # dict
 ```
+
+> ⚠️ **강제 `tool_choice`(`{"type": "tool", ...}`·`{"type": "any"}`)는 Fable 5.1·Mythos 5.1에서 400 `invalid_request_error`입니다.** 위처럼 `auto` + 지시문 + `strict: true`로 대체하세요. 도구 호출이 아니라 스키마를 지키는 JSON 자체가 목적이면 JSON outputs(`output_config.format`)가 더 직접적입니다. 단 CMEK 조직은 structured outputs를 쓸 수 없어 지시문으로만 유도해야 합니다.
 
 ### 포맷별 특성
 

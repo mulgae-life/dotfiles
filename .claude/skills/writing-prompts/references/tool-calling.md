@@ -2,6 +2,8 @@
 
 Agentic 작업에서 Tool calling을 최적화하는 가이드.
 
+> **범위**: 아래 패턴의 출처는 OpenAI 공식 가이드(GPT-5·GPT-4.1)입니다. Claude 5 세대에는 절차 열거(`<workflow>` 1~N단계)와 사고 과정 서술 지시를 적용하지 마세요. 전자는 품질 저하 요인이고 후자는 `reasoning_extraction` refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md).
+
 ## 핵심 패턴
 
 ### 1. Persistence (지속성)
