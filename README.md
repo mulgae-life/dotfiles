@@ -48,7 +48,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `PostCompact` | `Stop`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `PreToolUse`/`PostToolUse` — 별도 hooks.json (현 초안은 재작성 대상, `.antigravity/README.md` 검증 상태 참조) |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
 | **기본 모델** | Claude Opus | 권장 기본 추종 (GPT-5.6 세대, 미고정) | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
-| **CLI 버전 (검증 기준)** | 2.1.250 | 0.150.1 | 0.38.1 | IDE 2.1.x / `agy` |
+| **CLI 버전 (검증 기준)** | 2.1.258 | 0.152.1 | 0.38.1 | IDE 2.1.x / `agy` |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
@@ -85,7 +85,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `security.md` | 시크릿 관리, 입력 검증, 취약점 방지 |
 | `architecture.md` | 파일 구조, 단일 역할, 의존성 방향 |
 | `communication.md` | 한국어 응답, 변경 이유 설명, 용어 병기, 이모지 활용 |
-| `context-management.md` | 대량 출력·계획 영속화·부에이전트 공유 정책 (하네스 내장 동작 위의 로컬 정책만) |
+| `context-management.md` | 계획 영속화·부에이전트 공유 정책 (하네스 내장 동작 위의 로컬 정책만) |
 | `work-principles.md` | 작업 원칙 (정확성 우선, 위험 명령 통제, 산출물 정리 등) |
 | `agents.md` | 에이전트 자동 위임 조건과 우선순위 |
 
@@ -97,7 +97,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 |----------|--------|
 | `build-resolver` | 빌드/타입 에러 발생 시 |
 | `security-reviewer` | 인증/인가, API, 시크릿 관련 코드 작성 시 |
-| `planner` | 파일 3개 이상 수정 예상되는 복잡한 작업 |
+| `planner` | 아키텍처 결정이 필요하거나 요구가 불명확한 작업, 사용자가 계획을 요청할 때 |
 | `verifier` | 작업 완료 후 결과가 도구 출력으로 입증되지 않았을 때 자동 점검 |
 
 ### 🪝 Hooks — 이벤트 기반 자동 실행
@@ -191,7 +191,7 @@ dotfiles/
 │   ├── commands/              # 슬래시 커맨드
 │   ├── hooks/                 # 이벤트 훅
 │   ├── skills/                # 스킬 (20개)
-│   ├── scratch/               # 임시 작업 파일 (대량 출력 등 — gitignored, 보존물은 reference/로 승격)
+│   ├── scratch/               # 임시 작업 파일 (gitignored, 보존물은 reference/로 승격)
 │   ├── statusline-command.sh  # 상태줄 스크립트
 │   └── settings.json          # 전역 설정
 ├── .mcp.json                    # MCP 서버 설정 (gitignored, API 키 포함)
@@ -246,6 +246,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.16** | Fable 5.1 출시(9/1) 대응 — 공식 자료·커뮤니티 후기를 서브에이전트 2개로 병렬 조사해 `research-fable51.md` 신설. rules 반영 3건: coding-style 최소 Diff에 "파일 전체 재작성 금지, 외과적 수정" 1줄(공식이 인정한 5.1 행동 변화), agents의 planner 트리거에서 파일 수 기준(3개+) 삭제 → 아키텍처 결정·요구 불명확·사용자 요청으로 한정(Fable 사용 요령 "경로는 모델이 계획, 큰 작업 통째로" + 하네스 자율 실행 + Opus 강제 서브에이전트 비용, planner.md description 동반 수정), context-management의 대량 출력 조항 삭제(하네스가 대량 도구 출력을 자동 파일 저장함을 실측). 진행 업데이트·병렬 호출·작업 완주 등 나머지 공식 처방은 하네스가 이미 주입하므로 중복 추가 안 함, 반서식 조항은 완화형이라 무변경. Codex·Gemini 층은 근거가 Claude 하네스 고유라 미변경. settings.json에 `remoteControlAtStartup: false`(Remote Control 자동 시작 해제)와 `CLAUDE_CODE_SUBAGENT_MODEL=opus` + `_FORCE=1`(서브에이전트 Opus 강제, 2.1.257+ 필요) 추가 — 5.1 출력 토큰 1.7배·구독 한도 소진 보고에 대응, 트랜스크립트 model 필드로 적용 실측. 도구 버전 현행화 Claude Code 2.1.250→2.1.258, Codex 0.150.1→0.152.1 체인지로그 대조 기능 변경 불요(`codex doctor`·execpolicy 회귀 20/20 정상) |
 | **v2.15** | 도구 버전 현행화 — Claude Code 2.1.236→2.1.250, Codex 0.144.6→0.150.1 체인지로그를 dotfiles 설정·훅·권한 층과 대조해 기능 변경 불요 확인(Claude: 훅 stdout JSON 엄격화·와일드카드 allow 경고 모두 통과, Codex: `codex doctor`·execpolicy 실측 정상). 검증 기준 버전 표기 갱신, config.toml·rules의 낡은 주석 정정(`--full-auto` 제거 반영, 서브에이전트 모델 지정 공식 지원 반영). 로컬 전용 `settings.local.json`의 잔재 allow 42건 제거(레포 외) |
 | **v2.14** | autocompact 임계값 고정 — settings.json에 `autoCompactWindow: 500000` 추가. 컨텍스트 500K 토큰 도달 시 자동 압축이 발동하도록 기본값(모델별 임계값)을 대체. `/autocompact`는 런타임본만 갱신하므로 레포본에 명시해 install.sh 재배포에도 유지 |
 | **v2.13** | 스킬 층 전수 감사 — SKILL.md 20개를 rules 감량과 같은 3축으로 판정. 상시 노출층인 hw-design·hw-ppt description을 문단 수준에서 트리거·구분 정보만 남기고 압축, work-plan 작성 스타일을 code-review와 같은 완화 문구로 정렬(v2.9 개정 누락분), update-docs의 추상 플레이스홀더 표 삭제. references류(두꺼운 아티팩트)와 Anthropic·Vercel 원본 스킬은 처방에 부합해 무변경 |

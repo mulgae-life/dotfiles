@@ -1,7 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus",
+    "CLAUDE_CODE_SUBAGENT_MODEL_FORCE": "1"
   },
   "permissions": {
     "allow": [
@@ -313,6 +315,7 @@
   },
   "autoDreamEnabled": true,
   "autoCompactWindow": 500000,
+  "remoteControlAtStartup": false,
   "language": "한국어",
   "statusLine": {
     "type": "command",
