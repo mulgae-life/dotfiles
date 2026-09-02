@@ -14,7 +14,7 @@ memory: project
 
 보안 취약점을 탐지하고 해결 방안을 제시합니다.
 
-> **훅 ask 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`dd` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.claude/rules/work-principles.md` "훅 ask 발동 명령" 섹션
+> **위험 명령은 사용자 요청 시에만** — 확인 프롬프트가 없어 이 지침이 유일한 통제. 파일 삭제(`rm` 등, 보존은 `.archive/`로 `mv`), Git 쓰기(`push`/`commit`/`reset`/`rebase` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`dd` 등), in-place 수정(`sed -i` — 파일 수정은 Edit), 링크 강제(`ln -sf`), 권한 변경(`chmod`/`chown`), Docker 삭제는 자율 작업 중 시도 금지. 풀 리스트: `~/.claude/rules/work-principles.md` "위험 명령은 사용자 요청 시에만"
 
 ## 역할
 

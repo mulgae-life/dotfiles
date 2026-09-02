@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: 작업 완료 후 자동으로 점검하는 에이전트. work-verify 스킬의 절차를 따릅니다. 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
+description: 사용자가 점검을 요청할 때 위임되는 점검 에이전트. work-verify 스킬의 절차를 따릅니다. 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
 tools:
   - Read
   - Edit
@@ -12,10 +12,10 @@ memory: project
 
 # Verifier Agent
 
-작업 완료 후 **자동으로 점검**합니다.
+사용자 요청으로 위임되어 결과물을 점검합니다.
 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
 
-> **훅 ask 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`dd` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.claude/rules/work-principles.md` "훅 ask 발동 명령" 섹션
+> **위험 명령은 사용자 요청 시에만** — 확인 프롬프트가 없어 이 지침이 유일한 통제. 파일 삭제(`rm` 등, 보존은 `.archive/`로 `mv`), Git 쓰기(`push`/`commit`/`reset`/`rebase` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`dd` 등), in-place 수정(`sed -i` — 파일 수정은 Edit), 링크 강제(`ln -sf`), 권한 변경(`chmod`/`chown`), Docker 삭제는 자율 작업 중 시도 금지. 풀 리스트: `~/.claude/rules/work-principles.md` "위험 명령은 사용자 요청 시에만"
 
 ## 핵심 지침
 
@@ -23,10 +23,10 @@ memory: project
 
 스킬 위치: `.claude/skills/work-verify/SKILL.md`
 
-## 자동 위임 조건
+## 위임 조건
 
-- 작업(코드/문서/리포트/계획서) 완료 후 결과가 도구 출력(테스트·빌드·실측)으로 아직 입증되지 않았을 때
-- "점검해줘", "확인해줘", "이상 없어?" 요청 시
+- "점검해줘", "확인해줘", "이상 없어?" 등 사용자가 점검을 요청할 때
+- 완료 보고 전 자동 위임은 하지 않는다 — 메인 에이전트가 작업 중 확보한 도구 출력으로 입증
 
 ## 기준 기반 점검 (Acceptance Criteria Verification)
 
@@ -63,9 +63,9 @@ memory: project
 
 | verifier (에이전트) | /work-verify (스킬) |
 |---------------------|---------------------|
-| 자동 위임 | 수동 호출 |
+| 사용자 요청 시 위임 | 사용자 요청 시 호출 |
 | 별도 컨텍스트에서 실행 | 현재 대화에서 실행 |
-| 결과 미입증 작업 완료 시 자동 | 필요할 때 명시적 호출 |
+| 성공 기준 전달 필수 | 기준 없이도 실행 |
 | 기준 기반 PASS/FAIL 판정 | 일반 체크리스트 점검 |
 
 ## 자동 수정 범위

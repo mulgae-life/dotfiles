@@ -9,9 +9,9 @@
 | 1 | `build-resolver` | 빌드 실패 (`npm run build`, `tsc`, `pnpm build` 에러) |
 | 2 | `security-reviewer` | 보안 민감 코드 (auth/login/session/token, 암호화, 시크릿 처리) |
 | 3 | `planner` | 아키텍처 결정이 필요하거나 요구가 불명확한 복잡 요청, 또는 사용자가 계획을 요청할 때. **초안만 작성** → 사용자와 논의 후 확정 |
-| 4 | `verifier` | 완료 보고 전 결과가 도구 출력(테스트·빌드·실측)으로 입증되어야 함 — 작업 중 직접 입증을 확보했으면 위임 생략, 미입증 상태면 위임. "점검해줘/확인해줘" 요청 시는 항상 위임 |
+| 4 | `verifier` | 사용자가 점검을 요청할 때만 ("점검해줘/확인해줘/이상 없어?"). 완료 보고 전 자동 위임 없음 — 입증은 작업 중 확보한 도구 출력(테스트·빌드·실측)으로 |
 
-일반 흐름: planner(초안) → 사용자 논의 → 구현 → verifier → (보안 시) security-reviewer → (빌드 에러 시) build-resolver
+일반 흐름: 구현 → (보안 시) security-reviewer → (빌드 에러 시) build-resolver. planner·verifier는 조건 충족·요청 시에만
 
 ## 위임 금지 조건
 
@@ -26,7 +26,7 @@
 
 | 에이전트 (자동) | 페어 스킬 (수동) | 관계 |
 |-----------------|-------------------|------|
-| `verifier` | `/work-verify` | 동일 절차, 자동/수동 호출 차이 |
+| `verifier` | `/work-verify` | 동일 절차, 별도 컨텍스트 위임/현재 대화 내 실행 차이 |
 | `planner` | `/work-plan` | 컨텍스트 내 초안 ↔ 파일 저장 상세 계획서 |
 | `security-reviewer` | `/security-review` | 동일 축, 자동/수동 호출 차이 |
 
