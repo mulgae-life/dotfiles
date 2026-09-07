@@ -146,7 +146,7 @@ from anthropic import (
 def call_anthropic(client: Anthropic, message: str) -> str:
     try:
         response = client.messages.create(
-            model="claude-sonnet-5",
+            model="claude-opus-5",
             messages=[{"role": "user", "content": message}],
             max_tokens=1024
         )
@@ -267,7 +267,7 @@ client = AsyncAnthropic()
 
 async def generate_stream(message: str):
     async with client.messages.stream(
-        model="claude-sonnet-5",
+        model="claude-opus-5",
         messages=[{"role": "user", "content": message}],
         max_tokens=1024
     ) as stream:
@@ -378,7 +378,7 @@ async_anthropic = AsyncAnthropic()
 
 async def call_anthropic_async(message: str) -> str:
     response = await async_anthropic.messages.create(
-        model="claude-sonnet-5",
+        model="claude-opus-5",
         messages=[{"role": "user", "content": message}],
         max_tokens=1024
     )
@@ -446,7 +446,7 @@ response = client.responses.create(
 
 # Anthropic
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[...],
     max_tokens=1024,
     timeout=httpx.Timeout(30.0, connect=5.0)
@@ -506,7 +506,7 @@ client = OpenAI(
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     system=[
         {
             "type": "text",

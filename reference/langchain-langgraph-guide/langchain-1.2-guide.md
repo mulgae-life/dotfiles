@@ -42,7 +42,7 @@ from langchain.chat_models import init_chat_model
 
 # 단축 문법 (provider:model)
 model = init_chat_model("openai:gpt-6-astra", use_responses_api=True)  # GPT-6은 temperature 미지원, 도구 호출은 Responses 전용
-model = init_chat_model("anthropic:claude-sonnet-5", temperature=0)
+model = init_chat_model("anthropic:claude-opus-5")  # Claude 5 세대는 temperature·top_p 미지원(400)
 model = init_chat_model("google_vertexai:gemini-2.5-flash", temperature=0)
 
 # 명시적 지정
@@ -56,7 +56,7 @@ from langchain_openai import ChatOpenAI
 model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000, timeout=30)
 
 from langchain_anthropic import ChatAnthropic
-model = ChatAnthropic(model="claude-sonnet-5", max_tokens=1024, temperature=0)
+model = ChatAnthropic(model="claude-opus-5", max_tokens=1024)
 ```
 
 > **주의**: `from langchain.chat_models import ChatOpenAI`는 deprecated. 프로바이더 패키지에서 임포트.

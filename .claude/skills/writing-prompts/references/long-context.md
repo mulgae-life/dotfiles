@@ -334,7 +334,7 @@ Then analyze trends in <trends> tags.
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     system=[
         {
             "type": "text",

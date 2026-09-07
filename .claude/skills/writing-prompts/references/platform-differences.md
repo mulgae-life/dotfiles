@@ -42,7 +42,7 @@ response = client.responses.create(
 ```python
 # system 파라미터
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     system="반드시 격식체 사용",  # system prompt
     messages=[
         {"role": "user", "content": "안녕하세요"}
@@ -217,7 +217,7 @@ response = client.responses.create(
 Anthropic 버전:
 ```python
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     system="""
     당신은 데이터 분석가입니다.
 

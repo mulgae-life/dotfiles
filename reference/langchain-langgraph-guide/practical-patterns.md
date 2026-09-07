@@ -12,7 +12,7 @@
 from langchain.chat_models import init_chat_model
 
 gpt = init_chat_model("openai:gpt-6-astra", use_responses_api=True)  # GPT-6은 temperature 미지원, 도구 호출은 Responses 전용
-claude = init_chat_model("anthropic:claude-sonnet-5", temperature=0)
+claude = init_chat_model("anthropic:claude-opus-5")  # Claude 5 세대는 temperature·top_p 미지원(400)
 gemini = init_chat_model("google_vertexai:gemini-2.5-flash", temperature=0)
 ```
 
@@ -23,7 +23,7 @@ from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 
 model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000, timeout=30)
-model = ChatAnthropic(model="claude-sonnet-5", max_tokens=1024, temperature=0)
+model = ChatAnthropic(model="claude-opus-5", max_tokens=1024)
 ```
 
 ---

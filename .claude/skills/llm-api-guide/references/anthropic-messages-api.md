@@ -30,7 +30,7 @@ from anthropic import Anthropic
 client = Anthropic()
 
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[
         {"role": "user", "content": "Hello, world!"}
     ],
@@ -46,7 +46,7 @@ print("".join(b.text for b in response.content if b.type == "text"))
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     system="You are a helpful assistant that speaks Korean formally.",
     messages=[
         {"role": "user", "content": "What is the capital of Korea?"}
@@ -100,7 +100,7 @@ Claude의 추론 기능 (OpenAI의 reasoning과 유사). **모델 세대에 따�
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     thinking={"type": "adaptive"},          # Claude가 사고 시점·깊이를 스스로 결정
     output_config={"effort": "high"},       # low | medium | high | xhigh | max
     messages=[
@@ -147,7 +147,7 @@ messages = []
 # 첫 요청
 messages.append({"role": "user", "content": "안녕하세요"})
 response1 = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     system="격식체로 응답하세요",
     messages=messages,
     max_tokens=1024
@@ -157,7 +157,7 @@ messages.append({"role": "assistant", "content": response1.content})  # 블록 �
 # 후속 요청
 messages.append({"role": "user", "content": "이전 대화를 요약해주세요"})
 response2 = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     system="격식체로 응답하세요",  # 매번 재전송
     messages=messages,
     max_tokens=1024
@@ -195,7 +195,7 @@ class ConversationManager:
         return "".join(b.text for b in response.content if b.type == "text")
 
 # 사용
-conv = ConversationManager(client, "claude-sonnet-5", "격식체로 응답하세요")
+conv = ConversationManager(client, "claude-opus-5", "격식체로 응답하세요")
 print(conv.send("안녕하세요"))
 print(conv.send("이전 대화를 요약해주세요"))
 ```
@@ -234,7 +234,7 @@ tools = [
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[{"role": "user", "content": "서울 날씨 알려줘"}],
     tools=tools,
     max_tokens=1024
@@ -257,7 +257,7 @@ for block in response.content:
 
 # 모든 tool_result를 하나의 user 메시지로 묶어 후속 호출 1회
 response2 = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[
         {"role": "user", "content": "서울 날씨 알려줘"},
         {"role": "assistant", "content": response.content},
@@ -275,7 +275,7 @@ response2 = client.messages.create(
 ```python
 # 특정 도구 강제 — Fable 5.1·Mythos 5.1은 400, 구모델 전용
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[...],
     tools=tools,
     tool_choice={"type": "tool", "name": "get_weather"},
@@ -284,7 +284,7 @@ response = client.messages.create(
 
 # 도구 사용 필수 — Fable 5.1·Mythos 5.1은 400, 구모델 전용
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[...],
     tools=tools,
     tool_choice={"type": "any"},  # 아무 도구나 사용해야 함
@@ -319,7 +319,7 @@ response = client.messages.create(
 
 ```python
 with client.messages.stream(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[{"role": "user", "content": "Hello"}],
     max_tokens=1024
 ) as stream:
@@ -336,7 +336,7 @@ client = AsyncAnthropic()
 
 async def stream_response():
     async with client.messages.stream(
-        model="claude-sonnet-5",
+        model="claude-opus-5",
         messages=[{"role": "user", "content": "Hello"}],
         max_tokens=1024
     ) as stream:
@@ -348,7 +348,7 @@ async def stream_response():
 
 ```python
 with client.messages.stream(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[{"role": "user", "content": "Hello"}],
     max_tokens=1024
 ) as stream:
@@ -373,7 +373,7 @@ with open("image.png", "rb") as f:
     image_data = base64.standard_b64encode(f.read()).decode("utf-8")
 
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[
         {
             "role": "user",
@@ -398,7 +398,7 @@ response = client.messages.create(
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-5",
+    model="claude-opus-5",
     messages=[
         {
             "role": "user",
@@ -458,8 +458,8 @@ except APIError as e:
 |------|----------------------|------|
 | `claude-fable-5-1` | $10 / $50 | 최상위 — 최고 난도 추론·장기 자율 작업. 캐시 읽기 $0.25, 컨텍스트 1M / 출력 128K, 컷오프 2026-06, 은퇴 하한 2027-09-01 ([주의사항](#fable-51-주의사항) 필독) |
 | `claude-fable-5` | $10 / $50 | 레거시 — 5.1로 대체됨. 캐시 읽기는 $1로 4배 |
-| `claude-opus-5` | $5 / $25 | 고지능 — 에이전틱 코딩·엔터프라이즈. Fable 5 근접 지능을 절반 가격에 ([주의사항](#opus-5-주의사항) 참조) |
-| `claude-sonnet-5` | $2 / $10 | 균형 (권장 기본값) — 도입가였으나 정가로 확정 (2026-08 확인, $3/$15 인상 미시행) |
+| `claude-opus-5` | $5 / $25 | 기본 선택 — 에이전틱 코딩·엔터프라이즈. Fable 5 근접 지능을 절반 가격에 ([주의사항](#opus-5-주의사항) 참조) |
+| `claude-sonnet-5` | $2 / $10 | 균형 — 도입가였으나 정가로 확정 (2026-08 확인, $3/$15 인상 미시행) |
 | `claude-haiku-4-5` | $1 / $5 | 빠르고 저렴, 단순 작업 |
 
 > 신규 코드는 위 표 기준. Opus 5는 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다.
