@@ -12,4 +12,4 @@
 
 ## 커뮤니케이션
 
-→ 상세 규칙은 `.claude/rules/communication.md` 참조 (한국어 응답, 용어 병기, 변경 이유 설명)
+→ 상세 규칙은 `~/.claude/rules/communication.md` 참조 (한국어 응답, 용어 병기, 변경 이유 설명)

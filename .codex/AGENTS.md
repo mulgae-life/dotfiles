@@ -54,7 +54,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 
 ### 행동 원칙
 
-- **Starlark `forbidden` 명령은 시도 자체 금지**: 아래 명령은 `.codex/rules/default.rules`에서 `forbidden`으로 설정되어 **사용자 명시 요청 여부와 무관하게 차단**됩니다 (Codex Starlark는 ask 메커니즘이 없음). 자율 작업 중에는 절대 시도하지 말고, 사용자가 요청한 경우에는 **사용자에게 직접 실행을 부탁드린다고 안내**:
+- **Starlark `forbidden` 명령은 시도 자체 금지**: 아래 명령은 `.codex/rules/default.rules`에서 `forbidden`으로 설정되어 **사용자 명시 요청 여부와 무관하게 차단**됩니다 (Starlark에 `prompt` 판정은 있으나 `approval_policy = "never"` 정책상 쓰지 않음 — 승인 경로 없음). 자율 작업 중에는 절대 시도하지 말고, 사용자가 요청한 경우에는 **사용자에게 직접 실행을 부탁드린다고 안내**:
   - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
   - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git rm`, `git branch -d/-D`, `git tag -d/-f`
   - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash` (전체), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험

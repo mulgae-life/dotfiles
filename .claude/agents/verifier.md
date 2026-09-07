@@ -21,7 +21,7 @@ memory: project
 
 **`work-verify` 스킬의 점검 절차를 따르세요.**
 
-스킬 위치: `.claude/skills/work-verify/SKILL.md`
+스킬 위치: `~/.claude/skills/work-verify/SKILL.md`
 
 ## 위임 조건
 

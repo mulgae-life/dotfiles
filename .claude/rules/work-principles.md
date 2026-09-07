@@ -18,7 +18,7 @@
   - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, `find -delete` — 보존 원칙상 `.archive/`로 `mv`가 기본. `/tmp` 스크래치는 지우지 말고 두기(재부팅 시 소멸)
   - **Git 쓰기**: `push`, `commit`, `reset`, `clean`, `rebase`, `merge`, `cherry-pick`, `revert`, `am`, `apply`, `branch -d/-D`, `tag -d/-f` (조회와 `add`·`checkout`·`switch`·`stash`는 자유)
   - **GitHub CLI 쓰기**: `gh pr/issue/release/repo`의 create·close·delete·merge·edit·comment, `gh api` 쓰기 플래그, `gh auth login/logout`
-  - **시스템/권한**: `sudo`, `reboot`, `shutdown`, `dd`, `mkfs`, `fdisk`, `parted`, `chmod`, `chown` — 파국형(`rm -rf /` 등)은 `permissions.deny`가 차단
+  - **시스템/권한**: `sudo`, `reboot`, `shutdown`, `dd`, `mkfs`, `fdisk`, `parted`, `chmod`, `chown` — 파국형(`rm -rf /`·절대경로·`./` 하위 재귀 삭제 등)은 `permissions.deny`가 차단
   - **in-place 수정/링크 강제/Docker 삭제**: `sed -i`, `ln -sf/-f`, `docker rm/rmi`, `docker(-)compose down/rm` — 파일 수정은 Read+Edit 도구 사용
   - **빌드툴/셸 설정 파일 쓰기** (Claude Code 내장 동작): `.npmrc`·`.bashrc`·`.zshrc`·`.profile` 등은 Edit/Write에 확인이 뜰 수 있음 — 수정 필요 시 사용자에게 먼저 고지
   - **백그라운드 `&` 연산자** (Claude Code 내장 동작): `cmd &` 대신 Bash 도구 `run_in_background: true` 사용

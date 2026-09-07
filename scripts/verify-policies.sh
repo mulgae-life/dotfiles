@@ -11,13 +11,19 @@ CASES="$REPO/scripts/policy-cases.tsv"
 CODEX_RULES="$REPO/.codex/rules/default.rules"
 GEMINI_TOML="$REPO/.gemini/policies/safety.toml"
 ONLY="${1:-all}"
+case "$ONLY" in
+  all|codex|gemini) ;;
+  *) echo "사용법: bash scripts/verify-policies.sh [codex|gemini]" >&2; exit 2 ;;
+esac
 TOTAL_PASS=0 TOTAL_FAIL=0
+RAN=0  # 실제 실행된 검사기 수 — 0이면 검사 없이 통과한 것이므로 실패 판정
 
 # ── Codex execpolicy: 실제 엔진으로 판정 (무매칭 = none) ──
 run_codex() {
   if ! command -v codex &>/dev/null; then
     echo "codex: CLI 없음 — 건너뜀"; return
   fi
+  RAN=$((RAN+1))
   local pass=0 fail=0 expected command decision
   while IFS=$'\t' read -r _tool expected command; do
     # 케이스는 따옴표 없는 단순 토큰만 사용 (의도적 word splitting)
@@ -38,6 +44,7 @@ run_gemini() {
   if ! command -v node &>/dev/null; then
     echo "gemini: node 없음 — 건너뜀"; return
   fi
+  RAN=$((RAN+1))
   local out rc
   out=$(python3 - "$GEMINI_TOML" "$CASES" <<'EOF' | node "$REPO/scripts/gemini-policy-engine.mjs"
 import tomllib, json, sys
@@ -59,8 +66,11 @@ EOF
   local p f
   p=$(echo "$out" | grep -c '^PASS' || true)
   f=$(echo "$out" | grep -c '^FAIL' || true)
+  # 엔진은 FAIL·무효 규칙이 있을 때만 rc≠0 이고 그때는 FAIL 줄이 함께 찍힘 → FAIL 줄 없이 rc≠0 이면 파서·엔진 자체 오류
+  if (( rc != 0 && f == 0 )); then
+    echo "FAIL [gemini 검사기 오류 rc=$rc — 정책 판정 아님]"; f=1
+  fi
   TOTAL_PASS=$((TOTAL_PASS+p)); TOTAL_FAIL=$((TOTAL_FAIL+f))
-  return $rc
 }
 
 [[ "$ONLY" == all || "$ONLY" == codex ]] && run_codex
@@ -68,4 +78,7 @@ EOF
 
 echo "────────────────────────"
 echo "합계: $TOTAL_PASS PASS / $TOTAL_FAIL FAIL"
+if (( RAN == 0 )); then
+  echo "실행된 검사기 없음 — 실패로 판정" >&2; exit 1
+fi
 [[ $TOTAL_FAIL -eq 0 ]]

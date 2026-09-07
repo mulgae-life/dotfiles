@@ -289,13 +289,13 @@
         ]
       }
     ],
-    "PostCompact": [
+    "SessionStart": [
       {
-        "matcher": "*",
+        "matcher": "compact",
         "hooks": [
           {
             "type": "command",
-            "command": "cat > /dev/null; echo '{\"message\": \"리마인더: 방금 컨텍스트가 요약·압축됐다. 요약은 손실 압축이다 — 요약 속 파일 상태·수치·결정사항을 사실로 단정하지 말고, 작업 재개 전 관련 파일을 직접 다시 읽어 확인하라. 진행 중이던 작업과 다음 단계를 먼저 파악하라. (한국어 응답·변경 이유 설명 유지)\"}'"
+            "command": "cat > /dev/null; echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"리마인더: 방금 컨텍스트가 요약·압축됐다. 요약은 손실 압축이다 — 요약 속 파일 상태·수치·결정사항을 사실로 단정하지 말고, 작업 재개 전 관련 파일을 직접 다시 읽어 확인하라. 진행 중이던 작업과 다음 단계를 먼저 파악하라.\"}}'"
           }
         ]
       }
@@ -307,7 +307,7 @@
           {
             "type": "command",
             "command": "$HOME/.claude/hooks/on-tool-failure.sh",
-            "timeout": 5000
+            "timeout": 10
           }
         ]
       }

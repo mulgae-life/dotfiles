@@ -205,9 +205,9 @@ multi_agent = true  # 멀티 에이전트 협업 도구. 기본 켜짐이라 의
 # 서브에이전트 사용 시 실제 실행 모델·토큰 소모는 계속 확인
 # 키 이름·신규 키(max_concurrent_threads_per_session, default_subagent_*)로의 변경은 보류 — 근거는 reference/research/research-gpt6.md
 [agents]
-max_threads = 12            # 동시 열린 스레드 상한(공식 기본 6). 토큰·지연 비용도 늘므로 실제 스폰 수는 필요한 최소로 제한
-max_depth = 1               # 에이전트 중첩 깊이
-job_max_runtime_seconds = 1800  # 워커 타임아웃 (30분)
+max_threads = 12            # max_concurrent_threads_per_session의 별칭. 동시 열린 스레드 상한(공식 기본 6). 토큰·지연 비용도 늘므로 실제 스폰 수는 필요한 최소로 제한
+max_depth = 1               # V1 백엔드 전용 중첩 깊이 — V2(Astra 기본)에서는 무시됨(config_toml.rs 소스 주석). 삭제는 보류
+job_max_runtime_seconds = 1800  # 호환용 no-op(config_toml.rs 소스 주석) — 워커 타임아웃으로 동작하지 않음. 삭제는 보류
 
 # ── 상태줄 설정 ──────────────────────────────
 [tui]
@@ -232,12 +232,13 @@ timeout = 5
 
 # PostToolUse 실패알림 훅은 제거 — payload에 exit code가 없어 실패 감지 불가(README 훅 절 참조). 복원본은 .archive/2026-07-02_codex-dead-hook/
 
-# PostCompact: 압축 후 한국어 응답·변경 이유 설명 리마인더 재주입
-[[hooks.PostCompact]]
-matcher = "^(manual|auto)$"
-[[hooks.PostCompact.hooks]]
+# SessionStart(compact): 압축 직후 요약 불신·파일 재확인 리마인더를 additionalContext로 모델 컨텍스트에 주입
+# PostCompact는 systemMessage를 UI 경고로만 표시하고 모델에 전달하지 않음(compact.rs) → SessionStart 사용
+[[hooks.SessionStart]]
+matcher = "^compact$"
+[[hooks.SessionStart.hooks]]
 type = "command"
-command = "$HOME/.codex/hooks/post-compact-reminder.sh"
+command = "$HOME/.codex/hooks/compact-reminder.sh"
 timeout = 5
 
 # ── 공식 OpenAI 개발자 문서 MCP ──────────────
