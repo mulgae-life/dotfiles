@@ -4,7 +4,7 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
 
 한 번 설치하면 어떤 프로젝트에서든 동일한 **규칙 · 에이전트 · 스킬 · 훅**이 자동 적용된다.
 
-> **🎯 설계 원칙 — 자율성 우선, 최소 차단**: 모든 작업을 확인 프롬프트 없이 실행해 장기 작업이 중단되지 않게 한다(Claude Code는 ask 계층 전면 해제). 위험 명령(`rm` · `git push` · `sudo` 등)의 통제는 지침(rules)이 담당하고 — 자율 작업 중 사용 금지, 사용자 요청 시에만 — 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작, 크론탭 삭제)과 넓은 재귀 삭제 패턴(절대경로·`./` 하위 `rm -rf`)만 `permissions.deny`가 프롬프트 없이 차단한다.
+> **🎯 설계 원칙 — 자율성 우선, 최소 차단**: 모든 작업을 확인 프롬프트 없이 실행해 장기 작업이 중단되지 않게 한다(Claude Code는 ask 계층 전면 해제). 위험 명령(`rm` · `git push` · `sudo` 등)의 통제는 지침(rules)이 담당하고 — 자율 작업 중 사용 금지, 사용자 요청 시에만 — 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작, 크론탭 삭제)과 넓은 재귀 삭제 패턴(절대경로·`./` 하위 `rm -rf`)만 `permissions.deny`가 프롬프트 없이 차단한다. 차단 목록의 범위는 도구별로 다르다(아래 도구별 설정 구조 표 참조).
 
 ## 🔄 어떻게 동작하나?
 
@@ -41,7 +41,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 | | Claude Code | Codex | Antigravity |
 |---|---|---|---|
-| **지시 파일** | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `GEMINI.md` + `AGENTS.md` (`~/.gemini/config/`에 설치) |
+| **지시 파일** | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `GEMINI.md` (`~/.gemini/config/`와 `~/.gemini/`에 설치) |
 | **설정** | `settings.json` (복사) | `config.toml` (복사) | `cli/settings.json` (관리 키만 병합) |
 | **권한** | `bypassPermissions` + deny 49건 + 지침 | `approval_policy="never"` + Starlark `rules/` | `toolPermission: always-proceed` + deny 66건(토큰 정확 일치) + 지침 |
 | **에이전트** | `agents/*.md` | 없음 (수동) | Subagents (`/agents`) — 정의 0개 |
@@ -214,7 +214,6 @@ dotfiles/
 ├── .antigravity/              # Antigravity 지침 + 안전 정책
 │   ├── README.md              # CLI 실측·병합 계약·3-tool 정합 매트릭스
 │   ├── GEMINI.md              # Antigravity 지침 (전역, 정본) → ~/.gemini/config/GEMINI.md
-│   ├── AGENTS.md              # 크로스툴 convention 진입점 (Cursor 등 → GEMINI.md 참조)
 │   ├── cli/settings.json      # agy 관리 키 (always-proceed + deny 66건) → 병합 설치
 │   ├── settings.json          # IDE 워크스페이스 설정 (추정치, 미검증)
 │   ├── global_workflows/      # IDE 글로벌 워크플로우 (링크 대상)
@@ -251,6 +250,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.24** | Antigravity 지침을 `GEMINI.md` 하나로 통합 — 공식 문서가 CLI·IDE 모두 `GEMINI.md`를 전역 규칙으로 명시하고 `AGENTS.md`는 대체 이름일 뿐이라 진입점 파일을 없앰. 우선순위를 사용자 현재 요청 1순위로 Codex 층과 정합. `merge_agy_settings`의 백업·교체 실패를 명시 처리하고 설치 종료 코드에 반영, 링크 대상 병합. Codex 정적 점검 4건 반영 |
 | **v2.23** | Antigravity CLI(`agy` 1.1.27) 관리 층 신설 — 전역 지침을 `~/.gemini/config/`로, `cli/settings.json`(always-proceed + 파국형 deny 66건)을 관리 키만 병합하는 `merge_agy_settings`로 설치. deny 문법(토큰 정확 일치, 글롭·regex 무효)·전역 규칙 경로·훅 로드를 실측. 정적 검사 16건 + 실측 스크립트. Codex와 토론해 확정 |
 | **v2.22** | Gemini CLI 층 은퇴 — Google이 2026-06-18부로 개인 계정 지원을 끊고 Antigravity CLI(`agy`)로 통합. 공유 자산(`GEMINI.md`·`AGENTS.md`·워크플로우)은 `.antigravity/`로 이관, 나머지와 회귀 케이스 62건은 아카이브. 3-tool 체계로 정리 |
 | **v2.21** | 압축 리마인더를 PostCompact → SessionStart(`compact`)로 이전(Claude·Codex 모두 PostCompact 출력이 모델에 안 닿음). Codex 리뷰 8건 판정, `verify-policies.sh` 무검사 통과 경로 차단, 문서 정합 점검으로 Gemini 층 드리프트 정정 |

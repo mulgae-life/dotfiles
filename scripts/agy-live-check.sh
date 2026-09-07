@@ -112,14 +112,14 @@ echo "INFO [glob] $M2 에 대한 'printf AGY_CHECK_GLOBx' → $(classify "$WORKD
 
 # 전역 규칙 로드: 도구 호출 없이(파일 읽기 없이) 전역 GEMINI.md 제목을 답하면 컨텍스트에 주입된 것
 timeout 180 agy --add-dir "$WORKDIR" --model "$MODEL" --output-format stream-json \
-  -p='You were given one or more global instruction/rules files in your context. For each of them, quote its first markdown heading (the line starting with #) verbatim, one per line. Do not use any tool. Output only those lines.' \
+  -p='You were given a global instruction/rules file in your context. Quote its first markdown heading (the line starting with #) verbatim. Do not use any tool. Output only that line.' \
   > "$WORKDIR/rules.ndjson" 2>"$WORKDIR/rules.err"; RULES_RC=$?
 TOOLS_USED="$(jq -s '[.[] | select(.event=="step_update") | .step_update | select(.step_type=="tool")] | length' "$WORKDIR/rules.ndjson" 2>/dev/null || echo "?")"
 RULE_TXT="$(jq -r 'select(.event=="result") | .result.response // empty' "$WORKDIR/rules.ndjson" 2>/dev/null)"
 if (( RULES_RC != 0 )) || [[ -z "$RULE_TXT" ]]; then echo "판정불가 [rules] agy 종료 코드 $RULES_RC 또는 result 이벤트 없음"; UNDET=$((UNDET+1))
 elif [[ "$TOOLS_USED" != "0" ]]; then echo "판정불가 [rules] 모델이 도구를 ${TOOLS_USED}건 사용 — 주입 여부 구분 불가"; UNDET=$((UNDET+1))
-elif grep -q "Antigravity 작업 지침" <<<"$RULE_TXT" && grep -q "크로스툴 공용 지침" <<<"$RULE_TXT"; then echo "PASS [rules] 전역 GEMINI.md·AGENTS.md 주입 (도구 호출 0건 — 간접 관측)"; PASS=$((PASS+1))
-else echo "FAIL [rules] 전역 GEMINI.md·AGENTS.md 제목 중 누락: $(tr '\n' ' ' <<<"$RULE_TXT" | head -c 160)"; FAIL=$((FAIL+1)); fi
+elif grep -q "Antigravity 작업 지침" <<<"$RULE_TXT"; then echo "PASS [rules] 전역 GEMINI.md 주입 (도구 호출 0건 — 간접 관측)"; PASS=$((PASS+1))
+else echo "FAIL [rules] 전역 GEMINI.md 제목 누락: $(tr '\n' ' ' <<<"$RULE_TXT" | head -c 160)"; FAIL=$((FAIL+1)); fi
 
 echo "────────────────────────"
 echo "합계: $PASS PASS / $FAIL FAIL / $UNDET 판정불가 (모델 호출 6회)"

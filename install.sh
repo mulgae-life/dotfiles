@@ -160,8 +160,10 @@ safe_merge_json() {
 # 이 파일에 되쓰므로 복사하면 런타임 값이 날아간다. 계약:
 #   - 레포 파일의 최상위 키(_doc 제외)는 레포 우선. permissions는 allow/ask/deny 3배열을 통째로 교체
 #     (런타임 /permissions 로 추가한 규칙은 재설치 시 초기화)
-#   - 레포에 없는 키(model, trustedWorkspaces 등)는 보존
-#   - jq 부재·JSON 파싱 실패 → 대상 무변경 + 오류 (폴백 복사 없음)
+#   - 레포에 없는 키(model, trustedWorkspaces 등)는 보존. 대상이 심볼릭 링크면 링크 대상 내용을
+#     일반 파일로 가져온 뒤 병합한다 (링크 대상의 런타임 키도 보존)
+#   - jq 부재·JSON 파싱 실패·백업·교체 실패 → 대상 무변경 + 오류 + return 1 (폴백 복사 없음).
+#     호출부는 이 실패를 설치 종료 코드에 반영한다 (호출이 || 좌항이라 함수 안에서는 set -e가 꺼지므로 실패마다 명시 처리)
 #   - 임시 파일에 쓰고 jq로 재파싱 검증 후 원자 교체. 결과 동일하면 [SKIP] (agy 희소 저장·deny 순서 차이는 동일 취급)
 
 merge_agy_settings() {
@@ -174,8 +176,14 @@ merge_agy_settings() {
     error "레포 파일이 JSON 객체가 아님: $src"; return 1
   fi
 
-  if [ -L "$dst" ]; then
-    $DRY_RUN || rm "$dst"
+  if [ -L "$dst" ] && ! $DRY_RUN; then
+    local real
+    real="$(readlink -f "$dst")"
+    if [ -f "$real" ]; then
+      cp --remove-destination "$real" "$dst" || { error "링크→일반 파일 전환 실패: $dst"; return 1; }
+    else
+      rm "$dst"
+    fi
   fi
   if [ ! -f "$dst" ]; then
     if $DRY_RUN; then
@@ -209,8 +217,14 @@ merge_agy_settings() {
     info "[MERGE]  $dst ← $src (관리 키 적용, 런타임 키 보존) (dry-run)"
     return
   fi
-  cp "$dst" "${dst}.pre-merge.bak"
-  mv "$tmp" "$dst"
+  if ! cp "$dst" "${dst}.pre-merge.bak"; then
+    rm -f "$tmp"
+    error "백업 실패 — 대상 무변경: ${dst}.pre-merge.bak"; return 1
+  fi
+  if ! mv "$tmp" "$dst"; then
+    rm -f "$tmp"
+    error "교체 실패 — 대상 무변경 (백업 ${dst}.pre-merge.bak 유지): $dst"; return 1
+  fi
   ok "[MERGE]  $dst ← $src (관리 키 적용, 런타임 키 보존, 백업 ${dst}.pre-merge.bak)"
 }
 
@@ -340,30 +354,30 @@ main() {
   # 4. Antigravity — 전역 커스터마이징 루트는 ~/.gemini/config/ (CLI·IDE 공용, agy 1.1.27 실측)
   safe_mkdir "$HOME/.gemini/config"
   safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/config/GEMINI.md"
-  # AGENTS.md: 크로스툴 convention 진입점 (Antigravity·Cursor 등)
-  safe_link "$DOTFILES_DIR/.antigravity/AGENTS.md" "$HOME/.gemini/config/AGENTS.md"
   # 스킬: agy가 처음 실행될 때 ~/.gemini/antigravity-cli/skills → ~/.gemini/config/skills 링크를 스스로 만들므로
   # config/skills 만 레포가 소유한다 (antigravity-cli/skills 는 관리 제외)
   safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/config/skills"
-  # ~/.gemini/GEMINI.md·AGENTS.md 는 Gemini CLI 경로였지만 Antigravity IDE 가 읽는지 미검증이라 보존 (같은 파일로 재링크)
+  # ~/.gemini/GEMINI.md 는 Antigravity IDE 공식 문서의 전역 규칙 경로 (같은 파일로 링크)
   safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/GEMINI.md"
-  safe_link "$DOTFILES_DIR/.antigravity/AGENTS.md" "$HOME/.gemini/AGENTS.md"
-  # Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료) — 이전 설치가 ~/.gemini 바로 아래 남긴 링크 정리
+  # Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료) — 이전 설치가 ~/.gemini 바로 아래 남긴 링크 정리.
+  # AGENTS.md 는 GEMINI.md 로 통합돼 config/AGENTS.md 링크도 함께 정리한다
   local stale
-  for stale in agents commands policies hooks skills; do
+  for stale in agents commands policies hooks skills AGENTS.md config/AGENTS.md; do
     if [ -L "$HOME/.gemini/$stale" ]; then
       if $DRY_RUN; then
-        warn "[CLEAN]  $HOME/.gemini/$stale (Gemini CLI 은퇴) (dry-run)"
+        warn "[CLEAN]  $HOME/.gemini/$stale (레포 관리 종료) (dry-run)"
       else
         rm "$HOME/.gemini/$stale"
-        warn "[CLEAN]  $HOME/.gemini/$stale (Gemini CLI 은퇴)"
+        warn "[CLEAN]  $HOME/.gemini/$stale (레포 관리 종료)"
       fi
     fi
   done
   # ~/.gemini/settings.json 은 레포가 관리하지 않는다 (Gemini CLI 잔재, agy 는 안 읽음)
-  # Antigravity CLI settings — 관리 키만 병합 (model·trustedWorkspaces 등 런타임 키 보존)
+  # Antigravity CLI settings — 관리 키만 병합 (model·trustedWorkspaces 등 런타임 키 보존).
+  # 실패해도 나머지 설치는 계속하되 검증 단계에서 종료 코드 1로 반영한다
   safe_mkdir "$HOME/.gemini/antigravity-cli"
-  merge_agy_settings "$DOTFILES_DIR/.antigravity/cli/settings.json" "$HOME/.gemini/antigravity-cli/settings.json" || true
+  local agy_merge_failed=false
+  merge_agy_settings "$DOTFILES_DIR/.antigravity/cli/settings.json" "$HOME/.gemini/antigravity-cli/settings.json" || agy_merge_failed=true
   # Antigravity IDE: ~/.gemini/antigravity/skills/, global_workflows (IDE 층은 미검증)
   safe_mkdir "$HOME/.gemini/antigravity"
   safe_link "$DOTFILES_DIR/.antigravity/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
@@ -422,10 +436,8 @@ main() {
     "$HOME/.codex/hooks"
     "$HOME/.agents/skills"
     "$HOME/.gemini/config/GEMINI.md"
-    "$HOME/.gemini/config/AGENTS.md"
     "$HOME/.gemini/config/skills"
     "$HOME/.gemini/GEMINI.md"
-    "$HOME/.gemini/AGENTS.md"
     "$HOME/.gemini/antigravity/global_workflows"
     "$HOME/.gemini/antigravity/skills"
     "$HOME/.antigravity"
@@ -465,9 +477,15 @@ main() {
     fi
   done
 
+  # 병합 함수는 실패 시 대상을 건드리지 않으므로 파일 존재 검사로는 잡히지 않는다 — 실패 플래그를 종료 코드에 합류
+  if $agy_merge_failed; then
+    error "$HOME/.gemini/antigravity-cli/settings.json 병합 실패 (위 로그 참조)"
+    has_error=true
+  fi
+
   echo ""
   if $has_error; then
-    error "일부 링크 설정에 실패했습니다. 위 로그를 확인하세요."
+    error "일부 설치 단계에 실패했습니다. 위 로그를 확인하세요."
     exit 1
   else
     ok "설치 완료!"

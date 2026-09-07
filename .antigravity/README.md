@@ -7,8 +7,7 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 ```
 .antigravity/
 ├── README.md                       # 이 문서
-├── GEMINI.md                       # 전역 작업 지침 (정본) → ~/.gemini/config/GEMINI.md
-├── AGENTS.md                       # 크로스툴 convention 진입점 → ~/.gemini/config/AGENTS.md
+├── GEMINI.md                       # 전역 작업 지침 → ~/.gemini/config/GEMINI.md (CLI), ~/.gemini/GEMINI.md (IDE)
 ├── cli/
 │   └── settings.json               # agy 관리 키 (toolPermission·artifactReviewPolicy·notifications·permissions)
 ├── settings.json                   # IDE 워크스페이스 설정 (추정치, 미검증)
@@ -18,7 +17,7 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 └── policies/                       # (예약)
 ```
 
-`GEMINI.md`·`AGENTS.md`·`global_workflows/`는 Gemini CLI 층 은퇴(2026-09-07)로 `.gemini/`에서 이관됐다. `agy`가 `~/.gemini` 설정 트리를 물려받으므로 설치 경로는 `~/.gemini/` 아래에 그대로 둔다.
+`GEMINI.md`·`global_workflows/`는 Gemini CLI 층 은퇴(2026-09-07)로 `.gemini/`에서 이관됐다. `agy`가 `~/.gemini` 설정 트리를 물려받으므로 설치 경로는 `~/.gemini/` 아래에 그대로 둔다. 함께 이관됐던 `AGENTS.md`는 `GEMINI.md`로 통합했다 — 공식 문서는 CLI·IDE 모두 `GEMINI.md`를 전역 규칙 파일로 명시하고, `AGENTS.md`는 CLI가 워크스페이스 규칙의 대체 이름으로 받아주는 것뿐이다.
 
 ## CLI(`agy`) — 실측 기준 (1.1.27, Linux, 2026-09-07)
 
@@ -26,8 +25,8 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 
 | 대상 | 경로 | 방식 |
 |------|------|------|
-| 전역 지침 | `~/.gemini/config/GEMINI.md`, `~/.gemini/config/AGENTS.md` | 심링크. 둘 다 로드됨(마커 실측). 별도 디렉토리에서 실행해도 주입되므로 cwd 상속이 아니라 전역이다 |
-| 레거시 지침 경로 | `~/.gemini/GEMINI.md`, `~/.gemini/AGENTS.md` | 같은 파일로 심링크 유지 — IDE가 이 경로를 읽는지 미검증이라 보존 |
+| 전역 지침 (CLI) | `~/.gemini/config/GEMINI.md` | 심링크. 마커 실측으로 로드 확인. 별도 디렉토리에서 실행해도 주입되므로 cwd 상속이 아니라 전역이다. `AGENTS.md`도 같은 자리에서 로드되지만(실측) 사용하지 않는다 |
+| 전역 지침 (IDE) | `~/.gemini/GEMINI.md` | 같은 파일로 심링크. IDE 공식 문서([docs/ide/rules](https://antigravity.google/docs/ide/rules/))가 전역 규칙 경로로 명시. IDE에서 실제 로드는 미실측 |
 | 스킬 | `~/.gemini/config/skills` → `.claude/skills` | 심링크. `agy`가 첫 실행 시 `~/.gemini/antigravity-cli/skills → ~/.gemini/config/skills` 링크를 스스로 만들므로 후자는 관리하지 않는다. `agy -p /skills`로 20개 인식 확인 |
 | CLI 설정 | `~/.gemini/antigravity-cli/settings.json` | `cli/settings.json` 병합. `agy`가 `model`·`trustedWorkspaces`·승인 캐시를 되쓰고 희소 저장(기본값 미기록)하므로 복사 금지 |
 | 훅 | `~/.gemini/config/hooks.json` | 사용 0개. 파일 자체는 로드됨을 실측(PreInvocation `ephemeralMessage` 주입·Stop 발화 확인) |
@@ -38,8 +37,8 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 ### settings 병합 계약 (`install.sh` `merge_agy_settings`)
 
 - `cli/settings.json`의 최상위 키(`_doc` 제외)는 레포 우선. `permissions`는 `allow`/`ask`/`deny` 3배열을 통째로 교체한다 — `/permissions`로 런타임에 추가한 규칙은 재설치 시 초기화된다
-- 레포에 없는 키(`model`, `trustedWorkspaces`, `pickerGrouping` 등)는 보존
-- `jq` 부재·JSON 파싱 실패·병합 결과 검증 실패 → 대상 무변경 + 오류 (폴백 복사 없음)
+- 레포에 없는 키(`model`, `trustedWorkspaces`, `pickerGrouping` 등)는 보존. 대상이 심볼릭 링크면 링크 대상 내용을 일반 파일로 가져온 뒤 병합한다
+- `jq` 부재·JSON 파싱 실패·병합 결과 검증 실패·백업·교체 실패 → 대상 무변경 + 오류 (폴백 복사 없음). 나머지 설치는 계속하되 `install.sh`는 종료 코드 1로 끝난다
 - 임시 파일에 쓰고 재파싱 검증 후 원자 교체, 교체 전 `.pre-merge.bak` 백업. 2회 적용 시 동일 결과(`[SKIP]`) — `agy`가 빈 `allow`/`ask`를 빼고 희소 저장하므로 비교는 빈 배열 보충·`deny` 정렬로 정규화한 뒤 한다
 
 ### 권한 정책
@@ -64,7 +63,7 @@ Claude deny 49건과의 차이: 글롭이 없어 `rm -rf /home*`·`dd of=/dev/sd
 ### 검증
 
 - 정적(모델 미호출): `bash scripts/verify-policies.sh agy` — JSON 객체, 관리 키 열거값, 3배열 명시, 런타임 키 미포함, 규칙 외형 `action(target)`, `regex:` 미사용, `*`는 `action(*)` 또는 리터럴 `/*` 토큰만, deny 필수 항목. 외형 검사이지 엔진 판정이 아니다
-- 실측(모델 호출 6회, 쿼터 소모): `bash scripts/agy-live-check.sh` — 판정 근거는 `--output-format stream-json`의 도구 이벤트뿐이다(지시한 명령과 같은 `run_command` 이벤트가 `ERROR`+"deny rule"이면 차단, `DONE`+`output`이면 실행, 이벤트가 없거나 agy 종료 코드가 0이 아니면 판정 불가). 양성 대조·정확 토큰 차단·형제 토큰 통과·접두 차단·환경(`init` 이벤트의 cwd·permission_mode 일치)·전역 규칙 주입(`GEMINI.md`·`AGENTS.md` 제목을 도구 호출 없이 인용하는 간접 관측)을 PASS/FAIL/판정 불가로, 글롭 특성은 INFO로 보고. 검사 중 무해한 `printf AGY_CHECK_*` deny 2건을 임시 파일 검증 후 원자 교체로 추가하고, 종료 시 최신 설정에서 그 2건만 제거한다. 이전 실행의 백업이 남아 있거나 표식이 이미 deny에 있으면 어떤 쓰기도 하기 전에 중단하고, 복원에 실패하면 `settings.json.agy-check.bak`을 보존한 채 종료 코드 3으로 끝난다(검사 결과와 무관). 규칙 파일이 없는 임시 디렉토리를 cwd이자 `--add-dir` 워크스페이스로 써서 프로젝트 규칙 상속을 배제한다. 대화형 agy가 동시에 설정을 쓰는 경합은 배제하지 않는다
+- 실측(모델 호출 6회, 쿼터 소모): `bash scripts/agy-live-check.sh` — 판정 근거는 `--output-format stream-json`의 도구 이벤트뿐이다(지시한 명령과 같은 `run_command` 이벤트가 `ERROR`+"deny rule"이면 차단, `DONE`+`output`이면 실행, 이벤트가 없거나 agy 종료 코드가 0이 아니면 판정 불가). 양성 대조·정확 토큰 차단·형제 토큰 통과·접두 차단·환경(`init` 이벤트의 cwd·permission_mode 일치)·전역 규칙 주입(`GEMINI.md` 제목을 도구 호출 없이 인용하는 간접 관측)을 PASS/FAIL/판정 불가로, 글롭 특성은 INFO로 보고. 검사 중 무해한 `printf AGY_CHECK_*` deny 2건을 임시 파일 검증 후 원자 교체로 추가하고, 종료 시 최신 설정에서 그 2건만 제거한다. 이전 실행의 백업이 남아 있거나 표식이 이미 deny에 있으면 어떤 쓰기도 하기 전에 중단하고, 복원에 실패하면 `settings.json.agy-check.bak`을 보존한 채 종료 코드 3으로 끝난다(검사 결과와 무관). 규칙 파일이 없는 임시 디렉토리를 cwd이자 `--add-dir` 워크스페이스로 써서 프로젝트 규칙 상속을 배제한다. 대화형 agy가 동시에 설정을 쓰는 경합은 배제하지 않는다
 
 ### 설계 검토 (2026-09-07, Codex와 토론)
 

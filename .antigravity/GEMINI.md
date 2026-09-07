@@ -4,8 +4,8 @@
 
 ## 우선순위
 
-1. 프로젝트 문서 (`CLAUDE.md`, `agent-guide/*`, `README.md`)
-2. 사용자의 현재 요청
+1. 사용자의 현재 요청 (신규 지시가 이전 지시와 충돌하면 신규 우선; 충돌 없는 이전 지시는 유지)
+2. 프로젝트 문서 (`CLAUDE.md`, `agent-guide/*`, `README.md`)
 3. 저장소의 실제 코드/구조/테스트 결과
 4. 이 문서의 지침
 
@@ -228,7 +228,7 @@ NEVER:
 
 ### 위험 명령은 사용자 요청 시에만
 
-Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인 프롬프트 없이 그대로 실행됩니다**. 파국형 명령만 `permissions.deny`가 기계적으로 차단하고, 나머지 위험 명령의 통제는 이 지침뿐입니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`)로 돌려 쓰는 것도 동일하게 금지:
+Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인 프롬프트 없이 그대로 실행됩니다**. 워크스페이스 밖 파일 접근을 샌드박스가 막아 준다고 가정하지 않습니다. 파국형 명령만 `permissions.deny`가 기계적으로 차단하고, 나머지 위험 명령의 통제는 이 지침뿐입니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 서브에이전트도 같은 지침을 따릅니다. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`)로 돌려 쓰는 것도 동일하게 금지:
 
 - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
 - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
@@ -237,6 +237,7 @@ Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인
 - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
 - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
 - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
+- **MCP 서버 추가·변경**: `~/.gemini/config/mcp_config.json` 편집, `agy mcp add`
 - **셸 우회**: `echo "..." | bash` / `curl ... | bash` (파이프로 셸 전달 — 따옴표 stripping 우회), `bash <(...)` (process substitution), `find ... -delete` (rm 없이 동일 효과) — 위험 명령을 직접 호출하지 않고 우회 실행하는 패턴
 - **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴
 - (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 자유)
@@ -365,3 +366,11 @@ Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인
 - `~/.claude` 디렉토리는 삭제/수정하지 않는다
 - Antigravity 설정은 `~/.gemini`(CLI가 물려받은 설정 트리)와 `~/.antigravity` 내에서만 관리한다
 - 기존 uncommitted 변경을 revert하지 않는다 (사용자가 명시적으로 요청한 경우만)
+
+---
+
+## Antigravity IDE 전용 (설정 층 미검증)
+
+- **Terminal Execution Policy**: `Turbo` 사용 금지 — `chmod -R 777` 폭주 사례 보고됨
+- **Browser Allowlist**: `webhook.site` / `*.webhook.site` / `requestbin.com` 등 데이터 유출 채널 사용 금지 (기본값에 포함되어 있어 수동 제거 필요)
+- **MCP Tool Approval**: `manual` 유지. 글로벌 `~/.gemini/antigravity/mcp_config.json`과 워크스페이스 `.agent/mcp_config.json` 변경 시 반드시 사용자 승인
