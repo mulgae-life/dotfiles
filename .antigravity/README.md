@@ -37,9 +37,9 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 ### settings 병합 계약 (`install.sh` `merge_agy_settings`)
 
 - `cli/settings.json`의 최상위 키(`_doc` 제외)는 레포 우선. `permissions`는 `allow`/`ask`/`deny` 3배열을 통째로 교체한다 — `/permissions`로 런타임에 추가한 규칙은 재설치 시 초기화된다
-- 레포에 없는 키(`model`, `trustedWorkspaces`, `pickerGrouping` 등)는 보존. 대상이 심볼릭 링크면 링크 대상 내용을 일반 파일로 가져온 뒤 병합한다
-- `jq` 부재·JSON 파싱 실패·병합 결과 검증 실패·백업·교체 실패 → 대상 무변경 + 오류 (폴백 복사 없음). 나머지 설치는 계속하되 `install.sh`는 종료 코드 1로 끝난다
-- 임시 파일에 쓰고 재파싱 검증 후 원자 교체, 교체 전 `.pre-merge.bak` 백업. 2회 적용 시 동일 결과(`[SKIP]`) — `agy`가 빈 `allow`/`ask`를 빼고 희소 저장하므로 비교는 빈 배열 보충·`deny` 정렬로 정규화한 뒤 한다
+- 레포에 없는 키(`model`, `trustedWorkspaces`, `pickerGrouping` 등)는 보존. 대상이 심볼릭 링크면 링크를 그대로 둔 채 링크 대상 내용으로 병합·검증하고 마지막 교체에서 링크 자체가 일반 파일이 된다(링크 대상 파일은 무변경). 내용이 같아도 링크면 교체한다 — 남겨 두면 `agy`가 링크 대상에 되쓴다
+- `jq` 부재·JSON 파싱 실패·신규 생성 실패·병합 결과 검증 실패·백업·교체 실패 → 대상 무변경 + 오류 (폴백 복사 없음). 나머지 설치는 계속하되 `install.sh`는 종료 코드 1로 끝난다
+- 신규 생성·병합 모두 임시 파일에 쓰고 재파싱 검증 후 원자 교체, 병합 교체 전 `.pre-merge.bak` 백업. 2회 적용 시 동일 결과(`[SKIP]`) — `agy`가 빈 `allow`/`ask`를 빼고 희소 저장하므로 비교는 빈 배열 보충·`deny` 정렬로 정규화한 뒤 한다
 
 ### 권한 정책
 

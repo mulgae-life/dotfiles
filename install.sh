@@ -160,11 +160,13 @@ safe_merge_json() {
 # 이 파일에 되쓰므로 복사하면 런타임 값이 날아간다. 계약:
 #   - 레포 파일의 최상위 키(_doc 제외)는 레포 우선. permissions는 allow/ask/deny 3배열을 통째로 교체
 #     (런타임 /permissions 로 추가한 규칙은 재설치 시 초기화)
-#   - 레포에 없는 키(model, trustedWorkspaces 등)는 보존. 대상이 심볼릭 링크면 링크 대상 내용을
-#     일반 파일로 가져온 뒤 병합한다 (링크 대상의 런타임 키도 보존)
-#   - jq 부재·JSON 파싱 실패·백업·교체 실패 → 대상 무변경 + 오류 + return 1 (폴백 복사 없음).
+#   - 레포에 없는 키(model, trustedWorkspaces 등)는 보존. 대상이 심볼릭 링크면 링크를 그대로 둔 채
+#     링크 대상 내용으로 병합·검증하고, 마지막 교체에서 링크 자체가 일반 파일이 된다 (링크 대상 파일은
+#     건드리지 않음, 런타임 키 보존). 내용이 같아도 링크면 교체한다 — 남겨 두면 agy가 링크 대상에 되쓴다
+#   - jq 부재·JSON 파싱 실패·생성·백업·교체 실패 → 대상 무변경 + 오류 + return 1 (폴백 복사 없음).
 #     호출부는 이 실패를 설치 종료 코드에 반영한다 (호출이 || 좌항이라 함수 안에서는 set -e가 꺼지므로 실패마다 명시 처리)
-#   - 임시 파일에 쓰고 jq로 재파싱 검증 후 원자 교체. 결과 동일하면 [SKIP] (agy 희소 저장·deny 순서 차이는 동일 취급)
+#   - 신규 생성·병합 모두 임시 파일에 쓰고 jq로 재파싱 검증 후 원자 교체. 결과 동일하면 [SKIP]
+#     (agy 희소 저장·deny 순서 차이는 동일 취급)
 
 merge_agy_settings() {
   local src="$1" dst="$2"
@@ -176,21 +178,25 @@ merge_agy_settings() {
     error "레포 파일이 JSON 객체가 아님: $src"; return 1
   fi
 
-  if [ -L "$dst" ] && ! $DRY_RUN; then
-    local real
-    real="$(readlink -f "$dst")"
-    if [ -f "$real" ]; then
-      cp --remove-destination "$real" "$dst" || { error "링크→일반 파일 전환 실패: $dst"; return 1; }
-    else
-      rm "$dst"
-    fi
+  local tmp="${dst}.tmp.$$"
+  # 댕글링 링크는 -f 검사가 거짓이라 신규 생성 경로로 가는데, 리다이렉션이 링크 너머에 파일을 만들므로 먼저 제거
+  if [ -L "$dst" ] && [ ! -e "$dst" ] && ! $DRY_RUN; then
+    rm "$dst" || { error "깨진 링크 제거 실패 — 대상 무변경: $dst"; return 1; }
   fi
   if [ ! -f "$dst" ]; then
     if $DRY_RUN; then
       info "[COPY]   $dst ← $src (dry-run)"
       return
     fi
-    jq 'del(._doc)' "$src" > "$dst"
+    if ! jq 'del(._doc)' "$src" > "$tmp" 2>/dev/null \
+       || ! jq -e 'type == "object"' "$tmp" >/dev/null 2>&1; then
+      rm -f "$tmp"
+      error "신규 생성 실패 — 대상 무변경: $dst"; return 1
+    fi
+    if ! mv "$tmp" "$dst"; then
+      rm -f "$tmp"
+      error "신규 생성 교체 실패 — 대상 무변경: $dst"; return 1
+    fi
     ok "[COPY]   $dst ← $src"
     return
   fi
@@ -198,7 +204,6 @@ merge_agy_settings() {
     error "기존 파일이 유효한 JSON 객체가 아님 — 수동 확인 필요 (대상 무변경): $dst"; return 1
   fi
 
-  local tmp="${dst}.tmp.$$"
   # 기존(.[0]) 위에 레포(.[1])를 얹되 permissions는 레포 것으로 통째 교체
   if ! jq -s '(.[1] | del(._doc)) as $repo | .[0] + $repo | .permissions = $repo.permissions' "$dst" "$src" > "$tmp" 2>/dev/null \
      || ! jq -e 'type == "object"' "$tmp" >/dev/null 2>&1; then
@@ -207,14 +212,17 @@ merge_agy_settings() {
   fi
   # agy는 빈 allow/ask를 빼고 희소 저장하므로 빈 배열 보충·deny 정렬로 정규화한 뒤 비교 (순서·희소 차이는 SKIP)
   local norm='.permissions = ((.permissions // {}) | .allow = (.allow // []) | .ask = (.ask // []) | .deny = ((.deny // []) | sort))'
-  if diff -q <(jq -S "$norm" "$tmp") <(jq -S "$norm" "$dst") &>/dev/null; then
+  # 링크는 내용이 같아도 SKIP하지 않는다 — 아래 mv가 링크를 일반 파일로 바꾸는 유일한 지점
+  if [ ! -L "$dst" ] && diff -q <(jq -S "$norm" "$tmp") <(jq -S "$norm" "$dst") &>/dev/null; then
     rm "$tmp"
     ok "[SKIP]   $dst (동일)"
     return
   fi
+  local note=""
+  [ -L "$dst" ] && note=", 링크 → 일반 파일"
   if $DRY_RUN; then
     rm "$tmp"
-    info "[MERGE]  $dst ← $src (관리 키 적용, 런타임 키 보존) (dry-run)"
+    info "[MERGE]  $dst ← $src (관리 키 적용, 런타임 키 보존${note}) (dry-run)"
     return
   fi
   if ! cp "$dst" "${dst}.pre-merge.bak"; then
@@ -225,7 +233,7 @@ merge_agy_settings() {
     rm -f "$tmp"
     error "교체 실패 — 대상 무변경 (백업 ${dst}.pre-merge.bak 유지): $dst"; return 1
   fi
-  ok "[MERGE]  $dst ← $src (관리 키 적용, 런타임 키 보존, 백업 ${dst}.pre-merge.bak)"
+  ok "[MERGE]  $dst ← $src (관리 키 적용, 런타임 키 보존${note}, 백업 ${dst}.pre-merge.bak)"
 }
 
 # ── safe_mkdir ──────────────────────────────

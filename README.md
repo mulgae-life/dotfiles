@@ -62,7 +62,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 기능 | 설명 |
 |------|------|
 | 규칙 적용 | 코딩 스타일, 보안, 한국어 응답 등 `rules/` 규칙이 매 세션 자동 적용 |
-| 명령어 자동 실행 | 전 명령 무프롬프트 실행(bypass) → 장기 작업이 중단 없이 진행. 위험 명령은 지침이 자율 사용을 금지하고 파국형 명령과 넓은 재귀 삭제 패턴(절대경로·`./` 하위 `rm -rf`)만 `deny` 차단 |
+| 명령어 자동 실행 | 전 명령 무프롬프트 실행(bypass) → 장기 작업이 중단 없이 진행. 위험 명령은 지침이 자율 사용을 금지하고 파국형 명령과 넓은 재귀 삭제 패턴(절대경로·`./` 하위 `rm -rf`)만 `deny` 차단 (Claude 기준 — Antigravity CLI는 파국형만, Codex는 Starlark가 위험 명령 전반을 차단) |
 | 에이전트 위임 | 빌드 실패 → `build-resolver`, 보안 민감 코드 → `security-reviewer` 등 자동 위임 |
 | 데스크톱 알림 | Claude가 입력 대기 중일 때 `notify-send`로 알림 |
 | compact 리마인더 | 긴 세션에서 컨텍스트 압축 후 "요약을 사실로 단정하지 말고 관련 파일을 다시 읽으라"는 리마인더를 컨텍스트에 주입 |
@@ -252,6 +252,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.25** | `merge_agy_settings` 잔여 경로 정리 — 신규 생성도 임시 파일 검증 후 교체(쓰기 실패가 성공으로 보고되던 문제), 링크는 전환 없이 병합·검증 뒤 마지막 교체에서만 일반 파일로(검증 실패 시 링크 소실 문제), 링크는 내용이 같아도 교체. README 차단 범위 문구를 Claude 기준으로 한정. Codex 재점검 3건 반영 |
 | **v2.24** | Antigravity 지침을 `GEMINI.md` 하나로 통합 — 공식 문서가 CLI·IDE 모두 `GEMINI.md`를 전역 규칙으로 명시하고 `AGENTS.md`는 대체 이름일 뿐이라 진입점 파일을 없앰. 우선순위를 사용자 현재 요청 1순위로 Codex 층과 정합. `merge_agy_settings`의 백업·교체 실패를 명시 처리하고 설치 종료 코드에 반영, 링크 대상 병합. Codex 정적 점검 4건 반영 |
 | **v2.23** | Antigravity CLI(`agy` 1.1.27) 관리 층 신설 — 전역 지침을 `~/.gemini/config/`로, `cli/settings.json`(always-proceed + 파국형 deny 66건)을 관리 키만 병합하는 `merge_agy_settings`로 설치. deny 문법(토큰 정확 일치, 글롭·regex 무효)·전역 규칙 경로·훅 로드를 실측. 정적 검사 16건 + 실측 스크립트. Codex와 토론해 확정 |
 | **v2.22** | Gemini CLI 층 은퇴 — Google이 2026-06-18부로 개인 계정 지원을 끊고 Antigravity CLI(`agy`)로 통합. 공유 자산(`GEMINI.md`·`AGENTS.md`·워크플로우)은 `.antigravity/`로 이관, 나머지와 회귀 케이스 62건은 아카이브. 3-tool 체계로 정리 |
