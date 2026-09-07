@@ -68,6 +68,7 @@ git log --oneline -10             # 커밋 메시지
 | 변경 유형 | 업데이트 파일 |
 |----------|--------------|
 | 프로젝트 구조 변경 | `agent-guide/PROJECT.md` |
+| 핵심 파일 추가·이동·역할 변경 (또는 `/start`가 보고한 문서·코드 불일치) | `agent-guide/PROJECT.md` 코드 지도 |
 | 설정 방식 변경 | `agent-guide/PROJECT.md` |
 | 작업 원칙/코드 스타일 변경 | `agent-guide/GUIDE.md` |
 | API 추가/수정 | `docs/API_SPEC.md` (프로젝트에 존재하는 경우만) |

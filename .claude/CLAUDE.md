@@ -4,7 +4,7 @@
 
 ## 시작하기
 
-사용자가 **"시작"**이라고 하면 `start` 스킬을 실행하세요 (`agent-guide/` GUIDE → PROJECT → SESSION 순으로 읽고 현재 상태 요약).
+사용자가 **"시작"**이라고 하면 `start` 스킬을 실행하세요 (`agent-guide/` GUIDE → PROJECT → SESSION 읽기 → 코드 지도의 골격·관련 영역 코드 읽기 → 현재 상태와 실행 흐름 요약).
 
 ## 커뮤니케이션
 

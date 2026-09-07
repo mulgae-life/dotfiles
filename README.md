@@ -178,7 +178,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 | 스킬 | 용도 |
 |------|------|
-| `/start` | 세션 시작 시 agent-guide 읽고 프로젝트 파악/상태 요약 (세 도구 공용) |
+| `/start` | 세션 시작 시 agent-guide와 핵심 코드(코드 지도의 골격 + 다음 작업 영역) 읽고 상태·실행 흐름 요약 (세 도구 공용) |
 | `/init-project` | 새 프로젝트 agent-guide 자동 생성 + 루트 진입 링크 |
 | `/skill-creator` | 새 스킬 생성 가이드 |
 
@@ -249,7 +249,8 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
-| **v2.26** | `/init-project`가 루트 `CLAUDE.md`·`AGENTS.md`를 `agent-guide/GUIDE.md` 심볼릭 링크로 생성 — 세 도구가 매 세션 GUIDE.md를 전역 지침 뒤에 자동 로드(Claude·Codex·agy 링크 추종 실측). `/start`를 Claude 전용 커스텀 명령에서 공용 스킬로 전환해 Codex·agy에서도 "시작"이 agent-guide를 읽게 함(Codex 층에는 세션 시작 절차가 없었음). 세 전역 지침의 "시작" 절은 스킬 참조 한 줄로 통일. GUIDE 템플릿의 프런트매터 제거(지침 본문에 텍스트로 섞이던 문제). `commands/` 링크 설치 종료. Codex `AGENTS.md`·Antigravity `GEMINI.md`는 `@` 임포트가 없어 링크가 유일한 공유 수단 |
+| **v2.27** | `/start`가 문서에 더해 핵심 코드를 읽는다 — PROJECT.md 코드 지도(골격=항상·영역=다음 작업 관련) 기준, 없으면 진입점부터 탐색. 예산 3,000줄, 출력에 "코드 파악" 절 |
+| **v2.26** | `/init-project`가 루트 `CLAUDE.md`·`AGENTS.md`를 `GUIDE.md` 링크로 생성 — 세 도구 링크 추종 실측. `/start`는 커스텀 명령에서 공용 스킬로 전환(Codex 층에 없던 세션 시작 절차 보강), `commands/` 설치 종료 |
 | **v2.25** | `merge_agy_settings` 잔여 경로 정리 — 신규 생성도 임시 파일 검증 후 교체(쓰기 실패가 성공으로 보고되던 문제), 링크는 전환 없이 병합·검증 뒤 마지막 교체에서만 일반 파일로(검증 실패 시 링크 소실 문제), 링크는 내용이 같아도 교체. README 차단 범위 문구를 Claude 기준으로 한정. Codex 재점검 3건 반영 |
 | **v2.24** | Antigravity 지침을 `GEMINI.md` 하나로 통합 — 공식 문서가 CLI·IDE 모두 `GEMINI.md`를 전역 규칙으로 명시하고 `AGENTS.md`는 대체 이름일 뿐이라 진입점 파일을 없앰. 우선순위를 사용자 현재 요청 1순위로 Codex 층과 정합. `merge_agy_settings`의 백업·교체 실패를 명시 처리하고 설치 종료 코드에 반영, 링크 대상 병합. Codex 정적 점검 4건 반영 |
 | **v2.23** | Antigravity CLI(`agy` 1.1.27) 관리 층 신설 — 전역 지침을 `~/.gemini/config/`로, `cli/settings.json`(always-proceed + 파국형 deny 66건)을 관리 키만 병합하는 `merge_agy_settings`로 설치. deny 문법(토큰 정확 일치, 글롭·regex 무효)·전역 규칙 경로·훅 로드를 실측. 정적 검사 16건 + 실측 스크립트. Codex와 토론해 확정 |
