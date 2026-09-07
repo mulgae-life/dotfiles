@@ -6,17 +6,16 @@
 ## 우선순위
 
 1. `GEMINI.md` (이 파일과 동일 디렉토리) — 모든 항목의 정본
-2. `.claude/rules/*.md` (Claude Code 한정 보조 규칙)
-3. 프로젝트별 `<repo>/CLAUDE.md` · `<repo>/agent-guide/*`
+2. 프로젝트별 `<repo>/CLAUDE.md` · `<repo>/AGENTS.md` · `<repo>/agent-guide/*`
 
-## Antigravity 전용 주의사항
+## Antigravity CLI (`agy`)
 
-- **Terminal Execution Policy**: `Off` 또는 `Auto` 사용. `Turbo`(YOLO) 절대 금지 — `chmod -R 777` 폭주 사례 보고됨
-- **Non-Workspace File Access**: 비활성 유지. 워크스페이스 외부 파일 접근 시 사용자에게 명시 확인
+- 권한은 `toolPermission: always-proceed` — 모든 도구가 확인 프롬프트 없이 실행된다. 워크스페이스 밖 파일 접근도 막히지 않는다. 위험 명령의 통제는 `GEMINI.md` §위험 명령 지침이 담당하고, 파국형 명령만 `permissions.deny`가 차단한다
+- MCP 서버 추가·변경(`~/.gemini/config/mcp_config.json`, `agy mcp add`)은 사용자가 명시적으로 요청할 때만
+- 서브에이전트도 같은 지침을 따른다
+
+## Antigravity IDE 전용 (설정 층 미검증)
+
+- **Terminal Execution Policy**: `Turbo` 사용 금지 — `chmod -R 777` 폭주 사례 보고됨
 - **Browser Allowlist**: `webhook.site` / `*.webhook.site` / `requestbin.com` 등 데이터 유출 채널 사용 금지 (기본값에 포함되어 있어 수동 제거 필요)
 - **MCP Tool Approval**: `manual` 유지. 글로벌 `~/.gemini/antigravity/mcp_config.json`과 워크스페이스 `.agent/mcp_config.json` 변경 시 반드시 사용자 승인
-- **Subagents**: 병렬 실행 시 동일한 안전 정책 적용. 서브에이전트가 위험 명령을 시도하면 훅(PreToolUse)이 동일하게 차단하도록 설계 — 단, 현 훅 설정은 재작성 대상(`.antigravity/README.md` 검증 상태 참조)
-
-## 3-tool 안전 정책 요약
-
-`GEMINI.md` §작업원칙 §금지명령 참조. 11 카테고리(FILE_DELETE / SYSTEM / GIT_WRITE / GIT_STATE / GH_CLI / DOCKER_DELETE / INPLACE / LINK_FORCE / PERMISSION / SHELL_BYPASS / SCRIPT_INJECTION) 모두 Antigravity의 `permissions`(대부분 `ask`, 파국적 명령만 `deny`) + 훅으로 강제하도록 설계했습니다 (`.antigravity/settings.json` — 매처·훅 문법은 재작성 대상, 검증 상태는 `.antigravity/README.md` 참조).

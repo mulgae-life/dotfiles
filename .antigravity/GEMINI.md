@@ -202,7 +202,7 @@ NEVER:
 - **XSS**: `dangerouslySetInnerHTML` 사용 시 반드시 DOMPurify 적용
 - **CSRF**: 상태 변경은 POST/PUT/DELETE + CSRF 토큰 또는 SameSite 쿠키
 
-보안 문제 발견 시: 즉시 중단 → 심각도 평가(P0/P1/P2) → `security-reviewer` 에이전트 위임 → 수정 + 유사 패턴 검색
+보안 문제 발견 시: 즉시 중단 → 심각도 평가(P0/P1/P2) → 직접 수정 → 코드베이스에서 유사 패턴 추가 검색
 
 커밋 전 체크:
 - [ ] 하드코딩된 시크릿 없음
@@ -226,9 +226,9 @@ NEVER:
 - **시간 소요 작업 인내**: 빌드/테스트/검색이 진행 중이면 멈춘 증거 없이 조급해하지 않기
 - **산출물 정리**: 테스트·실험·디버그 과정에서 본인이 만든 파일(임시 스크립트, 데모, 로그, 실험 결과, 체크포인트 등)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 이동하여 작업 경로 루트를 깨끗하게 유지. 보존이 목적이므로 `rm` 금지 (이동만). 사용자가 명시적으로 삭제를 요청한 경우만 예외. 관련 없는 기존 파일은 대상 아님 (언급만)
 
-### 금지 명령 (승인 요청 발동 = 작업 흐름 중단)
+### 위험 명령은 사용자 요청 시에만
 
-다음 명령은 `.antigravity/settings.json`의 `permissions.ask`가 사용자 승인 요청을 발동시킵니다. **자율 작업 중에는 시도 자체 금지** — 필요 시 사용자에게 먼저 묻고 명시 승인 후 실행. 사용자가 직접 요청한 경우에만 승인을 거쳐 진행:
+Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인 프롬프트 없이 그대로 실행됩니다**. 파국형 명령만 `permissions.deny`가 기계적으로 차단하고, 나머지 위험 명령의 통제는 이 지침뿐입니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`)로 돌려 쓰는 것도 동일하게 금지:
 
 - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
 - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
@@ -238,10 +238,10 @@ NEVER:
 - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
 - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
 - **셸 우회**: `echo "..." | bash` / `curl ... | bash` (파이프로 셸 전달 — 따옴표 stripping 우회), `bash <(...)` (process substitution), `find ... -delete` (rm 없이 동일 효과) — 위험 명령을 직접 호출하지 않고 우회 실행하는 패턴
-- **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴 (regex로 정밀 차단이 어려워 정책 우회됨, 시도 자체 금지)
-- (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 allow)
+- **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴
+- (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 자유)
 
-> **원칙**: 영향도 적은 read-only 명령만 자동 허용. 빌드/테스트/패키지 설치(`npm install`, `pytest` 등)는 자율 작업 흐름 유지를 위해 allow.
+> 파국형 명령(루트·홈·시스템 디렉토리 `rm -rf`, `mkfs`, 전원 조작, `crontab -r`)만 `permissions.deny`가 기계적으로 차단한다.
 
 ---
 
@@ -342,7 +342,7 @@ NEVER:
 
 ## 스킬 활용
 
-`~/.gemini/antigravity-cli/skills/`(CLI)·`~/.gemini/antigravity/skills/`(IDE)에 작업별 전문 가이드가 있다. 두 경로 모두 `~/.claude/skills/`를 가리킨다.
+`~/.gemini/config/skills/`에 작업별 전문 가이드가 있다(`~/.claude/skills/`와 같은 내용).
 해당 분야 작업 시 `SKILL.md`를 읽고 절차와 품질 기준을 따른다.
 
 예: React 최적화 → `react-best-practices/SKILL.md`, 코드 리뷰 → `code-review/SKILL.md`

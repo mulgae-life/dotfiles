@@ -1,92 +1,115 @@
-# .antigravity/ — Google Antigravity 안전 정책
+# .antigravity/ — Google Antigravity 지침·안전 정책
 
-Claude Code / Codex CLI와 동일한 11 카테고리 안전 정책을 Antigravity에 통합합니다. Antigravity IDE와 Antigravity CLI(`agy`)가 대상입니다.
+Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 없음, 위험 명령은 지침이 금지하고 파국형만 기계 차단)을 Antigravity에 적용한다. 대상은 Antigravity CLI(`agy`)이며, IDE 층은 추정치로 남아 있다.
 
 ## 구조
 
 ```
 .antigravity/
 ├── README.md                       # 이 문서
-├── GEMINI.md                       # Antigravity 작업 지침 (전역, 정본) — ~/.gemini/GEMINI.md로 링크
-├── AGENTS.md                       # 크로스툴 convention 진입점 → GEMINI.md 참조
-├── settings.json                   # 워크스페이스 권한(allow/ask/deny) + agentSettings + hooks
+├── GEMINI.md                       # 전역 작업 지침 (정본) → ~/.gemini/config/GEMINI.md
+├── AGENTS.md                       # 크로스툴 convention 진입점 → ~/.gemini/config/AGENTS.md
+├── cli/
+│   └── settings.json               # agy 관리 키 (toolPermission·artifactReviewPolicy·notifications·permissions)
+├── settings.json                   # IDE 워크스페이스 설정 (추정치, 미검증)
 ├── hooks/
-│   └── mcp-config-guard.sh         # .agent/mcp_config.json 백도어 차단
-├── global_workflows/               # Antigravity IDE 글로벌 워크플로우 (링크 대상)
-└── policies/                       # (예약) 추가 정책 문서
+│   └── mcp-config-guard.sh         # IDE용 .agent/mcp_config.json 백도어 차단 (미검증)
+├── global_workflows/               # IDE 글로벌 워크플로우 (링크 대상)
+└── policies/                       # (예약)
 ```
 
-> `GEMINI.md`·`AGENTS.md`·`global_workflows/`는 Gemini CLI 층 은퇴(2026-09-07)로 `.gemini/`에서 이관됐습니다. `agy`가 `~/.gemini` 설정 트리를 그대로 물려받으므로 설치 경로는 그대로 둡니다.
+`GEMINI.md`·`AGENTS.md`·`global_workflows/`는 Gemini CLI 층 은퇴(2026-09-07)로 `.gemini/`에서 이관됐다. `agy`가 `~/.gemini` 설정 트리를 물려받으므로 설치 경로는 `~/.gemini/` 아래에 그대로 둔다.
 
-## 검증 상태
+## CLI(`agy`) — 실측 기준 (1.1.27, Linux, 2026-09-07)
+
+### 설치 경로
+
+| 대상 | 경로 | 방식 |
+|------|------|------|
+| 전역 지침 | `~/.gemini/config/GEMINI.md`, `~/.gemini/config/AGENTS.md` | 심링크. 둘 다 로드됨(마커 실측). 별도 디렉토리에서 실행해도 주입되므로 cwd 상속이 아니라 전역이다 |
+| 레거시 지침 경로 | `~/.gemini/GEMINI.md`, `~/.gemini/AGENTS.md` | 같은 파일로 심링크 유지 — IDE가 이 경로를 읽는지 미검증이라 보존 |
+| 스킬 | `~/.gemini/config/skills` → `.claude/skills` | 심링크. `agy`가 첫 실행 시 `~/.gemini/antigravity-cli/skills → ~/.gemini/config/skills` 링크를 스스로 만들므로 후자는 관리하지 않는다. `agy -p /skills`로 20개 인식 확인 |
+| CLI 설정 | `~/.gemini/antigravity-cli/settings.json` | `cli/settings.json` 병합. `agy`가 `model`·`trustedWorkspaces`·승인 캐시를 되쓰고 희소 저장(기본값 미기록)하므로 복사 금지 |
+| 훅 | `~/.gemini/config/hooks.json` | 사용 0개. 파일 자체는 로드됨을 실측(PreInvocation `ephemeralMessage` 주입·Stop 발화 확인) |
+| MCP | `~/.gemini/config/mcp_config.json` | 레포 미관리 |
+
+`~/.gemini/config/rules/*.md`도 전역 규칙으로 로드되지만 프론트매터 `trigger: always_on`이 있어야 한다(없으면 `Invalid rule trigger`로 무시). 이 레포는 GEMINI.md 단일 파일을 쓰므로 사용하지 않는다.
+
+### settings 병합 계약 (`install.sh` `merge_agy_settings`)
+
+- `cli/settings.json`의 최상위 키(`_doc` 제외)는 레포 우선. `permissions`는 `allow`/`ask`/`deny` 3배열을 통째로 교체한다 — `/permissions`로 런타임에 추가한 규칙은 재설치 시 초기화된다
+- 레포에 없는 키(`model`, `trustedWorkspaces`, `pickerGrouping` 등)는 보존
+- `jq` 부재·JSON 파싱 실패·병합 결과 검증 실패 → 대상 무변경 + 오류 (폴백 복사 없음)
+- 임시 파일에 쓰고 재파싱 검증 후 원자 교체, 교체 전 `.pre-merge.bak` 백업. 2회 적용 시 동일 결과(`[SKIP]`)
+
+### 권한 정책
+
+| 키 | 값 | 이유 |
+|----|----|------|
+| `toolPermission` | `always-proceed` | Claude `bypassPermissions`·Codex `approval_policy="never"`와 동형. 확인 프롬프트가 자율 흐름을 끊는 문제(Claude 훅 은퇴 사유)를 반복하지 않는다 |
+| `artifactReviewPolicy` | `always-proceed` | 산출물 검토 프롬프트도 무확인 원칙에 맞춘다(`agent-decides`는 에이전트 판단으로 검토를 요청할 수 있어 예외가 된다) |
+| `notifications` | `true` | 내장 데스크톱 알림·터미널 벨. Claude·Codex의 `notify-send` 훅 대용 |
+| `permissions.deny` | 66건 | 파국형만: `rm -rf`/`-fr` × {`/`, `/*`, `~`, `~/*`, `$HOME`, `$HOME/*`, `.`, `./`, `./*`, `..`, `../`, `../*`, `../..`, 루트 직하 시스템 디렉토리 9개}, `rm --recursive --force /`·`/*`, `mkfs`(접두)+dotted 9종, `reboot`·`shutdown`·`poweroff`·`halt`·`systemctl reboot/poweroff/halt`·`loginctl reboot/poweroff`·`crontab -r` |
+| `permissions.allow`/`ask` | 빈 배열 | always-proceed에서 의미 없음. 명시적으로 비워 런타임 잔류 규칙을 교체 |
+| `allowNonWorkspaceAccess` | 미설정 | 아래 실측 참조 — 통제 효과를 확인하지 못해 설정으로 보장을 주장하지 않는다 |
+
+deny 매칭 실측(1.1.27): **토큰 단위 정확 일치 + 접두 매칭**. `command(printf X)`는 `printf X extra`를 막고 `printf X_y`는 통과. `*`는 글롭이 아니다(`command(printf G*)`가 `printf Gx`를 못 막음 — 따라서 `rm -rf /*`의 `/*`는 리터럴 토큰). `regex:` 접두는 `command(regex:^…)`·`regex:command(…)`·비앵커 세 형태 모두 deny에서 무효. 복합 명령(`rm -rf X && echo`)은 파트별로 검사돼 차단됨. `always-proceed`에서도 명시 deny는 유지된다.
+
+Claude deny 49건과의 차이: 글롭이 없어 `rm -rf /home*`·`dd of=/dev/sd*`·`fdisk /dev/*`·`parted /dev/*`·`shred /dev/*`를 표현할 수 없다. `dd`·`fdisk`·`parted`·`shred`를 통째로 막으면 `fdisk -l` 같은 조회까지 막히므로 deny에서 제외하고 지침 통제에 둔다. 반대로 `rm -rf /tmp/x` 같은 일반 절대경로 삭제는 Claude에서는 `*` 확장 때문에 막히지만 여기서는 통과한다(설계 의도인 "파국형만"에 더 가깝다).
+
+외부 접근 실측(한정 조건: 1.1.27 / Linux / 헤드리스 `-p --add-dir` / `allowNonWorkspaceAccess` 기본값 false / `toolPermission: always-proceed`): 파일 도구로 `~/x.txt` 쓰기 1건과 `/etc/hostname` 읽기 1건이 프롬프트 없이 통과했다. 대화형 모드와 명시 `false` 대조군은 미실측이다. `~/.gemini/config/config.json`의 `userSettings.permissions`는 읽히지 않는다(로그 `no shared config permissions`). 프로젝트 권한(`~/.gemini/config/projects/`)의 allow와 전역 deny가 충돌할 때의 우선순위는 미실측.
+
+헤드리스 `-p`는 `--add-dir`가 없으면 워크스페이스가 비어 있고(`workspacePaths: []`), 승인이 필요한 도구는 소프트 거부(exit 0 + stderr 안내)된다.
+
+### 검증
+
+- 정적(모델 미호출): `bash scripts/verify-policies.sh agy` — JSON 객체, 관리 키 열거값, 3배열 명시, 런타임 키 미포함, 규칙 외형 `action(target)`, `regex:` 미사용, `*`는 `action(*)` 또는 리터럴 `/*` 토큰만, deny 필수 항목. 외형 검사이지 엔진 판정이 아니다
+- 실측(모델 호출 6회, 쿼터 소모): `bash scripts/agy-live-check.sh` — 판정 근거는 `--output-format stream-json`의 도구 이벤트뿐이다(지시한 명령과 같은 `run_command` 이벤트가 `ERROR`+"deny rule"이면 차단, `DONE`+`output`이면 실행, 이벤트가 없거나 agy 종료 코드가 0이 아니면 판정 불가). 양성 대조·정확 토큰 차단·형제 토큰 통과·접두 차단·환경(`init` 이벤트의 cwd·permission_mode 일치)·전역 규칙 주입(`GEMINI.md`·`AGENTS.md` 제목을 도구 호출 없이 인용하는 간접 관측)을 PASS/FAIL/판정 불가로, 글롭 특성은 INFO로 보고. 검사 중 무해한 `printf AGY_CHECK_*` deny 2건을 임시 파일 검증 후 원자 교체로 추가하고, 종료 시 최신 설정에서 그 2건만 제거한다. 이전 실행의 백업이 남아 있거나 표식이 이미 deny에 있으면 어떤 쓰기도 하기 전에 중단하고, 복원에 실패하면 `settings.json.agy-check.bak`을 보존한 채 종료 코드 3으로 끝난다(검사 결과와 무관). 규칙 파일이 없는 임시 디렉토리를 cwd이자 `--add-dir` 워크스페이스로 써서 프로젝트 규칙 상속을 배제한다. 대화형 agy가 동시에 설정을 쓰는 경합은 배제하지 않는다
+
+### 설계 검토 (2026-09-07, Codex와 토론)
+
+- Codex 명시 동의: CLI 층 분리와 IDE 층 미변경, 병합 계약(실패 시 무변경·3배열 교체), 훅 0개·내장 알림 우선
+- Codex 보완 반영(동의 확인): 레거시 `~/.gemini/GEMINI.md` 링크 보존, `artifactReviewPolicy: always-proceed`, `*` 검사를 `action(*)`·리터럴 `/*`로 한정, 외부 접근 서술을 실측 조건으로 한정, "deny는 기계 차단·나머지는 지침" 문구
+- 실측 스크립트 `agy-live-check.sh`: Codex가 지적한 설정 파일 직접 쓰기·모델 산문 판정·cwd 미격리·복원 실패 종료 코드·백업 소유권을 재구현한 뒤 Codex 정적 재검토 후 구현 동의(운영 전제: 대화형 agy 미실행, 동시 쓰기 경합 미보장). 실행 결과(실제 CLI 검사 4건 PASS, 오류 경로 스텁 4건)는 Claude 실행 보고이며 Codex 실행 검증이 아님
+- 보류(미실측): 프로젝트 allow vs 전역 deny 우선순위, 대화형 모드 외부 접근, IDE의 `~/.gemini/GEMINI.md` 의존성, `notifications` 실제 발화
+
+## IDE — 추정치 (미검증)
+
+`settings.json`·`hooks/mcp-config-guard.sh`는 2026-07-13 2차 출처 기준 추정치이고 이 머신에서 IDE를 쓰지 않아 검증하지 못했다. CLI 규격과 대조하면 아래가 불일치다.
 
 | 항목 | 상태 | 비고 |
 |------|------|------|
-| `permissions.{allow,ask,deny}` JSON 구조 | 🟢 **검증** | allow/ask/deny 3단 일치 (2026-07-13 2차 출처 교차) |
-| 평가 순서 deny → ask → allow | 🟢 **검증** | 우선순위 Deny > Ask > Allow 일치 |
-| `Bash(<pattern>)` 매처 문법 | 🔴 **오류** | 2026-07-13 검증: 실제 권한 매처는 `command(...)` 형태. 재작성 대상 |
-| `Read()`/`Write()` action 지원 | 🔴 **오류** | 실제는 `read_file(...)`/`write_file(...)` 형태. 재작성 대상 |
-| `hooks.before_tool_call` 이벤트명 | 🔴 **오류** | 실제 이벤트는 PreToolUse/PostToolUse이고 위치도 settings.json이 아닌 별도 hooks.json. 재작성 대상 |
-| 훅 matcher 셸 도구명 | 🟢 **검증** | `run_command` — 2차 출처 2건 모두 일치(`run_shell_command` 아님) |
-| 글로벌 hooks.json 경로 | 🟡 **미확정** | 출처 간 갈림: `~/.gemini/antigravity-cli/hooks.json`(Kanshi) vs `~/.gemini/config/hooks.json`(검색 요약). 워크스페이스 `<project>/.agents/hooks.json`은 출처 일치. 실설치 후 확정 |
-| Antigravity Linux 지원 | 🟢 **검증** | Linux 공식 지원(.deb/.tar.gz/apt·rpm, glibc≥2.28). 과거 "IDE Linux 미지원" 기술은 오류였음 |
-| Hook 입출력 JSON 포맷 | 🟡 **추정** | Claude Code PreToolUse 포맷 재사용 |
-| `agentSettings.terminalExecutionPolicy` 키 명 | 🟡 **추정** | GUI 라벨 기준 추정. 실제 키는 설치 후 diff 필요 |
-| CLI(`agy`) 설정 파일 경로 | 🟢 **검증** | `~/.gemini/antigravity-cli/settings.json` — 공식 문서(Permissions) |
-| CLI 권한 문법 | 🟢 **검증** | `action(target)` 형식, 액션은 `read_file`·`write_file`·`read_url`·`execute_url`·`command`·`unsandboxed`·`mcp` 7종. 평가 우선순위 Deny > Ask > Allow |
-| CLI 플러그인 구조 | 🟢 **검증** | `~/.gemini/antigravity-cli/plugins/<이름>/`에 `skills/`·`rules/`·`agents/`·`hooks.json` |
-| 본 settings.json ↔ CLI 규격 정합 | 🔴 **불일치** | 현 파일은 Claude 문법(`Bash(...)`·`Read(...)`)이라 CLI에 그대로 쓸 수 없다. `agy` 설치·로그인 후 실측 기반으로 재작성 |
+| `permissions.{allow,ask,deny}` 구조·우선순위 Deny > Ask > Allow | 🟢 검증 | CLI 공식 문서와 일치 |
+| `Bash(<pattern>)`·`Read()`/`Write()` 매처 | 🔴 오류 | 실제는 `command(...)`·`read_file(...)`/`write_file(...)`. CLI 값은 `cli/settings.json`이 대체. IDE용은 재작성 대상 |
+| `hooks.before_tool_call` 이벤트·settings.json 내 훅 | 🔴 오류 | 실제 이벤트는 `PreToolUse`/`PostToolUse`/`PreInvocation`/`PostInvocation`/`Stop`, 위치는 별도 `hooks.json` |
+| 훅 matcher 셸 도구명 | 🟢 검증 | `run_command` |
+| `agentSettings.*` 키 명 | 🟡 추정 | GUI 라벨 기준. 설치 후 diff 필요 |
+| IDE 글로벌 settings 경로 | 🟡 미확정 | macOS `~/Library/Application Support/Antigravity/User/settings.json`, Windows `%APPDATA%/Antigravity IDE/User/settings.json`(install.sh가 병합), Linux 미검증(건너뜀) |
 
-## 자동 설치 (수동 단계 없음)
-
-`./install.sh` 한 번 실행으로 OS 감지 후 자동 적용:
-
-| OS | 자동 동기화 경로 | 방식 |
-|----|-----------------|------|
-| macOS | `~/Library/Application Support/Antigravity/User/settings.json` | `safe_merge_json` (jq deep merge, 런타임 필드 보존) |
-| Windows | `%APPDATA%/Antigravity IDE/User/settings.json` | 동일 |
-| Linux | IDE는 공식 지원되나 settings 동기화 경로(추정 `~/.config/Antigravity/User/settings.json`) 미검증 → 현재 `~/.antigravity`, `~/.gemini/antigravity-cli/skills` (agy CLI 참조)만 활성화 | symlink |
-
-글로벌 User settings에 `permissions`를 두면 모든 워크스페이스에 자동 상속(VS Code 패턴).
-워크스페이스별 `.antigravity/settings.json` 복사 불필요.
-
-## 키 이름 검증 (선택적, 사후)
-
-본 settings.json의 `agentSettings.*` 키 명은 GUI 라벨 기반 추정입니다. 실제 IDE 토글과
-정확히 매칭되는지 검증하려면:
-
-1. Antigravity 설치 후 GUI에서 안전 토글 1개씩 변경
-2. `~/Library/Application Support/Antigravity/User/settings.json` diff 확인
-3. 본 `.antigravity/settings.json`의 `agentSettings` 키 명을 실측 값으로 교체 후 commit
-
-> 키 이름이 틀려도 IDE는 silent ignore하므로 위험은 없음. `permissions`만 정확히 작동하면 권한 정책은 보장됨.
-
-## 알려진 보안 이슈 대응
+## 알려진 보안 이슈 대응 (IDE)
 
 | 이슈 | 출처 | 본 정책 대응 |
 |------|------|---------------|
-| `.agent/mcp_config.json` 영속 백도어 | Mindgard | `hooks/mcp-config-guard.sh`로 변경 시 ask 발동 |
+| `.agent/mcp_config.json` 영속 백도어 | Mindgard | `hooks/mcp-config-guard.sh`로 변경 시 ask 발동 (미검증) |
 | `webhook.site` 기본 Allowlist | agentpedia | `browserDomainDenylist`로 강제 차단 |
-| Linux sandbox 미지원 (symlink 우회 가능) | MaanVader | OS-레벨 격리 불가 → 정책 의존도 100%, `permissions.deny`로 보완 |
-| Turbo mode `chmod -R 777` 폭주 | agentpedia | `terminalExecutionPolicy: "off"` 강제 |
-| 자격증명 탈취 (.env / SSH 키) | Embrace The Red | `permissions.deny`에 `Read(./.env)`, `Read(./**/id_rsa*)` 추가 |
+| Linux sandbox 미지원 (symlink 우회 가능) | MaanVader | OS-레벨 격리 불가 → 정책 의존도 100% |
+| Turbo mode `chmod -R 777` 폭주 | agentpedia | IDE는 `terminalExecutionPolicy: "off"`. CLI는 always-proceed를 택했으므로 deny + 지침이 같은 역할 |
+| 자격증명 탈취 (.env / SSH 키) | Embrace The Red | IDE `permissions.deny`에 `Read(./.env)`, `Read(./**/id_rsa*)` |
 
 ## 3-tool 정합성
 
-| 카테고리 | Claude Code | Codex CLI | Antigravity |
+| 카테고리 | Claude Code | Codex CLI | Antigravity CLI |
 |----------|:----:|:----:|:----:|
-| FILE_DELETE | 지침 (+deny 파국형) | Starlark forbidden | permissions.ask |
-| SYSTEM | 지침 (+deny 파국형) | Starlark forbidden | permissions.ask |
-| GIT_WRITE | 지침 (rules) | Starlark forbidden | permissions.ask |
-| GIT_STATE | allow | Starlark forbidden | permissions.ask |
-| GH_CLI | 지침 (rules) | Starlark forbidden | permissions.ask |
-| DOCKER_DELETE | 지침 (rules) | Starlark forbidden | permissions.ask |
-| INPLACE | 지침 (rules) | Starlark forbidden | permissions.ask |
-| LINK_FORCE | 지침 (rules) | Starlark forbidden | permissions.ask |
-| PERMISSION | 지침 (rules) | Starlark forbidden | permissions.ask |
-| SHELL_BYPASS | 지침 (rules) | (단일토큰 한계) | 지침 (rules) |
-| SCRIPT_INJECTION | 지침 (rules) | (단일토큰 한계) | 지침 (rules) |
+| FILE_DELETE | 지침 (+deny 파국형) | Starlark forbidden | 지침 (+deny 파국형) |
+| SYSTEM | 지침 (+deny 파국형) | Starlark forbidden | 지침 (+deny mkfs·전원) |
+| GIT_WRITE | 지침 (rules) | Starlark forbidden | 지침 |
+| GIT_STATE | allow | Starlark forbidden | 지침 |
+| GH_CLI | 지침 (rules) | Starlark forbidden | 지침 |
+| DOCKER_DELETE | 지침 (rules) | Starlark forbidden | 지침 |
+| INPLACE | 지침 (rules) | Starlark forbidden | 지침 |
+| LINK_FORCE | 지침 (rules) | Starlark forbidden | 지침 |
+| PERMISSION | 지침 (rules) | Starlark forbidden | 지침 |
+| SHELL_BYPASS | 지침 (rules) | (단일토큰 한계) | 지침 |
+| SCRIPT_INJECTION | 지침 (rules) | (단일토큰 한계) | 지침 |
 
-> Gemini CLI 열은 2026-09-07 은퇴로 제거했다. 정책 원본과 회귀 케이스 62건은 `.archive/2026-09-07_gemini-cli-retirement/`에 있다.
-
-Bash 자동승인 훅(`auto-approve-readonly.sh`)은 은퇴했고 Claude Code는 `permissions.ask`도 전면 해제 — 확인 프롬프트 없이 지침(work-principles)이 위험 명령의 자율 사용을 금지하고, 파국형만 `permissions.deny`가 차단한다. Antigravity는 자체 settings의 ask/deny 규칙을 유지한다. 훅 원본·기존 ask 목록은 `.archive/2026-07-18_hook-retirement/` 참조. (PROCESS는 v2.2에서 allow로 해제 — 재시작 가능한 조작)
+세 도구가 공유하는 것은 "확인 프롬프트 없는 자율 실행" 원칙이지 차단 강도가 아니다. Codex는 위험 명령 전반을 forbidden으로 막고, Claude와 Antigravity CLI는 파국형만 deny하고 나머지는 지침에 맡긴다. Gemini CLI 열은 2026-09-07 은퇴로 제거했고 정책 원본과 회귀 케이스 62건은 `.archive/2026-09-07_gemini-cli-retirement/`에 있다.

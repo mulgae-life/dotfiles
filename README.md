@@ -35,21 +35,21 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 ~/dotfiles/install.sh --dry-run
 ```
 
-설치 스크립트는 `~/dotfiles/` → `~/` 로 심볼릭 링크를 생성한다. 단, 도구가 런타임에 수정하는 파일(`.claude/settings.json`, `.codex/config.toml`)은 복사로 설치하여 레포 원본을 보호한다. 예외로 **Antigravity IDE 글로벌 settings는 외부 설정 보존을 위해 deep merge**한다. Antigravity IDE settings 병합은 macOS·Windows에서만 일어난다. Linux는 경로가 미검증이라 건너뛰고 안내만 출력한다. 런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
+설치 스크립트는 `~/dotfiles/` → `~/` 로 심볼릭 링크를 생성한다. 단, 도구가 런타임에 수정하는 파일(`.claude/settings.json`, `.codex/config.toml`)은 복사로 설치하여 레포 원본을 보호한다. 예외로 **Antigravity CLI(`agy`) settings는 관리 키만 병합**한다 — `agy`가 `model`·`trustedWorkspaces`·승인 캐시를 같은 파일에 되쓰기 때문이며, 레포의 `permissions` 3배열은 통째로 교체되고 나머지 키는 보존된다(`jq` 부재나 파싱 실패면 손대지 않고 오류만 낸다). Antigravity IDE 글로벌 settings도 deep merge하되 macOS·Windows에서만 일어난다. Linux는 경로가 미검증이라 건너뛰고 안내만 출력한다. 런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
 
 ### 도구별 설정 구조
 
 | | Claude Code | Codex | Antigravity |
 |---|---|---|---|
-| **지시 파일** | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `AGENTS.md` + `GEMINI.md` (`~/.gemini/`에 설치) |
-| **설정** | `settings.json` (복사) | `config.toml` (복사) | IDE는 글로벌 User settings (merge), CLI는 `~/.gemini/antigravity-cli/settings.json` |
-| **권한** | hooks + permissions | `approval_policy` + `rules/` | `permissions.{allow,ask,deny}` — CLI는 `action(target)` 문법, 우선순위 Deny > Ask > Allow |
-| **에이전트** | `agents/*.md` | 없음 (수동) | Subagents (`/agents`) — 정의는 미구성 |
-| **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `SessionStart` | `Stop`, `SessionStart` (v0.129+) | `PreToolUse`/`PostToolUse` — 별도 hooks.json (현 초안은 재작성 대상, `.antigravity/README.md` 검증 상태 참조) |
+| **지시 파일** | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `GEMINI.md` + `AGENTS.md` (`~/.gemini/config/`에 설치) |
+| **설정** | `settings.json` (복사) | `config.toml` (복사) | `cli/settings.json` (관리 키만 병합) |
+| **권한** | `bypassPermissions` + deny 49건 + 지침 | `approval_policy="never"` + Starlark `rules/` | `toolPermission: always-proceed` + deny 66건(토큰 정확 일치) + 지침 |
+| **에이전트** | `agents/*.md` | 없음 (수동) | Subagents (`/agents`) — 정의 0개 |
+| **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `SessionStart` | `Stop`, `SessionStart` (v0.129+) | 없음 — 알림은 내장 `notifications`. `~/.gemini/config/hooks.json`이 로드됨을 실측(`PreToolUse`·`PostToolUse`·`PreInvocation`·`PostInvocation`·`Stop`) |
 | **커스텀 명령** | `commands/*.md` (`/start`) + 스킬 | 없음 | Plugins (구 Extensions) |
-| **기본 모델** | Claude Opus | 권장 기본 추종 (0.153.4부터 GPT-6 Astra, 미고정) | Gemini 3.x / Claude Sonnet·Opus 4.6 / GPT-OSS 120B |
-| **CLI 버전 (검증 기준)** | 2.1.258 | 0.153.4 | IDE 2.1.x / `agy` 미설치 — 실측 후 갱신 |
-| **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 (IDE·CLI 각각) |
+| **기본 모델** | Claude Opus | 권장 기본 추종 (0.153.4부터 GPT-6 Astra, 미고정) | Gemini 3.8 Flash (High) 기본, 미고정 |
+| **CLI 버전 (검증 기준)** | 2.1.258 | 0.153.4 | `agy` 1.1.27 (IDE 층은 미검증) |
+| **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 (`~/.gemini/config/skills`) |
 
 ## 🚀 사용법
 
@@ -126,9 +126,9 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 > Codex PreToolUse는 의도적 미설정 — `approval_policy = "never"` + `.codex/rules/default.rules`(Starlark DSL)가 이미 통제
 
-**Antigravity**
+**Antigravity CLI (`agy` 1.1.27)**
 
-훅은 `.antigravity/settings.json`에 초안만 있고 이벤트명·위치가 실제와 달라 재작성 대상이다. 검증 상태는 `.antigravity/README.md` 참조.
+훅은 쓰지 않는다. 알림은 내장 `notifications: true`가 담당하고, 압축 후 이벤트는 없다(`PreInvocation`은 매 모델 호출마다 실행돼 리마인더 용도로는 과하다). 권한은 `toolPermission: always-proceed`로 확인 프롬프트를 없애고, 파국형 66건만 `permissions.deny`가 차단한다 — deny는 토큰 단위 정확 일치·접두 매칭이며 글롭과 `regex:`는 동작하지 않아 Claude의 `rm -rf /home*`·`dd of=/dev/sd*` 같은 규칙은 옮길 수 없다(`dd`·`fdisk`·`parted`·`shred`는 지침 통제). 실측 근거와 병합 계약은 `.antigravity/README.md` 참조. IDE 층(`.antigravity/settings.json`)은 추정치 그대로다.
 
 > Gemini CLI 층은 2026-09-07에 은퇴시켰다. Google이 2026-06-18부로 개인 계정(무료·AI Pro·AI Ultra) 요청 처리를 중단하고 Antigravity CLI(`agy`)로 통합했기 때문이다. 훅·정책·에이전트 원본과 회귀 케이스 62건은 `.archive/2026-09-07_gemini-cli-retirement/`
 
@@ -212,17 +212,19 @@ dotfiles/
 │   ├── hooks/                 # 이벤트 훅 (Stop / SessionStart)
 │   └── skills → ../.claude/skills
 ├── .antigravity/              # Antigravity 지침 + 안전 정책
-│   ├── README.md              # 검증 상태 + 3-tool 정합 매트릭스
-│   ├── GEMINI.md              # Antigravity 지침 (전역, 정본) → ~/.gemini/GEMINI.md
+│   ├── README.md              # CLI 실측·병합 계약·3-tool 정합 매트릭스
+│   ├── GEMINI.md              # Antigravity 지침 (전역, 정본) → ~/.gemini/config/GEMINI.md
 │   ├── AGENTS.md              # 크로스툴 convention 진입점 (Cursor 등 → GEMINI.md 참조)
-│   ├── settings.json          # permissions(allow/ask/deny) + agentSettings + hooks
+│   ├── cli/settings.json      # agy 관리 키 (always-proceed + deny 66건) → 병합 설치
+│   ├── settings.json          # IDE 워크스페이스 설정 (추정치, 미검증)
 │   ├── global_workflows/      # IDE 글로벌 워크플로우 (링크 대상)
 │   ├── policies/              # (예약) 정책 디렉토리
 │   └── hooks/
-│       └── mcp-config-guard.sh      # .agent/mcp_config.json 백도어 차단
+│       └── mcp-config-guard.sh      # IDE용 .agent/mcp_config.json 백도어 차단
 ├── scripts/                   # 유지보수 스크립트
-│   ├── verify-policies.sh     # Codex 정책 회귀 테스트 실행기
+│   ├── verify-policies.sh     # 정책 회귀 실행기 (Codex 실제 엔진 20건 + agy 설정 정적 검사 16건)
 │   ├── policy-cases.tsv       # 정책 케이스 테이블 (codex 20건)
+│   ├── agy-live-check.sh      # agy 실측 검사 (모델 호출 6회, 명시 실행 전용)
 │   └── setup-apparmor.sh      # Codex bwrap용 AppArmor 프로필 설치 (1회 실행)
 └── reference/                 # 레퍼런스 자료
     ├── Agent-Coding-Guide/    # 에이전트 코딩 가이드 (팀 교육용)
@@ -249,6 +251,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.23** | Antigravity CLI(`agy` 1.1.27) 관리 층 신설 — 전역 지침을 `~/.gemini/config/`로, `cli/settings.json`(always-proceed + 파국형 deny 66건)을 관리 키만 병합하는 `merge_agy_settings`로 설치. deny 문법(토큰 정확 일치, 글롭·regex 무효)·전역 규칙 경로·훅 로드를 실측. 정적 검사 16건 + 실측 스크립트. Codex와 토론해 확정 |
 | **v2.22** | Gemini CLI 층 은퇴 — Google이 2026-06-18부로 개인 계정 지원을 끊고 Antigravity CLI(`agy`)로 통합. 공유 자산(`GEMINI.md`·`AGENTS.md`·워크플로우)은 `.antigravity/`로 이관, 나머지와 회귀 케이스 62건은 아카이브. 3-tool 체계로 정리 |
 | **v2.21** | 압축 리마인더를 PostCompact → SessionStart(`compact`)로 이전(Claude·Codex 모두 PostCompact 출력이 모델에 안 닿음). Codex 리뷰 8건 판정, `verify-policies.sh` 무검사 통과 경로 차단, 문서 정합 점검으로 Gemini 층 드리프트 정정 |
 | **v2.20** | 구세대 모델 자료 정리 — 컷오프를 Claude 5·GPT-5.6으로 잡고 미만 문서 25개를 `reference/archive/`로 이동, 코드 예시 모델 ID를 `claude-opus-5`·`gpt-6-astra`로 통일하고 temperature 제거 |

@@ -155,6 +155,63 @@ safe_merge_json() {
   safe_copy "$src" "$dst"
 }
 
+# ── merge_agy_settings ───────────────────
+# Antigravity CLI(agy) settings.json 병합. agy가 model·trustedWorkspaces·승인 캐시 등을
+# 이 파일에 되쓰므로 복사하면 런타임 값이 날아간다. 계약:
+#   - 레포 파일의 최상위 키(_doc 제외)는 레포 우선. permissions는 allow/ask/deny 3배열을 통째로 교체
+#     (런타임 /permissions 로 추가한 규칙은 재설치 시 초기화)
+#   - 레포에 없는 키(model, trustedWorkspaces 등)는 보존
+#   - jq 부재·JSON 파싱 실패 → 대상 무변경 + 오류 (폴백 복사 없음)
+#   - 임시 파일에 쓰고 jq로 재파싱 검증 후 원자 교체. 결과 동일하면 [SKIP]
+
+merge_agy_settings() {
+  local src="$1" dst="$2"
+
+  if ! command -v jq &>/dev/null; then
+    error "jq 없음 — $dst 병합 불가 (대상 무변경)"; return 1
+  fi
+  if ! jq -e 'type == "object"' "$src" >/dev/null 2>&1; then
+    error "레포 파일이 JSON 객체가 아님: $src"; return 1
+  fi
+
+  if [ -L "$dst" ]; then
+    $DRY_RUN || rm "$dst"
+  fi
+  if [ ! -f "$dst" ]; then
+    if $DRY_RUN; then
+      info "[COPY]   $dst ← $src (dry-run)"
+      return
+    fi
+    jq 'del(._doc)' "$src" > "$dst"
+    ok "[COPY]   $dst ← $src"
+    return
+  fi
+  if ! jq -e 'type == "object"' "$dst" >/dev/null 2>&1; then
+    error "기존 파일이 유효한 JSON 객체가 아님 — 수동 확인 필요 (대상 무변경): $dst"; return 1
+  fi
+
+  local tmp="${dst}.tmp.$$"
+  # 기존(.[0]) 위에 레포(.[1])를 얹되 permissions는 레포 것으로 통째 교체
+  if ! jq -s '(.[1] | del(._doc)) as $repo | .[0] + $repo | .permissions = $repo.permissions' "$dst" "$src" > "$tmp" 2>/dev/null \
+     || ! jq -e 'type == "object"' "$tmp" >/dev/null 2>&1; then
+    rm -f "$tmp"
+    error "병합 결과 검증 실패 — 대상 무변경: $dst"; return 1
+  fi
+  if diff -q <(jq -S . "$tmp") <(jq -S . "$dst") &>/dev/null; then
+    rm "$tmp"
+    ok "[SKIP]   $dst (동일)"
+    return
+  fi
+  if $DRY_RUN; then
+    rm "$tmp"
+    info "[MERGE]  $dst ← $src (관리 키 적용, 런타임 키 보존) (dry-run)"
+    return
+  fi
+  cp "$dst" "${dst}.pre-merge.bak"
+  mv "$tmp" "$dst"
+  ok "[MERGE]  $dst ← $src (관리 키 적용, 런타임 키 보존, 백업 ${dst}.pre-merge.bak)"
+}
+
 # ── safe_mkdir ──────────────────────────────
 
 safe_mkdir() {
@@ -278,12 +335,18 @@ main() {
   safe_mkdir "$HOME/.agents"
   safe_link "$HOME/.claude/skills" "$HOME/.agents/skills"
 
-  # 4. Antigravity 지시 파일 (agy CLI가 ~/.gemini 설정 트리를 그대로 물려받는다)
-  safe_mkdir "$HOME/.gemini"
-  safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/GEMINI.md"
+  # 4. Antigravity — 전역 커스터마이징 루트는 ~/.gemini/config/ (CLI·IDE 공용, agy 1.1.27 실측)
+  safe_mkdir "$HOME/.gemini/config"
+  safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/config/GEMINI.md"
   # AGENTS.md: 크로스툴 convention 진입점 (Antigravity·Cursor 등)
+  safe_link "$DOTFILES_DIR/.antigravity/AGENTS.md" "$HOME/.gemini/config/AGENTS.md"
+  # 스킬: agy가 처음 실행될 때 ~/.gemini/antigravity-cli/skills → ~/.gemini/config/skills 링크를 스스로 만들므로
+  # config/skills 만 레포가 소유한다 (antigravity-cli/skills 는 관리 제외)
+  safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/config/skills"
+  # ~/.gemini/GEMINI.md·AGENTS.md 는 Gemini CLI 경로였지만 Antigravity IDE 가 읽는지 미검증이라 보존 (같은 파일로 재링크)
+  safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/GEMINI.md"
   safe_link "$DOTFILES_DIR/.antigravity/AGENTS.md" "$HOME/.gemini/AGENTS.md"
-  # Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료) — 이전 설치가 남긴 링크 정리
+  # Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료) — 이전 설치가 ~/.gemini 바로 아래 남긴 링크 정리
   local stale
   for stale in agents commands policies hooks skills; do
     if [ -L "$HOME/.gemini/$stale" ]; then
@@ -295,17 +358,16 @@ main() {
       fi
     fi
   done
-  # ~/.gemini/settings.json은 레포가 관리하지 않는다 — agy가 쓰는 런타임 파일로 남긴다
-  # 스킬 공유: .agents/skills 경로에서 이미 공유됨
-  # Antigravity IDE: ~/.gemini/antigravity/skills/, global_workflows
+  # ~/.gemini/settings.json 은 레포가 관리하지 않는다 (Gemini CLI 잔재, agy 는 안 읽음)
+  # Antigravity CLI settings — 관리 키만 병합 (model·trustedWorkspaces 등 런타임 키 보존)
+  safe_mkdir "$HOME/.gemini/antigravity-cli"
+  merge_agy_settings "$DOTFILES_DIR/.antigravity/cli/settings.json" "$HOME/.gemini/antigravity-cli/settings.json" || true
+  # Antigravity IDE: ~/.gemini/antigravity/skills/, global_workflows (IDE 층은 미검증)
   safe_mkdir "$HOME/.gemini/antigravity"
   safe_link "$DOTFILES_DIR/.antigravity/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
   safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/antigravity/skills"
-  # Antigravity CLI(agy): ~/.gemini/antigravity-cli/skills/
-  safe_mkdir "$HOME/.gemini/antigravity-cli"
-  safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/antigravity-cli/skills"
 
-  # 5. .antigravity 안전 정책 (Claude·Codex와 동일 11 카테고리)
+  # 5. .antigravity IDE 안전 정책 (추정치, 미검증 — CLI 정책은 위 4번의 cli/settings.json)
   # 본 디렉토리를 ~/.antigravity/로 노출 (워크스페이스 템플릿 + agy CLI 참조용)
   safe_link "$DOTFILES_DIR/.antigravity" "$HOME/.antigravity"
   # 훅 스크립트 실행 권한 보장 (mcp-config-guard.sh 등)
@@ -315,7 +377,7 @@ main() {
 
   # IDE 글로벌 User settings (OS별 경로) — macOS/Windows만 IDE 지원, Linux는 skip
   # 글로벌 settings에 permissions를 두면 모든 워크스페이스에 자동 상속 (VS Code 패턴)
-  # → 워크스페이스마다 .antigravity/ 복사 없이 한 번 설치로 4-tool 모두 동일 정책 적용
+  # → 워크스페이스마다 .antigravity/ 복사 없이 한 번 설치로 적용
   case "$(uname -s)" in
     Darwin)
       ANTIGRAVITY_USER_DIR="$HOME/Library/Application Support/Antigravity/User"
@@ -333,7 +395,7 @@ main() {
       fi
       ;;
     *)
-      info "Antigravity IDE는 Linux 공식 지원(.deb/.tar.gz/apt) — 단 이 스크립트는 IDE settings 동기화 경로(추정 ~/.config/Antigravity/User/settings.json, 미검증) 미반영이라 현재 agy CLI 참조 경로만 활성화 (~/.antigravity, ~/.gemini/antigravity-cli/skills). IDE 설치 시 실제 settings 경로 확인 후 동기화 추가 필요."
+      info "Antigravity IDE는 Linux 공식 지원(.deb/.tar.gz/apt) — 단 이 스크립트는 IDE settings 동기화 경로(추정 ~/.config/Antigravity/User/settings.json, 미검증) 미반영. IDE 설치 시 실제 settings 경로 확인 후 동기화 추가 필요 (CLI 층은 위 4번에서 적용됨)."
       ;;
   esac
 
@@ -357,18 +419,21 @@ main() {
     "$HOME/.codex/rules"
     "$HOME/.codex/hooks"
     "$HOME/.agents/skills"
+    "$HOME/.gemini/config/GEMINI.md"
+    "$HOME/.gemini/config/AGENTS.md"
+    "$HOME/.gemini/config/skills"
     "$HOME/.gemini/GEMINI.md"
     "$HOME/.gemini/AGENTS.md"
     "$HOME/.gemini/antigravity/global_workflows"
     "$HOME/.gemini/antigravity/skills"
-    "$HOME/.gemini/antigravity-cli/skills"
     "$HOME/.antigravity"
   )
 
-  # 복사로 설치되는 파일 (런타임 수정 보호)
+  # 복사·병합으로 설치되는 파일 (런타임 수정 보호)
   local copy_targets=(
     "$HOME/.claude/settings.json"
     "$HOME/.codex/config.toml"
+    "$HOME/.gemini/antigravity-cli/settings.json"
   )
 
   # OS-conditional: Antigravity IDE 글로벌 settings (macOS/Windows만 존재)
