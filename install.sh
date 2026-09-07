@@ -147,7 +147,7 @@ safe_merge_json() {
   fi
 
   # jq 부재/병합 실패 폴백: 레포=정본 원칙대로 덮어쓰되, 이 함수의 계약(런타임 전용 필드
-  # 보존 — 예: Gemini security.auth.selectedType)이 깨지므로 기존 파일을 백업 후 복사
+  # 보존 — 예: Antigravity IDE의 창 상태·인증 필드)이 깨지므로 기존 파일을 백업 후 복사
   if ! $DRY_RUN; then
     cp "$dst" "${dst}.pre-merge.bak"
     warn "JSON 병합 불가 → 덮어쓰기 폴백. 기존 파일 백업: ${dst}.pre-merge.bak (런타임 필드 필요 시 수동 병합)"
@@ -278,41 +278,34 @@ main() {
   safe_mkdir "$HOME/.agents"
   safe_link "$HOME/.claude/skills" "$HOME/.agents/skills"
 
-  # 4. .gemini 전역 설정 링크 (런타임 데이터 보존)
+  # 4. Antigravity 지시 파일 (agy CLI가 ~/.gemini 설정 트리를 그대로 물려받는다)
   safe_mkdir "$HOME/.gemini"
-  safe_link "$DOTFILES_DIR/.gemini/GEMINI.md" "$HOME/.gemini/GEMINI.md"
-  # AGENTS.md: Antigravity/Cursor 등 크로스툴 convention 진입점 (Gemini CLI는 안 읽음)
-  safe_link "$DOTFILES_DIR/.gemini/AGENTS.md" "$HOME/.gemini/AGENTS.md"
-  safe_link "$DOTFILES_DIR/.gemini/agents"    "$HOME/.gemini/agents"
-  safe_link "$DOTFILES_DIR/.gemini/commands"  "$HOME/.gemini/commands"
-  safe_link "$DOTFILES_DIR/.gemini/policies"  "$HOME/.gemini/policies"
-  safe_link "$DOTFILES_DIR/.gemini/hooks"     "$HOME/.gemini/hooks"
-  # 훅 스크립트 실행 권한 보장
-  if [ -d "$DOTFILES_DIR/.gemini/hooks" ] && ! $DRY_RUN; then
-    chmod +x "$DOTFILES_DIR/.gemini/hooks"/*.sh 2>/dev/null || true
-  fi
-  # settings.json은 Gemini가 인증(security.auth)·IDE 상태(ide.*)를 여기 기록하므로 merge로 보존
-  # (Claude와 달리 인증이 .credentials.json 별도 파일이 아니라 settings.json 인라인)
-  safe_merge_json "$DOTFILES_DIR/.gemini/settings.json" "$HOME/.gemini/settings.json"
-  # 이전 설치의 중복 스킬 링크 정리 (conflict 방지)
-  if [ -L "$HOME/.gemini/skills" ]; then
-    if $DRY_RUN; then
-      warn "[CLEAN]  $HOME/.gemini/skills (중복 제거) (dry-run)"
-    else
-      rm "$HOME/.gemini/skills"
-      warn "[CLEAN]  $HOME/.gemini/skills (중복 제거)"
+  safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/GEMINI.md"
+  # AGENTS.md: 크로스툴 convention 진입점 (Antigravity·Cursor 등)
+  safe_link "$DOTFILES_DIR/.antigravity/AGENTS.md" "$HOME/.gemini/AGENTS.md"
+  # Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료) — 이전 설치가 남긴 링크 정리
+  local stale
+  for stale in agents commands policies hooks skills; do
+    if [ -L "$HOME/.gemini/$stale" ]; then
+      if $DRY_RUN; then
+        warn "[CLEAN]  $HOME/.gemini/$stale (Gemini CLI 은퇴) (dry-run)"
+      else
+        rm "$HOME/.gemini/$stale"
+        warn "[CLEAN]  $HOME/.gemini/$stale (Gemini CLI 은퇴)"
+      fi
     fi
-  fi
+  done
+  # ~/.gemini/settings.json은 레포가 관리하지 않는다 — agy가 쓰는 런타임 파일로 남긴다
   # 스킬 공유: .agents/skills 경로에서 이미 공유됨
   # Antigravity IDE: ~/.gemini/antigravity/skills/, global_workflows
   safe_mkdir "$HOME/.gemini/antigravity"
-  safe_link "$DOTFILES_DIR/.gemini/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
+  safe_link "$DOTFILES_DIR/.antigravity/global_workflows" "$HOME/.gemini/antigravity/global_workflows"
   safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/antigravity/skills"
   # Antigravity CLI(agy): ~/.gemini/antigravity-cli/skills/
   safe_mkdir "$HOME/.gemini/antigravity-cli"
   safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/antigravity-cli/skills"
 
-  # 5. .antigravity 안전 정책 (Claude/Codex/Gemini와 동일 11 카테고리)
+  # 5. .antigravity 안전 정책 (Claude·Codex와 동일 11 카테고리)
   # 본 디렉토리를 ~/.antigravity/로 노출 (워크스페이스 템플릿 + agy CLI 참조용)
   safe_link "$DOTFILES_DIR/.antigravity" "$HOME/.antigravity"
   # 훅 스크립트 실행 권한 보장 (mcp-config-guard.sh 등)
@@ -366,10 +359,6 @@ main() {
     "$HOME/.agents/skills"
     "$HOME/.gemini/GEMINI.md"
     "$HOME/.gemini/AGENTS.md"
-    "$HOME/.gemini/agents"
-    "$HOME/.gemini/commands"
-    "$HOME/.gemini/policies"
-    "$HOME/.gemini/hooks"
     "$HOME/.gemini/antigravity/global_workflows"
     "$HOME/.gemini/antigravity/skills"
     "$HOME/.gemini/antigravity-cli/skills"
@@ -380,7 +369,6 @@ main() {
   local copy_targets=(
     "$HOME/.claude/settings.json"
     "$HOME/.codex/config.toml"
-    "$HOME/.gemini/settings.json"
   )
 
   # OS-conditional: Antigravity IDE 글로벌 settings (macOS/Windows만 존재)

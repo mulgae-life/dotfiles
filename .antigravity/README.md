@@ -1,17 +1,22 @@
 # .antigravity/ — Google Antigravity 안전 정책
 
-Claude Code / Codex CLI / Gemini CLI와 동일한 11 카테고리 안전 정책을 Antigravity에 통합합니다.
+Claude Code / Codex CLI와 동일한 11 카테고리 안전 정책을 Antigravity에 통합합니다. Antigravity IDE와 Antigravity CLI(`agy`)가 대상입니다.
 
 ## 구조
 
 ```
 .antigravity/
 ├── README.md                       # 이 문서
+├── GEMINI.md                       # Antigravity 작업 지침 (전역, 정본) — ~/.gemini/GEMINI.md로 링크
+├── AGENTS.md                       # 크로스툴 convention 진입점 → GEMINI.md 참조
 ├── settings.json                   # 워크스페이스 권한(allow/ask/deny) + agentSettings + hooks
 ├── hooks/
 │   └── mcp-config-guard.sh         # .agent/mcp_config.json 백도어 차단
+├── global_workflows/               # Antigravity IDE 글로벌 워크플로우 (링크 대상)
 └── policies/                       # (예약) 추가 정책 문서
 ```
+
+> `GEMINI.md`·`AGENTS.md`·`global_workflows/`는 Gemini CLI 층 은퇴(2026-09-07)로 `.gemini/`에서 이관됐습니다. `agy`가 `~/.gemini` 설정 트리를 그대로 물려받으므로 설치 경로는 그대로 둡니다.
 
 ## 검증 상태
 
@@ -27,6 +32,10 @@ Claude Code / Codex CLI / Gemini CLI와 동일한 11 카테고리 안전 정책�
 | Antigravity Linux 지원 | 🟢 **검증** | Linux 공식 지원(.deb/.tar.gz/apt·rpm, glibc≥2.28). 과거 "IDE Linux 미지원" 기술은 오류였음 |
 | Hook 입출력 JSON 포맷 | 🟡 **추정** | Claude Code PreToolUse 포맷 재사용 |
 | `agentSettings.terminalExecutionPolicy` 키 명 | 🟡 **추정** | GUI 라벨 기준 추정. 실제 키는 설치 후 diff 필요 |
+| CLI(`agy`) 설정 파일 경로 | 🟢 **검증** | `~/.gemini/antigravity-cli/settings.json` — 공식 문서(Permissions) |
+| CLI 권한 문법 | 🟢 **검증** | `action(target)` 형식, 액션은 `read_file`·`write_file`·`read_url`·`execute_url`·`command`·`unsandboxed`·`mcp` 7종. 평가 우선순위 Deny > Ask > Allow |
+| CLI 플러그인 구조 | 🟢 **검증** | `~/.gemini/antigravity-cli/plugins/<이름>/`에 `skills/`·`rules/`·`agents/`·`hooks.json` |
+| 본 settings.json ↔ CLI 규격 정합 | 🔴 **불일치** | 현 파일은 Claude 문법(`Bash(...)`·`Read(...)`)이라 CLI에 그대로 쓸 수 없다. `agy` 설치·로그인 후 실측 기반으로 재작성 |
 
 ## 자동 설치 (수동 단계 없음)
 
@@ -62,20 +71,22 @@ Claude Code / Codex CLI / Gemini CLI와 동일한 11 카테고리 안전 정책�
 | Turbo mode `chmod -R 777` 폭주 | agentpedia | `terminalExecutionPolicy: "off"` 강제 |
 | 자격증명 탈취 (.env / SSH 키) | Embrace The Red | `permissions.deny`에 `Read(./.env)`, `Read(./**/id_rsa*)` 추가 |
 
-## 4-tool 정합성
+## 3-tool 정합성
 
-| 카테고리 | Claude Code | Codex CLI | Gemini CLI | Antigravity |
-|----------|:----:|:----:|:----:|:----:|
-| FILE_DELETE | 지침 (+deny 파국형) | Starlark forbidden | toml ask | permissions.ask |
-| SYSTEM | 지침 (+deny 파국형) | Starlark forbidden | toml ask | permissions.ask |
-| GIT_WRITE | 지침 (rules) | Starlark forbidden | toml ask | permissions.ask |
-| GIT_STATE | allow | Starlark forbidden | toml ask | permissions.ask |
-| GH_CLI | 지침 (rules) | Starlark forbidden | toml ask | permissions.ask |
-| DOCKER_DELETE | 지침 (rules) | Starlark forbidden | toml ask | permissions.ask |
-| INPLACE | 지침 (rules) | Starlark forbidden | toml ask | permissions.ask |
-| LINK_FORCE | 지침 (rules) | Starlark forbidden | toml ask | permissions.ask |
-| PERMISSION | 지침 (rules) | Starlark forbidden | toml ask | permissions.ask |
-| SHELL_BYPASS | 지침 (rules) | (단일토큰 한계) | toml ask | 지침 (rules) |
-| SCRIPT_INJECTION | 지침 (rules) | (단일토큰 한계) | toml ask | 지침 (rules) |
+| 카테고리 | Claude Code | Codex CLI | Antigravity |
+|----------|:----:|:----:|:----:|
+| FILE_DELETE | 지침 (+deny 파국형) | Starlark forbidden | permissions.ask |
+| SYSTEM | 지침 (+deny 파국형) | Starlark forbidden | permissions.ask |
+| GIT_WRITE | 지침 (rules) | Starlark forbidden | permissions.ask |
+| GIT_STATE | allow | Starlark forbidden | permissions.ask |
+| GH_CLI | 지침 (rules) | Starlark forbidden | permissions.ask |
+| DOCKER_DELETE | 지침 (rules) | Starlark forbidden | permissions.ask |
+| INPLACE | 지침 (rules) | Starlark forbidden | permissions.ask |
+| LINK_FORCE | 지침 (rules) | Starlark forbidden | permissions.ask |
+| PERMISSION | 지침 (rules) | Starlark forbidden | permissions.ask |
+| SHELL_BYPASS | 지침 (rules) | (단일토큰 한계) | 지침 (rules) |
+| SCRIPT_INJECTION | 지침 (rules) | (단일토큰 한계) | 지침 (rules) |
+
+> Gemini CLI 열은 2026-09-07 은퇴로 제거했다. 정책 원본과 회귀 케이스 62건은 `.archive/2026-09-07_gemini-cli-retirement/`에 있다.
 
 Bash 자동승인 훅(`auto-approve-readonly.sh`)은 은퇴했고 Claude Code는 `permissions.ask`도 전면 해제 — 확인 프롬프트 없이 지침(work-principles)이 위험 명령의 자율 사용을 금지하고, 파국형만 `permissions.deny`가 차단한다. Antigravity는 자체 settings의 ask/deny 규칙을 유지한다. 훅 원본·기존 ask 목록은 `.archive/2026-07-18_hook-retirement/` 참조. (PROCESS는 v2.2에서 allow로 해제 — 재시작 가능한 조작)

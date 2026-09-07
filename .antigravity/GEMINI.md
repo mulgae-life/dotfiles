@@ -1,6 +1,6 @@
-# Gemini CLI 작업 지침 (전역)
+# Antigravity 작업 지침 (전역)
 
-> Gemini CLI 전용 설정. 모든 프로젝트에 적용된다.
+> Antigravity IDE와 Antigravity CLI(`agy`)에 적용된다. 모든 프로젝트에 적용된다.
 
 ## 우선순위
 
@@ -226,12 +226,11 @@ NEVER:
 - **시간 소요 작업 인내**: 빌드/테스트/검색이 진행 중이면 멈춘 증거 없이 조급해하지 않기
 - **산출물 정리**: 테스트·실험·디버그 과정에서 본인이 만든 파일(임시 스크립트, 데모, 로그, 실험 결과, 체크포인트 등)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 이동하여 작업 경로 루트를 깨끗하게 유지. 보존이 목적이므로 `rm` 금지 (이동만). 사용자가 명시적으로 삭제를 요청한 경우만 예외. 관련 없는 기존 파일은 대상 아님 (언급만)
 
-### 금지 명령 (ask_user 발동 = 작업 흐름 중단)
+### 금지 명령 (승인 요청 발동 = 작업 흐름 중단)
 
-다음 명령은 `.gemini/policies/safety.toml`에서 `ask_user`로 설정되어 사용자 승인 요청을 발동시킵니다. **자율 작업 중에는 시도 자체 금지** — 필요 시 사용자에게 먼저 묻고 명시 승인 후 실행. 사용자가 직접 요청한 경우에만 ask로 안전하게 진행:
+다음 명령은 `.antigravity/settings.json`의 `permissions.ask`가 사용자 승인 요청을 발동시킵니다. **자율 작업 중에는 시도 자체 금지** — 필요 시 사용자에게 먼저 묻고 명시 승인 후 실행. 사용자가 직접 요청한 경우에만 승인을 거쳐 진행:
 
-- **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
-  - **`/tmp` 예외**: `rm`/`rmdir`/`unlink`는 대상이 **전부 `/tmp/` 하위 절대경로**인 단순 형태(플래그+경로만, 체인·`..`·메타문자 없음)면 자동 허용된다. 임시 작업·테스트 정리는 `/tmp`에서 ask 없이 진행 가능. (`truncate`·`cd /tmp && rm x` 형태는 미커버 — ask)
+- **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
 - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
 - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash`(단, `stash list`/`stash show` 조회는 allow), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
 - **GitHub CLI 쓰기**: `gh pr/issue/release/repo create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
@@ -288,29 +287,7 @@ NEVER:
 
 ---
 
-## 에이전트 운영
-
-Gemini CLI의 서브에이전트를 활용한다. 에이전트 정의는 `~/.gemini/agents/`에 위치한다.
-
-### 위임 우선순위
-
-| 순위 | 에이전트 | 트리거 조건 |
-|------|----------|------------|
-| 1 | `build-resolver` | 빌드 실패 (`npm run build`, `tsc` 에러) |
-| 2 | `security-reviewer` | 보안 민감 코드 (auth/login/session/token, 암호화, 시크릿 처리) |
-| 3 | `planner` | 아키텍처 결정이 필요하거나 요구가 불명확한 복잡 요청, 또는 사용자가 계획을 요청할 때 — **초안만** |
-| 4 | `verifier` | 사용자가 점검을 요청할 때만 ("점검해줘/확인해줘/이상 없어?"). 완료 보고 전 자동 위임 없음 — 입증은 작업 중 확보한 도구 출력(테스트·빌드·실측)으로 |
-
-일반 흐름: 구현 → (보안 시) security-reviewer → (빌드 에러 시) build-resolver. planner·verifier는 조건 충족·요청 시에만
-
-### 위임 금지
-
-- 단순 질문/설명 요청
-- 1-2줄 간단한 수정
-- 사용자가 "직접 해줘" 명시적 요청
-- 요구와 범위가 명확한 작업 — 파일 수가 많아도 위임 불필요, 경로는 직접 계획해 실행
-
-### 행동 규칙
+## 작업 수행 규칙
 
 - **실패 시 재계획**: 구현 중 차단 발생 시 즉시 중단 → 재계획. 밀어붙이기 금지
 - **버그 수정 자율성**: 로그/에러/테스트를 직접 추적→수정. 범위 확대 시(파일 3개+) 합의
@@ -338,7 +315,7 @@ Gemini CLI의 서브에이전트를 활용한다. 에이전트 정의는 `~/.gem
 
 ### 계획 영속화
 
-복잡한 작업(3단계 이상)의 계획은 `agent-guide/plans/`(있으면) 또는 `.gemini/plans/`에 저장. 구현 중 계획 참조 시 파일에서 재읽기 (기억 의존 금지). 완료 후 `.archive/`로 이동 (`rm` 금지 — 위 산출물 정리 원칙과 동일).
+복잡한 작업(3단계 이상)의 계획은 `agent-guide/plans/`(있으면) 또는 `.antigravity/plans/`에 저장. 구현 중 계획 참조 시 파일에서 재읽기 (기억 의존 금지). 완료 후 `.archive/`로 이동 (`rm` 금지 — 위 산출물 정리 원칙과 동일).
 
 ### 서브에이전트 파일 공유
 
@@ -365,7 +342,7 @@ Gemini CLI의 서브에이전트를 활용한다. 에이전트 정의는 `~/.gem
 
 ## 스킬 활용
 
-`~/.agents/skills/` 또는 `~/.claude/skills/` 디렉토리에 작업별 전문 가이드가 있다.
+`~/.gemini/antigravity-cli/skills/`(CLI)·`~/.gemini/antigravity/skills/`(IDE)에 작업별 전문 가이드가 있다. 두 경로 모두 `~/.claude/skills/`를 가리킨다.
 해당 분야 작업 시 `SKILL.md`를 읽고 절차와 품질 기준을 따른다.
 
 예: React 최적화 → `react-best-practices/SKILL.md`, 코드 리뷰 → `code-review/SKILL.md`
@@ -386,5 +363,5 @@ Gemini CLI의 서브에이전트를 활용한다. 에이전트 정의는 `~/.gem
 ## 비파괴 원칙
 
 - `~/.claude` 디렉토리는 삭제/수정하지 않는다
-- Gemini 설정은 `~/.gemini` 내에서만 관리한다
+- Antigravity 설정은 `~/.gemini`(CLI가 물려받은 설정 트리)와 `~/.antigravity` 내에서만 관리한다
 - 기존 uncommitted 변경을 revert하지 않는다 (사용자가 명시적으로 요청한 경우만)
