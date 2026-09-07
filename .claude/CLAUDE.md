@@ -1,14 +1,10 @@
 # Claude Code 가이드
 
-> 전역 진입점. 작업 원칙은 `agent-guide/GUIDE.md` 참고.
+> 전역 진입점. 프로젝트별 작업 원칙은 `agent-guide/GUIDE.md` 참고.
 
 ## 시작하기
 
-1. 사용자가 **"시작"**이라고 하면 **`agent-guide/GUIDE.md`를 먼저 읽고** 작업 원칙과 세션 시작 절차를 파악하세요.
-2. 그 다음 프로젝트 구조 파악을 위해 `agent-guide/PROJECT.md`를 꼼꼼하게 읽고 파악하세요.
-3. 그 다음 `agent-guide/SESSION.md`를 읽고 현재 상태를 요약합니다.
-
-> `agent-guide/` 디렉토리가 없으면 프로젝트 경로 내 참조할 만한 문서들을 읽고 파악하세요.
+사용자가 **"시작"**이라고 하면 `start` 스킬을 실행하세요 (`agent-guide/` GUIDE → PROJECT → SESSION 순으로 읽고 현재 상태 요약).
 
 ## 커뮤니케이션
 

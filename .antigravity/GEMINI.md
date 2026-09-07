@@ -352,12 +352,7 @@ Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인
 
 ## 세션 시작
 
-사용자가 "시작"이라고 하면:
-
-1. `agent-guide/GUIDE.md` → 작업 원칙 파악
-2. `agent-guide/PROJECT.md` → 프로젝트 구조 파악
-3. `agent-guide/SESSION.md` → 현재 상태 요약
-4. 디렉토리가 없으면 프로젝트 내 참조할 문서를 읽고 파악
+사용자가 "시작"이라고 하면 `start` 스킬(`~/.gemini/config/skills/start/SKILL.md`)을 따른다 — `agent-guide/` GUIDE → PROJECT → SESSION 순으로 읽고 현재 상태 요약. 디렉토리가 없으면 프로젝트 내 참조할 문서를 읽고 파악.
 
 ---
 

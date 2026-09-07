@@ -21,7 +21,7 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
   └── config.toml    Codex 모델, 커뮤니케이션 규칙 (복사)
   ↓
 사용자가 필요할 때 호출
-  └── skills/        /code-review, /writing-prompts 등 20개 전문 스킬
+  └── skills/        /start, /code-review, /writing-prompts 등 21개 스킬
 ```
 
 ## 📦 설치
@@ -48,7 +48,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **권한** | `bypassPermissions` + deny 49건 + 지침 | `approval_policy="never"` + Starlark `rules/` | `toolPermission: always-proceed` + deny 66건(토큰 정확 일치) + 지침 |
 | **에이전트** | `agents/*.md` | 없음 (수동) | Subagents (`/agents`) — 정의 0개 |
 | **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `SessionStart` | `Stop`, `SessionStart` (v0.129+) | 없음 — 알림은 내장 `notifications`. `~/.gemini/config/hooks.json`이 로드됨을 실측(`PreToolUse`·`PostToolUse`·`PreInvocation`·`PostInvocation`·`Stop`) |
-| **커스텀 명령** | `commands/*.md` (`/start`) + 스킬 | 없음 | Plugins (구 Extensions) |
+| **커스텀 명령** | 스킬 (`/이름`) — `commands/*.md`는 사용하지 않음 | 스킬 (`$이름`·`/skills`) + `~/.codex/prompts/*.md` (`/prompts:이름`, 미사용) | 스킬 (`/이름`, 헤드리스 `-p "/이름 …"`도 확장) |
 | **기본 모델** | Claude Opus | 권장 기본 추종 (0.153.4부터 GPT-6 Astra, 미고정) | Gemini 3.8 Flash (High) 기본, 미고정 |
 | **CLI 버전 (검증 기준)** | 2.1.258 | 0.153.4 | `agy` 1.1.27 (IDE 층은 미검증) |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 (`~/.gemini/config/skills`) |
@@ -72,7 +72,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 명령 | 설명 |
 |------|------|
 | `시작` | 프로젝트 파악 후 현재 상태 요약 |
-| `/init-project` | 새 프로젝트에 `agent-guide/` 3종 파일 자동 생성 |
+| `/init-project` | 새 프로젝트에 `agent-guide/` 3종 파일 자동 생성 + 루트 `CLAUDE.md`·`AGENTS.md`를 `GUIDE.md` 링크로 |
 | `/code-review` | 심층 코드 리뷰 리포트 |
 | `/writing-prompts` | LLM 프롬프트 작성 |
 | ... | 아래 스킬 목록 참고 |
@@ -134,7 +134,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 > Gemini CLI 층은 2026-09-07에 은퇴시켰다. Google이 2026-06-18부로 개인 계정(무료·AI Pro·AI Ultra) 요청 처리를 중단하고 Antigravity CLI(`agy`)로 통합했기 때문이다. 훅·정책·에이전트 원본과 회귀 케이스 62건은 `.archive/2026-09-07_gemini-cli-retirement/`
 
-### ⚙️ Skills (20개) — `/skill-name`으로 호출
+### ⚙️ Skills (21개) — `/skill-name`으로 호출
 
 **코드 품질**
 
@@ -178,18 +178,16 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 | 스킬 | 용도 |
 |------|------|
-| `/start` | 세션 시작 시 프로젝트 파악/상태 요약 |
-| `/init-project` | 새 프로젝트 agent-guide 자동 생성 |
+| `/start` | 세션 시작 시 agent-guide 읽고 프로젝트 파악/상태 요약 (세 도구 공용) |
+| `/init-project` | 새 프로젝트 agent-guide 자동 생성 + 루트 진입 링크 |
 | `/skill-creator` | 새 스킬 생성 가이드 |
-
-> `/start`는 스킬이 아니라 커스텀 명령(`.claude/commands/start.md`)이다. 호출 방식이 같아 함께 표기하며, 20개 집계에는 포함하지 않는다.
 
 ## 🌐 전역 vs 프로젝트별
 
 | 범위 | 내용 | 관리 위치 |
 |------|------|----------|
 | **전역** (이 레포) | rules, agents, skills, hooks, settings | `~/dotfiles/` → `~/` 심볼릭 링크 (일부 복사) |
-| **프로젝트별** | `agent-guide/GUIDE.md`, `PROJECT.md`, `SESSION.md` | 각 프로젝트 레포 |
+| **프로젝트별** | `agent-guide/GUIDE.md`, `PROJECT.md`, `SESSION.md` — 루트 `CLAUDE.md`·`AGENTS.md`는 `GUIDE.md` 심볼릭 링크라 세 도구가 매 세션 전역 지침 뒤에 이어 붙여 읽음 | 각 프로젝트 레포 |
 
 ## 📁 디렉토리 구조
 
@@ -199,9 +197,8 @@ dotfiles/
 │   ├── CLAUDE.md              # 전역 진입점
 │   ├── rules/                 # 규칙 (7개)
 │   ├── agents/                # 서브에이전트 (4개)
-│   ├── commands/              # 슬래시 커맨드
 │   ├── hooks/                 # 이벤트 훅
-│   ├── skills/                # 스킬 (20개)
+│   ├── skills/                # 스킬 (21개) — 세 도구 공용, 슬래시 명령 역할 겸함
 │   ├── scratch/               # 임시 작업 파일 (gitignored, 보존물은 reference/로 승격)
 │   ├── statusline-command.sh  # 상태줄 스크립트
 │   └── settings.json          # 전역 설정
@@ -252,6 +249,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.26** | `/init-project`가 루트 `CLAUDE.md`·`AGENTS.md`를 `agent-guide/GUIDE.md` 심볼릭 링크로 생성 — 세 도구가 매 세션 GUIDE.md를 전역 지침 뒤에 자동 로드(Claude·Codex·agy 링크 추종 실측). `/start`를 Claude 전용 커스텀 명령에서 공용 스킬로 전환해 Codex·agy에서도 "시작"이 agent-guide를 읽게 함(Codex 층에는 세션 시작 절차가 없었음). 세 전역 지침의 "시작" 절은 스킬 참조 한 줄로 통일. GUIDE 템플릿의 프런트매터 제거(지침 본문에 텍스트로 섞이던 문제). `commands/` 링크 설치 종료. Codex `AGENTS.md`·Antigravity `GEMINI.md`는 `@` 임포트가 없어 링크가 유일한 공유 수단 |
 | **v2.25** | `merge_agy_settings` 잔여 경로 정리 — 신규 생성도 임시 파일 검증 후 교체(쓰기 실패가 성공으로 보고되던 문제), 링크는 전환 없이 병합·검증 뒤 마지막 교체에서만 일반 파일로(검증 실패 시 링크 소실 문제), 링크는 내용이 같아도 교체. README 차단 범위 문구를 Claude 기준으로 한정. Codex 재점검 3건 반영 |
 | **v2.24** | Antigravity 지침을 `GEMINI.md` 하나로 통합 — 공식 문서가 CLI·IDE 모두 `GEMINI.md`를 전역 규칙으로 명시하고 `AGENTS.md`는 대체 이름일 뿐이라 진입점 파일을 없앰. 우선순위를 사용자 현재 요청 1순위로 Codex 층과 정합. `merge_agy_settings`의 백업·교체 실패를 명시 처리하고 설치 종료 코드에 반영, 링크 대상 병합. Codex 정적 점검 4건 반영 |
 | **v2.23** | Antigravity CLI(`agy` 1.1.27) 관리 층 신설 — 전역 지침을 `~/.gemini/config/`로, `cli/settings.json`(always-proceed + 파국형 deny 66건)을 관리 키만 병합하는 `merge_agy_settings`로 설치. deny 문법(토큰 정확 일치, 글롭·regex 무효)·전역 규칙 경로·훅 로드를 실측. 정적 검사 16건 + 실측 스크립트. Codex와 토론해 확정 |

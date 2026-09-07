@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: 새 프로젝트의 agent-guide 3종 파일(GUIDE.md, PROJECT.md, SESSION.md)을 자동 생성합니다.
+description: 새 프로젝트의 agent-guide 3종 파일(GUIDE.md, PROJECT.md, SESSION.md)을 자동 생성하고, 루트 CLAUDE.md·AGENTS.md를 GUIDE.md 링크로 만들어 세 도구가 매 세션 GUIDE.md를 읽게 합니다.
 when_to_use: "프로젝트 초기화해줘, agent-guide 만들어줘, 새 프로젝트 세팅해줘, 프로젝트 구조 잡아줘, 가이드 문서 만들어줘 요청 시. 새 프로젝트를 시작하거나 AI 에이전트 가이드 문서가 필요할 때."
 model: opus
 effort: medium
@@ -8,12 +8,23 @@ effort: medium
 
 # init-project
 
-새 프로젝트에서 기획 대화(티키타카) 완료 후, **대화 맥락만으로** agent-guide 3종 파일을 자동 생성합니다.
+새 프로젝트에서 기획 대화(티키타카) 완료 후, **대화 맥락만으로** agent-guide 3종 파일을 자동 생성하고, 프로젝트 루트에 `CLAUDE.md`·`AGENTS.md`를 `agent-guide/GUIDE.md`로 향하는 심볼릭 링크로 만듭니다.
+
+```
+<프로젝트>/
+├── CLAUDE.md  → agent-guide/GUIDE.md   # Claude Code
+├── AGENTS.md  → agent-guide/GUIDE.md   # Codex, Antigravity CLI
+└── agent-guide/
+    ├── GUIDE.md      # 원본 하나 — 매 세션 전역 지침 뒤에 자동 로드
+    ├── PROJECT.md
+    └── SESSION.md
+```
 
 **원칙**:
 - 디렉토리 스캔 안 함 — 대화에서 추출한 정보만 사용
 - 부족한 정보는 `[TODO]` 플레이스홀더로 남김
 - 섹션 제목은 항상 생성 (빈 섹션이라도 자리 확보)
+- 프로젝트 지침 원본은 `GUIDE.md` 하나 — 루트 `CLAUDE.md`·`AGENTS.md`에 본문을 따로 쓰지 않음
 
 ---
 
@@ -38,6 +49,8 @@ effort: medium
 ### 기존 파일 확인
 
 `agent-guide/` 디렉토리가 이미 존재하면 **덮어쓰기 여부**를 사용자에게 확인.
+
+루트에 `CLAUDE.md`·`AGENTS.md`가 이미 있으면(예: `claude /init`이 만든 파일) 링크로 덮지 않고 사용자에게 확인. 내용을 살려야 하면 `CLAUDE.md`에는 `@agent-guide/GUIDE.md` 임포트 한 줄을 끝에 추가하고, `AGENTS.md`는 임포트 문법이 없으므로 사용자가 링크 전환 또는 본문 병합을 선택.
 
 ---
 
@@ -77,12 +90,26 @@ effort: medium
 `agent-guide/SESSION.md` — **최소 템플릿** (초기 기록 1건).
 → `templates/SESSION.md.template` 읽어서 적용
 
+### 5단계: 루트 진입 링크 생성
+
+프로젝트 루트에서 상대 경로 링크 2개를 만듭니다 (`-f` 없이 — 기존 파일은 사전 조건에서 이미 처리됨):
+
+```bash
+ln -s agent-guide/GUIDE.md CLAUDE.md
+ln -s agent-guide/GUIDE.md AGENTS.md
+```
+
+- Claude Code는 `CLAUDE.md`, Codex와 Antigravity CLI는 `AGENTS.md`를 세션 시작 시 전역 지침 뒤에 이어 붙인다. 세 도구 모두 링크를 따라 읽으므로 `GUIDE.md` 하나만 관리하면 된다
+- 상대 경로라 레포를 어디에 클론해도 유효하고, git에 링크로 커밋된다 (Windows 체크아웃은 `core.symlinks` 필요)
+- `ln -s`가 "File exists"로 실패하면 사전 조건 확인 누락이므로 덮지 말고 사용자에게 알린다
+
 ### 생성 후 확인
 
-3개 파일 생성 완료 후:
+3개 파일과 링크 2개 생성 완료 후:
 1. 각 파일 요약 (핵심 내용 1-2줄)
-2. `[TODO]` 항목 목록 안내
-3. 수정 필요 여부 확인
+2. `ls -la` 출력으로 두 링크가 `agent-guide/GUIDE.md`를 가리키는지 확인
+3. `[TODO]` 항목 목록 안내
+4. 수정 필요 여부 확인
 
 ---
 

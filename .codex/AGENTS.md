@@ -108,9 +108,16 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 | `reference-verification` | 논문 인용·수식↔코드·benchmark 원문 검증 절차 | "논문 인용", "수식 구현 대조" |
 
 > `stitch-design`은 공유 스킬이지만 Google Stitch MCP가 Claude 쪽에만 붙어 있어 Codex에서는 쓰지 않는다.
+| `start` | 세션 시작 — agent-guide 읽고 현재 상태 요약 | "시작" |
 | `update-docs` | agent-guide 문서 업데이트 | "문서 업데이트" |
-| `init-project` | agent-guide 3종 파일 자동 생성 | "프로젝트 초기화" |
+| `init-project` | agent-guide 3종 파일 자동 생성 + 루트 `CLAUDE.md`·`AGENTS.md`를 `GUIDE.md` 링크로 | "프로젝트 초기화" |
 | `skill-creator` | 스킬 생성·수정·eval 테스트 | "스킬 만들어줘" |
+
+---
+
+## 세션 시작
+
+사용자가 "시작"이라고 하면 `start` 스킬(`~/.agents/skills/start/SKILL.md`)을 따른다 — `agent-guide/` GUIDE → PROJECT → SESSION 순으로 읽고 현재 상태 요약. 디렉토리가 없으면 프로젝트 내 참조할 문서를 읽고 파악.
 
 ---
 

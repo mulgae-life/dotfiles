@@ -329,7 +329,6 @@ main() {
   safe_mkdir "$HOME/.claude"
   safe_link "$DOTFILES_DIR/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
   safe_link "$DOTFILES_DIR/.claude/agents"    "$HOME/.claude/agents"
-  safe_link "$DOTFILES_DIR/.claude/commands"  "$HOME/.claude/commands"
   safe_link "$DOTFILES_DIR/.claude/rules"     "$HOME/.claude/rules"
   safe_link "$DOTFILES_DIR/.claude/skills"    "$HOME/.claude/skills"
   safe_link "$DOTFILES_DIR/.claude/hooks"    "$HOME/.claude/hooks"
@@ -433,7 +432,6 @@ main() {
   local link_targets=(
     "$HOME/.claude/CLAUDE.md"
     "$HOME/.claude/agents"
-    "$HOME/.claude/commands"
     "$HOME/.claude/rules"
     "$HOME/.claude/skills"
     "$HOME/.claude/hooks"
