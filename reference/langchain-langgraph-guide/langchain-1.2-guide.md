@@ -41,22 +41,22 @@ langgraph              # 그래프 기반 런타임/오케스트레이션
 from langchain.chat_models import init_chat_model
 
 # 단축 문법 (provider:model)
-model = init_chat_model("openai:gpt-5", temperature=0)
-model = init_chat_model("anthropic:claude-sonnet-4-5", temperature=0)
+model = init_chat_model("openai:gpt-6-astra", use_responses_api=True)  # GPT-6은 temperature 미지원, 도구 호출은 Responses 전용
+model = init_chat_model("anthropic:claude-sonnet-5", temperature=0)
 model = init_chat_model("google_vertexai:gemini-2.5-flash", temperature=0)
 
 # 명시적 지정
-model = init_chat_model("gpt-5", model_provider="openai", temperature=0.1)
+model = init_chat_model("gpt-6-astra", model_provider="openai", use_responses_api=True)
 ```
 
 ### 직접 클래스 초기화
 
 ```python
 from langchain_openai import ChatOpenAI
-model = ChatOpenAI(model="gpt-5", temperature=0, max_tokens=1000, timeout=30)
+model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000, timeout=30)
 
 from langchain_anthropic import ChatAnthropic
-model = ChatAnthropic(model="claude-sonnet-4-5", max_tokens=1024, temperature=0)
+model = ChatAnthropic(model="claude-sonnet-5", max_tokens=1024, temperature=0)
 ```
 
 > **주의**: `from langchain.chat_models import ChatOpenAI`는 deprecated. 프로바이더 패키지에서 임포트.
@@ -84,7 +84,7 @@ def search(query: str) -> str:
     return search_engine.search(query)
 
 agent = create_agent(
-    "openai:gpt-5",
+    model,  # ChatOpenAI(model="gpt-6-astra", use_responses_api=True) — 문자열 지정은 use_responses_api를 못 넘김
     tools=[search],
     system_prompt="You are a research assistant.",
 )

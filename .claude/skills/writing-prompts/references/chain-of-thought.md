@@ -186,15 +186,13 @@ certainty, which is invaluable for such a crucial financial milestone.
 
 | 모델 유형 | CoT 효과 | 권장 전략 |
 |-----------|---------|----------|
-| 표준 모델 (GPT-4, Claude 3.5 등) | ✅ 20~40% 정확도 향상 | Structured CoT (XML 태그) 사용 |
-| Frontier (GPT-5, Claude 4.5+) | ⚠️ 제한적 향상 | 복잡한 작업에만 선택적 사용 |
-| Reasoning (o1, o3, DeepSeek-R1) | ❌ **성능 저하** | CoT 프롬프팅 금지. 내장 추론 사용 |
-| Extended Thinking (Claude 4.x) | ⚠️ 중복 | thinking 파라미터 사용, 수동 CoT 불필요 |
+| 비추론 모델 (소형·오픈웨이트, thinking을 끈 Gemma 4·Qwen 3.6 등) | ✅ 20~40% 정확도 향상 | Structured CoT (XML 태그) 사용 |
+| Reasoning (GPT-5.6·GPT-6, DeepSeek-R1) | ❌ **성능 저하** | CoT 프롬프팅 금지. `reasoning.effort`로 내장 추론 제어 |
 | Claude 5 (Fable 5) | ❌ 지시 시 refusal | Structured CoT의 "사고 과정을 답변에 서술" 지시는 `reasoning_extraction` refusal 유발. thinking 상시 on이므로 CoT 출력 지시 금지, thinking 블록(`display: "summarized"`) 사용 → [claude-5-specifics.md](claude-5-specifics.md) |
 
 ### Reasoning 모델에서 CoT가 유해한 이유
 
-Reasoning 모델(o1, o3, DeepSeek-R1 등)은 **내부적으로 CoT를 수행**합니다:
+Reasoning 모델(GPT-6, DeepSeek-R1 등)은 **내부적으로 CoT를 수행**합니다:
 - "Think step by step"을 명시하면 내부 추론과 외부 CoT가 **충돌**
 - 불필요한 추론 라우팅이 발생하여 성능 하락
 - **간결한 Zero-shot 프롬프트**가 최적
@@ -210,17 +208,17 @@ system_prompt: |
   # reasoning_effort 파라미터로 추론 깊이 제어
 ```
 
-### Extended Thinking 모델과의 관계
+### Claude thinking과의 관계
 
-Claude의 Extended Thinking이 활성화된 경우:
+Claude 5 세대는 adaptive thinking이 상시 켜져 있습니다:
 - 모델이 자동으로 구조적 추론을 수행
-- 수동 CoT 프롬프팅보다 **Extended Thinking이 선호**됨
-- 단, 투명한 추론 감사(audit)가 필요한 경우 수동 CoT가 유효
+- 수동 CoT 프롬프팅 대신 `output_config.effort`로 깊이 제어
+- 추론 감사(audit)가 필요하면 thinking 블록(`display: "summarized"`)을 읽고, 사고 과정을 답변에 쓰게 하지 않기
 
 ### 2026년 CoT 사용 가이드라인
 
 1. **먼저 모델 유형 확인** — Reasoning 모델이면 CoT 프롬프팅 생략
-2. **API 파라미터 우선** — `reasoning_effort`, Extended Thinking 등 내장 기능 활용
+2. **API 파라미터 우선** — `reasoning.effort`, `output_config.effort` 등 내장 기능 활용
 3. **표준 모델에서만 CoT 적용** — 복잡한 작업(수학, 다단계 분석)에 한정
 4. **CoT + Few-shot 조합 주의** — 최신 모델에서는 Zero-shot CoT로 충분
 

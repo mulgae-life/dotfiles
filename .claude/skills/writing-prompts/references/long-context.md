@@ -315,11 +315,11 @@ Then analyze trends in <trends> tags.
 
 ### 토큰 예산 관리
 
-- Claude 4.x: 200K 토큰 / Fable 5: 1M 토큰(기본), 출력 최대 128K
+- Claude 5 세대: 1M 토큰(기본), 출력 최대 128K
 - 출력용 예약분(모델별 출력 상한 내)을 먼저 확보
 - 나머지를 문서·지시·예시 입력에 배분
 
-**권장 구조** (Claude 4.x 200K 기준):
+**권장 구조** (입력 예산 200K로 잡았을 때의 예시):
 ```
 - 문서: 150K 토큰
 - 지시사항: 5K 토큰
@@ -334,7 +334,7 @@ Then analyze trends in <trends> tags.
 
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     system=[
         {
             "type": "text",

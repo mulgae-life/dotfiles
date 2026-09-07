@@ -13,7 +13,7 @@
 
 Anthropic Claude만의 고유 기능으로, `assistant` 메시지를 미리 채워 출력을 제어합니다.
 
-> ⚠️ **Claude 4.5 이하 전용.** Fable 5·Opus 4.6/4.7/4.8·Sonnet 4.6/5에서는 마지막 assistant 턴 prefill이 **400 에러**를 반환합니다. 최신 모델에서는 Structured Outputs(`output_config.format`) 또는 시스템 프롬프트 지시로 대체하세요 → [claude-5-specifics.md](claude-5-specifics.md). 이 문서의 예시가 `claude-sonnet-4-5`를 쓰는 이유입니다.
+> ⚠️ **Claude 4.5 이하 전용.** Fable 5·Opus 4.6/4.7/4.8·Sonnet 4.6/5에서는 마지막 assistant 턴 prefill이 **400 에러**를 반환합니다. 최신 모델에서는 Structured Outputs(`output_config.format`) 또는 시스템 프롬프트 지시로 대체하세요 → [claude-5-specifics.md](../../../../.claude/skills/writing-prompts/references/claude-5-specifics.md). 이 문서의 예시가 `claude-sonnet-4-5`를 쓰는 이유입니다.
 
 ## 개요
 

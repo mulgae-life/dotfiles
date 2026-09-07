@@ -7,7 +7,6 @@
 - [대화 이력 관리](#대화-이력-관리)
 - [Tool Use (Function Calling)](#tool-use-function-calling)
 - [스트리밍](#스트리밍)
-- [Prefilling](#prefilling)
 - [Vision (이미지 분석)](#vision-이미지-분석)
 - [에러 핸들링](#에러-핸들링)
 - [모델 선택](#모델-선택)
@@ -97,7 +96,7 @@ messages = [
 
 Claude의 추론 기능 (OpenAI의 reasoning과 유사). **모델 세대에 따라 설정 방법이 다릅니다.**
 
-### 현행 모델 (4.6+, Sonnet 5, Fable 5·5.1): Adaptive Thinking
+### 현행 모델 (Fable 5·5.1, Opus 5, Sonnet 5): Adaptive Thinking
 
 ```python
 response = client.messages.create(
@@ -121,7 +120,7 @@ for block in response.content:
 - 추론 깊이는 `budget_tokens`가 아니라 **`output_config.effort`** 로 제어
 - **Fable 5·5.1**: thinking이 항상 켜져 있음 — `thinking` 파라미터를 **생략** (`enabled`·`disabled`·`budget_tokens` 모두 400). thinking 텍스트가 필요하면 `thinking={"type": "adaptive", "display": "summarized"}` (기본 `"omitted"`은 빈 문자열). Fable 5.1은 `disabled`가 **어떤 effort에서도** 400이므로, Opus 5에서 옮겨올 때 이 필드를 제거하고 effort를 낮춰 토큰을 제어합니다
 - **Opus 5**: thinking **기본 켜짐** — 생략 시 adaptive로 실행 (사고 없이 실행되던 Opus 4.8과 다름, `max_tokens`는 사고+응답 합산 리밋이라 재검토 필요). `disabled`는 effort `high` 이하에서만 허용 — `xhigh`/`max` 조합은 400
-- **Opus 4.7+/Sonnet 5**: `budget_tokens`는 400 에러
+- **Opus 5·Sonnet 5**: `budget_tokens`는 400 에러
 
 ### effort 가이드
 
@@ -132,29 +131,9 @@ for block in response.content:
 | `xhigh` | 코딩·에이전트 고난도 작업 |
 | `max` | 비용보다 정확성이 중요할 때 |
 
-> **Opus 5는 `high`에서 시작**해 `low`/`medium`을 비용·지연 제어의 1차 수단으로 적극 활용합니다 (Opus 4.7/4.8의 "코딩엔 `xhigh`" 권고와 방향이 다름). 구모델에서 가져온 effort 설정은 재사용하지 말고 스윕을 다시 돌립니다.
+> **Opus 5는 `high`에서 시작**해 `low`/`medium`을 비용·지연 제어의 1차 수단으로 적극 활용합니다. 다른 모델에서 가져온 effort 설정은 재사용하지 말고 스윕을 다시 돌립니다.
 >
 > **Fable 5.1도 `high`에서 시작하되 전 레벨을 다시 측정합니다.** effort 이름이 모델 간 같은 사고량을 뜻하지 않기 때문이며, 5.1의 `medium`이 Fable 5 성능에 근접합니다. 시스템 카드의 FrontierCode 평가에서는 `medium`이 정점이고 `high` 이상은 요청 범위 밖 파일까지 고치면서 점수가 떨어졌습니다. `xhigh`/`max`는 긴 산출물을 사고 안에서 먼저 초안 작성해 지연·토큰이 늘어나므로, 측정된 이득이 있을 때만 씁니다.
-
-### 구모델 (Sonnet 4.5 이하): Extended Thinking + budget_tokens
-
-```python
-response = client.messages.create(
-    model="claude-sonnet-4-5",              # 구모델 전용 — 4.7+에서는 400
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 10000              # 추론에 할당할 토큰 수 (< max_tokens, 최소 1024)
-    },
-    messages=[{"role": "user", "content": "복잡한 수학 문제..."}],
-    max_tokens=16000                        # thinking + output 합계
-)
-```
-
-| 작업 복잡도 | 권장 budget_tokens (구모델) |
-|-------------|---------------------------|
-| 간단한 질문 | 5,000 ~ 10,000 |
-| 복잡한 문제 | 10,000 ~ 50,000 |
-| 매우 어려운 문제 | 50,000+ |
 
 ---
 
@@ -383,49 +362,6 @@ with client.messages.stream(
 
 ---
 
-## Prefilling
-
-Assistant 응답을 미리 채워 출력 형식을 강제:
-
-> ⚠️ **Claude 4.5 이하 전용.** Fable 5·5.1·Opus 4.6/4.7/4.8/5·Sonnet 4.6/5에서는 마지막 assistant 턴 prefill이 **400 에러**입니다. 최신 모델에서는 Structured Outputs(`output_config.format`)를 사용하세요. 아래 예시가 `claude-sonnet-4-5`인 이유입니다.
-
-### JSON 출력 강제
-
-```python
-response = client.messages.create(
-    model="claude-sonnet-4-5",  # prefill은 구모델 전용
-    messages=[
-        {"role": "user", "content": "Extract name and age from: John is 30 years old."},
-        {"role": "assistant", "content": "{"}  # JSON 시작 강제
-    ],
-    max_tokens=1024
-)
-
-# 결과: {"name": "John", "age": 30}
-```
-
-### 캐릭터 강제
-
-```python
-response = client.messages.create(
-    model="claude-sonnet-4-5",  # prefill은 구모델 전용
-    system="You are a pirate. Always speak like a pirate.",
-    messages=[
-        {"role": "user", "content": "Hello!"},
-        {"role": "assistant", "content": "Arrr,"}  # 해적 말투 시작
-    ],
-    max_tokens=1024
-)
-```
-
-### 주의사항
-
-- **Fable 5·5.1·4.6+ 계열에서는 400 에러** — Structured Outputs로 대체
-- Prefilling은 stop reason을 `end_turn`에서 `stop_sequence`로 변경할 수 있음
-- Extended thinking과 함께 사용 시 제한이 있을 수 있음
-
----
-
 ## Vision (이미지 분석)
 
 ### Base64 이미지
@@ -526,7 +462,7 @@ except APIError as e:
 | `claude-sonnet-5` | $2 / $10 | 균형 (권장 기본값) — 도입가였으나 정가로 확정 (2026-08 확인, $3/$15 인상 미시행) |
 | `claude-haiku-4-5` | $1 / $5 | 빠르고 저렴, 단순 작업 |
 
-> 구모델(`claude-opus-4-8`, `claude-sonnet-4-5` 등)도 여전히 서비스 중이지만, 신규 코드는 위 표 기준. prefill·`budget_tokens` 등 구모델 전용 기법이 필요한 경우에만 구모델 지정. Opus 5는 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다.
+> 신규 코드는 위 표 기준. Opus 5는 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다.
 
 ---
 
@@ -572,7 +508,7 @@ response = client.beta.messages.create(
     model="claude-fable-5-1",
     max_tokens=16000,
     betas=["server-side-fallback-2026-07-01"],
-    fallbacks="default",       # 거절 시 같은 호출 내 자동 재시도 (Opus 4.8·Opus 5)
+    fallbacks="default",       # 거절 시 같은 호출 내 자동 재시도 (Opus 5)
     messages=[...],
 )
 
@@ -591,7 +527,7 @@ else:
 ### 6. 미지원 기능
 
 - **Priority Tier 미지원** (Fable 5는 지원)
-- **Fast mode 미지원** — Opus 5·Opus 4.8 전용
+- **Fast mode 미지원** — Opus 5 전용
 - **300K 출력 배치 베타 미지원** — `output-300k-2026-03-24` 헤더의 지원 모델 목록에 없음
 
 ### 7. 신규 베타
@@ -604,7 +540,7 @@ else:
 
 ### 기타
 
-- 마지막 assistant 턴 prefill 400 (4.6+ 공통)
+- 마지막 assistant 턴 prefill 400
 - raw chain of thought는 절대 반환 안 됨 — `display: "summarized"`로 요약만 수신
 - 프롬프트 캐시 최소 512 토큰, 캐시 읽기 $0.25/MTok (기본 입력의 0.025배)
 - 도구 호출 사이의 사용자 대상 텍스트는 Opus 5에서 `text` 블록이었으나 5.1은 진행 업데이트 `thinking` 블록으로 옵니다. 기본값 `omitted`이면 빈 블록입니다

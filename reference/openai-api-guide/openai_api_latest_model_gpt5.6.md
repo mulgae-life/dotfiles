@@ -5,7 +5,7 @@ Learn best practices, features, and migration guidance for the GPT-5.6 model fam
 
 > **출처**: [Using GPT-5.6 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 > **검증일**: 2026-07-13 (GA 2026-07-09)
-> **이전 버전**: [Using GPT-5.4](./openai_api_latest_model_gpt5.4.md)
+> **이전 버전**: [Using GPT-5.4](../archive/openai-api-guide/openai_api_latest_model_gpt5.4.md)
 
 GPT-5.6 is OpenAI's frontier model family for professional work, released as three tiers instead of a single flagship. Frontier improvements claimed in SW engineering, computer use, professional knowledge work, scientific research, and cybersecurity.
 

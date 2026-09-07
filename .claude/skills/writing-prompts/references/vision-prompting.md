@@ -379,9 +379,9 @@ prompt: |
 
 ## 7. 모델별 팁
 
-### OpenAI (GPT-4V/GPT-5)
+### OpenAI (GPT-5.6·6)
 
-- **고해상도 모드**: 세밀한 분석이 필요할 때 (`detail` 값과 5.5+ 신규 기본값 `original`은 [gpt55-patterns.md](gpt55-patterns.md) §7 참조)
+- **고해상도 모드**: 세밀한 분석이 필요할 때 (`image_detail`: `low`/`high`/`original`. 5.5부터 기본값이 `original`이라 토큰이 많으니 필요 시 `high` 명시)
   ```python
   message = {
       "role": "user",
@@ -425,7 +425,7 @@ prompt: |
   }
   ```
 - **PDF 처리**: 문서 이미지 일괄 분석
-- **Crop tool**: Opus 4.5에서 이미지 영역 줌인 가능
+- **Crop tool**: Opus 4.5부터 이미지 영역 줌인 가능
 
 ### 공통 최적화
 

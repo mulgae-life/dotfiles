@@ -43,7 +43,7 @@ Fable 5·5.1은 **지시 따르기가 매우 강해**, 4.x에서 필요했던 �
 
 ## De-prescribe: 4.x와 반대 방향
 
-[claude-4-specifics.md](claude-4-specifics.md)의 "명시적으로 요청하면 명시적으로 수행" 원칙은 Fable 5에서 **뒤집힙니다**:
+Claude 4.x의 "명시적으로 요청하면 명시적으로 수행" 원칙은 Fable 5에서 **뒤집힙니다**:
 
 ❌ **4.x식 (Fable 5에서 품질 저하)**:
 ```

@@ -27,4 +27,3 @@ Anthropic provides 9 core prompt engineering techniques for working with Claude:
 
 - [Prompt library](https://platform.claude.com/docs/en/resources/prompt-library/library) - Curated prompts for various tasks
 - [Extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) - Enhanced reasoning for complex tasks
-- [Claude 4.x best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices) - Model-specific guidance

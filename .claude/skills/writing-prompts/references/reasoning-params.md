@@ -44,9 +44,9 @@ LLM의 "생각하는 정도"를 제어합니다. 작업 복잡도에 맞게 조�
 - 멀티스텝/Agentic? → 높음
 ```
 
-### 프롬프트로 제어 (Claude 4.x 이하·표준 모델 한정)
+### 프롬프트로 제어 (비추론 모델 한정)
 
-> ⚠️ 아래 "깊은 추론 유도" 지시는 Claude 5 세대·GPT-5 계열 추론 모델에서는 **삭제가 공식 권고**입니다. 사고 과정을 답변에 옮겨 쓰게 하는 지시는 Claude 5 세대에서 `reasoning_extraction` refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md). 추론 모델의 깊이는 `output_config.effort`/`reasoning.effort`로 조절하세요.
+> ⚠️ 아래 "깊은 추론 유도" 지시는 Claude 5 세대·GPT 추론 모델에서는 **삭제가 공식 권고**입니다. 사고 과정을 답변에 옮겨 쓰게 하는 지시는 Claude 5 세대에서 `reasoning_extraction` refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md). 추론 모델의 깊이는 `output_config.effort`/`reasoning.effort`로 조절하세요.
 
 ```yaml
 # 깊은 추론 유도
@@ -214,11 +214,11 @@ response = client.responses.create(
 
 **파라미터 설명**:
 - `reasoning.effort`: 추론 깊이
-  - `none`: 추론 없이 실행 중심 (GPT-5.2/5.4 기본값). GPT-6 미지원 — `low`부터
+  - `none`: 추론 없이 실행 중심 (5.6까지). GPT-6 미지원 — `low`부터
   - `low`: 빠른 응답
-  - `medium`: 기본값 (GPT-5 / 5.5 / 5.6 기본값, GPT-6 기본값)
+  - `medium`: 기본값 (5.6·GPT-6 기본값)
   - `high`: 깊은 추론 (코딩, Agentic에 적합)
-  - `xhigh`: 최대 추론 (GPT-5+, 명확한 eval 이점이 있을 때만)
+  - `xhigh`: 최대 추론 (명확한 eval 이점이 있을 때만)
   - `ultra`: Codex·ChatGPT 제품 전용 자동 위임 모드 — API 값 아님
   - 5.5/5.4 → 5.6 마이그레이션: **기존 값을 baseline으로 두고 한 단계 낮춰 비교** (공식 지침)
   - 5.6 → 6 마이그레이션: `none`/`minimal` 사용처는 `low`로, 나머지는 기존 값 유지 후 비교
@@ -236,7 +236,7 @@ reasoning effort를 올리기 전에 먼저 프롬프트 패턴을 추가:
 3. `<verification_loop>` (검증 루프)
 4. 이후에도 부족하면 effort 증가
 
-→ 상세: [gpt6-patterns.md](gpt6-patterns.md), [gpt56-patterns.md](gpt56-patterns.md), [gpt54-patterns.md](gpt54-patterns.md)
+→ 상세: [gpt6-patterns.md](gpt6-patterns.md), [gpt56-patterns.md](gpt56-patterns.md)
 
 **자연어 오버라이드**: 전역 설정을 프롬프트에서 컨텍스트별로 재정의 가능
 
@@ -270,45 +270,14 @@ response = client.messages.create(
 - thinking이 상시 adaptive로 켜져 있어 `output_config.effort`로만 깊이 제어
 - `thinking`/`budget_tokens`·sampling 파라미터는 **400 에러** → [claude-5-specifics.md](claude-5-specifics.md)
 - 기본 `high`, 최고 난도만 `xhigh`/`max`, 루틴은 `medium`/`low`
-- 기본값 `high`에서 시작하되 전 레벨을 자체 eval로 다시 측정 — effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아 구모델 설정을 그대로 옮기면 안 됩니다
-
-#### Claude 4.x — Extended Thinking (`budget_tokens`)
-
-```python
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    max_tokens=16000,
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 10000  # 추론에 할당할 토큰
-    },
-    messages=[...]
-)
-```
-
-**특징**:
-- 복잡한 작업에서 품질 향상
-- `budget_tokens`로 추론 깊이 간접 제어 (Fable 5·4.6+에서는 400)
-- 추론 과정이 별도로 반환됨
-
-**프롬프트로 제어** (Claude 4.x 이하·표준 모델 한정):
-
-```xml
-<thinking_instructions>
-- 답변 전에 단계별로 분석하세요
-- 여러 접근 방식을 비교하세요
-</thinking_instructions>
-```
-
-> Claude 5 세대에서는 이 지시를 삭제하는 것이 공식 권고입니다. 사고가 상시 켜져 있고, 사고 과정 서술 요구는 refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md).
-
-**주의**: Extended thinking(4.x) 모드에서는 prefilling 사용 불가
+- 기본값 `high`에서 시작하되 전 레벨을 자체 eval로 다시 측정 — effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아 다른 모델의 설정을 그대로 옮기면 안 됩니다
+- "단계별로 분석하라"류 사고 유도 지시는 삭제가 공식 권고 — 사고가 상시 켜져 있고, 사고 과정 서술 요구는 refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md)
 
 ### 공통 팁
 
 ```yaml
-# 복잡한 작업에서 품질 높이기 (Claude 4.x 이하·표준 모델 한정)
-# Claude 5 세대·GPT-5 계열 추론 모델에서는 세 지시 모두 삭제가 공식 권고
+# 복잡한 작업에서 품질 높이기 (비추론 모델 한정)
+# Claude 5 세대·GPT 추론 모델에서는 세 지시 모두 삭제가 공식 권고
 # → claude-5-specifics.md (스스로 검증하므로 지시가 과잉 검증을 부름)
 - 단계별 사고 요청 ("step by step")
 - 근거 제시 요청 ("explain your reasoning")

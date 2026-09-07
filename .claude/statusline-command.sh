@@ -9,7 +9,7 @@ prj_dir=$(echo "$input" | jq -r '.workspace.project_dir // .cwd // empty')
 [ -z "$prj_dir" ] && prj_dir=$(pwd)
 prj_dir="${prj_dir/#$HOME/\~}"
 
-# 모델 표시명 (괄호 접미사 제거: "Opus 4.6 (1M context)" → "Opus 4.6")
+# 모델 표시명 (괄호 접미사 제거: "Opus 5 (1M context)" → "Opus 5")
 model=$(echo "$input" | jq -r '.model.display_name // empty' | sed 's/ *(.*//')
 
 # 노력 수준(effort) — 미지원 모델은 필드 자체가 없어 표시 생략됨

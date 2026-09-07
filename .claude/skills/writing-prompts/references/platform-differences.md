@@ -7,13 +7,13 @@ OpenAI GPT와 Anthropic Claude의 프롬프트 엔지니어링 주요 차이점�
 | 항목 | OpenAI (GPT-5.x / 6) | Anthropic (Claude) | 공통 |
 |------|----------------|-------------------|------|
 | **Message Roles** | `developer` (최고 우선순위)<br/>`user`, `assistant` | `system` 파라미터<br/>`user`, `assistant` | `user`, `assistant` |
-| **파라미터** | `reasoning_effort`<br/>`verbosity` | `output_config.effort` (Fable 5/4.6+)<br/>`budget_tokens` (4.x) | - |
-| **Prefilling** | ❌ 없음 | ✅ `assistant` message prefill<br/>(Claude 4.5 이하, Fable 5·4.6+는 400) | - |
-| **Long Context** | 일반적 사용 | ✅ Claude 4.x 200K / Claude 5 세대 1M(출력 128K)<br/>(문서 맨 위 배치 → 30%↑) | - |
+| **파라미터** | `reasoning_effort`<br/>`verbosity` | `output_config.effort` | - |
+| **Prefilling** | ❌ 없음 | ❌ 400 에러 → Structured Outputs | - |
+| **Long Context** | 일반적 사용 | ✅ 1M(출력 128K)<br/>(문서 맨 위 배치 → 30%↑) | - |
 | **CoT** | "Think step-by-step" | "Let Claude think"<br/>3단계 (Basic/Guided/Structured) | ✅ 공통 개념 |
 | **Examples** | Few-shot | Multishot | ✅ 동일 개념 (Frontier 0~2개, 소형 3-5개) |
 | **XML Tags** | ✅ 권장 | ✅ 권장 | ✅ 공통 |
-| **Extended Thinking** | ❌ 없음 | ✅ Claude 4.x 특화 | - |
+| **Extended Thinking** | ❌ 없음 | ✅ adaptive thinking 상시, `effort`로 깊이 제어 | - |
 
 ## 상세 비교
 
@@ -23,7 +23,7 @@ OpenAI GPT와 Anthropic Claude의 프롬프트 엔지니어링 주요 차이점�
 ```python
 # developer role (최고 우선순위)
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input=[
         {"role": "developer", "content": "반드시 격식체 사용"},
         {"role": "user", "content": "안녕하세요"}
@@ -32,7 +32,7 @@ response = client.responses.create(
 
 # 또는 instructions 파라미터
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     instructions="반드시 격식체 사용",
     input="안녕하세요"
 )
@@ -42,7 +42,7 @@ response = client.responses.create(
 ```python
 # system 파라미터
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     system="반드시 격식체 사용",  # system prompt
     messages=[
         {"role": "user", "content": "안녕하세요"}
@@ -56,38 +56,7 @@ response = client.messages.create(
 
 ### 2. Prefilling (응답 사전 채우기)
 
-> ⚠️ **Claude 4.5 이하 전용.** Fable 5·Opus 4.6+·Sonnet 4.6+에서는 마지막 assistant 턴 prefill이 **400 에러**입니다. 최신 모델은 Structured Outputs(`output_config.format`) 또는 시스템 프롬프트 지시로 대체하세요 → [prefilling.md](prefilling.md), [claude-5-specifics.md](claude-5-specifics.md).
-
-#### OpenAI
-- ❌ 지원하지 않음
-
-#### Anthropic ⭐
-```python
-# JSON 강제 출력
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    messages=[
-        {"role": "user", "content": "데이터를 JSON으로 추출해줘"},
-        {"role": "assistant", "content": "{"}  # Prefill
-    ]
-)
-# 출력: { "name": "...", "age": ... } (프리앰블 없이 바로 JSON)
-
-# 캐릭터 유지
-response = client.messages.create(
-    model="claude-sonnet-4-5",
-    messages=[
-        {"role": "user", "content": "이 사건을 분석해봐"},
-        {"role": "assistant", "content": "[Sherlock Holmes]"}  # Prefill
-    ]
-)
-# 출력: Sherlock 캐릭터로 응답 시작
-```
-
-**용도**:
-- JSON/XML 출력 강제
-- 프리앰블 건너뛰기
-- 역할극 캐릭터 유지
+두 플랫폼 모두 지원하지 않습니다. Claude 5 세대는 마지막 assistant 턴 prefill이 **400 에러**입니다. JSON/XML 형식 강제는 Structured Outputs(`output_config.format`), 프리앰블 생략·캐릭터 유지는 시스템 프롬프트 지시로 처리합니다 → [claude-5-specifics.md](claude-5-specifics.md).
 
 ### 3. Long Context 최적화
 
@@ -166,30 +135,12 @@ response = client.messages.create(
 - 깊이는 `output_config.effort` 한 축으로만 제어 → [claude-5-specifics.md](claude-5-specifics.md)
 - `thinking`/`budget_tokens`, `thinking: {type: "disabled"}`는 **400 에러**
 
-#### Anthropic (Claude 4.x)
-```python
-# Extended thinking 모드
-response = client.messages.create(
-    model="claude-opus-4-5",
-    thinking={
-        "type": "enabled",
-        "budget_tokens": 10000
-    },
-    messages=[...]
-)
-```
-
-**특징**:
-- 복잡한 추론 강화
-- Context awareness (token budget 추적)
-- Multi-window workflows
-
 ### 6. GPT-5.x / 6 특화 파라미터
 
 #### OpenAI ⭐
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     reasoning={"effort": "high"},  # 추론 깊이
     text={"verbosity": "low"},     # 응답 길이
     instructions="...",
@@ -202,8 +153,7 @@ response = client.responses.create(
 - `verbosity`: low/medium/high (응답 길이)
 
 #### Anthropic
-- **Fable 5/4.6+**: `output_config.effort` (`low`~`max`)로 추론 깊이 제어 → [claude-5-specifics.md](claude-5-specifics.md)
-- **Claude 4.x**: Extended Thinking `budget_tokens` (Fable 5·4.6+는 400 에러)
+- `output_config.effort` (`low`~`max`)로 추론 깊이 제어 → [claude-5-specifics.md](claude-5-specifics.md)
 - 응답 길이는 프롬프트로 제어:
   ```
   "간결하게 답변하세요" (verbosity low 대신)
@@ -217,10 +167,8 @@ response = client.responses.create(
 - OpenAI 생태계 (Assistants API, GPTs 등) 통합
 
 ### Anthropic Claude를 선택하는 경우
-- Prefilling으로 출력 형식 강제 필요
-- Long context 활용 (Claude 4.x 200K / Claude 5 세대 1M, 출력 128K — 30% 성능 향상)
-- Extended thinking으로 복잡한 추론 작업
-- Claude 4.x의 우수한 코딩/비전 능력
+- Long context 활용 (1M, 출력 128K — 문서 맨 위 배치로 30% 성능 향상)
+- adaptive thinking으로 복잡한 추론 작업
 
 ### 공통 사용 가능
 - XML 태그 구조화
@@ -244,7 +192,7 @@ response = client.responses.create(
 OpenAI 버전:
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     reasoning={"effort": "high"},
     text={"verbosity": "low"},
     instructions="""
@@ -269,7 +217,7 @@ response = client.responses.create(
 Anthropic 버전:
 ```python
 response = client.messages.create(
-    model="claude-sonnet-4-5",
+    model="claude-sonnet-5",
     system="""
     당신은 데이터 분석가입니다.
 
@@ -295,9 +243,9 @@ response = client.messages.create(
 
 | 선택 기준 | OpenAI | Anthropic |
 |----------|--------|-----------|
-| **세밀한 파라미터 제어** | ✅ reasoning_effort, verbosity | ✅ output_config.effort (Fable 5/4.6+) |
-| **Prefilling** | ❌ | ✅ (Claude 4.5 이하, Fable 5·4.6+는 400) |
-| **Long Context 최적화** | - | ✅ 4.x 200K / 5 세대 1M (30%↑) |
+| **세밀한 파라미터 제어** | ✅ reasoning_effort, verbosity | ✅ output_config.effort |
+| **Prefilling** | ❌ | ❌ (400 → Structured Outputs) |
+| **Long Context 최적화** | - | ✅ 1M (30%↑) |
 | **Extended Thinking** | ❌ | ✅ |
 | **공통 기법** | ✅ XML, Few-shot, CoT | ✅ XML, Multishot, CoT |
 

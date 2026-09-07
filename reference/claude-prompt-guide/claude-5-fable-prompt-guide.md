@@ -6,7 +6,7 @@
 > - [Migration Guide — Migrating to Claude Fable 5 | Anthropic](https://platform.claude.com/docs/en/about-claude/models/migration-guide)
 >
 > **날짜**: 2026-07-10
-> **이전 버전**: [Claude 4.x Best Practices](./claude-4-best-practices.md)
+> **이전 버전**: [Claude 4.x Best Practices](../archive/claude-prompt-guide/claude-4-best-practices.md)
 
 Claude 5 세대(Fable 5, Mythos 5) 특화 프롬프팅 가이드입니다. 프롬프트 스니펫은 공식 문서 원문(영문)을 그대로 수록했습니다 — 시스템 프롬프트에 바로 붙여 쓰는 용도이므로 번역하지 않습니다.
 
@@ -204,7 +204,7 @@ Between tool calls, when you have content the user must read verbatim (a partial
 
 ## Claude 4.x 가이드와의 차이
 
-| 축 | Claude 4.x ([이전 가이드](./claude-4-best-practices.md)) | Fable 5 |
+| 축 | Claude 4.x ([이전 가이드](../archive/claude-prompt-guide/claude-4-best-practices.md)) | Fable 5 |
 |----|------------------------------------------------------|---------|
 | **지시 밀도** | 명시적·상세 지시 권장 ("above and beyond"는 요청해야) | De-prescribe — 짧은 지시로 조향, 과잉 지시는 품질 저하 |
 | **Thinking** | Extended Thinking + `budget_tokens` | 항상 켜진 adaptive, `effort`로만 제어 |

@@ -18,7 +18,7 @@ OpenAI API는 메시지 역할을 통해 권한 수준을 제어합니다.
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     instructions="반드시 격식체(~습니다, ~입니다)를 사용하세요.",
     input="안녕하세요"
 )
@@ -30,7 +30,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input=[
         {
             "role": "developer",
@@ -69,14 +69,14 @@ input=[
 ```python
 # 첫 요청
 response1 = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     instructions="격식체 사용",
     input="안녕하세요"
 )
 
 # 후속 요청 (instructions는 자동 유지 안 됨!)
 response2 = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     previous_response_id=response1.id,
     instructions="격식체 사용",  # 다시 명시 필요
     input="계속 이야기해주세요"
@@ -91,7 +91,7 @@ response2 = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     instructions="""
     당신은 NewTelco 고객 서비스 에이전트입니다.
 
@@ -113,7 +113,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     instructions="""
     당신은 소프트웨어 엔지니어링 에이전트입니다.
 

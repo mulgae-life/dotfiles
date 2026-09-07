@@ -32,7 +32,7 @@
 
 ### 1. "Think step by step" (추론 모델)
 
-추론 모델(GPT-5, o3 등)은 내부적으로 CoT를 수행합니다. 명시적 CoT 지시가 **불필요한 추론 라우팅**을 유발하여 오히려 성능 저하. 표준 모델에서는 여전히 유효합니다.
+추론 모델(GPT-6, Claude 5 세대 등)은 내부적으로 CoT를 수행합니다. 명시적 CoT 지시가 **불필요한 추론 라우팅**을 유발하여 오히려 성능 저하. 표준 모델에서는 여전히 유효합니다.
 
 ### 2. ALL-CAPS / 공격적 강조
 
@@ -44,7 +44,7 @@
 
 ### 4. Few-shot의 추론 목적 사용
 
-Frontier 모델에서 few-shot 예시는 **포맷 정렬**에만 유효합니다. 추론 향상이 목적이면 `reasoning_effort` 파라미터나 Extended Thinking을 사용하세요. → [few-shot.md](few-shot.md)
+Frontier 모델에서 few-shot 예시는 **포맷 정렬**에만 유효합니다. 추론 향상이 목적이면 `reasoning.effort`(OpenAI)·`output_config.effort`(Anthropic) 파라미터를 사용하세요. → [few-shot.md](few-shot.md)
 
 ---
 
@@ -64,9 +64,8 @@ Frontier 모델에서 few-shot 예시는 **포맷 정렬**에만 유효합니다
 ### 3. reasoning_effort 파라미터
 
 모델 내장 추론 깊이를 API 파라미터로 직접 제어합니다:
-- GPT-5/5.4: `none` / `low` / `medium` / `high` / `xhigh`
+- GPT-5.6: `none` / `low` / `medium` / `high` / `xhigh` / `max`
 - GPT-6: `low` / `medium` / `high` / `xhigh` / `max` (`none` 미지원, 기본 `medium`)
-- Claude 4.x: Extended Thinking 활성화/비활성화
 - Claude 5 세대: adaptive thinking 상시 + `output_config.effort` (`low`~`max`)가 유일한 제어축
 - → [reasoning-params.md](reasoning-params.md) 참조
 
@@ -182,12 +181,12 @@ npx promptfoo@latest eval  # https://github.com/promptfoo/promptfoo
 | 모델 스냅샷 고정 | **필수** | 프로덕션에서 라우터 동작이 버전 간 변동 |
 | Few-shot | **선택적** | 포맷 정렬 용도로만 유효 |
 
-### Claude 4.x (Anthropic)
+### Claude 5 세대 (Anthropic)
 
 | 기법 | 상태 | 비고 |
 |------|------|------|
 | XML 태그 구조화 | **강력 권장** | `<instructions>`, `<context>`, `<example>` 등 |
-| Extended Thinking | **권장** | 자동 구조적 추론. 수동 CoT보다 선호 |
+| Adaptive Thinking | **상시** | `output_config.effort`로 깊이 제어. 수동 CoT·사고 서술 지시 금지 |
 | 공격적 언어 | **비권장** | "CRITICAL!", ALL-CAPS 등은 출력 품질 저하 |
 | 차분하고 직접적 | **권장** | 침착하고 직접적인 요청이 최적 성능 |
 | 프롬프트 캐싱 | **적극 활용** | 캐시 읽기 토큰이 기본 입력의 0.1배 가격 |

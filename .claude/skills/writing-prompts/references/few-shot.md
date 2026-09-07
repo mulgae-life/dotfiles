@@ -223,8 +223,8 @@ system_prompt: |
 |-----------|----------|------|
 | 소형/구형 (<14B) | Few-shot 3~5개 + CoT | 예시가 추론 방법을 가르침 |
 | 대형 Instruction-tuned (14B+) | Zero-shot CoT, 필요 시 1~2개 | 2~3개만으로 패턴 학습 충분 |
-| Frontier (GPT-5, Claude 4.5+) | **Zero-shot + 포맷 예시 1개** | 예시는 포맷 정렬에만 유효 |
-| Reasoning (o1, o3, R1) | **간결한 Zero-shot. Few-shot 금지** | 내부 추론과 외부 CoT 충돌 |
+| Frontier (GPT-5.6·6, Claude 5 세대) | **Zero-shot + 포맷 예시 1개** | 예시는 포맷 정렬에만 유효 |
+| Reasoning 전용 (DeepSeek-R1 등) | **간결한 Zero-shot. Few-shot 금지** | 내부 추론과 외부 CoT 충돌 |
 | 긴 컨텍스트 특화 (Gemini 1.5+) | Many-shot(수백 예시) 고려 가능 | NeurIPS 2024 Spotlight |
 
 ### 예시 개수별 효과
@@ -248,7 +248,7 @@ system_prompt: |
 ### 실무 권장
 
 - Frontier 모델에서는 **포맷 정렬 용도로만** 1~2개 예시 사용
-- 추론 향상이 목적이면 few-shot 대신 `reasoning_effort` 파라미터나 Extended Thinking 사용
+- 추론 향상이 목적이면 few-shot 대신 `reasoning.effort`·`output_config.effort` 파라미터 사용
 - 예시 **품질**이 수량보다 중요 — 2~3개의 고품질 예시 > 8개의 평범한 예시
 
 ### 참고 논문

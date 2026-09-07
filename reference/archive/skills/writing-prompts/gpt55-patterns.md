@@ -34,7 +34,7 @@ GPT-5.5는 5.4의 드롭인 교체가 아닌 **새 모델 패밀리**. fresh bas
 | Image detail 기본 | `high` | **`original`** (computer use 향상) |
 | 마이그레이션 | 드롭인 가능 | **❌ 드롭인 금지**, fresh baseline |
 
-> 상세 가이드: [`reference/openai-prompt-guide/gpt-5.5-prompt-guide.md`](../../../../reference/openai-prompt-guide/gpt-5.5-prompt-guide.md)
+> 상세 가이드: [`reference/openai-prompt-guide/gpt-5.5-prompt-guide.md`](../../openai-prompt-guide/gpt-5.5-prompt-guide.md)
 
 ---
 
@@ -323,7 +323,7 @@ OpenAI Docs Skill이 프로젝트 프롬프트 스택을 5.5 권장에 맞게 �
 
 ## 참고
 
-- [GPT-5.5 Prompting Guide (full)](../../../../reference/openai-prompt-guide/gpt-5.5-prompt-guide.md) — 전체 가이드 + 외부 노하우
+- [GPT-5.5 Prompting Guide (full)](../../openai-prompt-guide/gpt-5.5-prompt-guide.md) — 전체 가이드 + 외부 노하우
 - [GPT-5.5 Prompting Guide (공식)](https://developers.openai.com/api/docs/guides/prompt-guidance/)
 - [Using GPT-5.5 (공식)](https://developers.openai.com/api/docs/guides/latest-model)
 - [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)

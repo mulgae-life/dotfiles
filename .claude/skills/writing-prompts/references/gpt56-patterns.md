@@ -120,7 +120,7 @@ any material caveat, and the next action.
 - Structured Outputs API 강제
 - 5.4 계열 패턴 (`<output_contract>`, `<completeness_contract>` 등)
 
-상세는 [`gpt55-patterns.md`](./gpt55-patterns.md) 참조. 5.6에서 새로 추가/변경된 것: §1~§4.
+5.6에서 새로 추가/변경된 것: §1~§4.
 
 ---
 
@@ -154,4 +154,3 @@ any material caveat, and the next action.
 - [Upgrading to GPT-5.6 Sol (공식)](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol)
 - [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 - [Simon Willison — The new GPT-5.6 family (2026-07-09)](https://simonwillison.net/2026/Jul/9/gpt-5-6/)
-- [GPT-5.5 패턴 (이전 버전)](./gpt55-patterns.md)

@@ -52,7 +52,7 @@ Anthropic
 |------|----------|------------|
 | 클라이언트 초기화 | 앱 수명주기로 관리, 요청마다 생성 금지 | `references/common-patterns.md` |
 | Message Roles | system/user/assistant 역할 분리, 우선순위 준수 | 각 API references |
-| Reasoning | OpenAI: `reasoning.effort`, Anthropic: adaptive thinking + `output_config.effort` (구모델만 `budget_tokens`) | 각 API references |
+| Reasoning | OpenAI: `reasoning.effort`, Anthropic: adaptive thinking + `output_config.effort` | 각 API references |
 | 스트리밍 | SSE 기반, 청크 조립 + 에러 핸들링 | `references/common-patterns.md` |
 | 에러 핸들링 | 타입별 분기 + 지수 백오프 재시도 | `references/common-patterns.md` |
 | 대화 이력 | OpenAI: `previous_response_id`, Anthropic: 수동 메시지 배열 관리 | 각 API references |
@@ -106,12 +106,11 @@ Anthropic
 - [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전, 2026-07)
 - [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
 - [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
-- [GPT-5.5 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.5)
 
 ### Anthropic
 
 - [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
-- [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (4.6+/Fable 5·5.1)
+- [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (Claude 5 세대)
 - [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1) ⭐ 최신 (2026-09) — 사고 블록 바인딩·신규 베타 3종
 - [Fable 5.1 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide) — 강제 `tool_choice` 400 등 파괴적 변경 3건과 체크리스트
 - [Prompting Claude Fable 5.1](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) — effort 재측정·행동 변화 대응 지시문

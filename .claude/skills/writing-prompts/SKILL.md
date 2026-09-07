@@ -31,8 +31,8 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
 | **Examples** | Frontier 0~2개(포맷 정렬), 소형 3-5개 | Few-shot | Multishot (동일 개념) |
 | **XML 태그** | ✅ 권장 | ✅ | ✅ |
-| **특화 파라미터** | - | `reasoning.effort` (GPT-6: `none` 미지원, low~max), `reasoning.mode`/`context` (5.6+), `verbosity`, `phase`, `image_detail` | `output_config.effort` (Fable 5/4.6+) |
-| **Prefilling** | - | ❌ | ⚠️ Claude 4.5 이하 전용 (Fable 5·4.6+는 400) |
+| **특화 파라미터** | - | `reasoning.effort` (GPT-6: `none` 미지원, low~max), `reasoning.mode`/`context` (5.6+), `verbosity`, `image_detail` | `output_config.effort` |
+| **Prefilling** | - | ❌ | ❌ (400 → Structured Outputs) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
 | **모순 제거** | 충돌 지시 금지 | ✅ | ✅ |
@@ -90,8 +90,8 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
-| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시(GPT-6), 티어 선택(5.6) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra), `references/gpt56-patterns.md` (5.6), `references/gpt5-params.md` |
-| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화, Prefilling(4.5 이하) | `references/claude-5-specifics.md` ⭐ (Fable 5.1·Opus 5), `references/prefilling.md`, `references/long-context.md` |
+| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시(GPT-6), 티어 선택(5.6) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra), `references/gpt56-patterns.md` (5.6) |
+| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Fable 5.1·Opus 5), `references/long-context.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` 🆕 |
 | Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` 🆕 |
 
@@ -179,12 +179,7 @@ system_prompt: |
 - [ ] **Retrieval Budget** 명시 (도구 사용 시 stopping conditions)
 - [ ] **Structured Outputs API**로 스키마 강제 (프롬프트 대신)
 - [ ] **Tool Validation**: 출력 검증을 도구로 (테스트·린트·렌더링) — 5.6은 overstep 경향이 5.5보다 커 검증 루프 중요도 상승
-- [ ] 마이그레이션: 5.5→5.6은 **모델만 교체 → 기존 프롬프트·effort 기준선 평가 → 한 그룹씩 프롬프트 축소 → 측정된 회귀에만 최소 수정** / 5.4 이전→는 fresh baseline 재구성 먼저
-- [ ] Message Roles (developer/user)
-
-**OpenAI GPT-5.4 이전**:
-- [ ] reasoning_effort 설정 (작업 복잡도)
-- [ ] verbosity 설정 (응답 길이)
+- [ ] 마이그레이션: 5.5→5.6은 **모델만 교체 → 기존 프롬프트·effort 기준선 평가 → 한 그룹씩 프롬프트 축소 → 측정된 회귀에만 최소 수정**
 - [ ] Message Roles (developer/user)
 
 **Anthropic Claude Fable 5.1 / Claude 5 세대** (최신, 권장):
@@ -198,10 +193,6 @@ system_prompt: |
 - [ ] **범위·테스트 제한** (5.1): 요청 밖 수정·과다 테스트 커밋을 막는 지시문 추가
 - [ ] **반서식 규칙 제거** (5.1): 구모델용 "불릿·헤더 쓰지 마라"가 필요한 구조까지 억제 → 언제 서식이 적절한지로 교체
 - [ ] 장기 자율 런: 진행 보고 근거화 + 메모리 파일 → [claude-5-specifics.md](references/claude-5-specifics.md)
-- [ ] Long context 문서 배치 (맨 위)
-
-**Anthropic Claude 4.x 이하**:
-- [ ] Prefilling 활용 (JSON/형식 강제) — 4.5 이하 전용
 - [ ] Long context 문서 배치 (맨 위)
 
 **Google Gemma 4** (오픈웨이트, 2026-04-02):
@@ -255,18 +246,13 @@ system_prompt: |
 
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
 - **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드 (패턴 출처는 OpenAI 가이드 — Claude 5 세대에는 그대로 적용 금지)
-- **[gpt5-params.md](references/gpt5-params.md)** - GPT-5 API 파라미터 (`reasoning`, `verbosity` 코드 예시)
 - **[gpt6-patterns.md](references/gpt6-patterns.md)** ⭐ GPT-6 Astra 프롬프트 패턴 (주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, effort 5단계·`none` 폐지, 제거 파라미터, 5.6 → 6 마이그레이션) 🆕
 - **[gpt56-patterns.md](references/gpt56-patterns.md)** GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) — 계약 구조·신규 API 기능은 GPT-6에서도 유효
-- **[gpt55-patterns.md](references/gpt55-patterns.md)** GPT-5.5 프롬프트 패턴 (Outcome-first, Personality 분리, Retrieval Budget, Tool Validation, Markdown 절제) — 5.6에서도 호환
-- **[gpt54-patterns.md](references/gpt54-patterns.md)** GPT-5.4 프롬프트 패턴 (출력 계약, 도구 지속성, 검증 루프) — 5.5/5.6에서도 호환
-- **[optimization.md](references/optimization.md)** - GPT-5 최적화 팁
+- **[optimization.md](references/optimization.md)** - GPT 프롬프트 최적화 팁 (모순 제거, 지시 계층, 출력 형식, 캐싱)
 
 ### Anthropic (Claude) 특화
 
 - **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Fable 5.1·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Fable 5 → 5.1 델타 🆕
-- **[claude-4-specifics.md](references/claude-4-specifics.md)** Claude 4.x 베스트 프랙티스 (구세대)
-- **[prefilling.md](references/prefilling.md)** Prefilling (JSON/캐릭터 강제) — Claude 4.5 이하 전용
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
 
 ### Google Gemma 특화 (오픈웨이트)
@@ -290,8 +276,6 @@ system_prompt: |
 - [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
 - [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 - [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
-- [GPT-5 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5_prompting_guide)
-- [GPT-5.5 Prompting Guide (이전)](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.5)
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
 ### Anthropic
@@ -303,7 +287,6 @@ system_prompt: |
 - [Prompting Claude Opus 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
 - [Introducing Claude Fable 5 (공식)](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
-- [Claude 4.x Best Practices (이전)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-4-best-practices)
 
 ### Google Gemma 4 (2026-04-02)
 - [Gemma 4 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemma-4-prompt-guide.md) ⭐ 16섹션 + 외부 노하우

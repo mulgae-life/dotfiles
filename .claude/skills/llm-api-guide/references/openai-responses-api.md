@@ -5,15 +5,13 @@
 - [기본 사용법](#기본-사용법)
 - [Message Roles](#message-roles)
 - [Reasoning 파라미터](#reasoning-파라미터)
-- [Verbosity (GPT-5.2+)](#verbosity-gpt-52)
-- [Phase 파라미터 (GPT-5.4)](#phase-파라미터-gpt-54)
+- [Verbosity](#verbosity)
 - [대화 이력 관리](#대화-이력-관리)
 - [Tool Calling (Function Calling)](#tool-calling-function-calling)
 - [스트리밍](#스트리밍)
 - [Incomplete Response 처리](#incomplete-response-처리)
 - [Usage 정보](#usage-정보)
-- [GPT-5.2 특화 기능](#gpt-52-특화-기능)
-- [GPT-5.4 특화 기능](#gpt-54-특화-기능)
+- [내장 도구·에이전트 기능](#내장-도구에이전트-기능)
 - [GPT-5.6 특화 기능](#gpt-56-특화-기능)
 - [GPT-6 Astra 특화·변경 사항](#gpt-6-astra-특화변경-사항)
 - [마이그레이션 가이드](#마이그레이션-가이드)
@@ -44,7 +42,7 @@ from openai import OpenAI
 client = OpenAI()
 
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input="Hello, world!"
 )
 
@@ -55,7 +53,7 @@ print(response.output_text)
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     instructions="You are a helpful assistant that speaks Korean formally.",
     input="What is the capital of Korea?"
 )
@@ -75,7 +73,7 @@ developer (최고) > instructions > user
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input=[
         {
             "role": "developer",
@@ -111,7 +109,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     reasoning={"effort": "high"},
     input="복잡한 수학 문제를 풀어주세요..."
 )
@@ -119,21 +117,20 @@ response = client.responses.create(
 
 | effort | 설명 | 사용 사례 |
 |--------|------|-----------|
-| `none` | 추론 없음 (GPT-5.2/5.4 기본값). GPT-6 미지원 | 단순 질문, 빠른 응답 |
+| `none` | 추론 없음 (5.6까지). GPT-6 미지원 | 단순 질문, 빠른 응답 |
 | `low` | 최소 추론 | 간단한 작업 |
-| `medium` | 균형 (GPT-5/5.5/5.6 기본값, GPT-6 기본값) | 일반적인 작업 |
+| `medium` | 균형 (5.6·GPT-6 기본값) | 일반적인 작업 |
 | `high` | 깊은 추론 | 복잡한 문제 |
 | `xhigh` | 매우 깊은 추론 (`max` 아래 단계) | 매우 어려운 문제 |
 | `max` | 5.6 신설, GPT-6 정식 5단계 중 최상위 (Codex의 `ultra`는 API 값 아님). 전역 기본값 금지 | quality-first 초고난도 |
 
-> 5.5/5.4 → 5.6 마이그레이션: 기존 effort를 baseline으로 두고 **한 단계 낮춰 비교** (공식 지침)
 > 5.6 → 6: `none`/`minimal`은 `low`로
 
-### Reasoning Summary (GPT-5.2+)
+### Reasoning Summary
 
 ```python
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-6-astra",
     reasoning={
         "effort": "high",
         "summary": "auto"  # 또는 "detailed", "concise"
@@ -149,11 +146,11 @@ for item in response.output:
 
 ---
 
-## Verbosity (GPT-5.2+)
+## Verbosity
 
 ```python
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-6-astra",
     text={"verbosity": "low"},  # low, medium, high
     input="..."
 )
@@ -167,30 +164,6 @@ response = client.responses.create(
 
 ---
 
-## Phase 파라미터 (GPT-5.4)
-
-다단계 워크플로우에서 assistant 메시지에 `phase`를 지정:
-
-```python
-response = client.responses.create(
-    model="gpt-5.4",
-    input=[
-        {"role": "user", "content": "로그를 분석해주세요"},
-        {"role": "assistant", "phase": "commentary", "content": "먼저 로그 파일을 확인하겠습니다."},
-        {"role": "user", "content": "계속 진행해주세요"}
-    ]
-)
-```
-
-| phase | 용도 |
-|-------|------|
-| `commentary` | 도구 호출 전 중간 업데이트 |
-| `final_answer` | 완료된 최종 응답 |
-
-**주의**: `phase`를 생략하면 복잡한 작업에서 조기 종료 발생 가능. user 메시지에는 추가 금지.
-
----
-
 ## 대화 이력 관리
 
 ### previous_response_id 사용
@@ -198,14 +171,14 @@ response = client.responses.create(
 ```python
 # 첫 요청
 response1 = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     instructions="격식체 사용",
     input="안녕하세요"
 )
 
 # 후속 요청 - CoT 자동 유지
 response2 = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     previous_response_id=response1.id,
     instructions="격식체 사용",  # 매번 재전송 필요!
     input="이전 내용을 요약해주세요"
@@ -218,7 +191,7 @@ response2 = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input=[
         {"role": "developer", "content": "격식체 사용"},
         {"role": "user", "content": "안녕하세요"},
@@ -259,7 +232,7 @@ tools = [
 ]
 
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input="서울 날씨 알려줘",
     tools=tools
 )
@@ -279,14 +252,14 @@ for item in response.output:
 
 if tool_outputs:
     response2 = client.responses.create(
-        model="gpt-5",
+        model="gpt-6-astra",
         previous_response_id=response.id,   # reasoning item 포함 이전 맥락은 서버가 보존
         input=tool_outputs,
         tools=tools
     )
 ```
 
-### Custom Tools (GPT-5.2+)
+### Custom Tools
 
 Freeform 입력 지원:
 
@@ -300,7 +273,7 @@ tools = [
 ]
 
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-6-astra",
     input="Calculate the area of a circle with radius 5",
     tools=tools
 )
@@ -312,7 +285,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-6-astra",
     input="...",
     tools=[...],  # 모든 도구 정의
     tool_choice={
@@ -333,7 +306,7 @@ response = client.responses.create(
 
 ```python
 stream = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input="Hello",
     stream=True
 )
@@ -354,7 +327,7 @@ client = AsyncOpenAI()
 
 async def stream_response():
     stream = await client.responses.create(
-        model="gpt-5",
+        model="gpt-6-astra",
         input="Hello",
         stream=True
     )
@@ -372,7 +345,7 @@ async def stream_response():
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input="...",
     max_output_tokens=1000
 )
@@ -399,7 +372,7 @@ if response.status == "incomplete":
 
 ```python
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     reasoning={"effort": "high"},
     input="..."
 )
@@ -413,7 +386,9 @@ print(f"Total: {usage.total_tokens}")
 
 ---
 
-## GPT-5.2 특화 기능
+## 내장 도구·에이전트 기능
+
+> GPT-6 Astra 지원 도구: web_search, file_search, image_generation, code_interpreter, hosted_shell, apply_patch, skills, computer_use, mcp, tool_search
 
 ### Apply Patch Tool
 
@@ -421,7 +396,7 @@ print(f"Total: {usage.total_tokens}")
 
 ```python
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-6-astra",
     input="Add error handling to this function...",
     tools=[{"type": "apply_patch"}]
 )
@@ -433,7 +408,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-6-astra",
     input="List files in the current directory",
     tools=[{"type": "shell"}]
 )
@@ -445,16 +420,12 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-6-astra",
     instructions="Before calling any tool, explain why you are calling it.",
     input="...",
     tools=[...]
 )
 ```
-
----
-
-## GPT-5.4 특화 기능
 
 ### Tool Search
 
@@ -462,7 +433,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-5.4",
+    model="gpt-6-astra",
     input="서울 날씨 알려줘",
     tools=[...],  # 전체 도구 정의
     tool_choice={
@@ -499,15 +470,6 @@ response = client.responses.create(
 ### MCP 통합
 
 Model Context Protocol을 Responses API에서 지원.
-
-### API 호환성 참고
-
-reasoning effort `none`에서만 지원되는 파라미터:
-- `temperature`
-- `top_p`
-- `logprobs`
-
-높은 reasoning effort 설정에서는 에러 발생.
 
 ---
 
@@ -634,12 +596,11 @@ Codex가 내려주는 컨텍스트 창은 세대와 무관하게 272K(과금 티
 | `system` role | `instructions` 또는 `developer` role |
 | `reasoning_effort` | `reasoning: {effort: ...}` |
 | `verbosity` | `text: {verbosity: ...}` |
-| - | `phase` (GPT-5.4, assistant 메시지) |
 
 ```python
 # Chat Completions (레거시)
 response = client.chat.completions.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     messages=[
         {"role": "system", "content": "..."},
         {"role": "user", "content": "..."}
@@ -649,7 +610,7 @@ response = client.chat.completions.create(
 
 # Responses API (권장)
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     instructions="...",
     input="...",
     reasoning={"effort": "medium"}
@@ -664,6 +625,4 @@ response = client.responses.create(
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
 - [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6) ⭐ 최신 (2026-07)
 - [GPT-5.6 풀 정리 (한국어)](../../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) — 3티어 스펙·가격·마이그레이션
-- [GPT-5.2 Prompting Guide](https://cookbook.openai.com/examples/gpt-5/gpt-5-2_prompting_guide)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
-- [GPT-5.4 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance/?model=gpt-5.4)

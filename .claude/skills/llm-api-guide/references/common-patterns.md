@@ -54,7 +54,7 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/chat")
 async def chat(message: str):
     response = openai_client.responses.create(
-        model="gpt-5",
+        model="gpt-6-astra",
         input=message
     )
     return {"response": response.output_text}
@@ -108,7 +108,7 @@ logger = logging.getLogger(__name__)
 def call_openai(client: OpenAI, input: str) -> str:
     try:
         response = client.responses.create(
-            model="gpt-5",
+            model="gpt-6-astra",
             input=input
         )
         return response.output_text
@@ -193,7 +193,7 @@ def retry_with_backoff(max_retries: int = 3, base_delay: float = 1.0):
 
 @retry_with_backoff(max_retries=3)
 def call_llm(client, input):
-    return client.responses.create(model="gpt-5", input=input)
+    return client.responses.create(model="gpt-6-astra", input=input)
 ```
 
 ### tenacity 라이브러리 사용
@@ -212,7 +212,7 @@ from tenacity import (
     retry=retry_if_exception_type(RateLimitError)
 )
 def call_llm(client, input):
-    return client.responses.create(model="gpt-5", input=input)
+    return client.responses.create(model="gpt-6-astra", input=input)
 ```
 
 ---
@@ -232,7 +232,7 @@ client = AsyncOpenAI()
 
 async def generate_stream(message: str):
     stream = await client.responses.create(
-        model="gpt-5",
+        model="gpt-6-astra",
         input=message,
         stream=True
     )
@@ -284,7 +284,7 @@ async def generate_stream(message: str):
 async def generate_stream_safe(message: str):
     try:
         stream = await client.responses.create(
-            model="gpt-5",
+            model="gpt-6-astra",
             input=message,
             stream=True
         )
@@ -320,7 +320,7 @@ class ExtractedData(BaseModel):
 
 def extract_structured_data(client: OpenAI, text: str) -> ExtractedData:
     response = client.responses.create(
-        model="gpt-5",
+        model="gpt-6-astra",
         instructions="Extract structured data as JSON. Return only valid JSON.",
         input=f"Extract name, age, email from: {text}"
     )
@@ -368,7 +368,7 @@ async_openai = AsyncOpenAI()
 
 async def call_openai_async(message: str) -> str:
     response = await async_openai.responses.create(
-        model="gpt-5",
+        model="gpt-6-astra",
         input=message
     )
     return response.output_text
@@ -439,7 +439,7 @@ import httpx
 
 # OpenAI
 response = client.responses.create(
-    model="gpt-5",
+    model="gpt-6-astra",
     input="...",
     timeout=httpx.Timeout(30.0, connect=5.0)  # 연결 5초, 전체 30초
 )
@@ -463,7 +463,7 @@ from pydantic_settings import BaseSettings
 class LLMSettings(BaseSettings):
     openai_api_key: str
     anthropic_api_key: str | None = None
-    default_model: str = "gpt-5"
+    default_model: str = "gpt-6-astra"
     timeout: float = 60.0
     max_retries: int = 3
 

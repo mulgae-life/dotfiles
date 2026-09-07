@@ -20,7 +20,7 @@
 4. **[chain-of-thought.md](chain-of-thought.md)** - CoT 프롬프팅 (Let Claude think)
 5. **[use-xml-tags.md](use-xml-tags.md)** - XML 태그로 구조화
 6. **[system-prompts.md](system-prompts.md)** - System 프롬프트로 역할 부여
-7. **[prefill-response.md](prefill-response.md)** - 응답 Prefilling ⭐ (Anthropic 특화)
+7. 응답 Prefilling - Claude 5 세대에서 400 에러라 [보관소](../archive/claude-prompt-guide/prefill-response.md)로 이동. Structured Outputs로 대체
 8. **[chain-prompts.md](chain-prompts.md)** - 프롬프트 체이닝
 9. **[long-context-tips.md](long-context-tips.md)** - 긴 컨텍스트 활용 ⭐ (Anthropic 특화)
 
@@ -28,27 +28,24 @@
 - **[claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md)** ⭐ 최신 - Claude Fable 5.1 / Mythos 5.1 특화 (effort 재측정, 행동 변화 7건, append-only 이력, 작업 완주·범위 제한)
 - **[claude-opus-5-prompt-guide.md](claude-opus-5-prompt-guide.md)** - Claude Opus 5 특화 (스캐폴딩 삭제, effort, thinking 비활성화 결함)
 - **[claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md)** - Claude Fable 5 / Mythos 5 특화 (De-prescribe, effort, 장기 자율 런, refusal/fallback)
-- **[claude-4-best-practices.md](claude-4-best-practices.md)** - Claude 4.x (Sonnet 4.5, Opus 4.5, Haiku 4.5) 특화 베스트 프랙티스
+
+> Claude 4.x 자료(Best Practices 영문·한국어)는 `../archive/claude-prompt-guide/`에 보관
 
 ## Anthropic vs OpenAI 주요 차이점
 
 ### Anthropic 특화 기능 ⭐
 
-1. **Prefilling** - Assistant 메시지 prefill로 출력 제어
-   - JSON 강제: `{"role": "assistant", "content": "{"}`
-   - 캐릭터 유지: `[Sherlock Holmes]` prefill
-   - OpenAI에는 없는 기능
-   - ⚠️ **Claude 4.5 이하 전용** — Fable 5·Opus 4.6+·Sonnet 4.6+에서는 400 에러, Structured Outputs로 대체
+1. **Structured Outputs** - `output_config.format`으로 JSON 형식 강제
+   - Prefilling 대체 (Claude 5 세대는 마지막 assistant 턴 prefill이 400 에러)
 
-2. **Long Context Tips** - 200K 토큰 활용 최적화
+2. **Long Context Tips** - 1M 토큰 활용 최적화
    - 긴 문서는 맨 위 배치 (성능 30%↑)
    - `<document>`, `<source>` 태그 구조화
    - 인용 기반 grounding
 
-3. **Extended Thinking** (Claude 4.x)
-   - 복잡한 추론 강화 모드
-   - Context awareness (token budget 추적)
-   - Multi-window workflows
+3. **Adaptive Thinking** (Claude 5 세대)
+   - 상시 켜짐, `output_config.effort`로 깊이 제어
+   - 사고 과정 서술 지시는 refusal 유발
 
 ### 용어 차이
 
@@ -56,7 +53,7 @@
 |--------|-----------|------|
 | Few-shot | Multishot | 예시 기반 학습 (동일 개념) |
 | `developer` role | `system` parameter | 시스템 지침 전달 |
-| - | Prefilling | 응답 사전 채우기 |
+| `reasoning.effort` | `output_config.effort` | 추론 깊이 제어 |
 
 ### 공통 기법
 
@@ -80,8 +77,7 @@
 ### 모델별 가이드 선택
 - **Claude Fable 5.1 / Mythos 5.1**: [claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md) 먼저 읽기 — Fable 5 가이드와 방향이 다른 항목(반서식 규칙 제거, 서식 규칙 반전, 강제 tool_choice 금지)에 주의
 - **Claude Fable 5 / Claude 5 세대**: [claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md) 먼저 읽기 — 4.x와 방향이 다른 항목(De-prescribe, prefill 불가, thinking 상시 on)에 주의
-- **Claude 4.x**: [claude-4-best-practices.md](claude-4-best-practices.md) 먼저 읽기
-- 이후 핵심 9개 기법 적용 (단, Prefilling은 Claude 4.5 이하 전용)
+- 이후 핵심 9개 기법 적용 (단, Prefilling은 Claude 5 세대에서 400 에러)
 
 ## 출처
 
@@ -92,8 +88,8 @@
 ## 업데이트
 
 - **최초 수집**: 2025-02-01
-- **최근 갱신**: 2026-07-10 — Claude Fable 5 가이드 추가
-- **수집 범위**: 9개 핵심 기법 + Claude 4.x 베스트 프랙티스 + Claude Fable 5 가이드
+- **최근 갱신**: 2026-09-07 — Claude 4.x 자료를 `../archive/`로 이동
+- **수집 범위**: 9개 핵심 기법 + Claude 5 세대 가이드 3종 (Fable 5.1·Opus 5·Fable 5)
 
 ## 관련 문서
 
