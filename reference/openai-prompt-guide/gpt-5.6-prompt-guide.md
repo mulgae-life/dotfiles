@@ -1,5 +1,7 @@
 # GPT-5.6 Prompting Guide
 
+> GPT-6 Astra(2026-09) 가이드가 최신입니다: [gpt-6-prompt-guide.md](./gpt-6-prompt-guide.md). 이 문서는 5.6 세대용이며 프롬프트 계약 구조·pro mode·reasoning.context는 6에서도 유효합니다.
+
 > **출처**:
 > - [Prompting guidance for GPT-5.6 Sol | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6)
 > - [Upgrading to GPT-5.6 Sol | OpenAI API](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol)

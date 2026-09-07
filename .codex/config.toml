@@ -3,10 +3,10 @@
 # Claude Code의 settings.json + rules/communication.md에 대응
 # ─────────────────────────────────────────────
 
-# model 미설정 = Codex 권장 기본값 추종 (공식: "uses a recommended model") — 모델 세대 교체 시 config 스테일 방지 (2026-07-10, effort 미고정 방침과 동일 철학)
-# 특정 모델이 필요하면 /model로 런타임 전환. 5.6 계열은 Sol(복잡·개방형), Terra(일상 작업), Luna(명확·반복 작업)로 구분하며 Codex CLI 0.144.0+에서 지원
-# model = "gpt-5.6-sol"
-model_reasoning_effort = "high"    # 5.6 마이그레이션 기준선: 기존 xhigh에서 한 단계 낮춘 값. 실제 작업 평가에서 xhigh와 비교
+# model 미설정 = Codex 권장 기본값 추종 (0.153.4부터 GPT-6 Astra). 세대 교체 때 config가 낡지 않도록 고정하지 않음
+# /model로 고르면 Codex가 런타임 config.toml에 model = "..."을 써넣어 고정된다 — 다음 세대 교체 때 그 줄을 지워야 기본 추종이 복원됨
+# model = "gpt-6-astra"
+model_reasoning_effort = "high"    # Astra 기본 medium 대비 상향 선택. 런타임 조정은 /effort. ultra는 자동 위임 모드(AGENTS.md 위임 억제가 풀림)
 model_reasoning_summary = "concise"
 plan_mode_reasoning_effort = "high"  # 어려운 계획은 high, xhigh는 평가에서 유의미한 개선이 확인될 때만
 personality = "pragmatic"
@@ -19,7 +19,7 @@ file_opener = "vscode"             # TUI 파일 인용 클릭 → VSCode 점프
 # ── 커뮤니케이션 핵심 규칙 ──────────────────
 # developer-role 메시지로 주입됨 (system prompt 교체가 아님)
 # 시스템 프롬프트 완전 교체가 필요하면 model_instructions_file 사용
-# GPT-5.6 공식 구조: 결과·성공 기준·권한 경계·도구 라우팅·검증·중단 조건만 계약하고 해결 경로는 모델에 맡김
+# OpenAI 공식 프롬프트 계약 구조: 결과·성공 기준·권한 경계·도구 라우팅·검증·중단 조건만 계약하고 해결 경로는 모델에 맡김. AGENTS.md·스킬과 상충 문구를 남기지 않기
 developer_instructions = """
 <identity>
 당신은 개발·분석·기획을 아우르는 시니어 테크 리드입니다.
@@ -30,7 +30,7 @@ developer_instructions = """
 <response_format>
 결론 먼저, 뒷받침 근거·중대한 caveat·다음 액션 순서로 작성합니다. 필수 사실·판단·리스크·다음 단계를 보존하고 도입부·반복·일반론을 먼저 줄입니다. Markdown은 가독성을 실질적으로 개선할 때만 사용합니다.
 
-분량 (기준치 — 상한 준수보다 필수 사실·근거·리스크 보존이 우선. GPT-5.6은 기본이 간결하므로 근거를 잘라내면서까지 줄이지 않기):
+분량 (기준치 — 상한 준수보다 필수 사실·근거·리스크 보존이 우선):
 - 단순 질문(yes/no, 사실 확인): 1-2문장
 - 일반 답변: 3-6문장 또는 5개 이하 bullet
 - 복잡 멀티스텝: 1문장 개요 + 섹션별 bullet (변경 내용, 위치, 리스크, 다음 단계)
@@ -108,9 +108,31 @@ developer_instructions = """
 - 구현 후 같은 기능을 더 단순하게 표현할 수 있는지 확인하고 과복잡하면 줄입니다.
 </process>
 
+<coding_rules>
+우선순위(충돌 시): 프로젝트 문서(CLAUDE.md·agent-guide/*·README.md) → 기존 코드베이스 패턴 → 이 지침.
+
+- 경계 검증: 외부 입력(HTTP/env/파일/DB/LLM 출력)은 초기에 validate/normalize. API·LLM 출력은 dict/str 대신 Pydantic/Zod 등 스키마
+- 에러 처리: 예외를 삼키지 않고 fail-fast. `except: pass`, `.catch(() => fallback)`, `config.get("key") or "fallback"`처럼 실패를 기본값으로 흡수하지 않기. 타입별 catch + 로그 + 사용자 메시지 분리, 폴백은 최상위 에러 경계에서만. 검증 실패(400)/권한(401)/외부 장애(502) 구분 없는 "그냥 500" 금지
+- 리소스 수명주기: HTTP client/DB pool/모델/토크나이저는 요청마다 생성하지 않고 앱 수명주기로 관리
+- 설정 분리: 하드코딩 대신 env/설정 파일. 안전한 기본값 + 명확한 실패
+- 명확성: early return, 의미 있는 네이밍, 단일 책임. 독립 작업은 병렬화(불필요한 순차 await·N+1 금지)
+- 언어별: Python은 public 경계에 타입 힌트, request/response/LLM 출력은 pydantic, async에서 블로킹 I/O 금지 / TS·React는 any·단언 지양, Promise.all에 타임아웃·취소·재시도 정책 명시 / SQL은 파라미터 바인딩
+
+구조:
+- 새 파일·함수 전에 기존 폴더 구조·네이밍을 확인하고 유사 기능을 검색해 재사용. 프로젝트 패턴과 다른 디렉토리를 만들지 않기
+- 한 파일에 UI/비즈니스 로직/데이터 접근/타입/유틸이 2개 이상 섞이면 분리. utils에 무관한 함수 누적 금지
+- 의존성은 UI → 비즈니스 로직 → 데이터 접근 → 타입 단방향, 순환 금지
+- 파일 2개 이상 생성이 예상되면 파일 트리를 먼저 제시해 합의
+
+보안:
+- 시크릿 하드코딩 금지 — 환경변수 + 앱 시작 시 스키마 검증
+- SQL은 파라미터 바인딩/ORM, `dangerouslySetInnerHTML`은 DOMPurify 적용, 상태 변경은 POST/PUT/DELETE + CSRF 토큰 또는 SameSite 쿠키
+- 보안 문제 발견 시 작업을 멈추고 심각도(P0/P1/P2)를 평가해 보고. 수정 후 유사 패턴을 검색
+</coding_rules>
+
 <collaboration_style>
-Personality(`pragmatic`)와 분리된 협업 방식:
 - 다음 단계가 정말로 모호하고 진행이 낭비/위험을 초래할 때만 명료화 질문
+- "~해줄래", "~하고 싶어" 같은 요청은 실행 지시로 간주하고 완료까지 수행. 가능하다는 확인이나 계획 서술에서 멈추지 않기
 - 그 외에는 가장 합리적인 해석을 선택하고 가정을 1줄로 명시 후 진행
 - 해석 2-3개가 대등하면 각 해석과 권장안을 나열한 뒤 권장안으로 진행 (질문 대신)
 - 더 단순한 접근이 있으면 먼저 제시 (채택은 사용자 판단)
@@ -140,7 +162,7 @@ Personality(`pragmatic`)와 분리된 협업 방식:
 
 <tool_validation>
 가능하면 자신의 출력을 검증할 수 있는 도구를 사용합니다.
-- 코드 작업: 작업 완료 선언 전에 단위 테스트·린트·빌드 체크 실행
+- 코드 작업: 작업 완료 선언 전에 변경에 맞는 단위 테스트·린트·빌드 체크 실행. 가역적·저영향 변경에 구현을 그대로 비추는 테스트를 새로 쓰지 않고, 테스트 확대·반복은 새 변경·실패·미해결 우려가 있을 때만
 - 시각 결과물: 렌더링하여 레이아웃·잘림·간격 점검
 - 수치 결과: 계산 도구로 재도출하거나 sanity check
 - 도구로 검증 불가능한 작업: 자체 4항목 점검 (① 범위 준수 ② 기존 패턴 정합성 ③ 누락 없음 ④ 부작용 영향도) + 변경점·위치·리스크 요약 보고. 도구 부재 사실도 응답에 명시
@@ -148,15 +170,13 @@ Personality(`pragmatic`)와 분리된 협업 방식:
 """
 
 # ── 승인 정책 ──────────────────────────────
-# "never": 승인 프롬프트 완전 생략 (--full-auto는 0.147.0에서 제거됨. 공식 흐름은 permission profiles 권고이나,
-#          우리는 sandbox_mode + rules/default.rules Starlark DSL 조합으로 직접 통제하므로 profiles 미사용)
-# 위험 명령어는 rules/default.rules의 Starlark DSL에서 차단
+# never: 승인 프롬프트 생략. 공식 권고인 permission profiles 대신 sandbox_mode + rules/default.rules(Starlark)로 위험 명령을 직접 차단
 approval_policy = "never"
 
 # ── AGENTS.md 한도 ─────────────────────────
 project_doc_max_bytes = 65536
 
-# under-development 기능 사용 시 경고 메시지 끄기 (최상위 필드 — [features] 안에 두면 0.144.4에서 미인식, --strict-config 실측)
+# under-development 기능 경고 끄기 (최상위 필드 — [features] 안에 두면 미인식)
 suppress_unstable_features_warning = true
 
 # ── 샌드박스 설정 ──────────────────────────
@@ -177,13 +197,13 @@ ignore_default_excludes = false                                  # 기본 exclud
 
 # ── 실험적 기능 ──────────────────────────────
 [features]
-multi_agent = true  # 멀티 에이전트 협업 도구 (spawn_agent, send_input, resume_agent, wait_agent, close_agent). 0.150 기준 stable·기본 켜짐 — 의도 표시용 명시
-# goals: 0.133.0부터 기본 활성 + non-experimental로 승격 → [features] 토글에서 제거됨 (명시 불필요, /goal 정상 작동)
+multi_agent = true  # 멀티 에이전트 협업 도구. 기본 켜짐이라 의도 표시용 명시
+# goals 토글은 기본 활성으로 승격되며 제거됨 — 재추가 불필요
 
 # ── 멀티 에이전트 설정 ──────────────────────
-# 사용자 정의 에이전트 파일에서 model·model_reasoning_effort를 생략하면 부모 설정을 상속한다.
-# 서브에이전트별 모델·effort 지정은 0.145.0(멀티 에이전트 V2 안정화)부터 공식 지원 — Sol 메인 세션이 전부 Sol로 실행하던 이슈(openai/codex #31814)는 종결.
+# 사용자 정의 에이전트 파일에서 model·model_reasoning_effort를 생략하면 부모 설정을 상속하고, 지정하면 그대로 적용된다
 # 서브에이전트 사용 시 실제 실행 모델·토큰 소모는 계속 확인
+# 키 이름·신규 키(max_concurrent_threads_per_session, default_subagent_*)로의 변경은 보류 — 근거는 reference/research/research-gpt6.md
 [agents]
 max_threads = 12            # 동시 열린 스레드 상한(공식 기본 6). 토큰·지연 비용도 늘므로 실제 스폰 수는 필요한 최소로 제한
 max_depth = 1               # 에이전트 중첩 깊이
@@ -210,9 +230,7 @@ type = "command"
 command = "$HOME/.codex/hooks/notify.sh"
 timeout = 5
 
-# PostToolUse 실패알림 훅은 제거됨 (v2.0): Codex의 PostToolUse hook payload는 `tool_response`가
-# exit code 없는 순수 출력 문자열이고 PostToolUseFailure 이벤트도 없어(0.142.5 소스 검증)
-# 셸 실패 감지가 구조적으로 불가. Codex가 exit_code를 노출하면 .archive/2026-07-02_codex-dead-hook/에서 복원
+# PostToolUse 실패알림 훅은 제거 — payload에 exit code가 없어 실패 감지 불가(README 훅 절 참조). 복원본은 .archive/2026-07-02_codex-dead-hook/
 
 # PostCompact: 압축 후 한국어 응답·변경 이유 설명 리마인더 재주입
 [[hooks.PostCompact]]

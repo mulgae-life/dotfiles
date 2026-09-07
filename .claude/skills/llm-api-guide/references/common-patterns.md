@@ -538,7 +538,7 @@ response = client.responses.create(
 print(response.usage.input_tokens_details.cached_tokens)
 ```
 
-- Cached input: 기본 입력의 **0.1배** 가격 (5.6 기준, 티어 공통 비율)
+- Cached input: 기본 입력의 **0.1배** 가격 (5.6·GPT-6 공통 비율 — GPT-6은 $1/$10)
 - Batch + Caching 조합: 최대 75% 비용 절감
 - GPT-5.6 신규: `prompt_cache_options={"mode": "explicit", "ttl": ...}`로 명시 캐싱 가능 (기존 `prompt_cache_retention` 대체) — 단 **캐시 write가 uncached input의 1.25배 과금**이므로 read 물량으로 회수되는지 확인
 
@@ -547,7 +547,7 @@ print(response.usage.input_tokens_details.cached_tokens)
 | 제공자 | 캐싱 방식 | 캐시 할인 | 레이턴시 절감 |
 |--------|----------|----------|-------------|
 | Anthropic | 수동 (`cache_control`) | 90% (Fable 5.1·Mythos 5.1은 97.5%) | 85% |
-| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x 공통, 캐시 read 0.1배) | 상당 |
+| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x·GPT-6 공통, 캐시 read 0.1배; GPT-6은 272K 초과 요청 전체 2배 요율 주의) | 상당 |
 | Google | 토큰 저장 기간 기반 | 상당 | 상당 |
 
 **실제 사례**: PDF 50문서 반복 분석 — 쿼리당 $3 → 캐싱 적용 후 $0.15 (95% 절감)

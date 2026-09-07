@@ -44,18 +44,19 @@ langchain-community    # 서드파티 통합 (범용)
 from langchain.chat_models import init_chat_model
 
 # 단축 문법 (provider:model)
-model = init_chat_model("openai:gpt-5", temperature=0)
+# GPT-6은 temperature·top_p 미지원, 도구 호출은 Responses API 전용 → use_responses_api=True
+model = init_chat_model("openai:gpt-6-astra", use_responses_api=True)
 model = init_chat_model("anthropic:claude-sonnet-4-5", temperature=0)
 
 # 명시적 provider 지정
-model = init_chat_model("gpt-5", model_provider="openai", temperature=0)
+model = init_chat_model("gpt-6-astra", model_provider="openai", use_responses_api=True)
 ```
 
 ### 직접 클래스 초기화 (상세 설정)
 
 ```python
 from langchain_openai import ChatOpenAI
-model = ChatOpenAI(model="gpt-5", temperature=0, max_tokens=1000, timeout=30)
+model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000, timeout=30)
 
 from langchain_anthropic import ChatAnthropic
 model = ChatAnthropic(model="claude-sonnet-4-5", max_tokens=1024, temperature=0)

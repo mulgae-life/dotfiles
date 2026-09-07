@@ -4,7 +4,7 @@ OpenAI GPT와 Anthropic Claude의 프롬프트 엔지니어링 주요 차이점�
 
 ## 빠른 비교표
 
-| 항목 | OpenAI (GPT-5) | Anthropic (Claude) | 공통 |
+| 항목 | OpenAI (GPT-5.x / 6) | Anthropic (Claude) | 공통 |
 |------|----------------|-------------------|------|
 | **Message Roles** | `developer` (최고 우선순위)<br/>`user`, `assistant` | `system` 파라미터<br/>`user`, `assistant` | `user`, `assistant` |
 | **파라미터** | `reasoning_effort`<br/>`verbosity` | `output_config.effort` (Fable 5/4.6+)<br/>`budget_tokens` (4.x) | - |
@@ -184,7 +184,7 @@ response = client.messages.create(
 - Context awareness (token budget 추적)
 - Multi-window workflows
 
-### 6. GPT-5 특화 파라미터
+### 6. GPT-5.x / 6 특화 파라미터
 
 #### OpenAI ⭐
 ```python
@@ -198,7 +198,7 @@ response = client.responses.create(
 ```
 
 **파라미터**:
-- `reasoning_effort`: low/medium/high (추론 깊이)
+- `reasoning_effort`: 추론 깊이 — GPT-5.x: none/low/medium/high/xhigh/max · GPT-6: low~max(`none` 미지원)
 - `verbosity`: low/medium/high (응답 길이)
 
 #### Anthropic
@@ -211,7 +211,7 @@ response = client.responses.create(
 
 ## 플랫폼 선택 가이드
 
-### OpenAI GPT-5를 선택하는 경우
+### OpenAI GPT-5.x / 6을 선택하는 경우
 - `reasoning_effort`, `verbosity` 파라미터로 세밀한 제어 필요
 - `developer` role로 강력한 시스템 규칙 우선순위 필요
 - OpenAI 생태계 (Assistants API, GPTs 등) 통합

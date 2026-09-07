@@ -31,7 +31,7 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
 | **Examples** | Frontier 0~2개(포맷 정렬), 소형 3-5개 | Few-shot | Multishot (동일 개념) |
 | **XML 태그** | ✅ 권장 | ✅ | ✅ |
-| **특화 파라미터** | - | `reasoning.effort`, `reasoning.mode`/`context` (5.6), `verbosity`, `phase`, `image_detail` | `output_config.effort` (Fable 5/4.6+) |
+| **특화 파라미터** | - | `reasoning.effort` (GPT-6: `none` 미지원, low~max), `reasoning.mode`/`context` (5.6+), `verbosity`, `phase`, `image_detail` | `output_config.effort` (Fable 5/4.6+) |
 | **Prefilling** | - | ❌ | ⚠️ Claude 4.5 이하 전용 (Fable 5·4.6+는 400) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
@@ -90,7 +90,7 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
-| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 티어 선택(5.6) | `references/gpt5-params.md`, `references/gpt56-patterns.md` ⭐ (5.6), `references/gpt55-patterns.md` (5.5) |
+| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시(GPT-6), 티어 선택(5.6) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra), `references/gpt56-patterns.md` (5.6), `references/gpt5-params.md` |
 | Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화, Prefilling(4.5 이하) | `references/claude-5-specifics.md` ⭐ (Fable 5.1·Opus 5), `references/prefilling.md`, `references/long-context.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` 🆕 |
 | Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` 🆕 |
@@ -158,7 +158,17 @@ system_prompt: |
 
 ### 플랫폼별 최적화 (선택)
 
-**OpenAI GPT-5.6** (최신, 권장):
+**OpenAI GPT-6 Astra** (최신, 권장 — 2026-09):
+- [ ] **주도성 명시**: 질문하고 멈추는 성향이 이전 세대보다 강함 → 자율 실행이 필요하면 "bias towards action, carry the task to completion" 계열 지시 추가. "can you…/help me…"는 실행 요청으로 취급하게
+- [ ] **지시 파일 모순 감사**: 긴 지시는 잘 따르지만 문맥 모순에 민감 → AGENTS.md·스킬·시스템 프롬프트 사이의 상충·낡은 문구 제거가 감량보다 우선. 사용자 지시 > 스킬 지시 우선순위 명시
+- [ ] **테스트 범위 축소**: 스스로 철저히 검증하는 성향 → "가역적·저영향 변경에 구현을 비추는 테스트 금지, 확대는 새 변경·실패가 정당화할 때만"으로 범위를 좁히는 지시(검증 강화 지시 아님)
+- [ ] **위임 명시**: 서브에이전트 병렬 위임을 학습했지만 기대보다 덜 위임 → 갈래·리더 보유 범위·대기 여부·반환 요약 형식을 프롬프트에 지정
+- [ ] **문체**: 문단 기본, 리스트는 병렬·순서·비교일 때만. 피할 표현("Bottom Line:", "delve", "leverage", "it's worth noting", "In short:") 차단
+- [ ] `reasoning.effort`: `low`~`max` 5단계, 기본 `medium`. `none`/`minimal` 사용처는 `low`부터. `ultra`는 Codex·ChatGPT 전용(API 값 아님)
+- [ ] **API 변경**: `temperature`·`top_p`·`top_logprobs` 제거, 도구 호출은 Responses API 전용, `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체 2배 요율
+- [ ] 5.6 계약 구조(Goal/Success criteria/Constraints/Tools/Output/Stop rules)·pro mode·`reasoning.context`·PTC는 그대로 유효 → 아래 5.6 항목 참조
+
+**OpenAI GPT-5.6** (이전 세대, 2026-07):
 - [ ] **티어 선택**: `gpt-5.6-sol`(플래그십)/`terra`(균형)/`luna`(고속저가) — 비용 레버리지는 effort보다 티어 라우팅
 - [ ] **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의 (5.5 계승)
 - [ ] **Personality + Collaboration Style 분리** (각 1-2문단 이내)
@@ -246,7 +256,8 @@ system_prompt: |
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
 - **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드 (패턴 출처는 OpenAI 가이드 — Claude 5 세대에는 그대로 적용 금지)
 - **[gpt5-params.md](references/gpt5-params.md)** - GPT-5 API 파라미터 (`reasoning`, `verbosity` 코드 예시)
-- **[gpt56-patterns.md](references/gpt56-patterns.md)** ⭐ GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) 🆕
+- **[gpt6-patterns.md](references/gpt6-patterns.md)** ⭐ GPT-6 Astra 프롬프트 패턴 (주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, effort 5단계·`none` 폐지, 제거 파라미터, 5.6 → 6 마이그레이션) 🆕
+- **[gpt56-patterns.md](references/gpt56-patterns.md)** GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) — 계약 구조·신규 API 기능은 GPT-6에서도 유효
 - **[gpt55-patterns.md](references/gpt55-patterns.md)** GPT-5.5 프롬프트 패턴 (Outcome-first, Personality 분리, Retrieval Budget, Tool Validation, Markdown 절제) — 5.6에서도 호환
 - **[gpt54-patterns.md](references/gpt54-patterns.md)** GPT-5.4 프롬프트 패턴 (출력 계약, 도구 지속성, 검증 루프) — 5.5/5.6에서도 호환
 - **[optimization.md](references/optimization.md)** - GPT-5 최적화 팁
@@ -269,9 +280,13 @@ system_prompt: |
 ## 참고 자료
 
 ### OpenAI
-- [GPT-5.6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) ⭐ 최신 (2026-07) — 티어·마이그레이션·신규 파라미터 수록
+- [GPT-6 Astra 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 (2026-09) — 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
+- [GPT-6 Astra Prompt Guidance (공식)](https://developers.openai.com/api/docs/guides/prompt-guidance) ⭐ 최신 (2026-09)
+- [Using GPT-6 Astra / Migration (공식)](https://developers.openai.com/api/docs/guides/latest-model)
+- [GPT-6 Astra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-astra)
+- [GPT-5.6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) (이전, 2026-07) — 티어·마이그레이션·신규 파라미터 수록
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
-- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) ⭐ 최신 (2026-07)
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전, 2026-07)
 - [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
 - [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 - [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)

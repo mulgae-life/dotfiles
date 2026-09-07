@@ -198,14 +198,14 @@ system_prompt: |
 
 ## 6. 모델별 팁
 
-### OpenAI (GPT-5 / 5.6)
+### OpenAI (GPT-5.x / GPT-6)
 
 **API 파라미터로 직접 제어**:
 
 ```python
 response = client.responses.create(
-    model="gpt-5.6-sol",
-    reasoning={"effort": "high"},  # none, low, medium, high, xhigh, max (max: 5.6 정식 등재 — 단 reasoning 가이드 열거엔 미반영, 전역 기본값 금지)
+    model="gpt-6-astra",
+    reasoning={"effort": "high"},  # GPT-6: low, medium, high, xhigh, max (none·minimal 미지원) / GPT-5.x: none, low, medium, high, xhigh, max
     text={"verbosity": "low"},      # low, medium, high
     instructions="...",
     input="..."
@@ -214,12 +214,14 @@ response = client.responses.create(
 
 **파라미터 설명**:
 - `reasoning.effort`: 추론 깊이
-  - `none`: 추론 없이 실행 중심 (GPT-5.2/5.4 기본값)
+  - `none`: 추론 없이 실행 중심 (GPT-5.2/5.4 기본값). GPT-6 미지원 — `low`부터
   - `low`: 빠른 응답
-  - `medium`: 기본값 (GPT-5 / 5.5 / 5.6 기본값)
+  - `medium`: 기본값 (GPT-5 / 5.5 / 5.6 기본값, GPT-6 기본값)
   - `high`: 깊은 추론 (코딩, Agentic에 적합)
   - `xhigh`: 최대 추론 (GPT-5+, 명확한 eval 이점이 있을 때만)
+  - `ultra`: Codex·ChatGPT 제품 전용 자동 위임 모드 — API 값 아님
   - 5.5/5.4 → 5.6 마이그레이션: **기존 값을 baseline으로 두고 한 단계 낮춰 비교** (공식 지침)
+  - 5.6 → 6 마이그레이션: `none`/`minimal` 사용처는 `low`로, 나머지는 기존 값 유지 후 비교
 - `reasoning.mode`: `"pro"` (5.6 신규) — 오답 비용이 큰 지점만 선별 적용
 - `text.verbosity`: 응답 길이
   - `low`: 간결
@@ -234,13 +236,13 @@ reasoning effort를 올리기 전에 먼저 프롬프트 패턴을 추가:
 3. `<verification_loop>` (검증 루프)
 4. 이후에도 부족하면 effort 증가
 
-→ 상세: [gpt56-patterns.md](gpt56-patterns.md), [gpt54-patterns.md](gpt54-patterns.md)
+→ 상세: [gpt6-patterns.md](gpt6-patterns.md), [gpt56-patterns.md](gpt56-patterns.md), [gpt54-patterns.md](gpt54-patterns.md)
 
 **자연어 오버라이드**: 전역 설정을 프롬프트에서 컨텍스트별로 재정의 가능
 
 ```python
 response = client.responses.create(
-    model="gpt-5.6-sol",
+    model="gpt-6-astra",
     text={"verbosity": "low"},  # 전역: 간결
     instructions="""
     코드 작성 시에는 높은 verbosity를 사용하세요.

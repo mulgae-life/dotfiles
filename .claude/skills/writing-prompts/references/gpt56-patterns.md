@@ -11,6 +11,8 @@
 - [참고](#참고)
 
 
+> GPT-6 Astra(2026-09)가 최신입니다. 이 문서는 5.6 세대용이며 6에서 달라진 점은 [gpt6-patterns.md](./gpt6-patterns.md) 참조.
+
 GPT-5.6은 Sol/Terra/Luna **3티어 패밀리**. 마이그레이션은 모델만 먼저 교체해 기존 프롬프트·effort로 기준선을 평가한 뒤, 중복 지시와 무관한 도구를 한 그룹씩 줄이고 측정된 회귀에만 최소 지시를 추가하는 방식이다 — 공식: "Preserve the old effective reasoning effort explicitly" / "test the same setting and one lower on representative tasks" (Upgrading to GPT-5.6 Sol).
 공식 내부 평가에서 더 간결한 시스템 프롬프트가 점수 +10~15%, 총토큰 -41~66%, 비용 -33~67%를 기록했다 (prompt-guidance, 대표 작업으로 재검증 필요).
 
@@ -141,7 +143,7 @@ any material caveat, and the next action.
 
 - 시스템 카드 자인: **5.5보다 사용자 의도를 넘어서는(overstep) 경향** + METR은 Sol의 리워드 해킹 비율을 공개 모델 중 최고로 평가 → 검증 루프·고위험 변경 사람 리뷰 게이트 강화
 - 실행력·장기 완주는 Sol 강점, 분별력·엔드투엔드 코드베이스 판단은 Claude Fable 5 우위가 중론 → 하이브리드 워크플로우 권장
-- Ultra·서브에이전트는 태스크당 토큰 6~12× 소모라는 서드파티 분석([tokenkarma](https://tokenkarma.app/blog/codex-sol-ultra-subagent-token-cost-2026/))이 있음(개선 폭은 완만, Terminal-Bench +3.1pp) → 가장 어려운 독립 분해형 작업에만
+- Ultra(5.6 Sol의 병렬 서브에이전트 모드 — GPT-6 Astra에서는 같은 이름이 effort 값 `ultra`로 노출됨)·서브에이전트는 태스크당 토큰 6~12× 소모라는 서드파티 분석([tokenkarma](https://tokenkarma.app/blog/codex-sol-ultra-subagent-token-cost-2026/))이 있음(개선 폭은 완만, Terminal-Bench +3.1pp) → 가장 어려운 독립 분해형 작업에만
 
 ---
 

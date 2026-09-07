@@ -44,15 +44,16 @@ pip install langchain langchain-openai langgraph
 
 ```python
 # 방법 1: init_chat_model (권장 - 프로바이더 독립적)
+# GPT-6은 temperature·top_p를 받지 않고, 도구 호출은 Responses API 전용 → use_responses_api=True
 from langchain.chat_models import init_chat_model
-model = init_chat_model("openai:gpt-5", temperature=0)
+model = init_chat_model("openai:gpt-6-astra", use_responses_api=True)
 
 # 방법 2: 프로바이더 패키지 직접 (상세 설정)
 from langchain_openai import ChatOpenAI
-model = ChatOpenAI(model="gpt-5", temperature=0, max_tokens=1000)
+model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000)
 
-# 방법 3: create_agent에서 문자열로 (간편)
-agent = create_agent("openai:gpt-5", tools=tools)
+# 방법 3: create_agent에 모델 인스턴스 전달 (문자열 지정은 use_responses_api를 못 넘기므로 GPT-6 도구 호출에 부적합)
+agent = create_agent(model, tools=tools)
 ```
 
 ### 2.2 에이전트 생성 (create_agent)
@@ -74,7 +75,7 @@ def search(query: str) -> str:
 with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
     checkpointer.setup()  # 최초 1회: 체크포인트 테이블 생성
     agent = create_agent(
-        "openai:gpt-5",
+        model,  # 2.1의 ChatOpenAI(model="gpt-6-astra", use_responses_api=True)
         tools=[search],
         system_prompt="You are a research assistant.",
         middleware=[ModelRetryMiddleware(max_retries=3)],

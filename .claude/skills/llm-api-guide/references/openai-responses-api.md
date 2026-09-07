@@ -15,6 +15,7 @@
 - [GPT-5.2 특화 기능](#gpt-52-특화-기능)
 - [GPT-5.4 특화 기능](#gpt-54-특화-기능)
 - [GPT-5.6 특화 기능](#gpt-56-특화-기능)
+- [GPT-6 Astra 특화·변경 사항](#gpt-6-astra-특화변경-사항)
 - [마이그레이션 가이드](#마이그레이션-가이드)
 - [참고 자료](#참고-자료)
 
@@ -118,14 +119,15 @@ response = client.responses.create(
 
 | effort | 설명 | 사용 사례 |
 |--------|------|-----------|
-| `none` | 추론 없음 (GPT-5.2/5.4 기본값) | 단순 질문, 빠른 응답 |
+| `none` | 추론 없음 (GPT-5.2/5.4 기본값). GPT-6 미지원 | 단순 질문, 빠른 응답 |
 | `low` | 최소 추론 | 간단한 작업 |
-| `medium` | 균형 (GPT-5/5.5/5.6 기본값) | 일반적인 작업 |
+| `medium` | 균형 (GPT-5/5.5/5.6 기본값, GPT-6 기본값) | 일반적인 작업 |
 | `high` | 깊은 추론 | 복잡한 문제 |
 | `xhigh` | 매우 깊은 추론 (`max` 아래 단계) | 매우 어려운 문제 |
-| `max` | 5.6 신설 — latest-model 가이드·모델 카드 정식 등재 (단 reasoning 가이드 열거엔 미반영, 2026-07-13). 전역 기본값 금지 | quality-first 초고난도 |
+| `max` | 5.6 신설, GPT-6 정식 5단계 중 최상위 (Codex의 `ultra`는 API 값 아님). 전역 기본값 금지 | quality-first 초고난도 |
 
 > 5.5/5.4 → 5.6 마이그레이션: 기존 effort를 baseline으로 두고 **한 단계 낮춰 비교** (공식 지침)
+> 5.6 → 6: `none`/`minimal`은 `low`로
 
 ### Reasoning Summary (GPT-5.2+)
 
@@ -560,6 +562,65 @@ response = client.responses.create(
 ### safety_identifier
 
 요청마다 안정적인 프라이버시 보존 식별자 전송 — 사용자 단위 오남용 추적.
+
+---
+
+## GPT-6 Astra 특화·변경 사항
+
+> 슬러그 `gpt-6-astra` (스냅샷 1종, 2026-09 출시). 5.6 Sol/Terra/Luna는 계속 제공됩니다.
+
+| 항목 | 값 |
+|------|-----|
+| 컨텍스트 / 최대 출력 | 1,050,000 / 128,000 |
+| 지식 컷오프 | 2026-04-30 |
+| 입력 | 텍스트, 이미지 |
+| 가격 (1M당) | 입력 $10 · 캐시 입력 $1 · 캐시 쓰기 $12.50 · 출력 $50 |
+| 할인·할증 | Batch·Flex 50% · Fast(priority) 2배 |
+
+### 롱컨텍스트 요율
+
+> "Prompts with more than 272K input tokens are priced at 2x input and cache rates and 1.5x output for the full request."
+
+272K를 넘기면 초과분만이 아니라 **요청 전체**가 할증 요율로 과금됩니다. 긴 프롬프트는 272K 아래로 유지하는 것이 비용상 유리합니다.
+
+### 제거된 파라미터
+
+- `temperature`, `top_p`, `top_logprobs` (Chat Completions에서는 `logprobs`도)
+- `reasoning.effort`의 `none`·`minimal` — 원문 "GPT-6 Astra does not support the `none` reasoning effort."
+
+### 엔드포인트
+
+Responses, Chat Completions, Batch를 지원합니다. 도구 호출은 Responses 전용입니다.
+
+> "GPT-6 Astra supports Chat Completions, but tool calling requires Responses."
+
+미지원: Realtime, Assistants, 파인튜닝, 임베딩.
+
+### 캐싱 파라미터 변경
+
+`prompt_cache_retention`이 `prompt_cache_options.ttl`로 대체됐습니다:
+
+```python
+response = client.responses.create(
+    model="gpt-6-astra",
+    prompt_cache_options={"ttl": "30m"},
+    input="..."
+)
+```
+
+### Codex에서의 GPT-6
+
+Codex가 내려주는 컨텍스트 창은 세대와 무관하게 272K(과금 티어)라 1M은 열리지 않습니다. 크레딧 소모는 입력 1M당 250·출력 1,250으로 Sol의 2.5배입니다.
+
+### 공식 마이그레이션 체크리스트 (5.6 → 6)
+
+1. `model`을 `gpt-6-astra`로 교체
+2. `none`/`minimal`을 쓰던 곳은 `low`부터 — "If you currently use `none` or `minimal`, start with `low` and compare results."
+3. 도구 호출을 Responses API로 이전
+4. `temperature`·`top_p`·`top_logprobs` 제거
+5. `prompt_cache_retention` → `prompt_cache_options.ttl = "30m"`
+6. EU 데이터 레지던시에서는 Fast 모드 미지원
+7. 승인 대기로 멈추는 문제는 주도성 가이던스로 대응
 
 ---
 

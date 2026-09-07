@@ -47,8 +47,8 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | **에이전트** | `agents/*.md` | 없음 (수동) | `agents/*.md` (YAML frontmatter) | Subagents (병렬 실행) |
 | **훅** | `PreToolUse`, `PostToolUseFailure`, `Notification`, `PostCompact` | `Stop`, `PostCompact` (v0.129+) | `BeforeTool`, `Notification` 등 11종 | `PreToolUse`/`PostToolUse` — 별도 hooks.json (현 초안은 재작성 대상, `.antigravity/README.md` 검증 상태 참조) |
 | **커스텀 명령** | 스킬로 대체 | 없음 | `commands/*.toml` | Plugins (구 Extensions) |
-| **기본 모델** | Claude Opus | 권장 기본 추종 (GPT-5.6 세대, 미고정) | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
-| **CLI 버전 (검증 기준)** | 2.1.258 | 0.152.1 | 0.38.1 | IDE 2.1.x / `agy` |
+| **기본 모델** | Claude Opus | 권장 기본 추종 (0.153.4부터 GPT-6 Astra, 미고정) | Gemini 3.1 Pro | Gemini 3.1 Pro / 3 Flash |
+| **CLI 버전 (검증 기준)** | 2.1.258 | 0.153.4 | 0.38.1 | IDE 2.1.x / `agy` |
 | **스킬** | `.claude/skills/` | 심볼릭 링크 | 심볼릭 링크 | 심볼릭 링크 |
 
 ## 🚀 사용법
@@ -232,7 +232,7 @@ dotfiles/
     ├── openai-api-guide/
     ├── openai-prompt-guide/
     ├── qwen-prompt-guide/
-    ├── research/              # 조사 원문 (Fable 5 커뮤니티·GPT-5.6·프롬프트 트렌드 등)
+    ├── research/              # 조사 원문 (Fable 5.1·GPT-6 Astra·GPT-5.6·프롬프트 트렌드 등)
     ├── skills-guide/
     ├── stitch-guide/          # Google Stitch MCP 참조 문서
     └── 참고디자인파일/           # 디자인 원본 (폰트·로고)
@@ -246,6 +246,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.19** | GPT-6 Astra(9/3 출시)·Codex 0.153.4 대응 — 서브에이전트 3개(공식·커뮤니티 / Codex 체인지로그·config 실측 / 레포 문구 인벤토리 96건) 병렬 조사 후 공식 원문 3건 직접 대조해 `research-gpt6.md`·`gpt-6-prompt-guide.md`(스니펫 원문)·`gpt6-patterns.md` 신설. 확정 사실: API 1.05M/128K·effort low~max 5단계(`none` 폐지)·`temperature` 등 제거·도구 호출 Responses 전용·272K 초과 요청 전체 2배 요율; Codex는 0.153.4부터 `model` 미설정 시 Astra 기본(컨테이너 실측), 창은 5.6과 같은 272K, `ultra`는 API 값이 아닌 자동 위임 모드로 켜면 하네스가 "명시 요청 없이 위임 금지" developer 지시를 무효화(`codex debug prompt-input` 실측). Codex 층 반영: config.toml 주석 현행화(Astra 기본·high는 상향 선택·ultra 단서), developer_instructions에 공식 가이드의 주도성("~해줄래"는 실행 지시로 간주·완주)과 테스트 범위 축소(가역적 변경에 구현 비추는 테스트 금지) 2줄, AGENTS.md의 계획·점검 트리거를 Claude 층 v2.16·v2.17과 정합(파일 3개+ 기준 삭제, 점검은 요청 시만 — 5.6 때 유지 근거였던 의도 이탈·허위 보고가 Astra 시스템 카드에서 18.8%→3.4%·1/4로 감소), Ultra 용어 분리. 스킬 층: effort 열거 6개 파일 8곳에 세대 분기, `writing-prompts`·`llm-api-guide`에 GPT-6 블록·특화 절 신설, 5.6은 이전 세대로 강등. 동작을 바꾸는 설정 키(`agents.*` 개명·`default_subagent_*`·`tools.update_plan`·`tui.auto_recap`)는 대표님 결정으로 보류(주석에만 기록). 부수: Codex Desktop remote app-server 구버전(0.145.0) 44일 잔류로 신형 캐시 파싱 실패 후 구형 목록을 덮어써 Astra가 피커에서 사라진 실사고 진단·복구. 2차 점검: Codex 층에 코딩·구조·보안 규칙이 전역에 없던 누락을 복원(`f956131`이 "developer_instructions와 중복"이라며 AGENTS.md에서 제거했으나 config에는 처음부터 없었음 — `<coding_rules>` 블록 신설, Claude rules 3종 압축 대응), AGENTS.md에서 0.153.4 바이너리에 없는 `spawn_agents_on_csv` 서술·설정값·중복 조항 삭제, config 주석의 이슈 번호·버전·인용 정리, `langchain-guide` 예시 7곳의 `gpt-5` + `temperature=0`(추론 모델 400)을 `gpt-6-astra` + `use_responses_api=True`로 정정(langchain-openai 소스 확인) |
 | **v2.18** | 상용 스킬 6종 감사·반영 — 서브에이전트 3개 병렬 감사(API/프롬프트·작업·문서 스킬) 후 근거 확정분만 적용. `llm-api-guide`·`writing-prompts`는 Fable 5.1 미반영이 오류 수준(강제 `tool_choice` 예시가 5.1에서 400, 모델 표에 5.1 부재, 캐시 읽기 0.1배 낡음)이라 파괴적 변경 3건·베타 3종·폴백·effort 재측정을 반영하고, "자기검증 서브에이전트" 권장(v2.17과 충돌)·"verify your answer"류 지시·CoT 출력 지시·절차 열거 패턴에 "Claude 4.x·표준 모델 한정" 범위 표기. 근거 문서로 `reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md` 신설(스니펫 원문 축자). `work-plan`은 v2.16·v2.17 미반영 5곳(파일 3개+ 자동, verifier 고정 단계·완료 조건) 정합, `update-docs`는 Claude 5 세대에서 기본 제외된 Task 도구 호출 단계를 조건화, `work-verify` 번역투 카탈로그에 communication 명시 3패턴 보강, `init-project` GUIDE 템플릿에 `/start`의 교훈 검토 단계·GUIDE 갱신 시점 추가. 문서 스킬 2종의 `model: sonnet`(턴 한정 비용 라우팅, 7월 의도 설계)은 대표님 결정으로 `opus`로 변경 |
 | **v2.17** | verifier 자동 위임 폐지 — Opus 5 프롬프팅 가이드 "Task scope and over-verification"("use a subagent to verify" 지시와 별도 검증 단계를 넣는 하네스 스캐폴딩 제거)와 Claude Code 모델 설정 문서의 Fable 요령("검증 리마인더 생략")을 원문 확인. v2.12가 트리거만 완화하고 남겨둔 자동 위임을 사용자 요청("점검해줘/확인해줘") 시에만으로 전환, 일반 흐름에서 제외, verifier.md description·위임 조건·비교표 정합. 완료 보고의 입증 기준(도구 출력)은 유지. Codex 층은 GPT-5.6 조사(의도 초과·허위 보고 → 검증 루프 필수)에 따라 미변경. 부수: 에이전트 정의 3개(verifier·security-reviewer·build-resolver)에 남아 있던 v2.10 은퇴 훅 "ask 발동 명령" 문단을 현행 work-principles 조항 기준으로 정정 |
 | **v2.16** | Fable 5.1 출시(9/1) 대응 — 공식 자료·커뮤니티 후기를 서브에이전트 2개로 병렬 조사해 `research-fable51.md` 신설. rules 반영 3건: coding-style 최소 Diff에 "파일 전체 재작성 금지, 외과적 수정" 1줄(공식이 인정한 5.1 행동 변화), agents의 planner 트리거에서 파일 수 기준(3개+) 삭제 → 아키텍처 결정·요구 불명확·사용자 요청으로 한정(Fable 사용 요령 "경로는 모델이 계획, 큰 작업 통째로" + 하네스 자율 실행 + Opus 강제 서브에이전트 비용, planner.md description 동반 수정), context-management의 대량 출력 조항 삭제(하네스가 대량 도구 출력을 자동 파일 저장함을 실측). 진행 업데이트·병렬 호출·작업 완주 등 나머지 공식 처방은 하네스가 이미 주입하므로 중복 추가 안 함, 반서식 조항은 완화형이라 무변경. Codex·Gemini 층은 근거가 Claude 하네스 고유라 미변경. settings.json에 `remoteControlAtStartup: false`(Remote Control 자동 시작 해제)와 `CLAUDE_CODE_SUBAGENT_MODEL=opus` + `_FORCE=1`(서브에이전트 Opus 강제, 2.1.257+ 필요) 추가 — 5.1 출력 토큰 1.7배·구독 한도 소진 보고에 대응, 트랜스크립트 model 필드로 적용 실측. 도구 버전 현행화 Claude Code 2.1.250→2.1.258, Codex 0.150.1→0.152.1 체인지로그 대조 기능 변경 불요(`codex doctor`·execpolicy 회귀 20/20 정상) |

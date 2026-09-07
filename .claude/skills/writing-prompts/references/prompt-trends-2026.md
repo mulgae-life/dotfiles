@@ -65,6 +65,7 @@ Frontier 모델에서 few-shot 예시는 **포맷 정렬**에만 유효합니다
 
 모델 내장 추론 깊이를 API 파라미터로 직접 제어합니다:
 - GPT-5/5.4: `none` / `low` / `medium` / `high` / `xhigh`
+- GPT-6: `low` / `medium` / `high` / `xhigh` / `max` (`none` 미지원, 기본 `medium`)
 - Claude 4.x: Extended Thinking 활성화/비활성화
 - Claude 5 세대: adaptive thinking 상시 + `output_config.effort` (`low`~`max`)가 유일한 제어축
 - → [reasoning-params.md](reasoning-params.md) 참조
@@ -170,12 +171,13 @@ npx promptfoo@latest eval  # https://github.com/promptfoo/promptfoo
 
 ## 모델별 프롬프트 패턴 2026
 
-### GPT-5.x (OpenAI)
+### GPT-5.x / GPT-6 (OpenAI)
 
 | 기법 | 상태 | 비고 |
 |------|------|------|
 | "Think step by step" | **비권장** | 라우터 아키텍처가 내부적으로 추론 처리 |
 | `reasoning_effort` 파라미터 | **권장** | none/low/medium/high/xhigh로 추론 깊이 제어 |
+| `reasoning_effort` (GPT-6) | **권장** | `none` 미지원, `low`~`max` 5단계 |
 | 대화형 톤 | **권장** | 자연스러운 대화체가 최적 |
 | 모델 스냅샷 고정 | **필수** | 프로덕션에서 라우터 동작이 버전 간 변동 |
 | Few-shot | **선택적** | 포맷 정렬 용도로만 유효 |
