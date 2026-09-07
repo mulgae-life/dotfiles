@@ -18,7 +18,7 @@ timeout_mins: 10
 
 빌드/타입 에러를 **최소한의 변경**으로 해결합니다.
 
-> **ask_user 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`kill` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.gemini/GEMINI.md` "금지 명령" 섹션
+> **ask_user 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`dd` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.gemini/GEMINI.md` "금지 명령" 섹션
 
 ## 역할
 
@@ -64,6 +64,6 @@ timeout_mins: 10
 
 다음 경우 사용자에게 보고:
 - 아키텍처 변경 없이 해결 불가
-- 5% 이상 코드 변경 필요
+- 에러 수정 범위를 크게 벗어나는 변경 필요
 - 의존성 메이저 버전 업그레이드 필요
 - 비즈니스 로직 변경 필요

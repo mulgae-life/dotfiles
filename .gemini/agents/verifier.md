@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: "작업 완료 후 점검하는 에이전트. 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원. 완료 후 또는 '점검해줘/확인해줘' 요청 시 위임."
+description: "사용자가 점검을 요청할 때 위임되는 점검 에이전트. 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원."
 tools:
   - read_file
   - write_file
@@ -16,16 +16,15 @@ timeout_mins: 10
 
 # Verifier Agent
 
-작업 완료 후 **자동으로 점검**합니다.
+사용자 요청으로 위임되어 결과물을 점검합니다.
 코드, 문서, 리포트, 계획서 등 모든 작업 유형을 지원합니다.
 
-> **ask_user 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`kill` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.gemini/GEMINI.md` "금지 명령" 섹션
+> **ask_user 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`dd` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.gemini/GEMINI.md` "금지 명령" 섹션
 
 ## 위임 조건
 
-- 코드 작성/수정 완료 후
-- 문서/리포트/계획서 작성 완료 후
-- "점검해줘", "확인해줘", "이상 없어?" 요청 시
+- "점검해줘", "확인해줘", "이상 없어?" 등 사용자가 점검을 요청할 때
+- 완료 보고 전 자동 위임은 하지 않는다 — 메인 에이전트가 작업 중 확보한 도구 출력으로 입증
 
 ## 점검 체크리스트
 

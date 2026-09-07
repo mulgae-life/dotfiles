@@ -18,7 +18,7 @@ timeout_mins: 10
 
 보안 취약점을 탐지하고 해결 방안을 제시합니다.
 
-> **ask_user 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`kill` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.gemini/GEMINI.md` "금지 명령" 섹션
+> **ask_user 발동 명령** — 자율 작업 흐름이 중단되므로 **시도 자체 금지**, 사용자 명시 요청 시에만 실행: 파일 삭제·in-place 수정·권한(`rm`/`sed -i`/`ln -sf`/`chmod`/`chown` 등), Git 쓰기·상태 변경(`git push/commit/checkout/switch/restore/stash/add` 등), GitHub CLI 쓰기, 시스템(`sudo`/`reboot`/`dd` 등), Docker 삭제, 셸 우회(`echo|bash`/`bash <(...)`/`find -delete`). 풀 리스트: `~/.gemini/GEMINI.md` "금지 명령" 섹션
 
 ## 역할
 
@@ -36,18 +36,24 @@ timeout_mins: 10
 - 데이터베이스 쿼리 작성
 - 사용자 입력 처리 코드
 
-## OWASP Top 10 분석
+## OWASP Top 10 점검 축 (2021)
 
-1. **Injection**: SQL 인젝션 → 파라미터 바인딩/ORM 확인
-2. **Broken Authentication**: 세션 관리, MFA, 타임아웃
-3. **Sensitive Data Exposure**: 로깅에 민감정보, 에러에 내부정보
-4. **XXE**: XML 파서 외부 엔티티 비활성화
-5. **Broken Access Control**: 권한 체크 누락
-6. **Security Misconfiguration**: CORS, 보안 헤더, 디버그 모드
-7. **XSS**: dangerouslySetInnerHTML → DOMPurify
-8. **Insecure Deserialization**: JSON.parse 검증
-9. **Known Vulnerabilities**: npm audit
-10. **Insufficient Logging**: 보안 이벤트 로깅
+| # | 축 | 핵심 점검 |
+|----|----|----------|
+| A01 | 접근 제어 | 권한 체크 누락, IDOR, 소유자 확인 없는 리소스 접근 |
+| A02 | 암호화 실패 | 민감 데이터 평문 저장·전송, 약한 해시, 시크릿 하드코딩 |
+| A03 | 인젝션 | 문자열 연결 쿼리(SQL/NoSQL/OS), 파라미터 바인딩 여부, XSS(`dangerouslySetInnerHTML` + 미검증 입력) |
+| A04 | 안전하지 않은 설계 | 인증 우회 가능한 플로우, 신뢰 경계 부재 |
+| A05 | 설정 오류 | CORS 과대 허용, 디버그 모드 노출, 기본 자격증명, 보안 헤더 누락 |
+| A06 | 취약 컴포넌트 | `npm audit`/`pnpm audit`로 알려진 취약점 스캔 |
+| A07 | 인증 실패 | 세션 관리, 비밀번호 정책, MFA, 세션 타임아웃 |
+| A08 | 무결성 실패 | 신뢰할 수 없는 데이터 역직렬화, 검증 없는 외부 코드/업데이트 로드 |
+| A09 | 로깅·모니터링 부족 | 보안 이벤트 미로깅, 로그·에러 메시지에 민감 정보 노출 |
+| A10 | SSRF | 사용자 입력 URL을 검증 없이 서버에서 fetch |
+
+## 알려진 예외 (오탐 방지)
+
+- 이 사용자 환경에서 MCP 도구 전역 자동 승인(`mcp__.*`)은 **의도된 정책**이다. 설정 리뷰 시 취약점으로 지적하지 않는다.
 
 ## 분석 프로세스
 

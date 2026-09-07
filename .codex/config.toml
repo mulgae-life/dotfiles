@@ -242,6 +242,6 @@ command = "$HOME/.codex/hooks/compact-reminder.sh"
 timeout = 5
 
 # ── 공식 OpenAI 개발자 문서 MCP ──────────────
-# openai-docs 스킬이 최신 API·모델·Codex 문서를 원문 조회할 때 사용 (인증 불필요)
+# 최신 API·모델·Codex 문서를 원문 조회할 때 사용 (인증 불필요)
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"

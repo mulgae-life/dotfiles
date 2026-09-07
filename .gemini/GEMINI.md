@@ -224,7 +224,7 @@ NEVER:
 - **속도 최적화 조건부**: 속도 최적화는 사용자가 명시적으로 요청하거나, 실제 타임아웃이 있거나, 진행 없음이 반복될 때만 수행
 - **리소스 제약 추측 금지**: 충분한 CPU/RAM/GPU가 있다고 가정
 - **시간 소요 작업 인내**: 빌드/테스트/검색이 진행 중이면 멈춘 증거 없이 조급해하지 않기
-- **산출물 정리**: 테스트·실험·디버그 과정에서 본인이 만든 파일(임시 스크립트, 데모, 로그, 실험 결과, 체크포인트 등)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 이동하여 작업 경로 루트를 깨끗하게 유지. 보존이 목적이므로 `rm` 금지 (이동만). 관련 없는 기존 파일은 대상 아님 (언급만)
+- **산출물 정리**: 테스트·실험·디버그 과정에서 본인이 만든 파일(임시 스크립트, 데모, 로그, 실험 결과, 체크포인트 등)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 이동하여 작업 경로 루트를 깨끗하게 유지. 보존이 목적이므로 `rm` 금지 (이동만). 사용자가 명시적으로 삭제를 요청한 경우만 예외. 관련 없는 기존 파일은 대상 아님 (언급만)
 
 ### 금지 명령 (ask_user 발동 = 작업 흐름 중단)
 
@@ -234,7 +234,7 @@ NEVER:
   - **`/tmp` 예외**: `rm`/`rmdir`/`unlink`는 대상이 **전부 `/tmp/` 하위 절대경로**인 단순 형태(플래그+경로만, 체인·`..`·메타문자 없음)면 자동 허용된다. 임시 작업·테스트 정리는 `/tmp`에서 ask 없이 진행 가능. (`truncate`·`cd /tmp && rm x` 형태는 미커버 — ask)
 - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
 - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash`(단, `stash list`/`stash show` 조회는 allow), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
-- **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
+- **GitHub CLI 쓰기**: `gh pr/issue/release/repo create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
 - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
 - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
 - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
@@ -298,14 +298,17 @@ Gemini CLI의 서브에이전트를 활용한다. 에이전트 정의는 `~/.gem
 |------|----------|------------|
 | 1 | `build-resolver` | 빌드 실패 (`npm run build`, `tsc` 에러) |
 | 2 | `security-reviewer` | 보안 민감 코드 (auth/login/session/token, 암호화, 시크릿 처리) |
-| 3 | `planner` | 복잡한 요청 (파일 3개+ 수정, 아키텍처 결정) — **초안만** |
-| 4 | `verifier` | 작업 완료 후 점검, "점검해줘/확인해줘" 요청 |
+| 3 | `planner` | 아키텍처 결정이 필요하거나 요구가 불명확한 복잡 요청, 또는 사용자가 계획을 요청할 때 — **초안만** |
+| 4 | `verifier` | 사용자가 점검을 요청할 때만 ("점검해줘/확인해줘/이상 없어?"). 완료 보고 전 자동 위임 없음 — 입증은 작업 중 확보한 도구 출력(테스트·빌드·실측)으로 |
+
+일반 흐름: 구현 → (보안 시) security-reviewer → (빌드 에러 시) build-resolver. planner·verifier는 조건 충족·요청 시에만
 
 ### 위임 금지
 
 - 단순 질문/설명 요청
 - 1-2줄 간단한 수정
-- 파일 1-2개만 수정하는 간단한 작업
+- 사용자가 "직접 해줘" 명시적 요청
+- 요구와 범위가 명확한 작업 — 파일 수가 많아도 위임 불필요, 경로는 직접 계획해 실행
 
 ### 행동 규칙
 
@@ -335,7 +338,7 @@ Gemini CLI의 서브에이전트를 활용한다. 에이전트 정의는 `~/.gem
 
 ### 계획 영속화
 
-복잡한 작업(3단계 이상)의 계획은 `.gemini/plans/`에 저장. 구현 중 계획 참조 시 파일에서 재읽기 (기억 의존 금지). 구현 완료 후 삭제.
+복잡한 작업(3단계 이상)의 계획은 `agent-guide/plans/`(있으면) 또는 `.gemini/plans/`에 저장. 구현 중 계획 참조 시 파일에서 재읽기 (기억 의존 금지). 완료 후 `.archive/`로 이동 (`rm` 금지 — 위 산출물 정리 원칙과 동일).
 
 ### 서브에이전트 파일 공유
 
