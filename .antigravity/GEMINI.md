@@ -232,7 +232,7 @@ Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인
 
 - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
 - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
-- **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash`(단, `stash list`/`stash show` 조회는 allow), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
+- **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash`(단, `stash list`/`stash show` 조회는 자유), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
 - **GitHub CLI 쓰기**: `gh pr/issue/release/repo create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
 - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
 - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경

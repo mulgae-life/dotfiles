@@ -40,7 +40,7 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 - `cli/settings.json`의 최상위 키(`_doc` 제외)는 레포 우선. `permissions`는 `allow`/`ask`/`deny` 3배열을 통째로 교체한다 — `/permissions`로 런타임에 추가한 규칙은 재설치 시 초기화된다
 - 레포에 없는 키(`model`, `trustedWorkspaces`, `pickerGrouping` 등)는 보존
 - `jq` 부재·JSON 파싱 실패·병합 결과 검증 실패 → 대상 무변경 + 오류 (폴백 복사 없음)
-- 임시 파일에 쓰고 재파싱 검증 후 원자 교체, 교체 전 `.pre-merge.bak` 백업. 2회 적용 시 동일 결과(`[SKIP]`)
+- 임시 파일에 쓰고 재파싱 검증 후 원자 교체, 교체 전 `.pre-merge.bak` 백업. 2회 적용 시 동일 결과(`[SKIP]`) — `agy`가 빈 `allow`/`ask`를 빼고 희소 저장하므로 비교는 빈 배열 보충·`deny` 정렬로 정규화한 뒤 한다
 
 ### 권한 정책
 
@@ -70,7 +70,7 @@ Claude deny 49건과의 차이: 글롭이 없어 `rm -rf /home*`·`dd of=/dev/sd
 
 - Codex 명시 동의: CLI 층 분리와 IDE 층 미변경, 병합 계약(실패 시 무변경·3배열 교체), 훅 0개·내장 알림 우선
 - Codex 보완 반영(동의 확인): 레거시 `~/.gemini/GEMINI.md` 링크 보존, `artifactReviewPolicy: always-proceed`, `*` 검사를 `action(*)`·리터럴 `/*`로 한정, 외부 접근 서술을 실측 조건으로 한정, "deny는 기계 차단·나머지는 지침" 문구
-- 실측 스크립트 `agy-live-check.sh`: Codex가 지적한 설정 파일 직접 쓰기·모델 산문 판정·cwd 미격리·복원 실패 종료 코드·백업 소유권을 재구현한 뒤 Codex 정적 재검토 후 구현 동의(운영 전제: 대화형 agy 미실행, 동시 쓰기 경합 미보장). 실행 결과(실제 CLI 검사 4건 PASS, 오류 경로 스텁 4건)는 Claude 실행 보고이며 Codex 실행 검증이 아님
+- 실측 스크립트 `agy-live-check.sh`: Codex가 지적한 설정 파일 직접 쓰기·모델 산문 판정·cwd 미격리·복원 실패 종료 코드·백업 소유권을 재구현한 뒤 Codex 정적 재검토 후 구현 동의(운영 전제: 대화형 agy 미실행, 동시 쓰기 경합 미보장). 실행 결과(설치 후 실제 CLI 검사 6건 PASS, 오류 경로 스텁 4건)는 Claude 실행 보고이며 Codex 실행 검증이 아님
 - 보류(미실측): 프로젝트 allow vs 전역 deny 우선순위, 대화형 모드 외부 접근, IDE의 `~/.gemini/GEMINI.md` 의존성, `notifications` 실제 발화
 
 ## IDE — 추정치 (미검증)

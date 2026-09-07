@@ -243,7 +243,7 @@ dotfiles/
     └── 참고디자인파일/           # 디자인 원본 (폰트·로고)
 ```
 
-> **스킬 공유**: 설치 시 `~/.agents/skills → ~/.claude/skills` 로 통합된다. Codex는 이 공용 경로로 스킬을 공유받는다. Antigravity만 `~/.gemini/antigravity[-cli]/skills` 로 별도 연결한다.
+> **스킬 공유**: 설치 시 `~/.agents/skills → ~/.claude/skills` 로 통합된다. Codex는 이 공용 경로로 스킬을 공유받는다. Antigravity는 CLI용 `~/.gemini/config/skills`와 IDE용 `~/.gemini/antigravity/skills`로 별도 연결한다(`~/.gemini/antigravity-cli/skills`는 `agy`가 스스로 만드는 링크라 관리 제외).
 
 ## 📌 변경 이력
 

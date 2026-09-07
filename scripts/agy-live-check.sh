@@ -64,7 +64,8 @@ trap 'on_exit' EXIT
 trap 'cleanup; $RESTORE_FAILED && exit 3; exit 130' INT
 trap 'cleanup; $RESTORE_FAILED && exit 3; exit 143' TERM
 
-apply_json --arg a "$M1" --arg b "$M2" '.permissions.deny += [$a, $b] | .permissions.deny |= unique' \
+# 표식 부재는 위에서 확인했으므로 unique 없이 뒤에 붙인다 (unique 는 정렬이라 사용자 deny 순서를 바꾼다)
+apply_json --arg a "$M1" --arg b "$M2" '.permissions.deny += [$a, $b]' \
   || { echo "표식 deny 추가 실패 — 설정 무변경, 중단" >&2; RESTORED=true; rm -f "$BACKUP"; exit 2; }
 
 cd "$WORKDIR" || exit 2

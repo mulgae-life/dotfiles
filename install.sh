@@ -162,7 +162,7 @@ safe_merge_json() {
 #     (런타임 /permissions 로 추가한 규칙은 재설치 시 초기화)
 #   - 레포에 없는 키(model, trustedWorkspaces 등)는 보존
 #   - jq 부재·JSON 파싱 실패 → 대상 무변경 + 오류 (폴백 복사 없음)
-#   - 임시 파일에 쓰고 jq로 재파싱 검증 후 원자 교체. 결과 동일하면 [SKIP]
+#   - 임시 파일에 쓰고 jq로 재파싱 검증 후 원자 교체. 결과 동일하면 [SKIP] (agy 희소 저장·deny 순서 차이는 동일 취급)
 
 merge_agy_settings() {
   local src="$1" dst="$2"
@@ -197,7 +197,9 @@ merge_agy_settings() {
     rm -f "$tmp"
     error "병합 결과 검증 실패 — 대상 무변경: $dst"; return 1
   fi
-  if diff -q <(jq -S . "$tmp") <(jq -S . "$dst") &>/dev/null; then
+  # agy는 빈 allow/ask를 빼고 희소 저장하므로 빈 배열 보충·deny 정렬로 정규화한 뒤 비교 (순서·희소 차이는 SKIP)
+  local norm='.permissions = ((.permissions // {}) | .allow = (.allow // []) | .ask = (.ask // []) | .deny = ((.deny // []) | sort))'
+  if diff -q <(jq -S "$norm" "$tmp") <(jq -S "$norm" "$dst") &>/dev/null; then
     rm "$tmp"
     ok "[SKIP]   $dst (동일)"
     return
