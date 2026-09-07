@@ -4,7 +4,7 @@ AI 코딩 에이전트([Claude Code](https://docs.anthropic.com/en/docs/claude-c
 
 한 번 설치하면 어떤 프로젝트에서든 동일한 **규칙 · 에이전트 · 스킬 · 훅**이 자동 적용된다.
 
-> **🎯 설계 원칙 — 자율성 우선, 최소 차단**: 모든 작업을 확인 프롬프트 없이 실행해 장기 작업이 중단되지 않게 한다(Claude Code는 ask 계층 전면 해제). 위험 명령(`rm` · `git push` · `sudo` 등)의 통제는 지침(rules)이 담당하고 — 자율 작업 중 사용 금지, 사용자 요청 시에만 — 파국형 명령(루트·홈·절대경로·`./` 하위 재귀 삭제, 디스크 파괴, 전원 조작, 크론탭 삭제)만 `permissions.deny`가 프롬프트 없이 차단한다.
+> **🎯 설계 원칙 — 자율성 우선, 최소 차단**: 모든 작업을 확인 프롬프트 없이 실행해 장기 작업이 중단되지 않게 한다(Claude Code는 ask 계층 전면 해제). 위험 명령(`rm` · `git push` · `sudo` 등)의 통제는 지침(rules)이 담당하고 — 자율 작업 중 사용 금지, 사용자 요청 시에만 — 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작, 크론탭 삭제)과 넓은 재귀 삭제 패턴(절대경로·`./` 하위 `rm -rf`)만 `permissions.deny`가 프롬프트 없이 차단한다.
 
 ## 🔄 어떻게 동작하나?
 
@@ -60,10 +60,10 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 기능 | 설명 |
 |------|------|
 | 규칙 적용 | 코딩 스타일, 보안, 한국어 응답 등 `rules/` 규칙이 매 세션 자동 적용 |
-| 명령어 자동 실행 | 전 명령 무프롬프트 실행(bypass) → 장기 작업이 중단 없이 진행. 위험 명령은 지침이 자율 사용을 금지하고 파국형(절대경로·`./` 하위 재귀 삭제 포함)만 `deny` 차단 |
+| 명령어 자동 실행 | 전 명령 무프롬프트 실행(bypass) → 장기 작업이 중단 없이 진행. 위험 명령은 지침이 자율 사용을 금지하고 파국형 명령과 넓은 재귀 삭제 패턴(절대경로·`./` 하위 `rm -rf`)만 `deny` 차단 |
 | 에이전트 위임 | 빌드 실패 → `build-resolver`, 보안 민감 코드 → `security-reviewer` 등 자동 위임 |
 | 데스크톱 알림 | Claude가 입력 대기 중일 때 `notify-send`로 알림 |
-| compact 리마인더 | 긴 세션에서 컨텍스트 압축 후 핵심 규칙(한국어, 변경 이유 설명 등) 자동 재주입 |
+| compact 리마인더 | 긴 세션에서 컨텍스트 압축 후 "요약을 사실로 단정하지 말고 관련 파일을 다시 읽으라"는 리마인더를 컨텍스트에 주입 |
 
 ### 🎯 사용자가 호출하는 것
 
@@ -110,7 +110,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | Notification | 알림 발생 시 | `notify-send`로 데스크톱 알림 |
 | SessionStart (compact) | 컨텍스트 압축 직후 | 요약 불신·파일 재확인 리마인더를 `additionalContext`로 주입 — PostCompact는 `systemMessage`·stdout을 모델에 전달하지 않아 부적합 |
 
-> Bash 자동승인 훅(`auto-approve-readonly.sh`)은 은퇴, `permissions.ask`도 전면 해제 — 497줄 텍스트 매칭이 따옴표 속 문구("rm 금지" 등)를 명령으로 오인하는 오탐이 누적됐고, ask 규칙도 bypass 모드에서 발동해(실측 확인) 자율 흐름을 끊었다. 이제 `defaultMode: bypassPermissions`로 전 명령 무프롬프트 실행이며, 위험 명령은 지침(work-principles)이 자율 사용을 금지하고 파국형(루트·홈·절대경로·`./` 하위 재귀 삭제, 디스크 파괴, 전원 조작, 크론탭 삭제)만 `permissions.deny` 49건이 차단한다 — 규칙의 `*`는 공백 포함 임의 문자열에 매칭되므로 `rm -rf /*`·`rm -rf ./*`는 절대경로·`./` 하위 `rm -rf` 전부에 걸린다. 훅 원본·회귀 케이스·기존 ask 목록(복원용)은 `.archive/2026-07-18_hook-retirement/`
+> Bash 자동승인 훅(`auto-approve-readonly.sh`)은 은퇴, `permissions.ask`도 전면 해제 — 497줄 텍스트 매칭이 따옴표 속 문구("rm 금지" 등)를 명령으로 오인하는 오탐이 누적됐고, ask 규칙도 bypass 모드에서 발동해(실측 확인) 자율 흐름을 끊었다. 이제 `defaultMode: bypassPermissions`로 전 명령 무프롬프트 실행이며, 위험 명령은 지침(work-principles)이 자율 사용을 금지하고 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작, 크론탭 삭제)과 넓은 재귀 삭제 패턴만 `permissions.deny` 49건이 차단한다 — 규칙의 `*`는 공백 포함 임의 문자열에 매칭되므로 `rm -rf /*`·`rm -rf ./*`는 절대경로·`./` 하위 `rm -rf` 전부에 걸린다(설계 의도는 파국형 차단이지만 구현은 이만큼 넓다). 훅 원본·회귀 케이스·기존 ask 목록(복원용)은 `.archive/2026-07-18_hook-retirement/`
 
 **Codex (v0.129+)**
 
@@ -118,6 +118,8 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 |----|--------|------|
 | `notify.sh` | Stop | 턴 완료 시 `notify-send` 알림 |
 | `compact-reminder.sh` | SessionStart (compact) | 요약 불신·파일 재확인 리마인더를 `additionalContext`로 주입 — PostCompact의 `systemMessage`는 UI 경고 전용 |
+
+> Codex는 훅 정의의 해시로 신뢰를 기록하므로 훅을 새로 만들거나 바꾸면 `/hooks`에서 검토·신뢰할 때까지 그 훅을 건너뛴다(시작 시 경고만 출력, 자동 확인창 없음).
 
 > Codex 실패알림 훅(PostToolUse)은 제거됨 — PostToolUse는 비정상 종료한 Bash에도 발화하지만, payload(`tool_response`)가 exit code 없는 포맷된 출력 문자열이고 `PostToolUseFailure` 이벤트도 없어(0.142.5 + 0.144.1 `shell.rs`·`protocol.rs` 소스 재검증) 실패의 종료 상태를 범용적·신뢰성 있게 판정할 수 없다(출력 문자열에서 특정 오류 문구를 grep하는 것은 가능하나 일반적 실패 감지는 불가). Codex가 exit_code를 노출하면 `.archive/2026-07-02_codex-dead-hook/`에서 복원
 
@@ -247,7 +249,7 @@ dotfiles/
 
 | 버전 | 핵심 변경 |
 |------|-----------|
-| **v2.21** | Codex 설정 리뷰 재검토 반영 — 8건을 파일·Git 이력·공식 문서 원문·Codex 0.153.4 소스로 독립 판정(수용 5·부분 수용 2·기각 1). 압축 후 리마인더를 PostCompact에서 SessionStart(`compact`)의 `additionalContext`로 이전 — Claude 공식 문서가 PostCompact의 `systemMessage`·stdout 폐기를 명시하고 이번 세션 트랜스크립트에서도 로컬 명령 출력으로만 기록됨을 확인, Codex도 `compact.rs`가 `systemMessage`를 UI 경고로만 처리(스크립트 `compact-reminder.sh`로 개명, 규칙 재주입과 중복되는 문구 꼬리 삭제). config.toml `[agents]` 주석 정정(`max_depth`는 V2 무시·`job_max_runtime_seconds`는 no-op — `config_toml.rs` 소스 주석으로 확정, v2.19에서 결정한 "무효 가능성 기록"이 누락돼 있던 것을 이행. 키 삭제·개명은 계속 보류). `verify-policies.sh`에 인자 검증·실행 검사기 0개 실패·검사기 자체 오류 실패 처리(검사 없이 성공 종료하던 경로 3개 차단). default.rules 사유 문구를 forbidden의 실제 경로("사용자가 직접 실행")로 통일, AGENTS.md의 "ask 없음"을 "`prompt` 판정은 있으나 정책상 미사용"으로 정정. PostToolUseFailure 훅 timeout 5000초(단위가 초라 83분)→10초. deny 와일드카드가 절대경로·`./` 하위 재귀 삭제까지 매칭하는 실제 범위를 README·work-principles 문구에 반영(규칙 무변경). verifier.md·CLAUDE.md 경로를 `~/.claude/...`로 통일. 기각: verifier·security-reviewer 자동 수정 범위(초기 커밋부터 의도된 설계) |
+| **v2.21** | Codex 설정 리뷰 재검토 반영 — 8건을 파일·Git 이력·공식 문서 원문·Codex 0.153.4 소스로 독립 판정(수용 5·부분 수용 2·기각 1). 압축 후 리마인더를 PostCompact에서 SessionStart(`compact`)의 `additionalContext`로 이전 — Claude 공식 문서가 PostCompact의 `systemMessage`·stdout 폐기를 명시하고 이번 세션 트랜스크립트에서도 로컬 명령 출력으로만 기록됨을 확인, Codex도 `compact.rs`가 `systemMessage`를 UI 경고로만 처리(스크립트 `compact-reminder.sh`로 개명, 규칙 재주입과 중복되는 문구 꼬리 삭제). config.toml `[agents]` 주석 정정(`max_depth`는 V2 무시·`job_max_runtime_seconds`는 no-op — `config_toml.rs` 소스 주석으로 확정, v2.19에서 결정한 "무효 가능성 기록"이 누락돼 있던 것을 이행. 키 삭제·개명은 계속 보류). `verify-policies.sh`에 인자 검증·실행 검사기 0개 실패·검사기 자체 오류 실패 처리(검사 없이 성공 종료하던 경로 3개 차단). default.rules 사유 문구를 forbidden의 실제 경로("사용자가 직접 실행")로 통일, AGENTS.md의 "ask 없음"을 "`prompt` 판정은 있으나 정책상 미사용"으로 정정. PostToolUseFailure 훅 timeout 5000초(단위가 초라 83분)→10초. deny 와일드카드가 절대경로·`./` 하위 재귀 삭제까지 매칭하는 실제 범위를 README·work-principles 문구에 반영(규칙 무변경). verifier.md·CLAUDE.md 경로를 `~/.claude/...`로 통일. 기각: verifier·security-reviewer 자동 수정 범위(초기 커밋부터 의도된 설계). Codex 2차 회신 반영: 검사기별 케이스 0건·케이스 파일 부재를 실패 처리, README 리마인더 설명 현행화, "파국형" 표현을 파국형 명령과 넓은 재귀 삭제 패턴으로 구분, Codex 훅 변경 시 `/hooks` 재신뢰 필요를 명시(문서 원문: 신뢰 전까지 건너뜀). Claude 쪽 `additionalContext` 주입은 수동 `/compact` 직후 실측 확인 |
 | **v2.20** | 구세대 모델 자료 정리 — 유지 기준을 Claude 5 세대·GPT-5.6 이상으로 잡고(Haiku 4.5는 현역이라 유지), 그 미만 전용 문서 25개를 `reference/archive/`로 `git mv`(GPT-4.1~5.5 프롬프트 가이드 7종, gpt-4o·o1·GPT-5.2 시절 플랫폼 문서 스냅샷 7종, GPT-5 초기·5.2·5.4 API 정리 3종, Claude 4.x Best Practices 2종·Prefilling, `writing-prompts` 참조 5종). 유지 문서에서는 구세대 절을 삭제(Extended Thinking `budget_tokens`, Prefilling, GPT-5.4 `phase`, effort `none`에서만 되던 temperature 주석), 코드 예시 모델 ID를 `gpt-6-astra`·`claude-opus-5`로 통일(대표님 결정: Sonnet 예시 미사용. GPT-6·Claude 5 세대 모두 temperature 미지원이라 LangChain 예시는 temperature 제거, OpenAI는 `use_responses_api=True` 병기), 5.2/5.4 특화 절은 "내장 도구·에이전트 기능"으로 합쳐 GPT-6 모델 페이지의 지원 도구 목록으로 대체. 이동 파일의 상호 링크는 스킬에서는 제거, reference 가이드의 "이전 버전" 링크는 보관소 경로로 갱신. 연구 원문(`reference/research/`)과 이 이력 표는 시점 기록이라 손대지 않음 |
 | **v2.19** | GPT-6 Astra(9/3 출시)·Codex 0.153.4 대응 — 서브에이전트 3개(공식·커뮤니티 / Codex 체인지로그·config 실측 / 레포 문구 인벤토리 96건) 병렬 조사 후 공식 원문 3건 직접 대조해 `research-gpt6.md`·`gpt-6-prompt-guide.md`(스니펫 원문)·`gpt6-patterns.md` 신설. 확정 사실: API 1.05M/128K·effort low~max 5단계(`none` 폐지)·`temperature` 등 제거·도구 호출 Responses 전용·272K 초과 요청 전체 2배 요율; Codex는 0.153.4부터 `model` 미설정 시 Astra 기본(컨테이너 실측), 창은 5.6과 같은 272K, `ultra`는 API 값이 아닌 자동 위임 모드로 켜면 하네스가 "명시 요청 없이 위임 금지" developer 지시를 무효화(`codex debug prompt-input` 실측). Codex 층 반영: config.toml 주석 현행화(Astra 기본·high는 상향 선택·ultra 단서), developer_instructions에 공식 가이드의 주도성("~해줄래"는 실행 지시로 간주·완주)과 테스트 범위 축소(가역적 변경에 구현 비추는 테스트 금지) 2줄, AGENTS.md의 계획·점검 트리거를 Claude 층 v2.16·v2.17과 정합(파일 3개+ 기준 삭제, 점검은 요청 시만 — 5.6 때 유지 근거였던 의도 이탈·허위 보고가 Astra 시스템 카드에서 18.8%→3.4%·1/4로 감소), Ultra 용어 분리. 스킬 층: effort 열거 6개 파일 8곳에 세대 분기, `writing-prompts`·`llm-api-guide`에 GPT-6 블록·특화 절 신설, 5.6은 이전 세대로 강등. 동작을 바꾸는 설정 키(`agents.*` 개명·`default_subagent_*`·`tools.update_plan`·`tui.auto_recap`)는 대표님 결정으로 보류(주석에만 기록). 부수: Codex Desktop remote app-server 구버전(0.145.0) 44일 잔류로 신형 캐시 파싱 실패 후 구형 목록을 덮어써 Astra가 피커에서 사라진 실사고 진단·복구. 2차 점검: Codex 층에 코딩·구조·보안 규칙이 전역에 없던 누락을 복원(`f956131`이 "developer_instructions와 중복"이라며 AGENTS.md에서 제거했으나 config에는 처음부터 없었음 — `<coding_rules>` 블록 신설, Claude rules 3종 압축 대응), AGENTS.md에서 0.153.4 바이너리에 없는 `spawn_agents_on_csv` 서술·설정값·중복 조항 삭제, config 주석의 이슈 번호·버전·인용 정리, `langchain-guide` 예시 7곳의 `gpt-5` + `temperature=0`(추론 모델 400)을 `gpt-6-astra` + `use_responses_api=True`로 정정(langchain-openai 소스 확인) |
 | **v2.18** | 상용 스킬 6종 감사·반영 — 서브에이전트 3개 병렬 감사(API/프롬프트·작업·문서 스킬) 후 근거 확정분만 적용. `llm-api-guide`·`writing-prompts`는 Fable 5.1 미반영이 오류 수준(강제 `tool_choice` 예시가 5.1에서 400, 모델 표에 5.1 부재, 캐시 읽기 0.1배 낡음)이라 파괴적 변경 3건·베타 3종·폴백·effort 재측정을 반영하고, "자기검증 서브에이전트" 권장(v2.17과 충돌)·"verify your answer"류 지시·CoT 출력 지시·절차 열거 패턴에 "Claude 4.x·표준 모델 한정" 범위 표기. 근거 문서로 `reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md` 신설(스니펫 원문 축자). `work-plan`은 v2.16·v2.17 미반영 5곳(파일 3개+ 자동, verifier 고정 단계·완료 조건) 정합, `update-docs`는 Claude 5 세대에서 기본 제외된 Task 도구 호출 단계를 조건화, `work-verify` 번역투 카탈로그에 communication 명시 3패턴 보강, `init-project` GUIDE 템플릿에 `/start`의 교훈 검토 단계·GUIDE 갱신 시점 추가. 문서 스킬 2종의 `model: sonnet`(턴 한정 비용 라우팅, 7월 의도 설계)은 대표님 결정으로 `opus`로 변경 |

@@ -15,6 +15,7 @@ case "$ONLY" in
   all|codex|gemini) ;;
   *) echo "사용법: bash scripts/verify-policies.sh [codex|gemini]" >&2; exit 2 ;;
 esac
+[[ -f "$CASES" ]] || { echo "케이스 파일 없음: $CASES" >&2; exit 1; }
 TOTAL_PASS=0 TOTAL_FAIL=0
 RAN=0  # 실제 실행된 검사기 수 — 0이면 검사 없이 통과한 것이므로 실패 판정
 
@@ -35,6 +36,10 @@ run_codex() {
       fail=$((fail+1)); echo "FAIL [기대=$expected 실제=$decision] $command"
     fi
   done < <(grep -P '^codex\t' "$CASES")
+  # 케이스 0건이면 검사 없이 통과한 것 → 실패 (검사기 단위로 판정해야 다른 검사기의 PASS에 가려지지 않음)
+  if (( pass + fail == 0 )); then
+    echo "FAIL [codex 케이스 0건 — $CASES 확인]"; fail=1
+  fi
   echo "codex 소계: $pass PASS / $fail FAIL"
   TOTAL_PASS=$((TOTAL_PASS+pass)); TOTAL_FAIL=$((TOTAL_FAIL+fail))
 }
@@ -69,6 +74,9 @@ EOF
   # 엔진은 FAIL·무효 규칙이 있을 때만 rc≠0 이고 그때는 FAIL 줄이 함께 찍힘 → FAIL 줄 없이 rc≠0 이면 파서·엔진 자체 오류
   if (( rc != 0 && f == 0 )); then
     echo "FAIL [gemini 검사기 오류 rc=$rc — 정책 판정 아님]"; f=1
+  fi
+  if (( p + f == 0 )); then
+    echo "FAIL [gemini 케이스 0건 — $CASES 확인]"; f=1
   fi
   TOTAL_PASS=$((TOTAL_PASS+p)); TOTAL_FAIL=$((TOTAL_FAIL+f))
 }
