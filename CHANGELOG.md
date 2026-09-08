@@ -1,10 +1,10 @@
 # 변경 이력
 
-버전별 상세는 각 시점의 Git 이력에 있다. [GitHub Releases](https://github.com/mulgae-life/dotfiles/releases)는 별도 태그 체계(v1.x)로 일부 버전의 상세만 담는다. 설계 결정의 근거는 [docs/DESIGN.md](docs/DESIGN.md).
+버전별 상세는 각 시점의 Git 이력에 있다. [GitHub Releases](https://github.com/mulgae-life/dotfiles/releases)는 별도 태그 체계(v1.x)로 일부 버전의 상세만 담는다. 설계 결정의 근거는 [docs/DECISIONS.md](docs/DECISIONS.md).
 
 | 버전 | 핵심 변경 |
 |------|-----------|
-| **v2.29** | 신모델(Fable 5.1·Astra·Gemini 3.8) 재점검 — 구조 변경 없음. Codex 추론 수준 고정 해제, agy 병합의 깨진 링크 선행 삭제 제거. README를 사용자용으로 재편하고 설계 근거는 `docs/DESIGN.md`, 이력은 `CHANGELOG.md`로 분리. `/update-docs` 이력 형식 초압축 |
+| **v2.29** | 신모델(Fable 5.1·Astra·Gemini 3.8) 재점검 — 구조 변경 없음. Codex 추론 수준 고정 해제, agy 병합의 깨진 링크 선행 삭제 제거. README를 사용자용으로 재편하고 설계 근거는 `docs/DECISIONS.md`, 이력은 `CHANGELOG.md`로 분리. `/update-docs` 이력 형식 초압축 |
 | **v2.28** | Codex 점검 5건 반영 — `/init-project` 링크 단계를 `ln` 차단 도구(Codex)에서는 사용자 실행 요청으로 분기, 기존 파일 보존 분기와 완료 조건 정합, GUIDE 갱신 조건·교훈 경로·루트 기준 경로 일반화 |
 | **v2.27** | `/start`가 문서에 더해 핵심 코드를 읽는다 — PROJECT.md 코드 지도(골격=항상·영역=다음 작업 관련) 기준, 없으면 진입점부터 탐색. 예산 3,000줄, 출력에 "코드 파악" 절 |
 | **v2.26** | `/init-project`가 루트 `CLAUDE.md`·`AGENTS.md`를 `GUIDE.md` 링크로 생성 — 세 도구 링크 추종 실측. `/start`는 커스텀 명령에서 공용 스킬로 전환(Codex 층에 없던 세션 시작 절차 보강), `commands/` 설치 종료 |

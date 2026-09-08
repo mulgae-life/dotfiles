@@ -2,7 +2,7 @@
 
 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) · [Codex](https://github.com/openai/codex) · [Antigravity CLI](https://antigravity.google)(`agy`)의 전역 설정을 한 레포에서 관리한다. 한 번 설치하면 어떤 프로젝트에서든 같은 **규칙 · 에이전트 · 스킬 · 훅**이 적용된다.
 
-원칙은 셋이다. 확인 프롬프트 없이 자율 실행하되 파국형 명령만 기계로 막고, 위험 명령 통제는 지침이 맡으며, Claude 층을 정본으로 다른 도구가 공유한다. 근거와 결정 기록은 [docs/DESIGN.md](docs/DESIGN.md), 버전별 변경은 [CHANGELOG.md](CHANGELOG.md).
+원칙은 셋이다. 확인 프롬프트 없이 자율 실행하되 파국형 명령만 기계로 막고, 위험 명령 통제는 지침이 맡으며, Claude 층을 정본으로 다른 도구가 공유한다. 근거와 결정 기록은 [docs/DECISIONS.md](docs/DECISIONS.md), 버전별 변경은 [CHANGELOG.md](CHANGELOG.md).
 
 ## 📦 설치
 
@@ -106,7 +106,7 @@ dotfiles/
 ├── .codex/           AGENTS.md · config.toml · rules/ (Starlark 차단 규칙) · hooks/ · skills → ../.claude/skills
 ├── .antigravity/     GEMINI.md · cli/settings.json · README.md (실측·병합 계약) · IDE용 settings·hooks (미검증)
 ├── scripts/          verify-policies.sh (정책 회귀) · agy-live-check.sh (agy 실측) · policy-cases.tsv · setup-apparmor.sh
-├── docs/DESIGN.md    설계 원칙·결정 기록·아카이브 위치
+├── docs/DECISIONS.md 설계 원칙·결정 기록·아카이브 위치
 ├── reference/        프롬프트 가이드(Claude·OpenAI·Google·Qwen) · 모델 조사 원문(research/) · 디자인 원본
 └── install.sh
 ```
