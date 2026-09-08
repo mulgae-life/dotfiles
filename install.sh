@@ -179,10 +179,7 @@ merge_agy_settings() {
   fi
 
   local tmp="${dst}.tmp.$$"
-  # 댕글링 링크는 -f 검사가 거짓이라 신규 생성 경로로 가는데, 리다이렉션이 링크 너머에 파일을 만들므로 먼저 제거
-  if [ -L "$dst" ] && [ ! -e "$dst" ] && ! $DRY_RUN; then
-    rm "$dst" || { error "깨진 링크 제거 실패 — 대상 무변경: $dst"; return 1; }
-  fi
+  # 댕글링 링크는 -f 검사가 거짓이라 신규 생성 경로로 간다. 결과는 별도 임시 파일에 쓰고 마지막 mv가 링크 자체를 교체하므로 미리 제거하지 않는다 (실패 시 대상 무변경)
   if [ ! -f "$dst" ]; then
     if $DRY_RUN; then
       info "[COPY]   $dst ← $src (dry-run)"

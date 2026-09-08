@@ -3,12 +3,8 @@
 # Claude Code의 settings.json + rules/communication.md에 대응
 # ─────────────────────────────────────────────
 
-# model 미설정 = Codex 권장 기본값 추종 (0.153.4부터 GPT-6 Astra). 세대 교체 때 config가 낡지 않도록 고정하지 않음
-# /model로 고르면 Codex가 런타임 config.toml에 model = "..."을 써넣어 고정된다 — 다음 세대 교체 때 그 줄을 지워야 기본 추종이 복원됨
-# model = "gpt-6-astra"
-model_reasoning_effort = "high"    # Astra 기본 medium 대비 상향 선택. 런타임 조정은 /effort. ultra는 자동 위임 모드(AGENTS.md 위임 억제가 풀림)
+# model·추론 수준 미설정 = Codex 기본값 추종(세대 교체 때 config가 낡지 않도록). /model·/effort 런타임 값은 재설치 시 레포 버전으로 복원됨
 model_reasoning_summary = "concise"
-plan_mode_reasoning_effort = "high"  # 어려운 계획은 high, xhigh는 평가에서 유의미한 개선이 확인될 때만
 personality = "pragmatic"
 # service_tier = "fast"            # 대표님이 /fast 또는 수동으로 토글
 
