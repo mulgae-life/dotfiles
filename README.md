@@ -22,6 +22,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 무프롬프트 실행 | 확인 없이 실행. 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작 등)만 차단하고 `rm`·`git push`·`sudo` 같은 위험 명령은 사용자가 요청할 때만 쓰도록 지침으로 통제 |
 | 에이전트 자동 위임 | 빌드 실패 → `build-resolver`, 보안 민감 코드 → `security-reviewer` |
 | 데스크톱 알림 | 입력 대기·턴 완료 시 `notify-send` |
+| 상태줄 | 입력창 아래에 프로젝트 · 모델 · effort · 컨텍스트 사용률 · 5시간/주간 한도를 세 도구 모두 표시 |
 | compact 리마인더 | 컨텍스트 압축 뒤 "요약을 사실로 단정하지 말고 파일을 다시 읽으라"를 주입 |
 
 ## 🎯 사용법
@@ -96,7 +97,8 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 권한 | `bypassPermissions` + deny 49건 | `approval_policy="never"` + Starlark 규칙 | `always-proceed` + deny 66건 |
 | 스킬 | `.claude/skills/` | `~/.agents/skills` 링크 | `~/.gemini/config/skills` 링크 |
 | 모델·effort | 기본값 추종(서브에이전트만 Opus 강제) | 기본값 추종 | 기본값 추종 |
-| 검증 버전 | 2.1.258 | 0.153.4 | `agy` 1.1.27 (IDE 층 미검증) |
+| 상태줄 | `statusline-command.sh` | `[tui].status_line` 내장 항목 | `cli/statusline-command.sh` |
+| 검증 버전 | 2.1.258 | 0.153.4 | `agy` 1.1.27~1.1.28 (IDE 층 미검증) |
 
 ## 📁 디렉토리 구조
 
@@ -104,7 +106,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 dotfiles/
 ├── .claude/          CLAUDE.md · rules/ · agents/ · hooks/ · skills/ · settings.json · statusline-command.sh
 ├── .codex/           AGENTS.md · config.toml · rules/ (Starlark 차단 규칙) · hooks/ · skills → ../.claude/skills
-├── .antigravity/     GEMINI.md · cli/settings.json · README.md (실측·병합 계약) · IDE용 settings·hooks (미검증)
+├── .antigravity/     GEMINI.md · cli/settings.json · cli/statusline-command.sh · README.md (실측·병합 계약) · IDE용 settings·hooks (미검증)
 ├── scripts/          verify-policies.sh (정책 회귀) · agy-live-check.sh (agy 실측) · policy-cases.tsv · setup-apparmor.sh
 ├── docs/DECISIONS.md 설계 원칙·결정 기록·아카이브 위치
 ├── reference/        프롬프트 가이드(Claude·OpenAI·Google·Qwen) · 모델 조사 원문(research/) · 디자인 원본

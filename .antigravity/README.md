@@ -9,7 +9,8 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 ├── README.md                       # 이 문서
 ├── GEMINI.md                       # 전역 작업 지침 → ~/.gemini/config/GEMINI.md (CLI), ~/.gemini/GEMINI.md (IDE)
 ├── cli/
-│   └── settings.json               # agy 관리 키 (toolPermission·artifactReviewPolicy·notifications·permissions)
+│   ├── settings.json               # agy 관리 키 (toolPermission·artifactReviewPolicy·notifications·statusLine·permissions)
+│   └── statusline-command.sh       # 상태줄 스크립트 (.claude/statusline-command.sh와 같은 배치)
 ├── settings.json                   # IDE 워크스페이스 설정 (추정치, 미검증)
 ├── hooks/
 │   └── mcp-config-guard.sh         # IDE용 .agent/mcp_config.json 백도어 차단 (미검증)
@@ -29,6 +30,7 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 | 전역 지침 (IDE) | `~/.gemini/GEMINI.md` | 같은 파일로 심링크. IDE 공식 문서([docs/ide/rules](https://antigravity.google/docs/ide/rules/))가 전역 규칙 경로로 명시. IDE에서 실제 로드는 미실측 |
 | 스킬 | `~/.gemini/config/skills` → `.claude/skills` | 심링크. `agy`가 첫 실행 시 `~/.gemini/antigravity-cli/skills → ~/.gemini/config/skills` 링크를 스스로 만들므로 후자는 관리하지 않는다. `agy -p /skills`로 20개 인식 확인 |
 | CLI 설정 | `~/.gemini/antigravity-cli/settings.json` | `cli/settings.json` 병합. `agy`가 `model`·`trustedWorkspaces`·승인 캐시를 되쓰고 희소 저장(기본값 미기록)하므로 복사 금지 |
+| 상태줄 | `settings.json`의 `statusLine` → `~/.antigravity/cli/statusline-command.sh` | `{"type":"command","command":…,"stack_with_default":true}`. 스크립트는 stdin으로 JSON을 받는다(1.1.28 실측): `model.display_name`·`model.effort`, `context_window.used_percentage`(창 1,048,576), `quota.{gemini,3p}-{5h,weekly}.remaining_fraction`·`reset_time`, `workspace.project_dir`, `agent_state`. Claude Code 페이로드와 같은 골격이라 스크립트를 이식했고, 쿼터만 남은 비율→사용률로 환산하고 모델 계열(Gemini/Claude·GPT)에 따라 버킷을 고른다. 턴 종료 시 재실행되며 주기 갱신은 없다. `stack_with_default`는 내장 줄(단축키 힌트·모드 배지·설정 저장 실패 알림)을 위에 남긴다 — `/statusline` 명령으로 설정하면 이 플래그 없이 저장되므로 재설치 병합으로 복원된다 |
 | 훅 | `~/.gemini/config/hooks.json` | 사용 0개. 파일 자체는 로드됨을 실측(PreInvocation `ephemeralMessage` 주입·Stop 발화 확인) |
 | MCP | `~/.gemini/config/mcp_config.json` | 레포 미관리 |
 

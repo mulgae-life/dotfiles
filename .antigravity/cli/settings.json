@@ -3,6 +3,11 @@
   "toolPermission": "always-proceed",
   "artifactReviewPolicy": "always-proceed",
   "notifications": true,
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.antigravity/cli/statusline-command.sh",
+    "stack_with_default": true
+  },
   "permissions": {
     "allow": [],
     "ask": [],
