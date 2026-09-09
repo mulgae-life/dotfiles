@@ -357,16 +357,16 @@ main() {
 
   # 4. Antigravity — 전역 커스터마이징 루트는 ~/.gemini/config/ (CLI·IDE 공용, agy 1.1.27 실측)
   safe_mkdir "$HOME/.gemini/config"
-  safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/config/GEMINI.md"
   # 스킬: agy가 처음 실행될 때 ~/.gemini/antigravity-cli/skills → ~/.gemini/config/skills 링크를 스스로 만들므로
   # config/skills 만 레포가 소유한다 (antigravity-cli/skills 는 관리 제외)
   safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/config/skills"
-  # ~/.gemini/GEMINI.md 는 Antigravity IDE 공식 문서의 전역 규칙 경로 (같은 파일로 링크)
+  # 전역 지침은 ~/.gemini/GEMINI.md 하나만 — CLI·IDE 공식 문서가 명시한 경로. config/GEMINI.md 도 로드되므로
+  # 둘 다 두면 같은 지침이 두 번 주입된다 (1.1.28 마커 실측)
   safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/GEMINI.md"
-  # Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료) — 이전 설치가 ~/.gemini 바로 아래 남긴 링크 정리.
-  # AGENTS.md 는 GEMINI.md 로 통합돼 config/AGENTS.md 링크도 함께 정리한다
+  # 이전 설치가 남긴 링크 정리 — Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료)로 ~/.gemini 바로 아래 남은 것,
+  # GEMINI.md 로 통합된 AGENTS.md, 이중 로드 원인이던 config/GEMINI.md
   local stale
-  for stale in agents commands policies hooks skills AGENTS.md config/AGENTS.md; do
+  for stale in agents commands policies hooks skills AGENTS.md config/AGENTS.md config/GEMINI.md; do
     if [ -L "$HOME/.gemini/$stale" ]; then
       if $DRY_RUN; then
         warn "[CLEAN]  $HOME/.gemini/$stale (레포 관리 종료) (dry-run)"
@@ -438,7 +438,6 @@ main() {
     "$HOME/.codex/rules"
     "$HOME/.codex/hooks"
     "$HOME/.agents/skills"
-    "$HOME/.gemini/config/GEMINI.md"
     "$HOME/.gemini/config/skills"
     "$HOME/.gemini/GEMINI.md"
     "$HOME/.gemini/antigravity/global_workflows"

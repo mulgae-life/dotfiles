@@ -7,7 +7,7 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 ```
 .antigravity/
 ├── README.md                       # 이 문서
-├── GEMINI.md                       # 전역 작업 지침 → ~/.gemini/config/GEMINI.md (CLI), ~/.gemini/GEMINI.md (IDE)
+├── GEMINI.md                       # 전역 작업 지침 → ~/.gemini/GEMINI.md (CLI·IDE 공용)
 ├── cli/
 │   ├── settings.json               # agy 관리 키 (toolPermission·artifactReviewPolicy·notifications·statusLine·permissions)
 │   └── statusline-command.sh       # 상태줄 스크립트 (.claude/statusline-command.sh와 같은 배치)
@@ -26,8 +26,7 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 
 | 대상 | 경로 | 방식 |
 |------|------|------|
-| 전역 지침 (CLI) | `~/.gemini/config/GEMINI.md` | 심링크. 마커 실측으로 로드 확인. 별도 디렉토리에서 실행해도 주입되므로 cwd 상속이 아니라 전역이다. `AGENTS.md`도 같은 자리에서 로드되지만(실측) 사용하지 않는다 |
-| 전역 지침 (IDE) | `~/.gemini/GEMINI.md` | 같은 파일로 심링크. IDE 공식 문서([docs/ide/rules](https://antigravity.google/docs/ide/rules/))가 전역 규칙 경로로 명시. IDE에서 실제 로드는 미실측 |
+| 전역 지침 (CLI·IDE) | `~/.gemini/GEMINI.md` | 심링크 하나. CLI 마이그레이션 문서([docs/cli/gcli-migration](https://antigravity.google/docs/cli/gcli-migration/))와 IDE 문서([docs/ide/rules](https://antigravity.google/docs/ide/rules/))가 모두 이 경로를 전역 규칙으로 명시하고, `/context` 패널의 자동 로드 목록에도 이 경로만 뜬다. `~/.gemini/config/GEMINI.md`·`AGENTS.md`도 로드되지만(마커 실측) 비공식 경로이고, 둘 다 두면 같은 지침이 두 번 주입된다(1.1.28 마커 실측 — 두 경로에 다른 표식을 두자 모델이 둘 다 나열). 별도 디렉토리에서 실행해도 주입되므로 cwd 상속이 아니라 전역이다. IDE에서 실제 로드는 미실측 |
 | 스킬 | `~/.gemini/config/skills` → `.claude/skills` | 심링크. `agy`가 첫 실행 시 `~/.gemini/antigravity-cli/skills → ~/.gemini/config/skills` 링크를 스스로 만들므로 후자는 관리하지 않는다. `agy -p /skills`로 20개 인식 확인 |
 | CLI 설정 | `~/.gemini/antigravity-cli/settings.json` | `cli/settings.json` 병합. `agy`가 `model`·`trustedWorkspaces`·승인 캐시를 되쓰고 희소 저장(기본값 미기록)하므로 복사 금지 |
 | 상태줄 | `settings.json`의 `statusLine` → `~/.antigravity/cli/statusline-command.sh` | `{"type":"command","command":…,"stack_with_default":true}`. 스크립트는 stdin으로 JSON을 받는다(1.1.28 실측): `model.display_name`·`model.effort`, `context_window.used_percentage`(창 1,048,576), `quota.{gemini,3p}-{5h,weekly}.remaining_fraction`·`reset_time`, `workspace.project_dir`, `agent_state`. Claude Code 페이로드와 같은 골격이라 스크립트를 이식했고, 쿼터만 남은 비율→사용률로 환산하고 모델 계열(Gemini/Claude·GPT)에 따라 버킷을 고른다. 턴 종료와 모델·effort 변경 시 재실행되며 주기 갱신은 없다. 모델을 바꾸면 `context_window_size`도 그 모델 것으로 바뀐다(Claude 모델 선택 시 사용률이 뛰는 이유). `stack_with_default`는 내장 줄(단축키 힌트·모드 배지·설정 저장 실패 알림)을 위에 남긴다 — `/statusline` 명령으로 설정하면 이 플래그 없이 저장되므로 재설치 병합으로 복원된다 |

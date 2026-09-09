@@ -57,7 +57,7 @@ Codex 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 tmpfs로 덮�
 |---|---|---|---|
 | 커스텀 명령 | 스킬(`/이름`) — `commands/*.md`는 사용하지 않음 | 스킬(`$이름`·`/skills`) + `~/.codex/prompts/*.md`(`/prompts:이름`, 미사용) | 스킬(`/이름`, 헤드리스 `-p "/이름 …"`도 확장) |
 | 에이전트 | `agents/*.md` 4개 | 없음 — AGENTS.md의 역할 트리거로 절차형 대응 | Subagents(`/agents`) — 정의 0개 |
-| 지시 파일 설치 경로 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | `~/.gemini/config/GEMINI.md`(CLI) + `~/.gemini/GEMINI.md`(IDE 공식 경로, 로드 미실측) |
+| 지시 파일 설치 경로 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | `~/.gemini/GEMINI.md`(CLI·IDE 공식 경로 하나. `config/GEMINI.md`까지 두면 이중 주입) |
 | IDE 층 | — | — | `.antigravity/settings.json`·`hooks/mcp-config-guard.sh`는 추정치, 미검증 |
 | 약관 | — | — | Antigravity 로그인 자격증명을 타사 클라이언트에서 재사용하는 접근은 공식 FAQ의 제한 대상. 공식 `agy` CLI를 다른 에이전트가 호출하는 구성의 적용 범위는 미확인 |
 
