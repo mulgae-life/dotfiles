@@ -6,7 +6,7 @@ when_to_use: "컴포넌트 최적화해줘, 번들 사이즈 줄여줘, 리렌�
 
 # React Best Practices
 
-Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 카테고리, 52개 룰을 우선순위별로 정리했습니다.
+Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 카테고리, 70개 룰을 우선순위별로 정리했습니다.
 
 ## 카테고리별 우선순위
 
@@ -25,6 +25,7 @@ Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 �
 
 ### 1. Waterfall 제거 (CRITICAL)
 
+- `async-cheap-condition-before-await` - 플래그·원격 값을 await하기 전에 값싼 동기 조건 먼저 확인
 - `async-defer-await` - await를 실제 사용 분기로 이동
 - `async-parallel` - 독립 작업에 Promise.all() 사용
 - `async-dependencies` - 부분 의존성에 better-all 사용
@@ -34,6 +35,7 @@ Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 �
 ### 2. 번들 사이즈 최적화 (CRITICAL)
 
 - `bundle-barrel-imports` - 직접 import, barrel 파일 피하기
+- `bundle-analyzable-paths` - 정적으로 분석 가능한 import·파일 경로 사용 (번들·trace 비대화 방지)
 - `bundle-dynamic-imports` - 무거운 컴포넌트에 next/dynamic 사용
 - `bundle-defer-third-party` - 분석/로깅은 hydration 후 로드
 - `bundle-conditional` - 기능 활성화 시에만 모듈 로드
@@ -41,32 +43,41 @@ Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 �
 
 ### 3. 서버 사이드 성능 (HIGH)
 
+- `server-auth-actions` - Server Action도 API 라우트처럼 내부에서 인증·인가 검증
 - `server-cache-react` - 요청별 중복 제거에 React.cache() 사용
 - `server-cache-lru` - 요청 간 캐싱에 LRU 캐시 사용
+- `server-dedup-props` - RSC props 중복 직렬화 방지 (변환은 클라이언트에서)
+- `server-hoist-static-io` - 폰트·로고 등 정적 I/O를 모듈 레벨로 끌어올리기
+- `server-no-shared-module-state` - RSC/SSR에서 모듈 레벨 가변 요청 상태 금지
 - `server-serialization` - 클라이언트 컴포넌트로 전달 데이터 최소화
 - `server-parallel-fetching` - 컴포넌트 구조 변경으로 fetch 병렬화
+- `server-parallel-nested-fetching` - 항목별 중첩 fetch를 Promise.all 안에서 체이닝
 - `server-after-nonblocking` - 논블로킹 작업에 after() 사용
-- `server-auth-actions` - Server Action도 API 라우트처럼 내부에서 인증·인가 검증
-- `server-dedup-props` - RSC props 중복 직렬화 방지 (변환은 클라이언트에서)
 
 ### 4. 클라이언트 데이터 페칭 (MEDIUM-HIGH)
 
 - `client-swr-dedup` - 자동 요청 중복 제거에 SWR 사용
 - `client-event-listeners` - 전역 이벤트 리스너 중복 제거
-- `client-localstorage-schema` - localStorage 키에 버전 접두사, 필요한 필드만 저장
 - `client-passive-event-listeners` - touch/wheel 리스너에 passive 옵션으로 스크롤 지연 제거
+- `client-localstorage-schema` - localStorage 키에 버전 접두사, 필요한 필드만 저장
 
 ### 5. 리렌더 최적화 (MEDIUM)
 
 - `rerender-defer-reads` - 콜백에서만 쓰는 상태 구독 금지
 - `rerender-memo` - 비용 큰 작업은 메모이제이션 컴포넌트로 추출
+- `rerender-memo-with-default-value` - memo 컴포넌트의 비원시 기본값을 상수로 추출
 - `rerender-dependencies` - effect에 원시값 의존성 사용
 - `rerender-derived-state` - 원본 값 대신 파생 boolean 구독
+- `rerender-derived-state-no-effect` - 파생 상태는 effect가 아니라 렌더 중에 계산
 - `rerender-functional-setstate` - 안정적 콜백에 함수형 setState 사용
 - `rerender-lazy-state-init` - 비용 큰 초기값에 함수 전달
-- `rerender-transitions` - 비긴급 업데이트에 startTransition 사용
-- `rerender-memo-with-default-value` - memo 컴포넌트의 비원시 기본값을 상수로 추출
 - `rerender-simple-expression-in-memo` - 원시 결과의 단순 표현식은 useMemo로 감싸지 않기
+- `rerender-split-combined-hooks` - 의존성이 독립적인 훅은 분리
+- `rerender-move-effect-to-event` - 인터랙션 로직은 effect가 아니라 이벤트 핸들러에
+- `rerender-transitions` - 비긴급 업데이트에 startTransition 사용
+- `rerender-use-deferred-value` - 무거운 렌더는 useDeferredValue로 미뤄 입력 반응성 유지
+- `rerender-use-ref-transient-values` - 자주 바뀌는 일시적 값은 ref에 보관
+- `rerender-no-inline-components` - 컴포넌트 안에서 컴포넌트 정의 금지
 
 ### 6. 렌더링 성능 (MEDIUM)
 
@@ -75,9 +86,12 @@ Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 �
 - `rendering-hoist-jsx` - 정적 JSX를 컴포넌트 밖으로 추출
 - `rendering-svg-precision` - SVG 좌표 정밀도 줄이기
 - `rendering-hydration-no-flicker` - 클라이언트 전용 데이터에 인라인 스크립트
+- `rendering-hydration-suppress-warning` - 예상된 hydration 불일치만 suppressHydrationWarning으로 억제
 - `rendering-activity` - show/hide에 Activity 컴포넌트 사용
 - `rendering-conditional-render` - && 대신 삼항 연산자 사용
 - `rendering-usetransition-loading` - 수동 로딩 상태 대신 useTransition 사용
+- `rendering-resource-hints` - preload 등 React DOM 리소스 힌트 사용
+- `rendering-script-defer-async` - script 태그에 defer 또는 async
 
 ### 7. JavaScript 성능 (LOW-MEDIUM)
 
@@ -93,10 +107,14 @@ Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 �
 - `js-min-max-loop` - sort 대신 루프로 min/max 찾기
 - `js-set-map-lookups` - O(1) 조회에 Set/Map 사용
 - `js-tosorted-immutable` - 불변성에 toSorted() 사용
+- `js-flatmap-filter` - map과 filter를 flatMap으로 한 번에
+- `js-request-idle-callback` - 비핵심 작업은 requestIdleCallback으로 유휴 시간에
 
 ### 8. 고급 패턴 (LOW)
 
+- `advanced-effect-event-deps` - useEffectEvent 결과를 effect 의존성에 넣지 않기
 - `advanced-event-handler-refs` - 이벤트 핸들러를 ref에 저장
+- `advanced-init-once` - 앱 초기화는 앱 로드당 한 번만
 - `advanced-use-latest` - 안정적 콜백 ref에 useEffectEvent 사용
 
 ## 사용 방법

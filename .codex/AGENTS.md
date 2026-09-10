@@ -99,7 +99,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 | `hw-design` | 한화 브랜드 디자인 표준(DESIGN.md·토큰·폰트) 프로젝트 배포 | "한화 톤으로 UI", "hw 적용해줘" |
 | `hw-ppt` | 한화손해보험 톤 16:9 슬라이드 덱 생성 | "한화손보 PPT", "한화 제안서" |
 | `react-best-practices` | React/Next.js 성능 최적화 | "컴포넌트 최적화" |
-| `postgres-best-practices` | Supabase Postgres 최적화 | "쿼리 최적화", "RLS 정책" |
+| `postgres-best-practices` | Postgres 스키마·마이그레이션·RLS·쿼리 | "쿼리 최적화", "RLS 정책", "마이그레이션 작성" |
 | `writing-prompts` | GPT/Claude 프롬프트 작성 | "프롬프트 작성해줘" |
 | `llm-api-guide` | LLM API 연동 코드 | "API 연동해줘" |
 | `langchain-guide` | LangChain/LangGraph 에이전트 | "에이전트 만들어줘" |

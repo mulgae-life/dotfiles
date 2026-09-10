@@ -33,30 +33,32 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 ## ⚙️ 스킬 (22개, 세 도구 공용)
 
-| 분류 | 스킬 | 용도 |
-|------|------|------|
-| 프로젝트 | `/start` | 세션 시작 — 문서·핵심 코드 읽고 상태 요약 |
-| | `/brief` | 진행 현황·인사이트 브리핑 — 과정 빼고 내용만 |
-| | `/init-project` | agent-guide 3종 생성 + 루트 진입 링크 |
-| | `/update-docs` | 작업 후 프로젝트 문서 갱신 |
-| | `/skill-creator` | 새 스킬 생성 가이드 |
-| 코드 품질 | `/code-review` | 심각도 등급별 심층 리뷰 리포트 |
-| | `/work-verify` | 작업 후 빠른 점검 |
-| | `/work-plan` | Phase별 코드 예시 포함 작업 계획서 |
-| | `/code-simplifier` | 기능 보존 리팩토링 |
-| | `/feedback-analysis` | 사용자 피드백 분석·우선순위 |
-| 프론트엔드 | `/frontend-design` | 코드 기반 프로덕션 UI 제작 |
-| | `/stitch-design` | Google Stitch MCP 기반 AI UI 디자인 |
-| | `/hw-design` | 한화그룹 디자인 표준(토큰·폰트·로고) 배포 |
-| | `/hw-ppt` | 한화손해보험 톤 16:9 슬라이드 덱 |
-| | `/react-best-practices` | React/Next.js 성능 최적화 |
-| | `/web-design-guidelines` | 웹 인터페이스 가이드라인 리뷰 |
-| 백엔드·데이터 | `/postgres-best-practices` | Postgres 쿼리·스키마 최적화 |
-| | `/llm-api-guide` | OpenAI/Anthropic API 연동 |
-| | `/langchain-guide` | LangChain/LangGraph 에이전트·워크플로우 |
-| 프롬프트·협업 | `/writing-prompts` | LLM 프롬프트 작성 |
-| | `/reference-verification` | 논문·수식·벤치마크 인용 시 원문 검증 |
-| | `/recursive-discussion` | Claude↔Codex 왕복 토론으로 결과물 개선 |
+출처 열의 "이식"은 공식 저장소의 스킬을 가져온 것이다. 상류 경로와 갱신 절차는 [docs/SKILL-SOURCES.md](docs/SKILL-SOURCES.md).
+
+| 분류 | 스킬 | 용도 | 출처 |
+|------|------|------|------|
+| 프로젝트 | `/start` | 세션 시작 — 문서·핵심 코드 읽고 상태 요약 | 자체 |
+| | `/brief` | 진행 현황·인사이트 브리핑 — 과정 빼고 내용만 | 자체 |
+| | `/init-project` | agent-guide 3종 생성 + 루트 진입 링크 | 자체 |
+| | `/update-docs` | 작업 후 프로젝트 문서 갱신 | 자체 |
+| | `/skill-creator` | 새 스킬 생성 가이드 | Anthropic 이식 |
+| 코드 품질 | `/code-review` | 심각도 등급별 심층 리뷰 리포트 | 자체 (Anthropic 오탐 기준 차용) |
+| | `/work-verify` | 작업 후 빠른 점검 | 자체 |
+| | `/work-plan` | Phase별 코드 예시 포함 작업 계획서 | 자체 |
+| | `/code-simplifier` | 기능 보존 리팩토링 | Anthropic 이식·확장 |
+| | `/feedback-analysis` | 사용자 피드백 분석·우선순위 | 자체 |
+| 프론트엔드 | `/frontend-design` | 템플릿 티 안 나는 UI 디자인·코드 구현 | Anthropic 이식 |
+| | `/stitch-design` | Google Stitch MCP로 UI 디자인 생성·편집, 코드↔디자인 변환 | Google 이식 |
+| | `/hw-design` | 한화그룹 디자인 표준(토큰·폰트·로고) 배포 | 자체 |
+| | `/hw-ppt` | 한화손해보험 톤 16:9 슬라이드 덱 | 자체 |
+| | `/react-best-practices` | React/Next.js 성능 최적화 | Vercel 이식 |
+| | `/web-design-guidelines` | 웹 인터페이스 가이드라인 리뷰 | Vercel 이식 |
+| 백엔드·데이터 | `/postgres-best-practices` | Postgres 스키마·마이그레이션·RLS·쿼리 모범 사례 | Supabase 이식 |
+| | `/llm-api-guide` | OpenAI/Anthropic API 연동 | 자체 |
+| | `/langchain-guide` | LangChain/LangGraph 에이전트·워크플로우 | 자체 |
+| 프롬프트·협업 | `/writing-prompts` | LLM 프롬프트 작성 | 자체 |
+| | `/reference-verification` | 논문·수식·벤치마크 인용 시 원문 검증 | 자체 |
+| | `/recursive-discussion` | Claude↔Codex 왕복 토론으로 결과물 개선 | 자체 |
 
 ## 🧩 규칙 · 에이전트 · 훅
 
@@ -109,7 +111,7 @@ dotfiles/
 ├── .codex/           AGENTS.md · config.toml · rules/ (Starlark 차단 규칙) · hooks/ · skills → ../.claude/skills
 ├── .antigravity/     GEMINI.md · cli/settings.json · cli/statusline-command.sh · README.md (실측·병합 계약) · IDE용 settings·hooks (미검증)
 ├── scripts/          verify-policies.sh (정책 회귀) · agy-live-check.sh (agy 실측) · policy-cases.tsv · setup-apparmor.sh
-├── docs/DECISIONS.md 설계 원칙·결정 기록·아카이브 위치
+├── docs/             DECISIONS.md(설계 원칙·결정 기록) · SKILL-SOURCES.md(스킬 출처·상류 갱신 절차)
 ├── reference/        프롬프트 가이드(Claude·OpenAI·Google·Qwen) · 모델 조사 원문(research/) · 디자인 원본
 └── install.sh
 ```

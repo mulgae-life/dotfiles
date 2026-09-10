@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.34** | 이식 스킬 8개 상류 동기화 — `frontend-design` 재번역, `react-best-practices` 룰 52→70, `web-design-guidelines` 스냅샷 갱신, `code-review`에 오탐 제외 기준, `postgres-best-practices`를 상류 구조(`references/`·규칙 31개)로 이전, `stitch-design`은 상류가 플러그인 3종으로 쪼갠 하위 스킬 16종으로 재구성. v2.9에서 검증한 로컬 보완은 상류보다 우선 유지. 스킬 22개 출처를 이식·자체로 구분해 README 출처 열과 `docs/SKILL-SOURCES.md`에 기록 |
 | **v2.33** | 스킬 전수 점검 — 스킬은 각각 독립이라는 원칙으로 다른 스킬을 가리키는 문구를 15개 파일에서 제거, 폐기된 "3문장 이상 산문" 판정 잔존분 삭제, `hw-ppt`의 pptx 스킬 미설치 시 python-pptx 직접 사용 명시. 한화체 .ttf를 `hw-ppt`에 번들해 `hw-design` 자산 의존 해소, 참고 자료 목록의 날짜·🆕 표기 제거 |
 | **v2.32** | `/brief` 스킬 신설 — 프로젝트 전용이던 브리핑 스킬을 프로젝트 무관하게 이식(정본·진행 로그 경로는 SESSION.md에서). 분량 조항 모순 제거, 실측 대상 위치는 문서에 적힌 것만 쓰고 없으면 미확인 |
 | **v2.31** | agy 전역 지침 이중 주입 수정 — `~/.gemini/config/GEMINI.md`와 `~/.gemini/GEMINI.md`가 둘 다 로드됨을 마커 실측으로 확인, 공식 문서 경로인 후자만 남기고 전자는 재설치 시 정리 |
