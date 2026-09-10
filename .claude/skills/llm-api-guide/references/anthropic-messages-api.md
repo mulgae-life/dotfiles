@@ -544,7 +544,7 @@ else:
 - raw chain of thought는 절대 반환 안 됨 — `display: "summarized"`로 요약만 수신
 - 프롬프트 캐시 최소 512 토큰, 캐시 읽기 $0.25/MTok (기본 입력의 0.025배)
 - 도구 호출 사이의 사용자 대상 텍스트는 Opus 5에서 `text` 블록이었으나 5.1은 진행 업데이트 `thinking` 블록으로 옵니다. 기본값 `omitted`이면 빈 블록입니다
-- 프롬프트 작성 요령은 writing-prompts 스킬의 `claude-5-specifics.md` 참조
+- 프롬프트 작성 요령은 [Fable 5.1 풀 가이드](../../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) 참조
 
 ---
 
@@ -579,7 +579,7 @@ response = client.beta.messages.create(
 
 - 프롬프트 캐시 최소 512 토큰 (4.8은 1,024) — 짧은 프롬프트도 캐시 가능해짐
 - 대화 중 도구 변경: beta `mid-conversation-tool-changes-2026-07-01` (`tool_addition`/`tool_removal` 블록 + `defer_loading`, 캐시 보존)
-- 프롬프팅 요령(검증 지시 삭제, 위임 상한, 장황함 대응)은 writing-prompts 스킬의 `claude-5-specifics.md` 및 [Opus 5 풀 가이드](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) 참조
+- 프롬프팅 요령(검증 지시 삭제, 위임 상한, 장황함 대응)은 [Opus 5 풀 가이드](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) 참조
 
 ---
 

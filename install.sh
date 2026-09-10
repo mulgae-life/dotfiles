@@ -355,7 +355,7 @@ main() {
   safe_mkdir "$HOME/.agents"
   safe_link "$HOME/.claude/skills" "$HOME/.agents/skills"
 
-  # 4. Antigravity — 전역 커스터마이징 루트는 ~/.gemini/config/ (CLI·IDE 공용, agy 1.1.27 실측)
+  # 4. Antigravity — 스킬은 ~/.gemini/config/ (CLI·IDE 공용, agy 1.1.27 실측), 전역 지침은 ~/.gemini/GEMINI.md
   safe_mkdir "$HOME/.gemini/config"
   # 스킬: agy가 처음 실행될 때 ~/.gemini/antigravity-cli/skills → ~/.gemini/config/skills 링크를 스스로 만들므로
   # config/skills 만 레포가 소유한다 (antigravity-cli/skills 는 관리 제외)

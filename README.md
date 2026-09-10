@@ -27,13 +27,13 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 ## 🎯 사용법
 
-- **`시작`** 이라고 치면 프로젝트 문서와 핵심 코드를 읽고 현재 상태를 요약한다.
+- **`시작`**이라고 치면 프로젝트 문서와 핵심 코드를 읽고 현재 상태를 요약한다.
 - **`/init-project`** 로 새 프로젝트에 `agent-guide/`(GUIDE · PROJECT · SESSION) 3종을 만들면, 루트 `CLAUDE.md`·`AGENTS.md`가 GUIDE 링크로 생겨 세 도구가 전역 지침 뒤에 프로젝트 지침을 이어 읽는다.
 - 나머지는 아래 스킬을 `/이름`(Codex는 `$이름`)으로 호출한다.
 
 ## ⚙️ 스킬 (22개, 세 도구 공용)
 
-출처 열의 "이식"은 공식 저장소의 스킬을 가져온 것이다. 상류 경로와 갱신 절차는 [docs/SKILL-SOURCES.md](docs/SKILL-SOURCES.md).
+출처 열의 "이식"은 공식 저장소의 스킬을 가져온 것, "차용"은 일부 기준만 가져온 것이다. 둘 다 상류 갱신 대상이며 경로와 절차는 [docs/SKILL-SOURCES.md](docs/SKILL-SOURCES.md).
 
 | 분류 | 스킬 | 용도 | 출처 |
 |------|------|------|------|
@@ -42,7 +42,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | | `/init-project` | agent-guide 3종 생성 + 루트 진입 링크 | 자체 |
 | | `/update-docs` | 작업 후 프로젝트 문서 갱신 | 자체 |
 | | `/skill-creator` | 새 스킬 생성 가이드 | Anthropic 이식 |
-| 코드 품질 | `/code-review` | 심각도 등급별 심층 리뷰 리포트 | 자체 (Anthropic 오탐 기준 차용) |
+| 코드 품질 | `/code-review` | 심각도 등급별 심층 리뷰 리포트 | Anthropic 차용 (오탐 기준만) |
 | | `/work-verify` | 작업 후 빠른 점검 | 자체 |
 | | `/work-plan` | Phase별 코드 예시 포함 작업 계획서 | 자체 |
 | | `/code-simplifier` | 기능 보존 리팩토링 | Anthropic 이식·확장 |
