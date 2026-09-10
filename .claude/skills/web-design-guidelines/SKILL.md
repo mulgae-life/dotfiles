@@ -1,6 +1,6 @@
 ---
 name: web-design-guidelines
-description: 기존 UI 코드의 웹 인터페이스 가이드라인 준수 여부를 검토합니다. frontend-design(제작)과 달리 기존 코드 검토 전용. react-best-practices와 달리 프레임워크 무관한 웹 UX 패턴에 집중.
+description: 기존 UI 코드의 웹 인터페이스 가이드라인 준수 여부를 검토합니다. 새로 만들지 않고 기존 코드 검토 전용이며, 프레임워크 무관한 웹 UX 패턴에 집중합니다.
 when_to_use: "UI 리뷰해줘, 접근성 체크, 디자인 검토, UX 리뷰 요청 시. 접근성, 폼/입력, 애니메이션, 다크 모드, 터치/인터랙션, 레이아웃, 타이포그래피 점검이 필요할 때."
 ---
 

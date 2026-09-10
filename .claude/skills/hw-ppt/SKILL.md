@@ -1,7 +1,7 @@
 ---
 name: hw-ppt
-description: 한화손해보험(Hanwha Insurance) 공식 톤으로 16:9 슬라이드 덱을 생성하는 스킬. 고정 슬라이드 아키타입과 디자인 토큰으로 매 세션 동일한 한화손보 룩앤필을 보장한다. 디자인 시스템은 이 스킬이, 파일 생성은 Anthropic 공식 pptx 스킬이 담당하며 산출물은 .pptx 우선 + HTML deck 옵션. hw-design(웹 UI 토큰 배포)과 달리 PPT 산출물 전용이고 한화그룹 톤이 아닌 한화손보 톤(#ED6F1F 오렌지 단색축)을 따른다.
-when_to_use: "한화손보 PPT 만들어줘, 한화 프레젠테이션 만들어줘, 한화손보 슬라이드 디자인, 한화 보험 제안서, 한화손보 IR 자료, 신상품 소개 덱 요청 시. 한화손해보험 공식 톤이 필요한 프레젠테이션·제안서·IR·보고서 슬라이드 생성에 사용. 단순 PPT는 Anthropic 공식 pptx 스킬, 웹 UI는 hw-design 스킬."
+description: 한화손해보험(Hanwha Insurance) 공식 톤으로 16:9 슬라이드 덱을 생성하는 스킬. 고정 슬라이드 아키타입과 디자인 토큰으로 매 세션 동일한 한화손보 룩앤필을 보장한다. 산출물은 .pptx 우선 + HTML deck 옵션. PPT 산출물 전용이며 한화그룹 톤이 아닌 한화손보 톤(#ED6F1F 오렌지 단색축)을 따른다.
+when_to_use: "한화손보 PPT 만들어줘, 한화 프레젠테이션 만들어줘, 한화손보 슬라이드 디자인, 한화 보험 제안서, 한화손보 IR 자료, 신상품 소개 덱 요청 시. 한화손해보험 공식 톤이 필요한 프레젠테이션·제안서·IR·보고서 슬라이드 생성에 사용."
 allowed-tools:
   - "Read"
   - "Write"
@@ -23,9 +23,9 @@ LLM에게 매번 "한화손보 톤으로 PPT 만들어줘"라고 말하면 매�
 1. **9개 아키타입을 좌표 수준으로 고정** — 헤더(y=0–80), 타이틀밴드(y=130–270), 본문(y=300–820), Density Zone(y=840–1010)
 2. **Density Zone 룰** — 슬라이드 하단의 빈 공간 문제 해결 (§6)
 3. **오렌지 단색축** — `#ED6F1F` 베이스 + 4단계 변형으로 차트·강조 통일
-4. **Anthropic pptx 스킬과 협업** — 디자인 표준은 이 스킬, 파일 생성은 pptx 스킬
+4. **디자인과 파일 생성 분리** — 디자인 표준은 이 스킬, 파일 생성은 pptx 스킬(설치 시) 또는 python-pptx
 
-## 작동 방식 (Anthropic pptx 스킬과의 역할 분담)
+## 작동 방식 (디자인과 파일 생성의 분리)
 
 [Gabberflast/academic-pptx-skill](https://github.com/Gabberflast/academic-pptx-skill) 패턴을 따른다:
 
@@ -46,9 +46,9 @@ LLM에게 매번 "한화손보 톤으로 PPT 만들어줘"라고 말하면 매�
 ```
 
 **의존성:**
-- **`.pptx` 생성**: Anthropic 공식 [`pptx` 스킬](https://github.com/anthropics/skills/tree/main/skills/pptx) (python-pptx 기반)
+- **`.pptx` 생성**: Anthropic 공식 [`pptx` 스킬](https://github.com/anthropics/skills/tree/main/skills/pptx)이 설치돼 있으면 활용, 없으면 python-pptx 직접 사용 (`references/pptx-implementation.md` §2)
 - **HTML 생성**: 의존성 없음 (단일 파일 출력)
-- **폰트**: hw-design 스킬의 한화체 .ttf 3종 활용 (B/L/R)
+- **폰트**: 번들된 한화체 .ttf 3종 (`assets/fonts/Hanwha/`, B/L/R)
 
 ## 1. Hard Constraints (non-negotiable)
 
@@ -236,7 +236,7 @@ slide.shapes.add_picture(str(SIGNATURE_INK_PATH), px(sig_x), px(sig_y), height=p
 
 ### .pptx (기본)
 
-Anthropic 공식 [`pptx` 스킬](https://github.com/anthropics/skills/tree/main/skills/pptx)을 호출하여 생성. 슬라이드 크기 **13.333" × 7.5"** (16:9).
+Anthropic 공식 [`pptx` 스킬](https://github.com/anthropics/skills/tree/main/skills/pptx)이 설치돼 있으면 호출하고, 없으면 python-pptx로 직접 생성. 슬라이드 크기 **13.333" × 7.5"** (16:9).
 
 ```python
 # python-pptx 코드 예시는 references/pptx-implementation.md 참조
@@ -256,7 +256,7 @@ prs.slide_height = Inches(7.5)
 - 1 inch = 914,400 EMU, 표준 슬라이드 폭 = 12,192,000 EMU (= 40/3 inch × 914,400). 슬라이드 크기는 `Emu(12192000) × Emu(6858000)` 직접 지정이 가장 정확 — `Inches(13.333)`은 12,191,695 EMU로 305 EMU 작음(시각 영향 무시 가능)
 
 **폰트 임베드**:
-- hw-design 스킬에 한화체 .ttf 3종이 이미 존재: `~/.claude/skills/hw-design/assets/fonts/Hanwha/`
+- 한화체 .ttf 3종이 이 스킬에 번들: `~/.claude/skills/hw-ppt/assets/fonts/Hanwha/`
   - `HanwhaB.ttf` (Bold 700)
   - `HanwhaR.ttf` (Regular 400)
   - `HanwhaL.ttf` (Light 300)
@@ -265,7 +265,7 @@ prs.slide_height = Inches(7.5)
   - subset 임베드: 37KB × 2 = 74KB → 산출 PPTX 114KB
   - 구현 코드: `references/pptx-implementation.md § 4. 폰트 임베드 / subset 임베드` 참조
 - 사용자 PC에 한화체 미설치 환경에서도 한국어 자간 정상 보장
-- 한화고딕은 .woff2만 존재 — 본문에 한화고딕이 꼭 필요하면 fontTools로 .ttf 변환:
+- 한화고딕은 이 스킬 번들에 없다 — 본문에 꼭 필요하면 .woff2를 구해 fontTools로 .ttf 변환:
   ```bash
   pip install fonttools brotli
   python3 -c "from fontTools.ttLib import TTFont; f=TTFont('HanwhaGothicR.woff2'); f.flavor=None; f.save('HanwhaGothicR.ttf')"
@@ -343,15 +343,7 @@ prs.slide_height = Inches(7.5)
 - **`assets/logo/`** — 시그니처용 로고 PNG 3종 (모두 투명 배경 RGBA PNG, 헤더용 `hanwha-signature-ink.png` 파생본 포함). 원본에서 재생성 필요 시 `references/pptx-implementation.md § 5. 로고 알파 변환` 참조
 - **`assets/layouts/`** — 7개 아키타입 레퍼런스 이미지 (`01-cover.png` ~ `07-rising-graph.png`)
 - **`assets/icons/`** — 한화손보 공식 아이콘 18종 (자동차·보험·일상 카테고리)
-
-## 14. 관련 스킬
-
-- **`/hw-design`** — 웹/앱 UI용 한화 디자인 토큰 (DESIGN.md + tokens.css + Tailwind). `/hw-ppt`는 PPT 산출물 전용.
-- **`/pptx` (Anthropic 공식)** — python-pptx 기반 파일 생성 엔진. `/hw-ppt`가 디자인 표준을 정의하고 `/pptx`가 파일을 만든다.
-- **`/stitch-design`** — Stitch MCP 기반 디자인 생성. `/hw-ppt`는 이미 확정된 한화손보 표준을 배포.
-- **`/work-verify`** — 산출 후 셀프 체크 자동화.
-
----
+- **`assets/fonts/Hanwha/`** — 한화체 .ttf 3종 (B/R/L), PPTX subset 임베드용
 
 ## 적용된 결정 + 변경 옵션 (산출 후 MUST)
 
@@ -368,7 +360,7 @@ prs.slide_height = Inches(7.5)
 | **Density Zone** | 슬라이드 2: Stat strip / 슬라이드 3: Key takeaway | "전부 Stat strip으로", "Quote block도 써줘" |
 | **헤더 챕터 라벨** | "신상품 소개" | "장별로 다르게" |
 | **타이틀 컬러** | `--hw-orange` Bold 48 (섹션 hero) | "전부 ink로 차분하게", "강조 슬라이드만 오렌지" |
-| **폰트 임베드** | hw-design의 한화체 .ttf 3종 활용 | "시스템 폰트로 (가벼움)", "한화고딕도 변환해서 본문에" |
+| **폰트 임베드** | 번들 한화체 .ttf 3종 subset 임베드 | "시스템 폰트로 (가벼움)", "한화고딕도 변환해서 본문에" |
 
 > 자세한 사양은 SKILL.md 참조. 변경은 자연어로 그대로 말씀해주시면 됩니다.
 ---
@@ -389,7 +381,7 @@ prs.slide_height = Inches(7.5)
 - Density Zone 항상 채움 (As-Is/To-Be 예외 제외)
 - 오렌지는 액센트로만 — 면적 ≤ 20%
 - 단위 있는 숫자 — "23.4% YoY"
-- 한화체 .ttf 직접 사용 (hw-design 스킬에서 복사)
+- 번들 한화체 .ttf 직접 사용 (`assets/fonts/Hanwha/`)
 - 한 슬라이드 = 한 아이디어
 - 셀프 체크(§11) 통과 후 산출
 

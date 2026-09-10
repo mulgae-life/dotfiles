@@ -1,6 +1,6 @@
 ---
 name: writing-prompts
-description: GPT/Claude/Gemma/Qwen 프롬프트 파일 생성 및 개선. OpenAI + Anthropic + Google + Alibaba 공식 가이드 기반. API 연동 코드는 llm-api-guide 스킬 사용.
+description: GPT/Claude/Gemma/Qwen 프롬프트 파일 생성 및 개선. OpenAI + Anthropic + Google + Alibaba 공식 가이드 기반. API 연동 코드는 범위 밖입니다.
 when_to_use: "프롬프트 작성해줘, 톤 가이드 적용해줘, 시스템 프롬프트 만들어줘, AI 응답 품질 개선해줘 요청 시. LLM 프롬프트 작성, 챗봇 성격 설정, AI 응답 품질 개선이 필요한 모든 상황에서 사용."
 ---
 
@@ -92,8 +92,8 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 |--------|----------|------------|
 | OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시(GPT-6), 티어 선택(5.6) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra), `references/gpt56-patterns.md` (5.6) |
 | Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Fable 5.1·Opus 5), `references/long-context.md` |
-| Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` 🆕 |
-| Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` 🆕 |
+| Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` |
+| Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` |
 
 ## 기본 템플릿
 
@@ -158,7 +158,7 @@ system_prompt: |
 
 ### 플랫폼별 최적화 (선택)
 
-**OpenAI GPT-6 Astra** (최신, 권장 — 2026-09):
+**OpenAI GPT-6 Astra** (최신, 권장):
 - [ ] **주도성 명시**: 질문하고 멈추는 성향이 이전 세대보다 강함 → 자율 실행이 필요하면 "bias towards action, carry the task to completion" 계열 지시 추가. "can you…/help me…"는 실행 요청으로 취급하게
 - [ ] **지시 파일 모순 감사**: 긴 지시는 잘 따르지만 문맥 모순에 민감 → AGENTS.md·스킬·시스템 프롬프트 사이의 상충·낡은 문구 제거가 감량보다 우선. 사용자 지시 > 스킬 지시 우선순위 명시
 - [ ] **테스트 범위 축소**: 스스로 철저히 검증하는 성향 → "가역적·저영향 변경에 구현을 비추는 테스트 금지, 확대는 새 변경·실패가 정당화할 때만"으로 범위를 좁히는 지시(검증 강화 지시 아님)
@@ -168,7 +168,7 @@ system_prompt: |
 - [ ] **API 변경**: `temperature`·`top_p`·`top_logprobs` 제거, 도구 호출은 Responses API 전용, `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체 2배 요율
 - [ ] 5.6 계약 구조(Goal/Success criteria/Constraints/Tools/Output/Stop rules)·pro mode·`reasoning.context`·PTC는 그대로 유효 → 아래 5.6 항목 참조
 
-**OpenAI GPT-5.6** (이전 세대, 2026-07):
+**OpenAI GPT-5.6** (이전 세대):
 - [ ] **티어 선택**: `gpt-5.6-sol`(플래그십)/`terra`(균형)/`luna`(고속저가) — 비용 레버리지는 effort보다 티어 라우팅
 - [ ] **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의 (5.5 계승)
 - [ ] **Personality + Collaboration Style 분리** (각 1-2문단 이내)
@@ -195,7 +195,7 @@ system_prompt: |
 - [ ] 장기 자율 런: 진행 보고 근거화 + 메모리 파일 → [claude-5-specifics.md](references/claude-5-specifics.md)
 - [ ] Long context 문서 배치 (맨 위)
 
-**Google Gemma 4** (오픈웨이트, 2026-04-02):
+**Google Gemma 4** (오픈웨이트):
 - [ ] **Chat template 교체**: `<start_of_turn>` → `<|turn>`, `<end_of_turn>` → `<turn|>` (Gemma 3에서 완전 교체)
 - [ ] **System role 사용**: Gemma 3의 "user 턴에 system 우겨넣기" 워크어라운드 제거
 - [ ] **Thinking 활성화**: 시스템 프롬프트 맨 앞에 `<|think|>` 토큰 추가
@@ -207,7 +207,7 @@ system_prompt: |
 - [ ] **vLLM**: `--reasoning-parser gemma4 --tool-call-parser gemma4` 필수
 - [ ] Audio 워크로드: E2B/E4B만 사용 (대형 2종 미지원)
 
-**Alibaba Qwen 3.6** (오픈웨이트, 2026-04):
+**Alibaba Qwen 3.6** (오픈웨이트):
 - [ ] **ChatML 템플릿**: `<|im_start|>role\n...\n<|im_end|>` (Qwen 3.5 동일)
 - [ ] **디폴트 thinking ON** 인지: 단순 chat은 명시적으로 `enable_thinking=false`로 토큰 절감
 - [ ] **`preserve_thinking=true`**: agentic multi-turn에서 활성화 (코딩 에이전트, 멀티스텝 tool 사용)
@@ -231,64 +231,64 @@ system_prompt: |
 
 - **[few-shot.md](references/few-shot.md)** - Few-shot/Multishot 예시 패턴
 - **[chain-of-thought.md](references/chain-of-thought.md)** - CoT 프롬프팅 (단계별 추론)
-- **[templates.md](references/templates.md)** - 실전 템플릿 + 한국어 톤 가이드 🆕
-- **[reasoning-params.md](references/reasoning-params.md)** - 추론 깊이/응답 길이 제어 (범용 원칙 + 프롬프트 패턴) 🆕
+- **[templates.md](references/templates.md)** - 실전 템플릿 + 한국어 톤 가이드
+- **[reasoning-params.md](references/reasoning-params.md)** - 추론 깊이/응답 길이 제어 (범용 원칙 + 프롬프트 패턴)
 
 ### 고급 기법 (범용)
 
-- **[security.md](references/security.md)** 🔴 Prompt Injection 방어, 입력/출력 검증 🆕
-- **[self-correction.md](references/self-correction.md)** 🔴 자기수정 체인 (생성→검토→개선) 🆕
-- **[vision-prompting.md](references/vision-prompting.md)** 🔴 이미지/차트 분석 프롬프트 🆕
+- **[security.md](references/security.md)** 🔴 Prompt Injection 방어, 입력/출력 검증
+- **[self-correction.md](references/self-correction.md)** 🔴 자기수정 체인 (생성→검토→개선)
+- **[vision-prompting.md](references/vision-prompting.md)** 🔴 이미지/차트 분석 프롬프트
 - **[context-engineering.md](references/context-engineering.md)** ⭐ Context Engineering 개념과 실무 적용
-- **[prompt-trends-2026.md](references/prompt-trends-2026.md)** 🆕 2026 프로덕션 전략, 자동 최적화 도구
+- **[prompt-trends-2026.md](references/prompt-trends-2026.md)** 2026 프로덕션 전략, 자동 최적화 도구
 
 ### OpenAI (GPT) 특화
 
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
 - **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드 (패턴 출처는 OpenAI 가이드 — Claude 5 세대에는 그대로 적용 금지)
-- **[gpt6-patterns.md](references/gpt6-patterns.md)** ⭐ GPT-6 Astra 프롬프트 패턴 (주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, effort 5단계·`none` 폐지, 제거 파라미터, 5.6 → 6 마이그레이션) 🆕
+- **[gpt6-patterns.md](references/gpt6-patterns.md)** ⭐ GPT-6 Astra 프롬프트 패턴 (주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, effort 5단계·`none` 폐지, 제거 파라미터, 5.6 → 6 마이그레이션)
 - **[gpt56-patterns.md](references/gpt56-patterns.md)** GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) — 계약 구조·신규 API 기능은 GPT-6에서도 유효
 - **[optimization.md](references/optimization.md)** - GPT 프롬프트 최적화 팁 (모순 제거, 지시 계층, 출력 형식, 캐싱)
 
 ### Anthropic (Claude) 특화
 
-- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Fable 5.1·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Fable 5 → 5.1 델타 🆕
+- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Fable 5.1·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Fable 5 → 5.1 델타
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
 
 ### Google Gemma 특화 (오픈웨이트)
 
-- **[gemma4-patterns.md](references/gemma4-patterns.md)** ⭐ Gemma 4 패턴 요약 — chat template 교체, `<|think|>` 토글, multi-turn strip, `<|"|>` tool delimiter, 공식 sampling, vLLM 플래그, Gemma 3 → 4 마이그레이션 🆕
+- **[gemma4-patterns.md](references/gemma4-patterns.md)** ⭐ Gemma 4 패턴 요약 — chat template 교체, `<|think|>` 토글, multi-turn strip, `<|"|>` tool delimiter, 공식 sampling, vLLM 플래그, Gemma 3 → 4 마이그레이션
 
 ### Alibaba Qwen 특화 (오픈웨이트)
 
-- **[qwen36-patterns.md](references/qwen36-patterns.md)** ⭐ Qwen 3.6 패턴 요약 — ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling, agentic 시스템 프롬프트, Qwen 3.5 → 3.6 마이그레이션 🆕
+- **[qwen36-patterns.md](references/qwen36-patterns.md)** ⭐ Qwen 3.6 패턴 요약 — ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling, agentic 시스템 프롬프트, Qwen 3.5 → 3.6 마이그레이션
 
 ## 참고 자료
 
 ### OpenAI
-- [GPT-6 Astra 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 (2026-09) — 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
-- [GPT-6 Astra Prompt Guidance (공식)](https://developers.openai.com/api/docs/guides/prompt-guidance) ⭐ 최신 (2026-09)
+- [GPT-6 Astra 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
+- [GPT-6 Astra Prompt Guidance (공식)](https://developers.openai.com/api/docs/guides/prompt-guidance) ⭐ 최신
 - [Using GPT-6 Astra / Migration (공식)](https://developers.openai.com/api/docs/guides/latest-model)
 - [GPT-6 Astra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-astra)
-- [GPT-5.6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) (이전, 2026-07) — 티어·마이그레이션·신규 파라미터 수록
+- [GPT-5.6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) (이전 세대) — 티어·마이그레이션·신규 파라미터 수록
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
-- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전, 2026-07)
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전 세대)
 - [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
 - [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 - [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
 ### Anthropic
-- [Fable 5.1 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) ⭐ 최신 (2026-09) — 행동 변화 대응 스니펫 원문 수록
-- [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) (2026-07) — 스니펫 원문 전체 수록
-- [Opus 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) ⭐ 최신 (2026-08) — 스캐폴딩 삭제·위임 상한·effort 역전
+- [Fable 5.1 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) ⭐ 최신 — 행동 변화 대응 스니펫 원문 수록
+- [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) — 스니펫 원문 전체 수록
+- [Opus 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) ⭐ 최신 — 스캐폴딩 삭제·위임 상한·effort 역전
 - [Prompting Claude Fable 5.1 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) ⭐ 최신
 - [Prompting Claude Fable 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
 - [Prompting Claude Opus 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
 - [Introducing Claude Fable 5 (공식)](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
 
-### Google Gemma 4 (2026-04-02)
+### Google Gemma 4
 - [Gemma 4 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemma-4-prompt-guide.md) ⭐ 16섹션 + 외부 노하우
 - [Gemma 4 모델 카드 (공식)](https://ai.google.dev/gemma/docs/core/model_card_4)
 - [Prompt formatting (공식)](https://ai.google.dev/gemma/docs/core/prompt-formatting-gemma4)
@@ -297,7 +297,7 @@ system_prompt: |
 - [vLLM Gemma 4 Recipe](https://docs.vllm.ai/projects/recipes/en/latest/Google/Gemma4.html)
 - [Simon Willison — Gemma 4 출시일 분석](https://simonwillison.net/2026/Apr/2/gemma-4/)
 
-### Alibaba Qwen 3.6 (2026-04)
+### Alibaba Qwen 3.6
 - [Qwen 3.6 풀 가이드 (한국어)](../../../reference/qwen-prompt-guide/qwen-3.6-prompt-guide.md) ⭐ 17섹션 + 외부 노하우
 - [Qwen3.6 GitHub (공식)](https://github.com/QwenLM/Qwen3.6)
 - [Qwen-Agent 프레임워크 (공식)](https://github.com/QwenLM/Qwen-Agent)

@@ -27,7 +27,7 @@ Anthropic 공식 `pptx` 스킬은 python-pptx 기반의 .pptx 생성·편집 엔
 5. 셀프 체크 → 산출
 ```
 
-Claude Code 환경에서는 `pptx` 스킬이 별도 플러그인으로 설치되어 있어야 한다. Anthropic 공식 skills 저장소를 마켓플레이스로 추가한 뒤 `pptx`가 포함된 document-skills 번들을 설치한다 (`pptx`는 단독 플러그인이 아니라 번들 소속):
+`pptx` 스킬은 Claude Code에 기본 포함되지 않는 별도 플러그인이다. 쓰려면 Anthropic 공식 skills 저장소를 마켓플레이스로 추가한 뒤 `pptx`가 포함된 document-skills 번들을 설치한다 (`pptx`는 단독 플러그인이 아니라 번들 소속):
 
 ```
 /plugin marketplace add anthropics/skills
@@ -44,7 +44,7 @@ Claude Code 환경에서는 `pptx` 스킬이 별도 플러그인으로 설치되
 
 ```bash
 pip install python-pptx
-# 한화체 .ttf는 ~/.claude/skills/hw-design/assets/fonts/Hanwha/ 에 이미 존재
+# 한화체 .ttf는 ~/.claude/skills/hw-ppt/assets/fonts/Hanwha/ 에 번들
 ```
 
 ### 기본 셋업
@@ -380,10 +380,10 @@ if __name__ == "__main__":
 
 ## 4. 폰트 임베드
 
-### 한화체 .ttf (hw-design 스킬에서 복사)
+### 한화체 .ttf (스킬 번들에서 복사)
 
 ```bash
-SRC=~/.claude/skills/hw-design/assets/fonts/Hanwha
+SRC=~/.claude/skills/hw-ppt/assets/fonts/Hanwha
 DST=./fonts  # 또는 PPTX 산출물 폴더
 
 mkdir -p $DST
@@ -504,8 +504,8 @@ def embed_fonts_subset(pptx_path: Path, font_map: list):
 
 # 사용
 embed_fonts_subset(Path("out.pptx"), [
-    ("Hanwha", "regular", Path.home() / ".claude/skills/hw-design/assets/fonts/Hanwha/HanwhaR.ttf"),
-    ("Hanwha", "bold",    Path.home() / ".claude/skills/hw-design/assets/fonts/Hanwha/HanwhaB.ttf"),
+    ("Hanwha", "regular", Path.home() / ".claude/skills/hw-ppt/assets/fonts/Hanwha/HanwhaR.ttf"),
+    ("Hanwha", "bold",    Path.home() / ".claude/skills/hw-ppt/assets/fonts/Hanwha/HanwhaB.ttf"),
 ])
 ```
 
@@ -546,7 +546,7 @@ set_font_with_korean(run, font_name="Hanwha", bold=True, size_pt=40)
 
 ### 한화고딕 .woff2 → .ttf 변환 (본문 폰트 필요 시)
 
-`hw-design` 스킬은 한화고딕을 .woff2로만 갖고 있다. .pptx는 .ttf/.otf만 지원하므로 변환 필요.
+한화고딕은 이 스킬 번들에 없고 배포본은 .woff2다. .pptx는 .ttf/.otf만 지원하므로 변환 필요.
 
 ```bash
 pip install fonttools brotli
@@ -555,7 +555,7 @@ python3 << 'PYEOF'
 from fontTools.ttLib import TTFont
 import os
 
-src_dir = os.path.expanduser("~/.claude/skills/hw-design/assets/fonts/HanwhaGothic")
+src_dir = "./fonts/HanwhaGothic"  # 한화고딕 .woff2가 있는 폴더
 dst_dir = "./fonts"
 os.makedirs(dst_dir, exist_ok=True)
 

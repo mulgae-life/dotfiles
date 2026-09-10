@@ -39,10 +39,10 @@
 - **Primary**: 한화체 (Hanwha) — Bold(B) / Regular(R) / Light(L)
 - **Fallback**: sans-serif (시스템 폴백, 가시 노출되면 안 됨)
 
-`hw-design` 스킬에 .ttf 3종 존재:
-- `~/.claude/skills/hw-design/assets/fonts/Hanwha/HanwhaB.ttf` (700)
-- `~/.claude/skills/hw-design/assets/fonts/Hanwha/HanwhaR.ttf` (400)
-- `~/.claude/skills/hw-design/assets/fonts/Hanwha/HanwhaL.ttf` (300)
+스킬 번들 .ttf 3종:
+- `~/.claude/skills/hw-ppt/assets/fonts/Hanwha/HanwhaB.ttf` (700)
+- `~/.claude/skills/hw-ppt/assets/fonts/Hanwha/HanwhaR.ttf` (400)
+- `~/.claude/skills/hw-ppt/assets/fonts/Hanwha/HanwhaL.ttf` (300)
 
 PPTX는 .ttf 직접 임베드. HTML deck은 base64 인라인 또는 외부 참조.
 

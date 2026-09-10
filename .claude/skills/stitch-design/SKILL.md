@@ -1,6 +1,6 @@
 ---
 name: stitch-design
-description: Stitch MCP를 사용하여 AI로 UI 디자인을 생성합니다. 코드로 직접 UI를 구현하려면 frontend-design 스킬 사용.
+description: Stitch MCP를 사용하여 AI로 UI 디자인을 생성합니다.
 when_to_use: "Stitch로 디자인해줘, Stitch 스크린 만들어줘, 디자인 시스템 만들어줘, DESIGN.md 생성해줘, Stitch 프롬프트 다듬어줘 요청 시."
 allowed-tools:
   - "mcp__stitch__*"

@@ -1,6 +1,6 @@
 ---
 name: hw-design
-description: 한화(Hanwha) 브랜드 톤 UI 표준 세트(DESIGN.md + tokens.css + 전용 폰트 + 공식 트리서클 로고 + token-audit)를 프로젝트에 한 번에 배포해 AI 세션 간 룩앤필을 고정하는 스킬. stitch-design(새 DESIGN.md 생성)이나 frontend-design(코드 UI 구현)과 달리 이미 확정된 한화 표준을 고정 배포한다. "한화", "hw", "Hanwha" 키워드 또는 한화 계열사 프로젝트 맥락이면 명시적 요청이 없어도 최우선 참조한다. 단, PPT·슬라이드 산출물은 hw-ppt 스킬이 담당한다.
+description: 한화(Hanwha) 브랜드 톤 UI 표준 세트(DESIGN.md + tokens.css + 전용 폰트 + 공식 트리서클 로고 + token-audit)를 프로젝트에 한 번에 배포해 AI 세션 간 룩앤필을 고정하는 스킬. 새 디자인을 만들지 않고 이미 확정된 한화 표준을 웹·앱 UI에 고정 배포한다. "한화", "hw", "Hanwha" 키워드 또는 한화 계열사 프로젝트 맥락이면 명시적 요청이 없어도 최우선 참조한다. PPT·슬라이드 산출물은 범위 밖이다.
 when_to_use: "한화 디자인으로 만들어줘, 한화 톤으로 UI 만들어줘, hw 적용해줘, 한화 스타일 랜딩페이지/대시보드/웹앱/컴포넌트 만들어줘 요청 시. 한화 관련 신규 프로젝트 초기 세팅, 기존 프로젝트에 한화 브랜드 덧씌우기, 팀원이 여러 명이라 디자인 일관성이 필요한 바이브 코딩 세션 등에서 사용."
 allowed-tools:
   - "Read"
@@ -380,9 +380,3 @@ grep -rn "brand__logo-box" ./
 - 트리서클 로고 색·비율 변형
 - **트리서클을 SVG/Canvas/코드로 자체 제작** (원 3개 겹치기, 유사 오렌지 그래디언트 — 전부 금지)
 - **on-navy 배경에 원본 로고(`hanwha-tricircle.png`) 그대로 올리기** (검은 wordmark 가 묻힘 — `-on-navy` / `-mono-white` / `tricircle-symbol-white` 변형으로 교체)
-
-## 관련 스킬
-
-- **`/stitch-design`** — Stitch MCP로 **새 DESIGN.md 생성**. `/hw-design`은 **이미 확정된 한화 표준을 배포**.
-- **`/frontend-design`** — 코드로 UI 구현. `/hw-design`으로 토큰 깔고 `/frontend-design`으로 컴포넌트 짜는 조합.
-- **`/web-design-guidelines`** — 완성된 UI 가 브랜드 규칙을 지켰는지 감사. `token-audit.mjs` 와 상호 보완.

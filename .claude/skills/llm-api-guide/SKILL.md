@@ -1,24 +1,16 @@
 ---
 name: llm-api-guide
-description: LLM API(OpenAI, Anthropic) 연동 코드 구현 가이드. 프롬프트 내용 작성은 writing-prompts 스킬 사용.
+description: LLM API(OpenAI, Anthropic) 연동 코드 구현 가이드. 프롬프트 내용 작성은 범위 밖입니다.
 when_to_use: "OpenAI API 연동해줘, Claude API 사용해줘, LLM 호출 코드 작성해줘 요청 시. SDK 초기화, 스트리밍, tool calling, 에러 핸들링 등 LLM API 코드 구현 시 반드시 참조."
 ---
 
 # LLM API 개발 가이드
 
-LLM API(OpenAI, Anthropic) 연동 **코드** 구현 가이드.
-프롬프트 **내용** 작성은 `writing-prompts` 스킬 참조.
+LLM API(OpenAI, Anthropic) 연동 **코드** 구현 가이드. 프롬프트 **내용**(톤·구조) 작성은 범위 밖.
 
 ---
 
 ## Quick Start
-
-### 역할 분리
-
-| 스킬 | 역할 | 주요 질문 |
-|------|------|-----------|
-| `llm-api-guide` | API **코드** 구현 | "어떤 API 사용?", "파라미터는?" |
-| `writing-prompts` | 프롬프트 **내용** 작성 | "어떤 톤?", "구조는?" |
 
 ### API 선택 가이드
 
@@ -77,10 +69,6 @@ Anthropic
 - [ ] Reasoning effort: 작업 복잡도에 맞게 설정
 - [ ] 대화 이력: `previous_response_id` (OpenAI) 또는 수동 관리 (Anthropic)
 
-### 프롬프트 작성
-
-- [ ] 프롬프트 내용 작성은 `writing-prompts` 스킬 참조
-
 ---
 
 ## 상세 가이드
@@ -98,12 +86,12 @@ Anthropic
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
-- [GPT-6 Astra 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 (2026-09) — effort 5단계·제거 파라미터·272K 요율·Codex 기본 모델
+- [GPT-6 Astra 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — effort 5단계·제거 파라미터·272K 요율·Codex 기본 모델
 - [GPT-6 Astra 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-astra)
 - [Using the latest model](https://developers.openai.com/api/docs/guides/latest-model)
 - [Prompt guidance](https://developers.openai.com/api/docs/guides/prompt-guidance)
-- [GPT-5.6 풀 정리 (한국어)](../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) (이전, 2026-07) — 3티어 스펙·가격·신규 파라미터
-- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전, 2026-07)
+- [GPT-5.6 풀 정리 (한국어)](../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) (이전 세대) — 3티어 스펙·가격·신규 파라미터
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전 세대)
 - [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
 - [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 
@@ -111,7 +99,7 @@ Anthropic
 
 - [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
 - [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (Claude 5 세대)
-- [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1) ⭐ 최신 (2026-09) — 사고 블록 바인딩·신규 베타 3종
+- [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1) ⭐ 최신 — 사고 블록 바인딩·신규 베타 3종
 - [Fable 5.1 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide) — 강제 `tool_choice` 400 등 파괴적 변경 3건과 체크리스트
 - [Prompting Claude Fable 5.1](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) — effort 재측정·행동 변화 대응 지시문
 - [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5) — refusal/fallback·30일 보존 등 통합 시 필독
