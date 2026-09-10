@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.32** | `/brief` 스킬 신설 — 프로젝트 전용이던 브리핑 스킬을 프로젝트 무관하게 이식(정본·진행 로그 경로는 SESSION.md에서). 분량 조항 모순 제거, 실측 대상 위치는 문서에 적힌 것만 쓰고 없으면 미확인 |
 | **v2.31** | agy 전역 지침 이중 주입 수정 — `~/.gemini/config/GEMINI.md`와 `~/.gemini/GEMINI.md`가 둘 다 로드됨을 마커 실측으로 확인, 공식 문서 경로인 후자만 남기고 전자는 재설치 시 정리 |
 | **v2.30** | agy 상태줄 신설 — `statusLine` 페이로드가 Claude Code와 같은 골격임을 실측하고 스크립트를 이식(컨텍스트·5h/7d 쿼터·모델·effort). `stack_with_default`로 내장 줄 유지 |
 | **v2.29** | 신모델(Fable 5.1·Astra·Gemini 3.8) 재점검 — 구조 변경 없음. Codex 추론 수준 고정 해제, agy 병합의 깨진 링크 선행 삭제 제거. README를 사용자용으로 재편하고 설계 근거는 `docs/DECISIONS.md`, 이력은 `CHANGELOG.md`로 분리. `/update-docs` 이력 형식 초압축 |

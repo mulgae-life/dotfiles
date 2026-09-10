@@ -31,11 +31,12 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 - **`/init-project`** 로 새 프로젝트에 `agent-guide/`(GUIDE · PROJECT · SESSION) 3종을 만들면, 루트 `CLAUDE.md`·`AGENTS.md`가 GUIDE 링크로 생겨 세 도구가 전역 지침 뒤에 프로젝트 지침을 이어 읽는다.
 - 나머지는 아래 스킬을 `/이름`(Codex는 `$이름`)으로 호출한다.
 
-## ⚙️ 스킬 (21개, 세 도구 공용)
+## ⚙️ 스킬 (22개, 세 도구 공용)
 
 | 분류 | 스킬 | 용도 |
 |------|------|------|
 | 프로젝트 | `/start` | 세션 시작 — 문서·핵심 코드 읽고 상태 요약 |
+| | `/brief` | 진행 현황·인사이트 브리핑 — 과정 빼고 내용만 |
 | | `/init-project` | agent-guide 3종 생성 + 루트 진입 링크 |
 | | `/update-docs` | 작업 후 프로젝트 문서 갱신 |
 | | `/skill-creator` | 새 스킬 생성 가이드 |
