@@ -1,7 +1,7 @@
 ---
 name: start
 description: 새 세션 시작 시 agent-guide 문서와 핵심 코드를 읽어 프로젝트 구조·현재 상태·실행 흐름을 파악하고 요약합니다. Claude·Codex·Antigravity 공용.
-when_to_use: "시작, 세션 시작, 현재 상태 요약해줘, 이어서 하자, 프로젝트 파악해줘 요청 시. 새 대화를 열고 작업을 시작할 때."
+when_to_use: "시작, 세션 시작, 이어서 하자, 프로젝트 파악해줘 요청 시. 새 대화를 열고 작업을 시작할 때만 쓴다. 진행 현황 설명은 brief."
 ---
 
 # start
