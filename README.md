@@ -31,7 +31,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 - **`/init-project`** 로 새 프로젝트에 `agent-guide/`(GUIDE · PROJECT · SESSION) 3종을 만들면, 루트 `CLAUDE.md`·`AGENTS.md`가 GUIDE 링크로 생겨 세 도구가 전역 지침 뒤에 프로젝트 지침을 이어 읽는다.
 - 나머지는 아래 스킬을 `/이름`(Codex는 `$이름`)으로 호출한다.
 
-## ⚙️ 스킬 (22개, 세 도구 공용)
+## ⚙️ 스킬 (23개, 세 도구 공용)
 
 출처 열의 "이식"은 공식 저장소의 스킬을 가져온 것, "차용"은 일부 기준만 가져온 것이다. 둘 다 상류 갱신 대상이며 경로와 절차는 [docs/SKILL-SOURCES.md](docs/SKILL-SOURCES.md).
 
@@ -53,6 +53,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | | `/hw-ppt` | 한화손해보험 톤 16:9 슬라이드 덱 | 자체 |
 | | `/react-best-practices` | React/Next.js 성능 최적화 | Vercel 이식 |
 | | `/web-design-guidelines` | 웹 인터페이스 가이드라인 리뷰 | Vercel 이식 |
+| | `/visual-check` | Chromium 렌더링 스크린샷·진단으로 UI 결과를 눈으로 검증 | 자체 |
 | 백엔드·데이터 | `/postgres-best-practices` | Postgres 스키마·마이그레이션·RLS·쿼리 모범 사례 | Supabase 이식 |
 | | `/llm-api-guide` | OpenAI/Anthropic API 연동 | 자체 |
 | | `/langchain-guide` | LangChain/LangGraph 에이전트·워크플로우 | 자체 |

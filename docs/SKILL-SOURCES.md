@@ -24,7 +24,7 @@
 
 ## 3. 자체 제작 스킬
 
-`start`, `brief`, `init-project`, `update-docs`, `work-verify`, `work-plan`, `feedback-analysis`, `reference-verification`, `recursive-discussion`, `llm-api-guide`, `writing-prompts`, `langchain-guide`, `hw-design`, `hw-ppt`
+`start`, `brief`, `init-project`, `update-docs`, `work-verify`, `work-plan`, `feedback-analysis`, `reference-verification`, `recursive-discussion`, `llm-api-guide`, `writing-prompts`, `langchain-guide`, `hw-design`, `hw-ppt`, `visual-check`
 
 ## 4. 이식 스킬 갱신 절차
 

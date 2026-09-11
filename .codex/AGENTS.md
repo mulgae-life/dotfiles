@@ -96,6 +96,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 | `code-simplifier` | 기능 유지하며 명확성·유지보수성 개선 | "코드 정리해줘", "리팩토링" |
 | `frontend-design` | 프로덕션 수준 UI 제작 | "페이지 만들어줘" |
 | `web-design-guidelines` | UI/UX 디자인 패턴 검토 | "UI 리뷰해줘", "접근성 체크" |
+| `visual-check` | Chromium 렌더링 스크린샷·진단으로 UI 결과 검증 | "화면 확인해줘", "모바일에서 깨지는지 봐줘" |
 | `hw-design` | 한화 브랜드 디자인 표준(DESIGN.md·토큰·폰트) 프로젝트 배포 | "한화 톤으로 UI", "hw 적용해줘" |
 | `hw-ppt` | 한화손해보험 톤 16:9 슬라이드 덱 생성 | "한화손보 PPT", "한화 제안서" |
 | `react-best-practices` | React/Next.js 성능 최적화 | "컴포넌트 최적화" |

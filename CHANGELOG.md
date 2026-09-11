@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.37** | `visual-check` 스킬 신설 — Playwright·Chromium으로 UI를 폭별 렌더링해 스크린샷과 진단(가로 넘침·폰트 미로드·깨진 이미지·콘솔 에러·실패 요청)을 남기고, 찍기→보기→판단→고치기 루프와 기준 이미지 대조 기준을 정의. 세 회사 공식 디자인 스킬 조사 결과 레포에 없던 "렌더 결과 검증" 단계를 채운 것(Anthropic·Google 이식본은 상류와 일치 확인, OpenAI는 스킬 카탈로그 폐기 후 플러그인으로 이전해 이식 대상 아님) |
 | **v2.36** | Gemma 4 자료 현행화 — 5월 초판 이후 공식 변경 반영(12B Unified 추가로 5종 체제, chat template 7월 개정의 `preserve_thinking`·인자 객체 검증, audio는 text 뒤로 배치 규칙 변경, 빈 thought 블록은 E2B/E4B 제외 전부, 병렬 tool call 공식 포맷, MTP 드래프터·공식 QAT·DiffusionGemma·기술 보고서). 출처가 사라진 Unsloth 인용 2건 삭제, HF discussion #53에 잘못 연결한 출처와 Cookbook 리포 이전 정정, 초판 인용문 3건을 원문대로 복원, `writing-prompts` 표·체크리스트·참고 갱신 |
 | **v2.35** | Qwen 3.8 대응 — 풀 가이드·패턴 파일을 3.8로 새로 쓰고(`reasoning_effort` 3단계와 template 지시문 주입, `preserve_thinking` 기본 ON, 단일 sampling 프리셋, 출력 예산, 모델별 라이선스 차이, Ollama 공식 등록, Claude Code `high` 예외), `writing-prompts` 표·체크리스트·참고 갱신. 3.6 자료는 `reference/archive/`로 이동하고 보관소 색인·기준 갱신. 3.6 가이드의 tool call JSON 예시가 부정확했음을 정정(template은 3.5부터 XML 스타일) |
 | **v2.34** | 이식 스킬 8개 상류 동기화 — `frontend-design` 재번역, `react-best-practices` 룰 52→70, `web-design-guidelines` 스냅샷 갱신, `code-review`에 오탐 제외 기준, `postgres-best-practices`를 상류 구조(`references/`·규칙 31개)로 이전, `stitch-design`은 상류가 플러그인 3종으로 쪼갠 하위 스킬 16종으로 재구성. v2.9에서 검증한 로컬 보완은 상류보다 우선 유지. 스킬 22개 출처를 이식·자체로 구분해 README 출처 열과 `docs/SKILL-SOURCES.md`에 기록 |
