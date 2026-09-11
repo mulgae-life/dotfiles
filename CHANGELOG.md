@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.38** | Codex 교훈 파일 운영 정비 — 경로를 `<프로젝트 루트>/.codex/lessons.md`로 명시(상대 경로 표기 탓에 프로젝트 밖에서 띄운 세션이 홈에 기록한 사례 차단), 세션 시작 시 읽기 지시와 압축 후 재읽기 리마인더 추가(기록만 하고 읽지 않던 구멍). Codex 공식 메모리는 조사 결과 미채택하고 `features.memories = false`로 의도 명시(프로젝트별 lessons와 역할 중복, 백그라운드 모델 호출 비용, 에이전트 읽기 전용) |
 | **v2.37** | `visual-check` 스킬 신설 — Playwright·Chromium으로 UI를 폭별 렌더링해 스크린샷과 진단(가로 넘침·폰트 미로드·깨진 이미지·콘솔 에러·실패 요청)을 남기고, 찍기→보기→판단→고치기 루프와 기준 이미지 대조 기준을 정의. 세 회사 공식 디자인 스킬 조사 결과 레포에 없던 "렌더 결과 검증" 단계를 채운 것(Anthropic·Google 이식본은 상류와 일치 확인, OpenAI는 스킬 카탈로그 폐기 후 플러그인으로 이전해 이식 대상 아님) |
 | **v2.36** | Gemma 4 자료 현행화 — 5월 초판 이후 공식 변경 반영(12B Unified 추가로 5종 체제, chat template 7월 개정의 `preserve_thinking`·인자 객체 검증, audio는 text 뒤로 배치 규칙 변경, 빈 thought 블록은 E2B/E4B 제외 전부, 병렬 tool call 공식 포맷, MTP 드래프터·공식 QAT·DiffusionGemma·기술 보고서). 출처가 사라진 Unsloth 인용 2건 삭제, HF discussion #53에 잘못 연결한 출처와 Cookbook 리포 이전 정정, 초판 인용문 3건을 원문대로 복원, `writing-prompts` 표·체크리스트·참고 갱신 |
 | **v2.35** | Qwen 3.8 대응 — 풀 가이드·패턴 파일을 3.8로 새로 쓰고(`reasoning_effort` 3단계와 template 지시문 주입, `preserve_thinking` 기본 ON, 단일 sampling 프리셋, 출력 예산, 모델별 라이선스 차이, Ollama 공식 등록, Claude Code `high` 예외), `writing-prompts` 표·체크리스트·참고 갱신. 3.6 자료는 `reference/archive/`로 이동하고 보관소 색인·기준 갱신. 3.6 가이드의 tool call JSON 예시가 부정확했음을 정정(template은 3.5부터 XML 스타일) |
