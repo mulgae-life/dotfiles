@@ -186,7 +186,7 @@ certainty, which is invaluable for such a crucial financial milestone.
 
 | 모델 유형 | CoT 효과 | 권장 전략 |
 |-----------|---------|----------|
-| 비추론 모델 (소형·오픈웨이트, thinking을 끈 Gemma 4·Qwen 3.6 등) | ✅ 20~40% 정확도 향상 | Structured CoT (XML 태그) 사용 |
+| 비추론 모델 (소형·오픈웨이트, thinking을 끈 Gemma 4·Qwen 3.8 등) | ✅ 20~40% 정확도 향상 | Structured CoT (XML 태그) 사용 |
 | Reasoning (GPT-5.6·GPT-6, DeepSeek-R1) | ❌ **성능 저하** | CoT 프롬프팅 금지. `reasoning.effort`로 내장 추론 제어 |
 | Claude 5 (Fable 5) | ❌ 지시 시 refusal | Structured CoT의 "사고 과정을 답변에 서술" 지시는 `reasoning_extraction` refusal 유발. thinking 상시 on이므로 CoT 출력 지시 금지, thinking 블록(`display: "summarized"`) 사용 → [claude-5-specifics.md](claude-5-specifics.md) |
 

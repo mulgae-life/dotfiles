@@ -6,6 +6,7 @@
 
 - **Claude**: 5 세대(Fable 5·Opus 5·Sonnet 5) 미만 전용 자료. Haiku 4.5는 현역 소형 모델이라 제외
 - **GPT**: 5.6 미만 전용 자료. 5.6 자료는 GPT-6 가이드가 "프롬프트 계약 구조는 5.6 유효"로 참조하므로 현행 유지
+- **Qwen**: 3.8 미만 전용 자료. 3.7은 API 전용이라 오픈웨이트 계보는 3.6 → 3.8
 - 연구 원문(`reference/research/`)은 조사 시점 기록이라 보관 대상이 아님
 
 ## 구성
@@ -17,7 +18,8 @@
 | `openai-prompt-guide/` | GPT-4.1·5·5.1·5.2·5.4·5.5 프롬프팅 가이드, GPT-5 Prompt Optimizer, gpt-4o·o1·o3·GPT-5.2 시절 플랫폼 문서 스냅샷 7종 |
 | `openai-api-guide/` | Reasoning models(GPT-5 초기), Using GPT-5.2, Using GPT-5.4 |
 | `claude-prompt-guide/` | Claude 4.x Best Practices(영문·한국어), 응답 Prefilling(Claude 5·Sonnet 4.6+에서 400) |
-| `skills/writing-prompts/` | `writing-prompts` 스킬에서 분리한 Claude 4.x 특화 기법, GPT-5.4·5.5 패턴, GPT-5 파라미터, Prefilling |
+| `qwen-prompt-guide/` | Qwen 3.6 프롬프팅 풀 가이드 (§14.3의 tool call JSON 예시는 부정확 — 실제 template은 3.5부터 XML 스타일) |
+| `skills/writing-prompts/` | `writing-prompts` 스킬에서 분리한 Claude 4.x 특화 기법, GPT-5.4·5.5 패턴, GPT-5 파라미터, Prefilling, Qwen 3.6 패턴 |
 
 ## 다시 꺼낼 때
 

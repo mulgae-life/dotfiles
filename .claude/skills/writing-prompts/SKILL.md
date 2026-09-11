@@ -6,7 +6,7 @@ when_to_use: "프롬프트 작성해줘, 톤 가이드 적용해줘, 시스템 �
 
 # 프롬프트 작성 가이드 (OpenAI + Anthropic + 오픈웨이트 통합)
 
-OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 기반. **범용 원칙 우선, 모델별 최적화는 보조**. 한국어 프로젝트 특화 규칙(격식체) 포함.
+OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.8 공식 가이드 기반. **범용 원칙 우선, 모델별 최적화는 보조**. 한국어 프로젝트 특화 규칙(격식체) 포함.
 
 ---
 
@@ -39,17 +39,17 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 
 ### 오픈웨이트 (Google Gemma / Alibaba Qwen)
 
-| 항목 | Google Gemma 4 | Alibaba Qwen 3.6 |
+| 항목 | Google Gemma 4 | Alibaba Qwen 3.8 |
 |------|---------------|------------------|
-| **Chat template** | `<\|turn>...<turn\|>` (Gemma 3에서 완전 교체) | ChatML `<\|im_start\|>...<\|im_end\|>` (Qwen 3.5 동일) |
-| **System role** | **신규 지원** (Gemma 3 워크어라운드 제거 필수) | 지원 (디폴트 system prompt 없음) |
-| **Thinking** | `<\|think\|>` 토큰 + multi-turn strip 룰 | 디폴트 ON, `enable_thinking` / `preserve_thinking` (agentic) |
-| **Tool calling** | `<\|"\|>` delimiter 공식 포맷 | `qwen3_coder` 파서, Qwen-Agent 권장 |
-| **Sampling 권장** | `temp=1.0, top_p=0.95, top_k=64` (모든 사용처) | 모드별·작업별 프리셋 (모델별 `presence_penalty` 차이) |
-| **Context** | 256K (대형) / 128K (Effective) | 262K native + YaRN으로 1M (오픈웨이트) |
-| **Multimodal** | 모든 사이즈 vision + E2B/E4B는 audio | 27B / 35B-A3B 모두 vision encoder |
-| **vLLM 필수 플래그** | `--reasoning-parser gemma4 --tool-call-parser gemma4` | `--reasoning-parser qwen3 --tool-call-parser qwen3_coder` |
-| **라이선스** | Apache 2.0 (Gemma 3 Terms 제약 해소) | Apache 2.0 |
+| **Chat template** | `<\|turn>...<turn\|>` (Gemma 3에서 완전 교체) | ChatML `<\|im_start\|>...<\|im_end\|>` (Qwen 3.6 동일) |
+| **System role** | **신규 지원** (Gemma 3 워크어라운드 제거 필수) | 지원 (디폴트 없음, 단 thinking ON이면 template이 추론 지시문을 앞에 주입) |
+| **Thinking** | `<\|think\|>` 토큰 + multi-turn strip 룰. OFF여도 E2B/E4B 제외 전부 빈 블록 emit. tool call 턴 유지는 `preserve_thinking=True`(기본 false) | 디폴트 ON, `reasoning_effort` = `xhigh`(기본)/`medium`/`low`, `preserve_thinking` 기본 ON. 2.4T-A95B는 끌 수 없음 |
+| **Tool calling** | `<\|"\|>` delimiter 공식 포맷, 병렬은 `tool_responses` 배열, 히스토리 `arguments`는 JSON 객체 | XML 스타일 `<function=…><parameter=…>`, `qwen3_coder` 파서, Qwen-Agent 권장 |
+| **Sampling 권장** | `temp=1.0, top_p=0.95, top_k=64` (모든 사용처) | 단일 프리셋: thinking `temp=1.0, top_p=0.95, top_k=20, presence=0.0` / instruct `0.7, 0.8, 20, 1.5` |
+| **Context** | 256K (12B·26B·31B) / 128K (E2B·E4B) | 262K native + YaRN 1M (오픈웨이트), API는 1M. 출력 예산 reasoning 262K / 최종 131K |
+| **Multimodal** | 5종 모두 vision, audio는 E2B/E4B/12B. image는 text 앞, audio는 text 뒤 | 27B·Flash-Next vision. 2.4T-A95B는 텍스트 전용 |
+| **vLLM 필수 플래그** | `--reasoning-parser gemma4 --tool-call-parser gemma4` (MTP는 `--speculative-config`) | `--reasoning-parser qwen3 --tool-call-parser qwen3_coder` (Flash-Next 레시피는 `qwen3_xml`) |
+| **라이선스** | Apache 2.0 (Gemma 3 Terms 제약 해소, 드래프터·QAT 포함) | 27B만 Apache 2.0. 2.4T-A95B 커스텀, Flash-Next Qwen Community 1.0 |
 
 ## 빠른 참조
 
@@ -93,7 +93,7 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.6 공식 가이드 
 | OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시(GPT-6), 티어 선택(5.6) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra), `references/gpt56-patterns.md` (5.6) |
 | Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Fable 5.1·Opus 5), `references/long-context.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` |
-| Alibaba Qwen 3.6 | ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling | `references/qwen36-patterns.md` |
+| Alibaba Qwen 3.8 | ChatML, `reasoning_effort` 3단계 + `preserve_thinking` 기본 ON, XML tool 포맷·`qwen3_coder` 파서, 단일 sampling | `references/qwen38-patterns.md` |
 
 ## 기본 템플릿
 
@@ -199,24 +199,28 @@ system_prompt: |
 - [ ] **Chat template 교체**: `<start_of_turn>` → `<|turn>`, `<end_of_turn>` → `<turn|>` (Gemma 3에서 완전 교체)
 - [ ] **System role 사용**: Gemma 3의 "user 턴에 system 우겨넣기" 워크어라운드 제거
 - [ ] **Thinking 활성화**: 시스템 프롬프트 맨 앞에 `<|think|>` 토큰 추가
-- [ ] **Multi-turn thought strip**: 직전 model 턴의 `<|channel>thought` 블록 제거 (단, 함수 호출 중에는 유지)
-- [ ] **Multimodal placement**: image/audio를 text 앞에 배치
+- [ ] **Multi-turn thought strip**: 직전 model 턴의 `<|channel>thought` 블록 제거 (함수 호출 중에는 유지 — template은 `preserve_thinking=True`). OFF여도 빈 블록 strip (E2B/E4B 제외)
+- [ ] **Multimodal placement**: image는 text 앞, audio는 text 뒤
 - [ ] **Visual token budget**: 70/140/280/560/1120 작업별 명시 (분류 70-140, OCR 1120)
-- [ ] **Tool calling**: `<|"|>` delimiter 포맷 사용
+- [ ] **Tool calling**: `<|"|>` delimiter 포맷 사용, 히스토리 `arguments`는 JSON 객체(문자열이면 template 예외)
 - [ ] **공식 sampling**: `temperature=1.0, top_p=0.95, top_k=64` (OpenAI식 0.7 금지)
 - [ ] **vLLM**: `--reasoning-parser gemma4 --tool-call-parser gemma4` 필수
-- [ ] Audio 워크로드: E2B/E4B만 사용 (대형 2종 미지원)
+- [ ] **런타임 template 버전**: 2026-07-15 개정본(`preserve_thinking`·인자 검증)인지 확인
+- [ ] Audio 워크로드: E2B/E4B/12B 사용 (26B A4B·31B 미지원)
 
-**Alibaba Qwen 3.6** (오픈웨이트):
-- [ ] **ChatML 템플릿**: `<|im_start|>role\n...\n<|im_end|>` (Qwen 3.5 동일)
-- [ ] **디폴트 thinking ON** 인지: 단순 chat은 명시적으로 `enable_thinking=false`로 토큰 절감
-- [ ] **`preserve_thinking=true`**: agentic multi-turn에서 활성화 (코딩 에이전트, 멀티스텝 tool 사용)
-- [ ] **Tool 파서 교체**: Qwen 3.5의 `qwen3` → **`qwen3_coder`** (vLLM/SGLang)
-- [ ] **Sampling 모드별 분리**: thinking 일반 (`temp=1.0, top_p=0.95, top_k=20`), 정밀 코딩 (`temp=0.6`), instruct (`temp=0.7, top_p=0.8`)
-- [ ] **모델별 `presence_penalty` 분기**: 35B-A3B=1.5, 27B=0.0 (thinking 일반)
-- [ ] **128K 미만 truncate 금지**: thinking 보존 권고 충족
-- [ ] **Long context**: 262K native, YaRN으로 1M까지. Plus API는 1M 디폴트
-- [ ] **공식 권장 프레임워크**: Qwen-Agent + MCP
+**Alibaba Qwen 3.8** (오픈웨이트):
+- [ ] **ChatML 템플릿**: `<|im_start|>role\n...\n<|im_end|>` (Qwen 3.6 동일)
+- [ ] **`reasoning_effort` 선택**: `xhigh`(기본)/`medium`/`low`만 허용, `high`·`none`은 template 예외. 로컬 27B는 `low`~`medium`부터, 호스팅 API는 `xhigh` 후 실측
+- [ ] **추론 지시문 자동 주입 인지**: `xhigh`·`low`는 시스템 턴 맨 앞에 영문 지시문이 붙음(`medium`은 없음). "천천히 생각하라" 류 문장을 프롬프트에 중복해 넣지 않기
+- [ ] **`preserve_thinking` 기본 ON**: 클라이언트가 `reasoning_content`를 같은 필드로 되돌리는지 확인, 단발 작업은 `false`
+- [ ] **thinking OFF는 27B·Flash-Next만**: 2.4T-A95B는 `enable_thinking=false`가 예외
+- [ ] **Tool 포맷·파서**: XML 스타일 `<function=…><parameter=…>`, `--tool-call-parser qwen3_coder` (Flash-Next는 `qwen3_xml`)
+- [ ] **예약 태그 회피**: `<think>`, `<tool_call>`, `<tool_response>`, `<tools>`, `<function=`, `<parameter=`를 커스텀 XML 태그로 쓰지 않기. 절 구분은 Markdown 헤더
+- [ ] **Sampling 단일 프리셋**: thinking `temp=1.0, top_p=0.95, top_k=20, presence=0.0` / instruct `temp=0.7, top_p=0.8, presence=1.5`. 3.6의 모델별 `presence_penalty` 분기·코딩용 temp 0.6은 폐기
+- [ ] **출력 예산**: reasoning 262,144 / 최종 131,072. 호스팅 API는 `max_completion_tokens`(CoT 포함)
+- [ ] **Long context**: 262K native, YaRN 1M은 실제 길이가 262K를 넘을 때만(static YaRN). API는 1M 디폴트
+- [ ] **라이선스 확인**: 27B만 Apache 2.0. 2.4T-A95B·Flash-Next는 MAU·매출 조건과 MaaS 별도 라이선스
+- [ ] **공식 권장 프레임워크**: Qwen-Agent + MCP. 하네스는 Claude Code·Codex·Qwen Code·Qoder·OpenClaw 공식 설정
 
 ### 추가 도구 (사용자 직접)
 - OpenAI Prompt Optimizer: https://platform.openai.com/chat/edit?optimize=true
@@ -257,11 +261,11 @@ system_prompt: |
 
 ### Google Gemma 특화 (오픈웨이트)
 
-- **[gemma4-patterns.md](references/gemma4-patterns.md)** ⭐ Gemma 4 패턴 요약 — chat template 교체, `<|think|>` 토글, multi-turn strip, `<|"|>` tool delimiter, 공식 sampling, vLLM 플래그, Gemma 3 → 4 마이그레이션
+- **[gemma4-patterns.md](references/gemma4-patterns.md)** ⭐ Gemma 4 패턴 요약 — chat template 교체와 2026-07 개정 인자, `<|think|>` 토글, multi-turn strip, `<|"|>` tool delimiter·병렬 호출, 공식 sampling, vLLM 플래그, MTP·QAT, Gemma 3 → 4 마이그레이션
 
 ### Alibaba Qwen 특화 (오픈웨이트)
 
-- **[qwen36-patterns.md](references/qwen36-patterns.md)** ⭐ Qwen 3.6 패턴 요약 — ChatML, 디폴트 thinking + `preserve_thinking`, `qwen3_coder` 파서, 모드별 sampling, agentic 시스템 프롬프트, Qwen 3.5 → 3.6 마이그레이션
+- **[qwen38-patterns.md](references/qwen38-patterns.md)** ⭐ Qwen 3.8 패턴 요약 — ChatML, `reasoning_effort` + `preserve_thinking` 기본 ON, XML tool 포맷·`qwen3_coder` 파서, 단일 sampling, 라이선스 차이, agentic 시스템 프롬프트, Qwen 3.6 → 3.8 마이그레이션
 
 ## 참고 자료
 
@@ -289,19 +293,24 @@ system_prompt: |
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
 
 ### Google Gemma 4
-- [Gemma 4 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemma-4-prompt-guide.md) ⭐ 16섹션 + 외부 노하우
+- [Gemma 4 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemma-4-prompt-guide.md) ⭐ 15섹션 + 외부 노하우
 - [Gemma 4 모델 카드 (공식)](https://ai.google.dev/gemma/docs/core/model_card_4)
 - [Prompt formatting (공식)](https://ai.google.dev/gemma/docs/core/prompt-formatting-gemma4)
 - [Function calling (공식)](https://ai.google.dev/gemma/docs/capabilities/text/function-calling-gemma4)
+- [MTP 드래프터 (공식)](https://ai.google.dev/gemma/docs/mtp/mtp)
+- [Gemma 4 Technical Report (arXiv)](https://arxiv.org/abs/2607.02770)
+- [HuggingFace 모델 카드 (31B-it)](https://huggingface.co/google/gemma-4-31B-it)
 - [HuggingFace Blog — Gemma 4](https://huggingface.co/blog/gemma4)
 - [vLLM Gemma 4 Recipe](https://docs.vllm.ai/projects/recipes/en/latest/Google/Gemma4.html)
 - [Simon Willison — Gemma 4 출시일 분석](https://simonwillison.net/2026/Apr/2/gemma-4/)
 
-### Alibaba Qwen 3.6
-- [Qwen 3.6 풀 가이드 (한국어)](../../../reference/qwen-prompt-guide/qwen-3.6-prompt-guide.md) ⭐ 17섹션 + 외부 노하우
-- [Qwen3.6 GitHub (공식)](https://github.com/QwenLM/Qwen3.6)
+### Alibaba Qwen 3.8
+- [Qwen 3.8 풀 가이드 (한국어)](../../../reference/qwen-prompt-guide/qwen-3.8-prompt-guide.md) ⭐ 17섹션 + 외부 노하우
+- [Qwen3.8 GitHub (공식)](https://github.com/QwenLM/Qwen3.8)
 - [Qwen-Agent 프레임워크 (공식)](https://github.com/QwenLM/Qwen-Agent)
-- [Qwen3.6-Plus: Towards Real-World Agents (Alibaba Cloud)](https://www.alibabacloud.com/blog/qwen3-6-plus-towards-real-world-agents_603005)
-- [HuggingFace 모델 카드 (35B-A3B)](https://huggingface.co/Qwen/Qwen3.6-35B-A3B)
+- [Qwen3.8-Max: A New Bar for Coding and Cowork (Alibaba Cloud 미러)](https://www.alibabacloud.com/blog/qwen3-8-max-a-new-bar-for-coding-and-cowork_603421)
+- [Qwen3.8-27B Practical Guide (Alibaba Cloud)](https://www.alibabacloud.com/blog/qwen3-8-27b-practical-guide-control-reasoning-depth-and-extend-context-to-1m-tokens_603509)
+- [HuggingFace 모델 카드 (27B)](https://huggingface.co/Qwen/Qwen3.8-27B)
+- [QwenCloud OpenAI chat API reference (공식)](https://docs.qwencloud.com/api-reference/chat/openai-chat)
+- [Simon Willison — Qwen 3.8 27B overthinking 분석](https://simonwillison.net/2026/Aug/16/qwen-38-27b/)
 - [Caleb Fahlgren — Qwen 3 Chat Template 분석 (HF Blog)](https://huggingface.co/blog/qwen-3-chat-template-deep-dive)
-- [Simon Willison — Qwen3.6-27B 로컬 재현](https://simonwillison.net/2026/Apr/22/qwen36-27b/)

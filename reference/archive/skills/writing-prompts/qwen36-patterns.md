@@ -14,7 +14,7 @@
 
 > Qwen 3.6은 Qwen 3.5의 hybrid Gated DeltaNet/Gated Attention 레시피를 유지하면서 **agentic coding**과 **multi-turn 추론 보존(`preserve_thinking`)**을 1순위로 재훈련된 세대다. **시스템 프롬프트는 거의 그대로 동작하지만, `preserve_thinking` API 파라미터·tool 파서 이름(`qwen3_coder`)·sampling 프리셋(모델별 차이)은 마이그레이션 시 반드시 업데이트.**
 >
-> 본 문서는 패턴 요약. 풀 가이드: [`reference/qwen-prompt-guide/qwen-3.6-prompt-guide.md`](../../../../reference/qwen-prompt-guide/qwen-3.6-prompt-guide.md)
+> 본 문서는 패턴 요약. 풀 가이드: [`reference/qwen-prompt-guide/qwen-3.6-prompt-guide.md`](../../qwen-prompt-guide/qwen-3.6-prompt-guide.md)
 
 ---
 
@@ -344,7 +344,7 @@ read-only inspection.
 
 ## 참고
 
-- [Qwen 3.6 풀 가이드 (한국어)](../../../../reference/qwen-prompt-guide/qwen-3.6-prompt-guide.md) — 17섹션 + 외부 노하우 + 빈칸
+- [Qwen 3.6 풀 가이드 (한국어)](../../qwen-prompt-guide/qwen-3.6-prompt-guide.md) — 17섹션 + 외부 노하우 + 빈칸
 - [Qwen3.6 GitHub](https://github.com/QwenLM/Qwen3.6)
 - [Qwen-Agent 공식 프레임워크](https://github.com/QwenLM/Qwen-Agent)
 - [HuggingFace 모델 카드 (35B-A3B)](https://huggingface.co/Qwen/Qwen3.6-35B-A3B)
