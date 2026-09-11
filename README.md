@@ -38,7 +38,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 분류 | 스킬 | 용도 | 출처 |
 |------|------|------|------|
 | 프로젝트 | `/start` | 세션 시작 — 문서·핵심 코드 읽고 상태 요약 | 자체 |
-| | `/brief` | 진행 현황·인사이트 브리핑 — 과정 빼고 내용만 | 자체 |
+| | `/brief` | 프로젝트 목적·기대 대비 진행 현황과 인사이트 브리핑 — 과정·실무 정보 제외 | 자체 |
 | | `/init-project` | agent-guide 3종 생성 + 루트 진입 링크 | 자체 |
 | | `/update-docs` | 작업 후 프로젝트 문서 갱신 | 자체 |
 | | `/skill-creator` | 새 스킬 생성 가이드 | Anthropic 이식 |

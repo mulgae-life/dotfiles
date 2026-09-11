@@ -108,7 +108,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 | `recursive-discussion` | Claude와 대등 토론으로 결과물 개선 | "코덱스랑 토론해서", "재귀 토론" |
 | `reference-verification` | 논문 인용·수식↔코드·benchmark 원문 검증 절차 | "논문 인용", "수식 구현 대조" |
 | `start` | 세션 시작 — agent-guide와 핵심 코드 읽고 현재 상태·실행 흐름 요약 | "시작" |
-| `brief` | 진행 현황·인사이트 브리핑 — 과정 빼고 내용만 | "지금 어디까지 왔어", "브리핑해줘" |
+| `brief` | 프로젝트 목적·기대 대비 진행 현황과 인사이트 브리핑 — 과정·실무 정보 제외 | "지금 어디까지 왔어", "브리핑해줘" |
 | `update-docs` | agent-guide 문서 업데이트 | "문서 업데이트" |
 | `init-project` | agent-guide 3종 파일 자동 생성 + 루트 `CLAUDE.md`·`AGENTS.md`를 `GUIDE.md` 링크로 | "프로젝트 초기화" |
 | `skill-creator` | 스킬 생성·수정·eval 테스트 | "스킬 만들어줘" |
