@@ -23,7 +23,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 에이전트 자동 위임 | 빌드 실패 → `build-resolver`, 보안 민감 코드 → `security-reviewer` |
 | 데스크톱 알림 | 입력 대기·턴 완료 시 `notify-send` |
 | 상태줄 | 입력창 아래에 프로젝트 · 모델 · effort · 컨텍스트 사용률 · 5시간/주간 한도를 세 도구 모두 표시 |
-| compact 리마인더 | 컨텍스트 압축 뒤 "요약을 사실로 단정하지 말고 파일을 다시 읽으라"를 주입 |
+| compact 리마인더 | 컨텍스트 압축 뒤 "요약을 사실로 단정하지 말고 파일을 다시 읽으라, 새 사용자 메시지가 있으면 이전 작업 재개보다 그것을 먼저"를 주입 |
 
 ## 🎯 사용법
 

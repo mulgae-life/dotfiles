@@ -49,6 +49,7 @@ Codex 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 tmpfs로 덮�
 | Claude | Bash 자동승인 훅(`auto-approve-readonly.sh`) 은퇴, `permissions.ask` 전면 해제 (v2.10) | 504줄 텍스트 매칭이 따옴표 속 문구("rm 금지" 등)를 명령으로 오인하는 오탐이 누적됐고, ask 규칙은 bypass 모드에서도 발동해(실측) 자율 흐름을 끊었다. 원본·회귀 케이스·기존 ask 목록은 `.archive/2026-07-18_hook-retirement/` |
 | Claude | MCP 자동승인 훅(PreToolUse `mcp__.*`) 유지 | 의도된 정책 — 보안 리뷰에서 취약점으로 다루지 않는다 |
 | Claude·Codex | compact 리마인더를 PostCompact가 아니라 SessionStart(`compact`)에 둠 (v2.21) | PostCompact는 `systemMessage`·stdout을 모델에 전달하지 않는다(Codex는 `compact.rs`에서 UI 경고 전용 확인) |
+| Claude·Codex | compact 리마인더는 재개를 재촉하지 않고 사용자 메시지 우선을 명시 (v2.40) | 압축 뒤에는 요약의 "이어가라" 지시, 리마인더의 "다음 단계 파악", 압축 전 호출 스킬의 "재실행 금지" 안내가 한 창에 겹친다. 이 셋이 압축 직후의 새 스킬 호출(`/brief`)을 이전 작업 재개의 첫 단계로 흡수한 사례가 있어, 새 메시지·스킬 호출이 있으면 그것이 이번 턴의 작업임을 리마인더가 못 박는다. 이전 작업 인지는 요약이 이미 담고 있어 리마인더가 재촉할 필요가 없다 |
 | Codex | 실패알림 훅(PostToolUse) 제거 (v2.0) | payload(`tool_response`)가 exit code 없는 포맷 문자열이고 `PostToolUseFailure` 이벤트도 없어(0.142.5·0.144.1 `shell.rs`·`protocol.rs` 확인) 실패를 일반적으로 판정할 수 없다. Codex가 exit_code를 노출하면 `.archive/2026-07-02_codex-dead-hook/`에서 복원 |
 | Codex | PreToolUse 의도적 미설정 | `approval_policy = "never"` + Starlark가 이미 통제 |
 | Antigravity | 훅 미사용 | 알림은 내장 `notifications: true`. 압축 후 이벤트가 없고 `PreInvocation`은 매 모델 호출마다 실행돼 리마인더 용도로 과하다. `~/.gemini/config/hooks.json`이 로드됨은 실측(`PreToolUse`·`PostToolUse`·`PreInvocation`·`PostInvocation`·`Stop`) |
