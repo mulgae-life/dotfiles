@@ -314,7 +314,7 @@
     ]
   },
   "autoDreamEnabled": true,
-  "autoCompactWindow": 500000,
+  "autoCompactWindow": 400000,
   "remoteControlAtStartup": false,
   "language": "한국어",
   "statusLine": {
