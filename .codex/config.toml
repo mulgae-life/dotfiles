@@ -216,7 +216,7 @@ status_line = [
 ]
 
 # ── 훅 (Codex Hooks, v0.129+) ────────────────
-# Claude Code의 .claude/hooks/* 와 1:1 대응. 모두 작업 중단 없는 알림/리마인더 전용
+# Claude Code settings.json의 알림·compact 리마인더 훅에 대응. 모두 작업 중단 없는 알림/리마인더 전용
 # PreToolUse 자동 승인은 의도적 미설정 — approval_policy="never" + rules/default.rules가 이미 통제
 # matcher 미설정 = 모든 매칭, 명시할 때만 regex 적용
 
@@ -227,7 +227,7 @@ type = "command"
 command = "$HOME/.codex/hooks/notify.sh"
 timeout = 5
 
-# PostToolUse 실패알림 훅은 제거 — payload에 exit code가 없어 실패 감지 불가(README 훅 절 참조). 복원본은 .archive/2026-07-02_codex-dead-hook/
+# PostToolUse 실패알림 훅은 제거 — payload에 exit code가 없어 실패 감지 불가(docs/DECISIONS.md §4 참조). 복원본은 .archive/2026-07-02_codex-dead-hook/
 
 # SessionStart(compact): 압축 직후 요약 불신·파일 재확인 리마인더를 additionalContext로 모델 컨텍스트에 주입
 # PostCompact는 systemMessage를 UI 경고로만 표시하고 모델에 전달하지 않음(compact.rs) → SessionStart 사용

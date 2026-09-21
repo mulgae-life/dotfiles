@@ -2,11 +2,11 @@
 # Codex 실행 정책 (Execution Policy)
 # approval_policy = "never" + sandbox_mode = "danger-full-access" 조합에서 위험 명령어만 차단
 # (--full-auto는 0.147.0에서 제거됨. 우리는 permission profiles 대신 본 Starlark DSL로 직접 통제)
-# Claude Code의 auto-approve-readonly.sh에 대응 — 카테고리별 사유 분기로 통일
+# 카테고리별 사유 분기는 3-tool 공통 분류를 따름 (.antigravity/README.md "3-tool 정합성" 표)
 # justification은 차단 시점에 사용자/에이전트에게 노출됨 → 대체 방법까지 안내
 # ─────────────────────────────────────────────
 
-# ── 카테고리별 차단 사유 (Claude의 ask_command 사유와 동일 분류) ──
+# ── 카테고리별 차단 사유 ──
 # 모듈-레벨 변수로 일원화하여 메시지 유지보수성 확보
 # forbidden은 승인 경로가 없는 즉시 차단 → "승인 후 실행"이 아니라 "사용자가 직접 실행"으로 안내
 _MSG_FILE_DELETE   = "파일 삭제는 비가역적이라 차단됩니다. 보존이 목적이면 .archive/<YYYY-MM-DD>_<태그>/로 mv하세요. 삭제가 꼭 필요하면 사용자에게 직접 실행을 요청하세요."
@@ -59,7 +59,7 @@ prefix_rule(pattern = ["git", "branch", ["-d", "-D", "--delete"]], decision = "f
 prefix_rule(pattern = ["git", "tag", ["-d", "-f", "--delete"]],    decision = "forbidden", justification = _MSG_GIT_WRITE)
 
 # ── Git 상태 변경 (working tree/staging/HEAD 이동) ──
-# work-principles.md 정합: stash·add도 "Git 상태 변경" 카테고리로 통일
+# AGENTS.md 정합: stash·add도 "Git 상태 변경" 카테고리로 통일
 # checkout/switch: 브랜치 전환 시 작업 컨텍스트 손실 + detached HEAD 위험
 # restore: working tree 변경 폐기 위험
 # stash: list/show 포함 전체 차단 — 조회만 allow로 분리하는 것이 Codex에서는 불가하다
@@ -112,6 +112,6 @@ prefix_rule(pattern = ["chmod"],     decision = "forbidden", justification = _MS
 prefix_rule(pattern = ["chown"],     decision = "forbidden", justification = _MSG_PERMISSION)
 prefix_rule(pattern = ["sed", "-i"],         decision = "forbidden", justification = _MSG_INPLACE)
 prefix_rule(pattern = ["sed", "--in-place"], decision = "forbidden", justification = _MSG_INPLACE)
-# awk/gawk -i inplace (Claude hook INPLACE 정합 — 인자가 실행되는 sed/awk in-place 수정 차단)
+# awk/gawk -i inplace (INPLACE 카테고리 — sed -i와 같은 in-place 수정 차단)
 prefix_rule(pattern = ["gawk", "-i", "inplace"], decision = "forbidden", justification = _MSG_INPLACE)
 prefix_rule(pattern = ["awk", "-i", "inplace"],  decision = "forbidden", justification = _MSG_INPLACE)
