@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 # Playwright와 Chromium 준비 상태를 확인하고, 없으면 설치한다.
-# 사용: bash setup.sh          → 확인 후 필요한 것만 설치
-#       bash setup.sh --check  → 확인만 하고 설치하지 않음
+# 사용: bash setup.sh                 → 확인 후 필요한 것만 설치
+#       bash setup.sh --check         → 확인만 하고 설치하지 않음
+#       bash setup.sh --apt-packages  → Chromium이 요구하는 시스템 라이브러리·한글 폰트 중 없는 것의 apt 패키지 이름 (install.sh가 모아서 설치)
 set -euo pipefail
 
 CHECK_ONLY=false
 [[ "${1:-}" == "--check" ]] && CHECK_ONLY=true
+
+if [[ "${1:-}" == "--apt-packages" ]]; then
+  pkgs=()
+  ldconfig -p 2>/dev/null | grep -q 'libasound\.so\.2' || pkgs+=(libasound2t64)
+  [[ $(fc-list :lang=ko 2>/dev/null | wc -l) -gt 0 ]] || pkgs+=(fonts-noto-cjk)
+  echo "${pkgs[*]:-}"
+  exit 0
+fi
 
 if ! command -v node >/dev/null 2>&1; then
   echo "❌ node가 없습니다. Node.js 18 이상을 먼저 설치하세요."

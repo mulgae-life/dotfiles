@@ -13,6 +13,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 - 대부분은 `~/dotfiles/` → `~/` 심볼릭 링크다. 도구가 되쓰는 `settings.json`·`config.toml`은 복사, `agy` settings는 관리 키만 병합한다. 재설치하면 런타임에서 바꾼 모델·effort 같은 값은 레포 기본으로 돌아온다.
 - `jq`가 없으면 자동 설치를 시도한다. Antigravity IDE 설정 동기화는 macOS·Windows만.
+- 스킬 의존성도 함께 설치한다. `scripts/setup.sh`를 둔 스킬(`visual-check`의 Playwright·Chromium, `office-docs`의 파이썬 가상환경·npm 패키지·나눔고딕)은 사용자 권한으로 설치하고, LibreOffice·poppler처럼 관리자 권한이 필요한 것은 `sudo apt-get`을 시도한 뒤 실패하면 수동 명령을 안내한다. 링크만 다시 걸 때는 `--skip-deps`.
 
 ## ⚡ 자동으로 일어나는 것
 
@@ -31,7 +32,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 - **`/init-project`** 로 새 프로젝트에 `agent-guide/`(GUIDE · PROJECT · SESSION) 3종을 만들면, 루트 `CLAUDE.md`·`AGENTS.md`가 GUIDE 링크로 생겨 세 도구가 전역 지침 뒤에 프로젝트 지침을 이어 읽는다.
 - 나머지는 아래 스킬을 `/이름`(Codex는 `$이름`)으로 호출한다.
 
-## ⚙️ 스킬 (23개, 세 도구 공용)
+## ⚙️ 스킬 (24개, 세 도구 공용)
 
 출처 열의 "이식"은 공식 저장소의 스킬을 가져온 것, "차용"은 일부 기준만 가져온 것이다. 둘 다 상류 갱신 대상이며 경로와 절차는 [docs/SKILL-SOURCES.md](docs/SKILL-SOURCES.md).
 
@@ -57,6 +58,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 백엔드·데이터 | `/postgres-best-practices` | Postgres 스키마·마이그레이션·RLS·쿼리 모범 사례 | Supabase 이식 |
 | | `/llm-api-guide` | OpenAI/Anthropic API 연동 | 자체 |
 | | `/langchain-guide` | LangChain/LangGraph 에이전트·워크플로우 | 자체 |
+| 문서 파일 | `/office-docs` | PDF·Word·PowerPoint·Excel 파일 생성·읽기·편집 — OOXML 검증, 수식 재계산, 렌더링 검수 스크립트 포함 | Anthropic 이식 (pdf·docx·pptx·xlsx 4종 통합) |
 | 프롬프트·협업 | `/writing-prompts` | LLM 프롬프트 작성 | 자체 |
 | | `/reference-verification` | 논문·수식·벤치마크 인용 시 원문 검증 | 자체 |
 | | `/recursive-discussion` | Claude↔Codex 왕복 토론으로 결과물 개선 | 자체 |

@@ -315,6 +315,7 @@
   },
   "autoDreamEnabled": true,
   "autoCompactWindow": 400000,
+  "syncClaudeAiSkills": false,
   "remoteControlAtStartup": false,
   "language": "한국어",
   "statusLine": {

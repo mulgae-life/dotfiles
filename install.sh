@@ -9,6 +9,7 @@ set -euo pipefail
 REPO_URL="https://github.com/mulgae-life/dotfiles.git"
 DOTFILES_DIR="${DOTFILES_DIR:-$HOME/dotfiles}"
 DRY_RUN=false
+SKIP_DEPS=false
 
 # ── 색상 ────────────────────────────────────
 
@@ -264,6 +265,50 @@ bootstrap() {
   fi
 }
 
+# ── 스킬 의존성 ──────────────────────────────
+# 스킬이 `scripts/setup.sh`를 두면 그것이 의존성 계약이다:
+#   bash setup.sh                → 사용자 권한으로 되는 것(가상환경·npm 전역·폰트 등)을 설치
+#   bash setup.sh --check        → 상태만 출력 (dry-run에서 사용)
+#   bash setup.sh --apt-packages → 누락된 시스템 도구의 apt 패키지 이름 (선택 — 없으면 시스템 도구 없음으로 간주)
+# 시스템 패키지는 jq와 같은 방식으로 sudo apt-get을 시도하고, 실패하면 수동 명령을 안내한다 (apt 외 배포판은 안내만).
+install_skill_deps() {
+  local setup skill apt_pkgs=() pkgs
+  local setups=("$DOTFILES_DIR"/.claude/skills/*/scripts/setup.sh)
+  [ -e "${setups[0]}" ] || return 0
+
+  for setup in "${setups[@]}"; do
+    skill=$(basename "$(dirname "$(dirname "$setup")")")
+    if $DRY_RUN; then
+      info "[$skill] 의존성 상태 (dry-run — 설치하지 않음)"
+      bash "$setup" --check 2>&1 | sed 's/^/          /' || true
+    else
+      info "[$skill] 의존성 설치"
+      bash "$setup" 2>&1 | sed 's/^/          /' || warn "[$skill] setup.sh가 오류로 끝났습니다 (위 로그 참조)"
+    fi
+    if grep -q -- '--apt-packages' "$setup"; then
+      pkgs=$(bash "$setup" --apt-packages 2>/dev/null || true)
+      # shellcheck disable=SC2206
+      [ -n "$pkgs" ] && apt_pkgs+=($pkgs)
+    fi
+  done
+
+  [ ${#apt_pkgs[@]} -eq 0 ] && { ok "시스템 도구 모두 있음"; return 0; }
+  # shellcheck disable=SC2207
+  apt_pkgs=($(printf '%s\n' "${apt_pkgs[@]}" | sort -u))
+  if $DRY_RUN; then
+    info "시스템 패키지 설치 (dry-run): ${apt_pkgs[*]}"
+  elif command -v apt-get &>/dev/null; then
+    info "시스템 패키지 설치를 시도합니다 (관리자 권한): ${apt_pkgs[*]}"
+    if sudo apt-get install -y -qq "${apt_pkgs[@]}"; then
+      ok "시스템 패키지 설치 완료"
+    else
+      warn "시스템 패키지 자동 설치 실패. 직접 실행하세요: sudo apt-get install -y ${apt_pkgs[*]}"
+    fi
+  else
+    warn "apt가 아닌 환경 — 다음 도구를 직접 설치하세요: ${apt_pkgs[*]}"
+  fi
+}
+
 # ── 인자 파싱 ───────────────────────────────
 
 usage() {
@@ -273,8 +318,9 @@ usage() {
 AI 에이전트 전역 설정을 심볼릭 링크(일부 복사)로 연결합니다.
 
 옵션:
-  --dry-run   실제 변경 없이 수행할 작업만 표시
-  --help      이 도움말 표시
+  --dry-run     실제 변경 없이 수행할 작업만 표시
+  --skip-deps   스킬 의존성 설치(가상환경·npm 패키지·시스템 도구) 건너뛰기 — 링크만 다시 걸 때
+  --help        이 도움말 표시
 
 환경변수:
   DOTFILES_DIR  dotfiles 디렉토리 경로 (기본: ~/dotfiles)
@@ -284,6 +330,7 @@ EOF
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=true ;;
+    --skip-deps) SKIP_DEPS=true ;;
     --help|-h) usage; exit 0 ;;
     *) error "알 수 없는 옵션: $arg"; usage; exit 1 ;;
   esac
@@ -418,6 +465,14 @@ main() {
       info "Antigravity IDE는 Linux 공식 지원(.deb/.tar.gz/apt) — 단 이 스크립트는 IDE settings 동기화 경로(추정 ~/.config/Antigravity/User/settings.json, 미검증) 미반영. IDE 설치 시 실제 settings 경로 확인 후 동기화 추가 필요 (CLI 층은 위 4번에서 적용됨)."
       ;;
   esac
+
+  # 6. 스킬 의존성 — 각 스킬의 scripts/setup.sh (사용자 권한 설치) + 누락 시스템 패키지(apt)
+  echo ""
+  if $SKIP_DEPS; then
+    info "스킬 의존성 설치 건너뜀 (--skip-deps)"
+  else
+    install_skill_deps
+  fi
 
   # ── 검증 ──────────────────────────────────
   echo ""
