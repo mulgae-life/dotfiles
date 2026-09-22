@@ -120,7 +120,7 @@ fi
 if [[ ${#missing_sys[@]} -gt 0 ]]; then
   echo
   echo "⚠️ 다음 시스템 도구는 관리자 권한이 필요합니다. 아래 명령을 직접 실행하세요:"
-  echo "   sudo apt install -y $(bash "$0" --apt-packages)"
+  echo "   sudo apt update && sudo apt install -y $(bash "$0" --apt-packages)"
   echo "   (OCR이 필요하면 tesseract-ocr tesseract-ocr-kor 추가)"
 fi
 

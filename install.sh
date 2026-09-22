@@ -299,10 +299,13 @@ install_skill_deps() {
     info "시스템 패키지 설치 (dry-run): ${apt_pkgs[*]}"
   elif command -v apt-get &>/dev/null; then
     info "시스템 패키지 설치를 시도합니다 (관리자 권한): ${apt_pkgs[*]}"
+    # 색인이 없거나 오래된 환경에서는 install이 "Unable to locate package"로 실패하므로 update를 먼저 돈다.
+    # 서드파티 저장소 하나가 깨져도 update는 비0으로 끝나므로 결과로 install을 막지 않는다.
+    sudo apt-get update -qq || warn "apt 색인 갱신이 일부 실패했습니다. 기존 색인으로 설치를 시도합니다."
     if sudo apt-get install -y -qq "${apt_pkgs[@]}"; then
       ok "시스템 패키지 설치 완료"
     else
-      warn "시스템 패키지 자동 설치 실패. 직접 실행하세요: sudo apt-get install -y ${apt_pkgs[*]}"
+      warn "시스템 패키지 자동 설치 실패. 직접 실행하세요: sudo apt-get update && sudo apt-get install -y ${apt_pkgs[*]}"
     fi
   else
     warn "apt가 아닌 환경 — 다음 도구를 직접 설치하세요: ${apt_pkgs[*]}"

@@ -23,7 +23,7 @@ bash ~/.claude/skills/visual-check/scripts/setup.sh           # 없는 것만 �
 설치는 사용자 권한으로 끝나지만, Chromium이 요구하는 시스템 라이브러리와 한글 폰트는 관리자 권한이 필요합니다. 실행 시 `libasound.so.2` 류의 공유 라이브러리 오류가 나거나 스크린샷의 한글이 네모로 나오면 아래 명령을 사용자에게 안내하고, 직접 실행하지 않습니다.
 
 ```bash
-sudo apt-get install -y libasound2t64 fonts-noto-cjk   # Ubuntu 24.04 기준
+sudo apt-get update && sudo apt-get install -y libasound2t64 fonts-noto-cjk   # Ubuntu 24.04 기준
 ```
 
 ## 2. 찍기
