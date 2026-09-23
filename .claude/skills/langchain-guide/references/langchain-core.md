@@ -44,9 +44,10 @@ langchain-community    # 서드파티 통합 (범용)
 from langchain.chat_models import init_chat_model
 
 # 단축 문법 (provider:model)
-# GPT-6은 temperature·top_p 미지원, 도구 호출은 Responses API 전용 → use_responses_api=True
+# GPT-6에는 temperature·top_p를 보내지 않음 (공식 문서는 effort가 none이 아니면 제거를 요구하고, none에서 허용한다는 명시는 없음)
+# 추론과 도구 호출을 함께 쓰려면 Responses API 필요(Astra는 도구 호출 전부) → use_responses_api=True
 model = init_chat_model("openai:gpt-6-astra", use_responses_api=True)
-model = init_chat_model("anthropic:claude-opus-5")  # Claude 5 세대는 temperature·top_p 미지원(400)
+model = init_chat_model("anthropic:claude-opus-5-5")  # Claude 5 세대는 temperature·top_p 미지원(400)
 
 # 명시적 provider 지정
 model = init_chat_model("gpt-6-astra", model_provider="openai", use_responses_api=True)
@@ -59,7 +60,7 @@ from langchain_openai import ChatOpenAI
 model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000, timeout=30)
 
 from langchain_anthropic import ChatAnthropic
-model = ChatAnthropic(model="claude-opus-5", max_tokens=1024)
+model = ChatAnthropic(model="claude-opus-5-5", max_tokens=1024)
 ```
 
 ### Model Profiles (LangChain 1.1+)

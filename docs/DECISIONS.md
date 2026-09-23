@@ -35,7 +35,7 @@
 
 | | Claude Code | Codex | Antigravity CLI |
 |---|---|---|---|
-| 모드 | `defaultMode: bypassPermissions` (사용자 settings에서만 유효 — 2.1.257부터 프로젝트 파일 값은 무시) | `approval_policy = "never"` + `sandbox_mode = "danger-full-access"` | `toolPermission: always-proceed`, `artifactReviewPolicy: always-proceed` |
+| 모드 | `defaultMode: bypassPermissions` (사용자 settings에서만 유효 — 2.1.257부터 프로젝트 파일 값은 무시). 진입 확인창은 `skipDangerousModePermissionPrompt: true`로 생략(역시 사용자 settings에서 읽음 — 레포에 없으면 설치 때 덮어써져 확인창이 다시 뜸) | `approval_policy = "never"` + `sandbox_mode = "danger-full-access"` | `toolPermission: always-proceed`, `artifactReviewPolicy: always-proceed` |
 | 기계 차단 | `permissions.deny` 49건 | Starlark `rules/default.rules` (`forbidden`) | `permissions.deny` 66건 |
 | 차단 범위 | 파국형 + 넓은 재귀 삭제. 규칙의 `*`는 공백 포함 임의 문자열에 매칭되므로 `rm -rf /*`·`rm -rf ./*`는 절대경로·`./` 하위 `rm -rf` 전부에 걸린다(의도는 파국형이지만 구현은 이만큼 넓다) | 파일 삭제·Git 쓰기·`sudo`·`gh api`·`chmod`·`ln -sf`·`sed -i` 등 위험 명령 전반. 인자값·임의 위치 매칭은 불가(prefix_rule) | 파국형만. 토큰 단위 정확 일치·접두 매칭이며 글롭과 `regex:`는 동작하지 않아 `rm -rf /home*`·`dd of=/dev/sd*` 같은 규칙은 옮길 수 없다(`dd`·`fdisk`·`parted`·`shred`는 지침 통제) |
 | 회귀 검증 | — (훅 은퇴로 케이스 아카이브) | `scripts/verify-policies.sh codex` — 실제 엔진 20건 | `scripts/verify-policies.sh agy` 정적 16건 + `scripts/agy-live-check.sh` 실측 6건 |
@@ -66,6 +66,10 @@ Codex 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 tmpfs로 덮�
 
 레퍼런스 검증 규칙은 상시 로드에서 온디맨드 스킬(`/reference-verification`)로 전환했고, work-principles에 호출 트리거 1줄만 남겼다(v2.12).
 
+**규칙 사이 기준이 겹칠 때는 담당을 나눈다(v2.45).** `security-reviewer`의 자동 위임 범위는 `rules/agents.md` 위임 표(인증·암호화·시크릿)가 정하고, 에이전트 정의는 이를 따른다. 정의가 API·DB 쿼리·사용자 입력까지 넓혀 두 파일이 어긋났는데, 취약점을 발견한 뒤의 대응은 `rules/security.md`가 따로 맡으므로 좁혀도 빈틈이 없다. 충돌 시 우선순위는 코드 품질이 프로젝트 문서 우선(`coding-style.md`), 파일 배치·폴더 구조가 기존 구조 우선(`architecture.md`)이다. `architecture.md`는 도입 때부터 기존 구조를 문서보다 앞에 두도록 설계됐으므로, 두 순서를 하나로 통일하지 않고 `coding-style.md`에 구조 판단은 `architecture.md`를 따른다고 명시했다.
+
+**멈춤을 줄이자는 감사 제안은 합의가 실제로 필요한 곳만 받는다(v2.46).** 프롬프트 감사가 질문·합의·계획 저장·재현 테스트·토론 최소 라운드의 문턱을 낮추자고 제안했다. 파일 트리 사전 합의만 "파일 2개 이상"에서 "새 디렉토리나 모듈 구조를 정할 때"로 올렸다. 파일 2개는 거의 모든 기능 작업에 해당하고, 기존 구조를 벗어나는 일은 `architecture.md`의 MUST 조항(기존 폴더 구조 먼저 확인)이 이미 막기 때문이다. 나머지는 유지했다. 질문 규칙에는 이미 "모호하면"이라는 조건이 있고, 스크래치 테스트는 산출물 정리 규칙과 구조 규칙이 막으며, 계획 파일은 압축을 넘기는 긴 작업의 기준이 되고, 최소 라운드는 과잉 합의를 막는 토론 스킬의 핵심 설계다. Opus 5.5가 진행 전에 허락을 더 자주 구해 파괴적 행동이 줄었다는 시스템 카드 관찰도, 멈춤을 줄이는 쪽의 비용으로 함께 고려했다.
+
 ## 6. 은퇴·아카이브
 
 | 항목 | 시점 | 위치 |
@@ -77,4 +81,4 @@ Codex 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 tmpfs로 덮�
 | 상시 로드 지침 감량 원본(393→250줄) | 2026-08-13 | `.archive/2026-08-13_rules-slimming/` |
 | 구세대 모델 자료(Claude 5·GPT-5.6 미만) | v2.20 | `reference/archive/` |
 
-모델·도구 조사 원문은 `reference/research/`(Opus 5·Fable 5.1·GPT-6 Astra·컨텍스트 엔지니어링·한국어 문체 등).
+모델·도구 조사 원문은 `reference/research/`(Opus 5·Fable 5.1·GPT-6 Astra·Opus 5.5·GPT-6 Sol·컨텍스트 엔지니어링·한국어 문체 등).

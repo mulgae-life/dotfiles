@@ -146,7 +146,7 @@ from anthropic import (
 def call_anthropic(client: Anthropic, message: str) -> str:
     try:
         response = client.messages.create(
-            model="claude-opus-5",
+            model="claude-opus-5-5",
             messages=[{"role": "user", "content": message}],
             max_tokens=1024
         )
@@ -267,7 +267,7 @@ client = AsyncAnthropic()
 
 async def generate_stream(message: str):
     async with client.messages.stream(
-        model="claude-opus-5",
+        model="claude-opus-5-5",
         messages=[{"role": "user", "content": message}],
         max_tokens=1024
     ) as stream:
@@ -378,7 +378,7 @@ async_anthropic = AsyncAnthropic()
 
 async def call_anthropic_async(message: str) -> str:
     response = await async_anthropic.messages.create(
-        model="claude-opus-5",
+        model="claude-opus-5-5",
         messages=[{"role": "user", "content": message}],
         max_tokens=1024
     )
@@ -446,7 +446,7 @@ response = client.responses.create(
 
 # Anthropic
 response = client.messages.create(
-    model="claude-opus-5",
+    model="claude-opus-5-5",
     messages=[...],
     max_tokens=1024,
     timeout=httpx.Timeout(30.0, connect=5.0)
@@ -506,7 +506,7 @@ client = OpenAI(
 
 ```python
 response = client.messages.create(
-    model="claude-opus-5",
+    model="claude-opus-5-5",
     system=[
         {
             "type": "text",
@@ -520,8 +520,8 @@ response = client.messages.create(
 ```
 
 - 캐시 히트 시 비용 90% 절감, 레이턴시 85% 절감
-- 캐시 읽기 토큰: 기본 입력의 **0.1배** 가격 (대부분 모델). **Fable 5.1·Mythos 5.1은 0.025배 = $0.25/MTok**으로 절감률이 97.5%
-- 최소 1024 토큰 이상의 prefix에서 효과적 (Opus 5·Fable 5.1은 512 토큰)
+- 캐시 읽기 토큰: 기본 입력의 **0.1배** 가격 (대부분 모델). **Fable 5.1·Mythos 5.1은 0.025배 = $0.25/MTok**으로 절감률이 97.5%, **Opus 5.5는 0.05배 = $0.20/MTok**으로 95%. 이 비율은 캐시 읽기 단가의 인하율이고, 작업 총비용 절감률은 캐시 쓰기·비캐시 입력·출력까지 합쳐 따로 계산합니다
+- 최소 1024 토큰 이상의 prefix에서 효과적 (Opus 5.5·Opus 5·Fable 5.1은 512 토큰)
 
 ### OpenAI (자동 캐싱)
 
@@ -529,7 +529,7 @@ response = client.messages.create(
 # OpenAI는 자동 캐싱 — 별도 설정 불필요
 # 동일한 prefix를 반복 사용하면 자동으로 캐시 적용
 response = client.responses.create(
-    model="gpt-5.6-sol",
+    model="gpt-6-sol",
     instructions="...(긴 시스템 프롬프트, 자동 캐시)",
     input="질문"
 )
@@ -538,7 +538,7 @@ response = client.responses.create(
 print(response.usage.input_tokens_details.cached_tokens)
 ```
 
-- Cached input: 기본 입력의 **0.1배** 가격 (5.6·GPT-6 공통 비율 — GPT-6은 $1/$10)
+- Cached input: 기본 입력의 **0.1배** 가격 (5.6·GPT-6 공통 비율 — 캐시/기본 입력 단가는 Astra $1/$10, Sol $0.20/$2, Luna $0.01/$0.10 per MTok)
 - Batch + Caching 조합: 최대 75% 비용 절감
 - GPT-5.6 신규: `prompt_cache_options={"mode": "explicit", "ttl": ...}`로 명시 캐싱 가능 (기존 `prompt_cache_retention` 대체) — 단 **캐시 write가 uncached input의 1.25배 과금**이므로 read 물량으로 회수되는지 확인
 
@@ -546,8 +546,8 @@ print(response.usage.input_tokens_details.cached_tokens)
 
 | 제공자 | 캐싱 방식 | 캐시 할인 | 레이턴시 절감 |
 |--------|----------|----------|-------------|
-| Anthropic | 수동 (`cache_control`) | 90% (Fable 5.1·Mythos 5.1은 97.5%) | 85% |
-| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x·GPT-6 공통, 캐시 read 0.1배; GPT-6은 272K 초과 요청 전체 2배 요율 주의) | 상당 |
+| Anthropic | 수동 (`cache_control`) | 90% (Fable 5.1·Mythos 5.1은 97.5%, Opus 5.5는 95%) | 85% |
+| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x·GPT-6 공통, 캐시 read 0.1배; GPT-6은 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율) | 상당 |
 | Google | 토큰 저장 기간 기반 | 상당 | 상당 |
 
 **실제 사례**: PDF 50문서 반복 분석 — 쿼리당 $3 → 캐싱 적용 후 $0.15 (95% 절감)
@@ -575,7 +575,7 @@ class WeatherResponse(BaseModel):
     description: str
 
 response = client.responses.parse(
-    model="gpt-5.6-sol",
+    model="gpt-6-sol",
     input="서울 날씨 알려줘",
     text_format=WeatherResponse
 )
@@ -623,7 +623,7 @@ for block in response.content:
         weather = block.input  # dict
 ```
 
-> ⚠️ **강제 `tool_choice`(`{"type": "tool", ...}`·`{"type": "any"}`)는 Fable 5.1·Mythos 5.1에서 400 `invalid_request_error`입니다.** 위처럼 `auto` + 지시문 + `strict: true`로 대체하세요. 도구 호출이 아니라 스키마를 지키는 JSON 자체가 목적이면 JSON outputs(`output_config.format`)가 더 직접적입니다. 단 CMEK 조직은 structured outputs를 쓸 수 없어 지시문으로만 유도해야 합니다.
+> ⚠️ **강제 `tool_choice`(`{"type": "tool", ...}`·`{"type": "any"}`)는 Opus 5.5·Fable 5.1·Mythos 5.1에서 400 `invalid_request_error`입니다.** 위처럼 `auto` + 지시문 + `strict: true`로 대체하세요. `strict`는 호출된 도구의 입력이 스키마를 지키게 할 뿐 도구 호출 자체를 보장하지 않으므로, 응답에 `tool_use` 블록이 없는 경우도 처리합니다. 도구 호출이 아니라 스키마를 지키는 JSON 자체가 목적이면 JSON outputs(`output_config.format`)가 더 직접적입니다. 단 CMEK 조직은 structured outputs를 쓸 수 없어 지시문으로만 유도해야 합니다.
 
 ### 포맷별 특성
 

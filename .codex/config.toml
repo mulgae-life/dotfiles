@@ -5,7 +5,6 @@
 
 # model·추론 수준 미설정 = Codex 기본값 추종(세대 교체 때 config가 낡지 않도록). /model·/effort 런타임 값은 재설치 시 레포 버전으로 복원됨
 model_reasoning_summary = "concise"
-personality = "pragmatic"
 # service_tier = "fast"            # 대표님이 /fast 또는 수동으로 토글
 
 # ── 문서/파일 연동 ─────────────────────────
@@ -106,6 +105,7 @@ developer_instructions = """
 
 <coding_rules>
 우선순위(충돌 시): 프로젝트 문서(CLAUDE.md·agent-guide/*·README.md) → 기존 코드베이스 패턴 → 이 지침.
+파일 배치·폴더 구조 판단은 기존 프로젝트의 파일 구조를 프로젝트 문서보다 우선한다.
 
 - 경계 검증: 외부 입력(HTTP/env/파일/DB/LLM 출력)은 초기에 validate/normalize. API·LLM 출력은 dict/str 대신 Pydantic/Zod 등 스키마
 - 에러 처리: 예외를 삼키지 않고 fail-fast. `except: pass`, `.catch(() => fallback)`, `config.get("key") or "fallback"`처럼 실패를 기본값으로 흡수하지 않기. 타입별 catch + 로그 + 사용자 메시지 분리, 폴백은 최상위 에러 경계에서만. 검증 실패(400)/권한(401)/외부 장애(502) 구분 없는 "그냥 500" 금지
@@ -118,7 +118,7 @@ developer_instructions = """
 - 새 파일·함수 전에 기존 폴더 구조·네이밍을 확인하고 유사 기능을 검색해 재사용. 프로젝트 패턴과 다른 디렉토리를 만들지 않기
 - 한 파일에 UI/비즈니스 로직/데이터 접근/타입/유틸이 2개 이상 섞이면 분리. utils에 무관한 함수 누적 금지
 - 의존성은 UI → 비즈니스 로직 → 데이터 접근 → 타입 단방향, 순환 금지
-- 파일 2개 이상 생성이 예상되면 파일 트리를 먼저 제시해 합의
+- 새 디렉토리나 모듈 구조를 정해야 하면 파일 트리를 먼저 제시해 합의
 
 보안:
 - 시크릿 하드코딩 금지 — 환경변수 + 앱 시작 시 스키마 검증

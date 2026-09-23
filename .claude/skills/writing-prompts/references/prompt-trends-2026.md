@@ -65,8 +65,8 @@ Frontier 모델에서 few-shot 예시는 **포맷 정렬**에만 유효합니다
 
 모델 내장 추론 깊이를 API 파라미터로 직접 제어합니다:
 - GPT-5.6: `none` / `low` / `medium` / `high` / `xhigh` / `max`
-- GPT-6: `low` / `medium` / `high` / `xhigh` / `max` (`none` 미지원, 기본 `medium`)
-- Claude 5 세대: adaptive thinking 상시 + `output_config.effort` (`low`~`max`)가 유일한 제어축
+- GPT-6: Astra는 `low` / `medium` / `high` / `xhigh` / `max` (`none` 미지원), Sol·Luna는 `none`~`max`. 기본은 모두 `medium`
+- Claude 5 세대: `output_config.effort` (`low`~`max`)가 주 제어축. Opus 5.5·Fable 5·5.1은 thinking을 끌 수 없고, Opus 5만 effort `high` 이하에서 끌 수 있음
 - → [reasoning-params.md](reasoning-params.md) 참조
 
 ### 4. 긍정 프레이밍 (Positive Framing)
@@ -176,7 +176,7 @@ npx promptfoo@latest eval  # https://github.com/promptfoo/promptfoo
 |------|------|------|
 | "Think step by step" | **비권장** | 라우터 아키텍처가 내부적으로 추론 처리 |
 | `reasoning_effort` 파라미터 | **권장** | none/low/medium/high/xhigh로 추론 깊이 제어 |
-| `reasoning_effort` (GPT-6) | **권장** | `none` 미지원, `low`~`max` 5단계 |
+| `reasoning_effort` (GPT-6) | **권장** | Astra는 `none` 미지원·`low`~`max` 5단계, Sol·Luna는 `none`~`max` 6단계 |
 | 대화형 톤 | **권장** | 자연스러운 대화체가 최적 |
 | 모델 스냅샷 고정 | **필수** | 프로덕션에서 라우터 동작이 버전 간 변동 |
 | Few-shot | **선택적** | 포맷 정렬 용도로만 유효 |
@@ -186,19 +186,19 @@ npx promptfoo@latest eval  # https://github.com/promptfoo/promptfoo
 | 기법 | 상태 | 비고 |
 |------|------|------|
 | XML 태그 구조화 | **강력 권장** | `<instructions>`, `<context>`, `<example>` 등 |
-| Adaptive Thinking | **상시** | `output_config.effort`로 깊이 제어. 수동 CoT·사고 서술 지시 금지 |
+| Adaptive Thinking | **기본 켜짐** | Opus 5.5·Fable 5.1은 끌 수 없음. `output_config.effort`로 깊이 제어. 수동 CoT·사고 서술 지시 금지 |
 | 공격적 언어 | **비권장** | "CRITICAL!", ALL-CAPS 등은 출력 품질 저하 |
 | 차분하고 직접적 | **권장** | 침착하고 직접적인 요청이 최적 성능 |
 | 프롬프트 캐싱 | **적극 활용** | 캐시 읽기 토큰이 기본 입력의 0.1배 가격 |
 
-### Claude 5 세대 (Fable 5.1 · Opus 5)
+### Claude 5 세대 (Opus 5.5 · Fable 5.1 · Opus 5)
 
 | 기법 | 상태 | 비고 |
 |------|------|------|
 | 지시 열거 | **비권장** | 절차를 나열하면 품질이 떨어짐. 목표·제약·이유 서술로 대체 → [claude-5-specifics.md](claude-5-specifics.md) |
 | CoT 출력 지시 | **비권장** | "사고 과정을 답변에 써라"는 `reasoning_extraction` refusal 유발. `thinking` 블록으로 받기 |
-| `output_config.effort` | **권장** | `high` 시작 + 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님) |
-| 프롬프트 캐싱 | **적극 활용** | Fable 5.1은 캐시 읽기가 기본 입력의 0.025배 ($0.25/MTok) |
+| `output_config.effort` | **권장** | Fable 5.1·Opus 5는 `high`, Opus 5.5는 `medium` 시작 + 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님) |
+| 프롬프트 캐싱 | **적극 활용** | 캐시 읽기가 기본 입력 대비 Fable 5.1은 0.025배 ($0.25/MTok), Opus 5.5는 0.05배 ($0.20/MTok) |
 
 ### Gemini 3.x (Google)
 

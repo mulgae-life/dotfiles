@@ -334,7 +334,7 @@ Then analyze trends in <trends> tags.
 
 ```python
 response = client.messages.create(
-    model="claude-opus-5",
+    model="claude-opus-5-5",
     system=[
         {
             "type": "text",
@@ -357,7 +357,8 @@ response = client.messages.create(
                 }
             ]
         }
-    ]
+    ],
+    max_tokens=16000  # 필수 인자. thinking 토큰도 이 한도에 포함
 )
 ```
 

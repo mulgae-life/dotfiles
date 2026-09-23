@@ -1,10 +1,10 @@
 # PPTX / HTML 구현 가이드
 
-> .pptx와 HTML deck 두 포맷의 실제 코드. Anthropic 공식 `pptx` 스킬 연계 + python-pptx 직접 사용 + 단일 파일 HTML 모두 다룸.
+> .pptx와 HTML deck 두 포맷의 실제 코드. `office-docs` 스킬 연계 + python-pptx 직접 사용 + 단일 파일 HTML 모두 다룸.
 
 ## 목차
 
-1. [Anthropic pptx 스킬 활용 (권장)](#1-anthropic-pptx-스킬-활용-권장)
+1. [office-docs 스킬 활용 (권장)](#1-office-docs-스킬-활용-권장)
 2. [python-pptx 직접 사용](#2-python-pptx-직접-사용)
 3. [HTML deck 템플릿](#3-html-deck-템플릿)
 4. [폰트 임베드](#4-폰트-임베드)
@@ -13,9 +13,9 @@
 
 ---
 
-## 1. Anthropic pptx 스킬 활용 (권장)
+## 1. office-docs 스킬 활용 (권장)
 
-Anthropic 공식 `pptx` 스킬은 python-pptx 기반의 .pptx 생성·편집 엔진이다. `hw-ppt`가 디자인 표준(좌표·컬러·아키타입)을 정의하면, 호출 시 `pptx` 스킬이 파일 생성을 담당한다.
+`office-docs`는 Anthropic 공식 `pptx` 스킬을 이식한 레포 스킬로, pptxgenjs로 새 덱을 만들고 OOXML 편집·검증(`validate.py`)·렌더링 검수 스크립트를 갖췄다. `hw-ppt`가 디자인 표준(좌표·컬러·아키타입)을 정의하면 `office-docs`가 파일 생성을 담당한다.
 
 ### 패턴
 
@@ -23,18 +23,11 @@ Anthropic 공식 `pptx` 스킬은 python-pptx 기반의 .pptx 생성·편집 엔
 1. hw-ppt 트리거 → SKILL.md + references/ 로드
 2. archetypes.md에서 슬라이드별 아키타입 결정
 3. design-tokens.md에서 컬러·타이포·좌표 확정
-4. pptx 스킬 호출 (또는 직접 python-pptx 사용)
+4. office-docs로 생성 (또는 직접 python-pptx 사용)
 5. 셀프 체크 → 산출
 ```
 
-`pptx` 스킬은 Claude Code에 기본 포함되지 않는 별도 플러그인이다. 쓰려면 Anthropic 공식 skills 저장소를 마켓플레이스로 추가한 뒤 `pptx`가 포함된 document-skills 번들을 설치한다 (`pptx`는 단독 플러그인이 아니라 번들 소속):
-
-```
-/plugin marketplace add anthropics/skills
-/plugin install document-skills@anthropic-agent-skills
-```
-
-미설치 시 [§2 직접 사용](#2-python-pptx-직접-사용)으로 fallback.
+`office-docs`는 레포에 포함돼 별도 설치가 없다. 의존성(pptxgenjs 등)은 `office-docs/scripts/setup.sh --check`로 확인한다. 폰트 임베드(§4)처럼 python-pptx 코드가 필요한 작업은 [§2 직접 사용](#2-python-pptx-직접-사용)을 따른다.
 
 ---
 
@@ -815,7 +808,7 @@ add_pie_chart(
 
 ---
 
-## 부록: Anthropic pptx 스킬과 hw-ppt의 결합 패턴
+## 부록: office-docs와 hw-ppt의 결합 패턴
 
 ```
 사용자: "신상품 소개 PPT 5장 만들어줘 (한화손보 톤)"
@@ -830,7 +823,7 @@ add_pie_chart(
      - S4: Comparison bars (아키타입 6)
      - S5: Closing (아키타입 9b)
   4. 각 슬라이드 Density Zone 패턴 결정
-  5. pptx 스킬 호출 (있으면) 또는 직접 python-pptx
+  5. office-docs로 생성 또는 직접 python-pptx
      - 컬러: design-tokens.md
      - 좌표: archetypes.md
      - 헤더/시그니처: 동일 좌표 보장

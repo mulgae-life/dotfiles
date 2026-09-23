@@ -44,7 +44,8 @@ pip install langchain langchain-openai langgraph
 
 ```python
 # 방법 1: init_chat_model (권장 - 프로바이더 독립적)
-# GPT-6은 temperature·top_p를 받지 않고, 도구 호출은 Responses API 전용 → use_responses_api=True
+# GPT-6에는 temperature·top_p를 보내지 않고(effort가 none이 아니면 제거 필수, none에서 허용한다는 명시는 없음),
+# 추론과 도구 호출을 함께 쓰려면 Responses API가 필요 → use_responses_api=True
 from langchain.chat_models import init_chat_model
 model = init_chat_model("openai:gpt-6-astra", use_responses_api=True)
 

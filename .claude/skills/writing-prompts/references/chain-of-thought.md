@@ -210,7 +210,7 @@ system_prompt: |
 
 ### Claude thinking과의 관계
 
-Claude 5 세대는 adaptive thinking이 상시 켜져 있습니다:
+Claude 5 세대는 adaptive thinking이 기본으로 켜져 있습니다. Opus 5.5·Fable 5·5.1은 끌 수 없고, Opus 5는 effort `high` 이하에서만 `thinking: {"type": "disabled"}`로 끌 수 있습니다. 켜져 있을 때는:
 - 모델이 자동으로 구조적 추론을 수행
 - 수동 CoT 프롬프팅 대신 `output_config.effort`로 깊이 제어
 - 추론 감사(audit)가 필요하면 thinking 블록(`display: "summarized"`)을 읽고, 사고 과정을 답변에 쓰게 하지 않기

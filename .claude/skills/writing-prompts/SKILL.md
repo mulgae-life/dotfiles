@@ -31,7 +31,7 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.8 공식 가이드 
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
 | **Examples** | Frontier 0~2개(포맷 정렬), 소형 3-5개 | Few-shot | Multishot (동일 개념) |
 | **XML 태그** | ✅ 권장 | ✅ | ✅ |
-| **특화 파라미터** | - | `reasoning.effort` (GPT-6: `none` 미지원, low~max), `reasoning.mode`/`context` (5.6+), `verbosity`, `image_detail` | `output_config.effort` |
+| **특화 파라미터** | - | `reasoning.effort` (GPT-6 Astra: `none` 미지원, low~max / Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, `image_detail` | `output_config.effort` |
 | **Prefilling** | - | ❌ | ❌ (400 → Structured Outputs) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
@@ -90,8 +90,8 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.8 공식 가이드 
 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
-| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시(GPT-6), 티어 선택(5.6) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra), `references/gpt56-patterns.md` (5.6) |
-| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Fable 5.1·Opus 5), `references/long-context.md` |
+| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시·모델 선택(GPT-6), 티어 선택(5.6) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra·Sol·Luna), `references/gpt56-patterns.md` (5.6) |
+| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), effort `medium` 시작(Opus 5.5), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Opus 5.5·Fable 5.1·Opus 5), `references/long-context.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` |
 | Alibaba Qwen 3.8 | ChatML, `reasoning_effort` 3단계 + `preserve_thinking` 기본 ON, XML tool 포맷·`qwen3_coder` 파서, 단일 sampling | `references/qwen38-patterns.md` |
 
@@ -158,14 +158,16 @@ system_prompt: |
 
 ### 플랫폼별 최적화 (선택)
 
-**OpenAI GPT-6 Astra** (최신, 권장):
+**OpenAI GPT-6 Astra·Sol·Luna** (최신, 권장):
+- [ ] **모델 선택**: `gpt-6-astra`(최고 성능)/`gpt-6-sol`(까다로운 작업의 강한 추론, 단가는 Astra의 1/5)/`gpt-6-luna`(반복 대량 작업). 5.6 Terra에 대응하는 티어는 없음. Codex 공식 문서는 대부분 작업을 Sol에서 시작하라고 권함
+- [ ] 아래 행동 항목(주도성~문체)은 Astra에서 관찰된 성향이 출처 — 공식 문서도 제품군 공통 출발점으로 제시하되 모델·워크로드별 평가를 요구하므로 Sol·Luna는 측정 후 채택
 - [ ] **주도성 명시**: 질문하고 멈추는 성향이 이전 세대보다 강함 → 자율 실행이 필요하면 "bias towards action, carry the task to completion" 계열 지시 추가. "can you…/help me…"는 실행 요청으로 취급하게
 - [ ] **지시 파일 모순 감사**: 긴 지시는 잘 따르지만 문맥 모순에 민감 → AGENTS.md·스킬·시스템 프롬프트 사이의 상충·낡은 문구 제거가 감량보다 우선. 사용자 지시 > 스킬 지시 우선순위 명시
 - [ ] **테스트 범위 축소**: 스스로 철저히 검증하는 성향 → "가역적·저영향 변경에 구현을 비추는 테스트 금지, 확대는 새 변경·실패가 정당화할 때만"으로 범위를 좁히는 지시(검증 강화 지시 아님)
 - [ ] **위임 명시**: 서브에이전트 병렬 위임을 학습했지만 기대보다 덜 위임 → 갈래·리더 보유 범위·대기 여부·반환 요약 형식을 프롬프트에 지정
 - [ ] **문체**: 문단 기본, 리스트는 병렬·순서·비교일 때만. 피할 표현("Bottom Line:", "delve", "leverage", "it's worth noting", "In short:") 차단
-- [ ] `reasoning.effort`: `low`~`max` 5단계, 기본 `medium`. `none`/`minimal` 사용처는 `low`부터. `ultra`는 Codex·ChatGPT 전용(API 값 아님)
-- [ ] **API 변경**: `temperature`·`top_p`·`top_logprobs` 제거, 도구 호출은 Responses API 전용, `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체 2배 요율
+- [ ] `reasoning.effort`: 기본 `medium`. Astra는 `low`~`max` 5단계(`none`/`minimal` 사용처는 `low`부터), Sol·Luna는 `none`~`max` 6단계. `ultra`는 Codex·ChatGPT 전용(API 값 아님)
+- [ ] **API 변경**: effort가 `none`이 아니면 `temperature`·`top_p`·`top_logprobs` 제거. 도구 호출은 Responses API(Sol·Luna만 Chat Completions에서 `reasoning_effort: "none"`일 때 함수 호출 가능), `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율
 - [ ] 5.6 계약 구조(Goal/Success criteria/Constraints/Tools/Output/Stop rules)·pro mode·`reasoning.context`·PTC는 그대로 유효 → 아래 5.6 항목 참조
 
 **OpenAI GPT-5.6** (이전 세대):
@@ -182,13 +184,14 @@ system_prompt: |
 - [ ] 마이그레이션: 5.5→5.6은 **모델만 교체 → 기존 프롬프트·effort 기준선 평가 → 한 그룹씩 프롬프트 축소 → 측정된 회귀에만 최소 수정**
 - [ ] Message Roles (developer/user)
 
-**Anthropic Claude Fable 5.1 / Claude 5 세대** (최신, 권장):
+**Anthropic Claude Opus 5.5·Fable 5.1 / Claude 5 세대** (최신, 권장):
 - [ ] **De-prescribe**: 절차 열거 대신 목표·제약·이유 서술 (과잉 지시는 품질 저하)
 - [ ] **Prefill 금지**: 400 에러 → Structured Outputs(`output_config.format`)로 대체
-- [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발
-- [ ] **강제 `tool_choice` 금지** (5.1): `any`/`tool`은 400 → `auto` + 지시문 + `strict: true`
-- [ ] **대화 이력 append-only** (5.1): 턴별 리마인더는 턴 한정 시스템 메시지로, 이력·system·tools 사후 편집 금지
-- [ ] `output_config.effort`: `high` 시작 + 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님)
+- [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발 → 추론은 `display: "summarized"` thinking 블록에서 읽기
+- [ ] **thinking 끄기 전제 제거** (Opus 5.5·Fable 5.1): thinking을 끌 수 없음 → "생각하지 말고 바로 답하라"류 규칙 삭제, 사고량은 effort로 조절
+- [ ] **강제 `tool_choice` 금지** (Opus 5.5·Fable 5.1): `any`/`tool`은 400 → `auto` + 지시문 + `strict: true` (`strict`는 호출 자체를 보장하지 않음)
+- [ ] **대화 이력 append-only** (Opus 5.5·Fable 5.1): 턴별 리마인더는 턴 한정 시스템 메시지로, 이력·system·tools 사후 편집 금지
+- [ ] `output_config.effort`: Fable 5.1·Opus 5는 `high`, Opus 5.5는 기본값 `medium`에서 시작 + 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님). `xhigh`·`max`는 측정된 품질 이득이 있을 때만
 - [ ] **산문 밀도 지시** (5.1): 문장이 길고 단락이 적으면 "mannered prose" 정의문 추가
 - [ ] **범위·테스트 제한** (5.1): 요청 밖 수정·과다 테스트 커밋을 막는 지시문 추가
 - [ ] **반서식 규칙 제거** (5.1): 구모델용 "불릿·헤더 쓰지 마라"가 필요한 구조까지 억제 → 언제 서식이 적절한지로 교체
@@ -250,13 +253,13 @@ system_prompt: |
 
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
 - **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드 (패턴 출처는 OpenAI 가이드 — Claude 5 세대에는 그대로 적용 금지)
-- **[gpt6-patterns.md](references/gpt6-patterns.md)** ⭐ GPT-6 Astra 프롬프트 패턴 (주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, effort 5단계·`none` 폐지, 제거 파라미터, 5.6 → 6 마이그레이션)
+- **[gpt6-patterns.md](references/gpt6-patterns.md)** ⭐ GPT-6 프롬프트 패턴 (Astra 기준 주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, 모델별 effort 범위(Astra `none` 미지원, Sol·Luna 지원), 제거 파라미터, Sol·Luna 차이, 5.6 → 6 마이그레이션)
 - **[gpt56-patterns.md](references/gpt56-patterns.md)** GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) — 계약 구조·신규 API 기능은 GPT-6에서도 유효
 - **[optimization.md](references/optimization.md)** - GPT 프롬프트 최적화 팁 (모순 제거, 지시 계층, 출력 형식, 캐싱)
 
 ### Anthropic (Claude) 특화
 
-- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Fable 5.1·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Fable 5 → 5.1 델타
+- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Opus 5.5·Fable 5.1·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Fable 5 → 5.1 델타, Opus 5 → 5.5 델타
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
 
 ### Google Gemma 특화 (오픈웨이트)
@@ -270,10 +273,9 @@ system_prompt: |
 ## 참고 자료
 
 ### OpenAI
-- [GPT-6 Astra 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
-- [GPT-6 Astra Prompt Guidance (공식)](https://developers.openai.com/api/docs/guides/prompt-guidance) ⭐ 최신
-- [Using GPT-6 Astra / Migration (공식)](https://developers.openai.com/api/docs/guides/latest-model)
-- [GPT-6 Astra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-astra)
+- [GPT-6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — Astra·Sol·Luna 제품군, 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
+- [Using GPT-6 — Prompt Guidance·Migration (공식)](https://developers.openai.com/api/docs/guides/latest-model) ⭐ 최신 — 제품군 공통 출발점, Astra에서 관찰된 행동 기준
+- [GPT-6 Astra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-astra) · [GPT-6 Sol 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-sol) · [GPT-6 Luna 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-luna)
 - [GPT-5.6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) (이전 세대) — 티어·마이그레이션·신규 파라미터 수록
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
 - [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전 세대)
@@ -283,10 +285,12 @@ system_prompt: |
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
 ### Anthropic
-- [Fable 5.1 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) ⭐ 최신 — 행동 변화 대응 스니펫 원문 수록
+- [Opus 5.5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-5-prompt-guide.md) ⭐ 최신 — effort `medium` 시작·thinking 끄기 전제 제거·실행 환경별 지시문
+- [Fable 5.1 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) — 행동 변화 대응 스니펫 원문 수록
 - [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) — 스니펫 원문 전체 수록
-- [Opus 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) ⭐ 최신 — 스캐폴딩 삭제·위임 상한·effort 역전
-- [Prompting Claude Fable 5.1 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) ⭐ 최신
+- [Opus 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) — 스캐폴딩 삭제·위임 상한·effort 역전 (Opus 5.5 가이드가 출발점으로 인정)
+- [Prompting Claude Opus 5.5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5) ⭐ 최신
+- [Prompting Claude Fable 5.1 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1)
 - [Prompting Claude Fable 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
 - [Prompting Claude Opus 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
 - [Introducing Claude Fable 5 (공식)](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)

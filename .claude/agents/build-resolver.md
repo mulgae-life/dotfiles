@@ -1,6 +1,6 @@
 ---
 name: build-resolver
-description: TypeScript/빌드 에러 해결 전문가. npm run build, tsc 등 빌드 명령 실패 시 즉시 자동으로 위임됩니다. 최소한의 변경으로 빌드를 통과시키는 것이 목표입니다.
+description: TypeScript/빌드 에러 해결 전문가. npm run build, tsc 등 빌드 명령 실패 시 자동으로 위임됩니다. 한두 줄 수정으로 끝나는 오류는 위임하지 않습니다. 최소한의 변경으로 빌드를 통과시키는 것이 목표입니다.
 tools:
   - Read
   - Edit
@@ -24,7 +24,7 @@ tools:
 
 ## 자동 위임 조건
 
-다음 명령 실패 시 **즉시** 자동 위임:
+다음 명령 실패 시 자동 위임 (한두 줄 수정으로 끝나는 오류는 `~/.claude/rules/agents.md` 위임 금지 조건에 따라 직접 처리):
 
 - `npm run build`
 - `pnpm build`

@@ -25,7 +25,8 @@
 9. **[long-context-tips.md](long-context-tips.md)** - 긴 컨텍스트 활용 ⭐ (Anthropic 특화)
 
 ### 모델별 가이드
-- **[claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md)** ⭐ 최신 - Claude Fable 5.1 / Mythos 5.1 특화 (effort 재측정, 행동 변화 7건, append-only 이력, 작업 완주·범위 제한)
+- **[claude-opus-5-5-prompt-guide.md](claude-opus-5-5-prompt-guide.md)** ⭐ 최신 - Claude Opus 5.5 특화 (API 파괴적 변경 4건, effort `medium` 시작, 무인 루프·대화형 하네스·채팅 앱별 증상과 처방, 붙여넣은 텍스트 표시)
+- **[claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md)** ⭐ - Claude Fable 5.1 / Mythos 5.1 특화 (effort 재측정, 행동 변화 7건, append-only 이력, 작업 완주·범위 제한)
 - **[claude-opus-5-prompt-guide.md](claude-opus-5-prompt-guide.md)** - Claude Opus 5 특화 (스캐폴딩 삭제, effort, thinking 비활성화 결함)
 - **[claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md)** - Claude Fable 5 / Mythos 5 특화 (De-prescribe, effort, 장기 자율 런, refusal/fallback)
 
@@ -75,6 +76,7 @@
 3. 프로젝트에 맞는 기법 선택
 
 ### 모델별 가이드 선택
+- **Claude Opus 5.5**: [claude-opus-5-5-prompt-guide.md](claude-opus-5-5-prompt-guide.md) 먼저 읽기 — Opus 5 가이드와 달라진 항목(effort `medium` 시작, thinking 끄기 불가, 도구 사이 텍스트의 `thinking` 블록 이동)에 주의하고, 처방은 실행 환경과 관찰된 증상에 맞는 것만 적용
 - **Claude Fable 5.1 / Mythos 5.1**: [claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md) 먼저 읽기 — Fable 5 가이드와 방향이 다른 항목(반서식 규칙 제거, 서식 규칙 반전, 강제 tool_choice 금지)에 주의
 - **Claude Fable 5 / Claude 5 세대**: [claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md) 먼저 읽기 — 4.x와 방향이 다른 항목(De-prescribe, prefill 불가, thinking 상시 on)에 주의
 - 이후 핵심 9개 기법 적용 (단, Prefilling은 Claude 5 세대에서 400 에러)
@@ -88,8 +90,8 @@
 ## 업데이트
 
 - **최초 수집**: 2025-02-01
-- **최근 갱신**: 2026-09-07 — Claude 4.x 자료를 `../archive/`로 이동
-- **수집 범위**: 9개 핵심 기법 + Claude 5 세대 가이드 3종 (Fable 5.1·Opus 5·Fable 5)
+- **최근 갱신**: 2026-09-23 — Claude Opus 5.5 가이드 추가
+- **수집 범위**: 9개 핵심 기법 + Claude 5 세대 가이드 4종 (Opus 5.5·Fable 5.1·Opus 5·Fable 5)
 
 ## 관련 문서
 

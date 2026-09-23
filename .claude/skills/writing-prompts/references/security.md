@@ -343,9 +343,10 @@ system_prompt: |
 - **System 파라미터**: 시스템 프롬프트 분리
   ```python
   response = client.messages.create(
-      model="claude-opus-5",
+      model="claude-opus-5-5",
       system="...",  # 분리된 시스템 프롬프트
-      messages=[{"role": "user", "content": user_input}]
+      messages=[{"role": "user", "content": user_input}],
+      max_tokens=1024
   )
   ```
 

@@ -23,7 +23,7 @@ LLM에게 매번 "한화손보 톤으로 PPT 만들어줘"라고 말하면 매�
 1. **9개 아키타입을 좌표 수준으로 고정** — 헤더(y=0–80), 타이틀밴드(y=130–270), 본문(y=300–820), Density Zone(y=840–1010)
 2. **Density Zone 룰** — 슬라이드 하단의 빈 공간 문제 해결 (§6)
 3. **오렌지 단색축** — `#ED6F1F` 베이스 + 4단계 변형으로 차트·강조 통일
-4. **디자인과 파일 생성 분리** — 디자인 표준은 이 스킬, 파일 생성은 pptx 스킬(설치 시) 또는 python-pptx
+4. **디자인과 파일 생성 분리** — 디자인 표준은 이 스킬, 파일 생성은 `office-docs` 스킬 또는 python-pptx
 
 ## 작동 방식 (디자인과 파일 생성의 분리)
 
@@ -40,13 +40,13 @@ LLM에게 매번 "한화손보 톤으로 PPT 만들어줘"라고 말하면 매�
    │  3. 헤더/시그니처 일관성 강제            │
    └──────────────┬───────────────────────┘
                   ↓
-       파일 생성 레이어 (Anthropic pptx 또는 HTML)
+       파일 생성 레이어 (office-docs·python-pptx 또는 HTML)
                   ↓
         .pptx (기본) or HTML deck (옵션)
 ```
 
 **의존성:**
-- **`.pptx` 생성**: Anthropic 공식 [`pptx` 스킬](https://github.com/anthropics/skills/tree/main/skills/pptx)이 설치돼 있으면 활용, 없으면 python-pptx 직접 사용 (`references/pptx-implementation.md` §2)
+- **`.pptx` 생성**: `office-docs` 스킬(Anthropic 공식 `pptx` 스킬 이식본, 레포 포함)로 생성하거나 python-pptx 직접 사용 (`references/pptx-implementation.md` §1·§2)
 - **HTML 생성**: 의존성 없음 (단일 파일 출력)
 - **폰트**: 번들된 한화체 .ttf 3종 (`assets/fonts/Hanwha/`, B/L/R)
 
@@ -236,7 +236,7 @@ slide.shapes.add_picture(str(SIGNATURE_INK_PATH), px(sig_x), px(sig_y), height=p
 
 ### .pptx (기본)
 
-Anthropic 공식 [`pptx` 스킬](https://github.com/anthropics/skills/tree/main/skills/pptx)이 설치돼 있으면 호출하고, 없으면 python-pptx로 직접 생성. 슬라이드 크기 **13.333" × 7.5"** (16:9).
+`office-docs` 스킬로 생성하거나 python-pptx로 직접 생성. 슬라이드 크기 **13.333" × 7.5"** (16:9).
 
 ```python
 # python-pptx 코드 예시는 references/pptx-implementation.md 참조

@@ -82,7 +82,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 에이전트 | 트리거 |
 |----------|--------|
 | `build-resolver` | 빌드·타입 에러 |
-| `security-reviewer` | 인증·인가, API, 시크릿 코드 |
+| `security-reviewer` | 인증·세션·토큰, 암호화, 시크릿 처리 코드 |
 | `planner` | 아키텍처 결정이 필요하거나 요구가 불명확할 때, 계획 요청 시 |
 | `verifier` | 사용자가 점검을 요청할 때만 |
 
@@ -104,7 +104,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 스킬 | `.claude/skills/` | `~/.agents/skills` 링크 | `~/.gemini/config/skills` 링크 |
 | 모델·effort | 기본값 추종(서브에이전트만 Opus 강제) | 기본값 추종 | 기본값 추종 |
 | 상태줄 | `statusline-command.sh` | `[tui].status_line` 내장 항목 | `cli/statusline-command.sh` |
-| 검증 버전 | 2.1.278 | 0.155.1 | `agy` 1.1.27~1.1.28 (IDE 층 미검증) |
+| 검증 버전 | 2.1.280 | 0.156.1 | `agy` 1.1.27~1.1.28 (IDE 층 미검증) |
 
 ## 📁 디렉토리 구조
 

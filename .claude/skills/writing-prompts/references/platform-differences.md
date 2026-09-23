@@ -13,7 +13,7 @@ OpenAI GPT와 Anthropic Claude의 프롬프트 엔지니어링 주요 차이점�
 | **CoT** | "Think step-by-step" | "Let Claude think"<br/>3단계 (Basic/Guided/Structured) | ✅ 공통 개념 |
 | **Examples** | Few-shot | Multishot | ✅ 동일 개념 (Frontier 0~2개, 소형 3-5개) |
 | **XML Tags** | ✅ 권장 | ✅ 권장 | ✅ 공통 |
-| **Extended Thinking** | ❌ 없음 | ✅ adaptive thinking 상시, `effort`로 깊이 제어 | - |
+| **Extended Thinking** | ❌ 없음 | ✅ adaptive thinking 기본 켜짐(Opus 5.5·Fable 5.1은 끌 수 없음), `effort`로 깊이 제어 | - |
 
 ## 상세 비교
 
@@ -42,11 +42,12 @@ response = client.responses.create(
 ```python
 # system 파라미터
 response = client.messages.create(
-    model="claude-opus-5",
+    model="claude-opus-5-5",
     system="반드시 격식체 사용",  # system prompt
     messages=[
         {"role": "user", "content": "안녕하세요"}
-    ]
+    ],
+    max_tokens=1024  # 필수 인자
 )
 ```
 
@@ -131,7 +132,7 @@ response = client.messages.create(
 ```
 
 **특징**:
-- thinking이 상시 adaptive로 켜져 있어 `thinking` 파라미터 자체를 보내지 않습니다
+- Fable 5.1·Opus 5.5는 thinking이 상시 adaptive로 켜져 있어 `thinking` 파라미터 자체를 보내지 않습니다 (Opus 5는 effort `high` 이하에서 `disabled`로 끌 수 있음)
 - 깊이는 `output_config.effort` 한 축으로만 제어 → [claude-5-specifics.md](claude-5-specifics.md)
 - `thinking`/`budget_tokens`, `thinking: {type: "disabled"}`는 **400 에러**
 
@@ -149,7 +150,7 @@ response = client.responses.create(
 ```
 
 **파라미터**:
-- `reasoning_effort`: 추론 깊이 — GPT-5.x: none/low/medium/high/xhigh/max · GPT-6: low~max(`none` 미지원)
+- `reasoning_effort`: 추론 깊이 — GPT-5.x·GPT-6 Sol·Luna: none/low/medium/high/xhigh/max · GPT-6 Astra: low~max(`none` 미지원)
 - `verbosity`: low/medium/high (응답 길이)
 
 #### Anthropic
@@ -217,7 +218,7 @@ response = client.responses.create(
 Anthropic 버전:
 ```python
 response = client.messages.create(
-    model="claude-opus-5",
+    model="claude-opus-5-5",
     system="""
     당신은 데이터 분석가입니다.
 
@@ -235,7 +236,8 @@ response = client.messages.create(
     """,
     messages=[
         {"role": "user", "content": "최근 분기 실적은?"}
-    ]
+    ],
+    max_tokens=1024
 )
 ```
 

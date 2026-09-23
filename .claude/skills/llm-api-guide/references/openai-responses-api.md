@@ -13,7 +13,7 @@
 - [Usage 정보](#usage-정보)
 - [내장 도구·에이전트 기능](#내장-도구에이전트-기능)
 - [GPT-5.6 특화 기능](#gpt-56-특화-기능)
-- [GPT-6 Astra 특화·변경 사항](#gpt-6-astra-특화변경-사항)
+- [GPT-6 특화·변경 사항 (Astra·Sol·Luna)](#gpt-6-특화변경-사항-astrasolluna)
 - [마이그레이션 가이드](#마이그레이션-가이드)
 - [참고 자료](#참고-자료)
 
@@ -117,14 +117,14 @@ response = client.responses.create(
 
 | effort | 설명 | 사용 사례 |
 |--------|------|-----------|
-| `none` | 추론 없음 (5.6까지). GPT-6 미지원 | 단순 질문, 빠른 응답 |
+| `none` | 추론 없음. 5.6·GPT-6 Sol·Luna 지원, GPT-6 Astra는 HTTP 400 | 단순 질문, 빠른 응답 |
 | `low` | 최소 추론 | 간단한 작업 |
 | `medium` | 균형 (5.6·GPT-6 기본값) | 일반적인 작업 |
 | `high` | 깊은 추론 | 복잡한 문제 |
 | `xhigh` | 매우 깊은 추론 (`max` 아래 단계) | 매우 어려운 문제 |
-| `max` | 5.6 신설, GPT-6 정식 5단계 중 최상위 (Codex의 `ultra`는 API 값 아님). 전역 기본값 금지 | quality-first 초고난도 |
+| `max` | 5.6 신설, GPT-6 세 모델에서도 최상위 API 값 (Codex의 `ultra`는 API 값 아님). 전역 기본값 금지 | quality-first 초고난도 |
 
-> 5.6 → 6: `none`/`minimal`은 `low`로
+> 5.6 → GPT-6 Astra: `none`/`minimal`은 `low`로. GPT-6 Sol·Luna는 `none`을 유지할 수 있고, `minimal`은 `low`부터 비교
 
 ### Reasoning Summary
 
@@ -388,7 +388,7 @@ print(f"Total: {usage.total_tokens}")
 
 ## 내장 도구·에이전트 기능
 
-> GPT-6 Astra 지원 도구: web_search, file_search, image_generation, code_interpreter, hosted_shell, apply_patch, skills, computer_use, mcp, tool_search
+> GPT-6 Astra·Sol·Luna 공통 지원 도구(Responses): web_search, file_search, image_generation, code_interpreter, hosted_shell, apply_patch, skills, computer_use, mcp, tool_search
 
 ### Apply Patch Tool
 
@@ -527,40 +527,42 @@ response = client.responses.create(
 
 ---
 
-## GPT-6 Astra 특화·변경 사항
+## GPT-6 특화·변경 사항 (Astra·Sol·Luna)
 
-> 슬러그 `gpt-6-astra` (스냅샷 1종, 2026-09 출시). 5.6 Sol/Terra/Luna는 계속 제공됩니다.
+> GPT-6는 2026-09-03 `gpt-6-astra`로 시작했고, 2026-09-22 `gpt-6-sol`·`gpt-6-luna`가 더해졌습니다(각각 스냅샷 1종). Astra가 최상위, Sol이 Astra의 저비용 대안, Luna가 범위가 분명한 대량 작업용입니다. 5.6 Sol/Terra/Luna는 계속 제공됩니다.
 
-| 항목 | 값 |
-|------|-----|
-| 컨텍스트 / 최대 출력 | 1,050,000 / 128,000 |
-| 지식 컷오프 | 2026-04-30 |
-| 입력 | 텍스트, 이미지 |
-| 가격 (1M당) | 입력 $10 · 캐시 입력 $1 · 캐시 쓰기 $12.50 · 출력 $50 |
-| 할인·할증 | Batch·Flex 50% · Fast(priority) 2배 |
+| 항목 | Astra | Sol | Luna |
+|------|-------|-----|------|
+| 컨텍스트 / 최대 입력 / 최대 출력 | 1,050,000 / 922,000 / 128,000 | 같음 | 같음 |
+| 지식 컷오프 | 2026-04-30 | 2026-04-20 | 2026-05-18 |
+| 입력 | 텍스트, 이미지 | 같음 | 같음 |
+| 가격 (1M당, 입력 · 캐시 입력 · 캐시 쓰기 · 출력) | $10 · $1 · $12.50 · $50 | $2 · $0.20 · $2.50 · $10 | $0.10 · $0.01 · $0.125 · $0.50 |
+| `reasoning.effort` | `low`~`max`. `none`은 HTTP 400 | `none`~`max`, 기본 `medium` | Sol과 같음 |
+| 할인·할증 | Batch·Flex 50% · Fast(priority) 2배 | 같음 | 같음 |
 
 ### 롱컨텍스트 요율
 
 > "Prompts with more than 272K input tokens are priced at 2x input and cache rates and 1.5x output for the full request."
 
-272K를 넘기면 초과분만이 아니라 **요청 전체**가 할증 요율로 과금됩니다. 긴 프롬프트는 272K 아래로 유지하는 것이 비용상 유리합니다.
+세 모델 공통입니다. 272K를 넘기면 초과분만이 아니라 **요청 전체**가 할증 요율로 과금됩니다. 긴 프롬프트는 272K 아래로 유지하는 것이 비용상 유리합니다.
 
 ### 제거된 파라미터
 
-- `temperature`, `top_p`, `top_logprobs` (Chat Completions에서는 `logprobs`도)
-- `reasoning.effort`의 `none`·`minimal` — 원문 "GPT-6 Astra does not support the `none` reasoning effort."
+- `temperature`, `top_p`, `top_logprobs` (Chat Completions에서는 `logprobs`도, Responses에서는 `include`의 `message.output_text.logprobs`도) — 원문 "When reasoning effort is not `none`, remove `temperature`, `top_p`, and `top_logprobs`." Astra는 `none`을 받지 않으므로 항상 제거하고, Sol·Luna는 effort가 `none`이 아닐 때 제거합니다. `none`에서 이 값들이 허용된다는 명시 문장은 원문에 없습니다
+- `reasoning.effort`의 `none` — Astra만 해당. 원문 "GPT-6 Astra does not support the `none` reasoning effort; GPT-6 Sol and Luna do."
+- `reasoning.effort`의 `minimal` — 세 모델 모두 지원 목록에 없음. `low`부터 비교
 
 ### 엔드포인트
 
-Responses, Chat Completions, Batch를 지원합니다. 도구 호출은 Responses 전용입니다.
+세 모델 모두 Responses, Chat Completions, Batch를 지원합니다. 도구 호출 조건은 모델마다 다릅니다.
 
-> "GPT-6 Astra supports Chat Completions, but tool calling requires Responses."
+> "GPT-6 Astra supports Chat Completions, but its tool calling requires Responses. GPT-6 Sol and Luna support function calling in Chat Completions only with `reasoning_effort: "none"`. Use Responses for reasoning with tools."
 
 미지원: Realtime, Assistants, 파인튜닝, 임베딩.
 
 ### 캐싱 파라미터 변경
 
-`prompt_cache_retention`이 `prompt_cache_options.ttl`로 대체됐습니다:
+GPT-5.5 이하에서 옮길 때는 `prompt_cache_retention`을 `prompt_cache_options.ttl`로 바꿉니다:
 
 ```python
 response = client.responses.create(
@@ -572,17 +574,18 @@ response = client.responses.create(
 
 ### Codex에서의 GPT-6
 
-Codex가 내려주는 컨텍스트 창은 세대와 무관하게 272K(과금 티어)라 1M은 열리지 않습니다. 크레딧 소모는 입력 1M당 250·출력 1,250으로 Sol의 2.5배입니다.
+Codex가 내려주는 컨텍스트 창은 세대와 무관하게 272K(과금 티어)라 1M은 열리지 않습니다. 크레딧 소모(입력 / 출력, 1M당)는 Astra 250 / 1,250으로 5.6 Sol의 2.5배이고, Sol은 50 / 250, Luna는 2.5 / 12.5입니다. Codex 선택기의 effort는 API 값과 별개입니다. Astra·Sol은 `low`~`max`와 `ultra`, Luna는 `max`까지이며 `none`은 없습니다.
 
 ### 공식 마이그레이션 체크리스트 (5.6 → 6)
 
-1. `model`을 `gpt-6-astra`로 교체
-2. `none`/`minimal`을 쓰던 곳은 `low`부터 — "If you currently use `none` or `minimal`, start with `low` and compare results."
-3. 도구 호출을 Responses API로 이전
-4. `temperature`·`top_p`·`top_logprobs` 제거
-5. `prompt_cache_retention` → `prompt_cache_options.ttl = "30m"`
-6. EU 데이터 레지던시에서는 Fast 모드 미지원
-7. 승인 대기로 멈추는 문제는 주도성 가이던스로 대응
+1. `model`을 `gpt-6-astra`·`gpt-6-sol`·`gpt-6-luna` 중 하나로 교체
+2. effort는 지원 범위에서 현재 값을 유지 — Astra는 `none` 대신 `low`, Sol·Luna는 `none` 유지 가능. `minimal`은 "start with `low` and compare results on representative tasks."
+3. 도구 호출 — Astra는 Responses API로 이전, Sol·Luna의 Chat Completions 함수 호출은 `reasoning_effort: "none"`일 때만
+4. effort가 `none`이 아니면 `temperature`·`top_p`·`top_logprobs` 제거 (Astra는 항상)
+5. GPT-5.5 이하에서 옮길 때 `prompt_cache_retention` → `prompt_cache_options.ttl = "30m"`
+6. EU 데이터 레지던시는 세 모델 모두 Standard 처리에서만 가능
+7. 응답 사이 effort 변경은 표준 단일 에이전트 요청에서 `configuration_update`로 하고 요청 수준 `reasoning.effort`는 유지
+8. 승인 대기로 멈추는 문제는 주도성 가이던스로 대응
 
 ---
 
@@ -623,6 +626,8 @@ response = client.responses.create(
 
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
-- [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6) ⭐ 최신 (2026-07)
+- [Using GPT-6 (공식)](https://developers.openai.com/api/docs/guides/latest-model) ⭐ 최신 — Astra·Sol·Luna 제품군, 마이그레이션
+- [GPT-6 풀 정리 (한국어)](../../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) — 제품군 API 계약 차이, effort 표, Codex 적용
+- [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6) (2026-07)
 - [GPT-5.6 풀 정리 (한국어)](../../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) — 3티어 스펙·가격·마이그레이션
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)

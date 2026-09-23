@@ -205,7 +205,7 @@ system_prompt: |
 ```python
 response = client.responses.create(
     model="gpt-6-astra",
-    reasoning={"effort": "high"},  # GPT-6: low, medium, high, xhigh, max (none·minimal 미지원) / GPT-5.x: none, low, medium, high, xhigh, max
+    reasoning={"effort": "high"},  # GPT-6 Astra: low, medium, high, xhigh, max (none·minimal 미지원) / GPT-6 Sol·Luna·GPT-5.x: none, low, medium, high, xhigh, max
     text={"verbosity": "low"},      # low, medium, high
     instructions="...",
     input="..."
@@ -214,14 +214,14 @@ response = client.responses.create(
 
 **파라미터 설명**:
 - `reasoning.effort`: 추론 깊이
-  - `none`: 추론 없이 실행 중심 (5.6까지). GPT-6 미지원 — `low`부터
+  - `none`: 추론 없이 실행 중심. 5.6까지와 GPT-6 Sol·Luna는 지원, GPT-6 Astra는 미지원이라 `low`부터. Sol·Luna의 Chat Completions 함수 호출은 `none`에서만 가능
   - `low`: 빠른 응답
   - `medium`: 기본값 (5.6·GPT-6 기본값)
   - `high`: 깊은 추론 (코딩, Agentic에 적합)
   - `xhigh`: 최대 추론 (명확한 eval 이점이 있을 때만)
   - `ultra`: Codex·ChatGPT 제품 전용 자동 위임 모드 — API 값 아님
   - 5.5/5.4 → 5.6 마이그레이션: **기존 값을 baseline으로 두고 한 단계 낮춰 비교** (공식 지침)
-  - 5.6 → 6 마이그레이션: `none`/`minimal` 사용처는 `low`로, 나머지는 기존 값 유지 후 비교
+  - 5.6 → 6 마이그레이션: 기존 값을 지원하는 모델에서는 유지 후 비교. Astra로 옮기면 `none` 사용처는 `low`로(Sol·Luna는 `none` 유지 가능), `minimal`은 모델과 관계없이 `low`부터 비교
 - `reasoning.mode`: `"pro"` (5.6 신규) — 오답 비용이 큰 지점만 선별 적용
 - `text.verbosity`: 응답 길이
   - `low`: 간결
@@ -255,7 +255,7 @@ response = client.responses.create(
 
 ### Anthropic (Claude)
 
-#### Claude 5 세대 (Fable 5.1) — `output_config.effort`
+#### Claude 5 세대 (Opus 5.5·Fable 5.1) — `output_config.effort`
 
 ```python
 response = client.messages.create(
@@ -267,11 +267,11 @@ response = client.messages.create(
 ```
 
 **특징**:
-- thinking이 상시 adaptive로 켜져 있어 `output_config.effort`로만 깊이 제어
-- `thinking`/`budget_tokens`·sampling 파라미터는 **400 에러** → [claude-5-specifics.md](claude-5-specifics.md)
-- 기본 `high`, 최고 난도만 `xhigh`/`max`, 루틴은 `medium`/`low`
-- 기본값 `high`에서 시작하되 전 레벨을 자체 eval로 다시 측정 — effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아 다른 모델의 설정을 그대로 옮기면 안 됩니다
-- "단계별로 분석하라"류 사고 유도 지시는 삭제가 공식 권고 — 사고가 상시 켜져 있고, 사고 과정 서술 요구는 refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md)
+- Opus 5.5·Fable 5.1은 thinking이 상시 adaptive로 켜져 있어 `output_config.effort`로만 깊이 제어 (Opus 5는 effort `high` 이하에서 끌 수 있음)
+- `thinking: {"type": "disabled"}`·`budget_tokens`·sampling 파라미터는 **400 에러** → [claude-5-specifics.md](claude-5-specifics.md)
+- 기본값은 Fable 5.1·Opus 5가 `high`, Opus 5.5가 `medium`. 최고 난도만 `xhigh`/`max`(측정된 품질 이득이 있을 때만), 루틴은 `medium`/`low`
+- 모델 기본값에서 시작하되 전 레벨을 자체 eval로 다시 측정 — effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아 다른 모델의 설정을 그대로 옮기면 안 됩니다. Opus 5.5는 같은 레벨에서 Opus 5보다 턴당 사고가 많아 `max_tokens`에 사고 몫을 남깁니다
+- "단계별로 분석하라"류 사고 유도 지시는 삭제가 공식 권고 — 사고가 기본으로 켜져 있고, 사고 과정 서술 요구는 refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md)
 
 ### 공통 팁
 
