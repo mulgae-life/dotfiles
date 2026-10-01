@@ -1,6 +1,9 @@
 # Qwen 3.8 프롬프트 패턴
 
+대상 모델: 오픈웨이트 `Qwen/Qwen3.8-27B` · `Qwen/Qwen3.8-2.4T-A95B` · `Qwen/Qwen3.8-Flash-Next`, API `qwen3.8-max` · `qwen3.8-max-0902` · `qwen3.8-flash` · `qwen3.8-27b`
+
 ## 목차
+- [작성 체크리스트](#작성-체크리스트)
 - [개요 (Qwen 3.6 → 3.8 핵심 변화)](#개요-qwen-36--38-핵심-변화)
 - [1. ChatML 템플릿 + Special Tokens](#1-chatml-템플릿--special-tokens)
 - [2. Thinking 제어 (`reasoning_effort` + `preserve_thinking` 기본 ON)](#2-thinking-제어-reasoning_effort--preserve_thinking-기본-on)
@@ -15,6 +18,23 @@
 > Qwen 3.8은 Qwen 3.5 아키텍처 계보를 유지하면서 **Max급 플래그십(2.4T-A95B)을 오픈웨이트로 공개**하고, **`reasoning_effort`(xhigh/medium/low)로 추론 깊이를 제어**하며, **`preserve_thinking`을 기본 ON**으로 바꾼 세대다. **시스템 프롬프트는 그대로 동작하지만, template이 추론 지시문을 자동 주입하고 허용되지 않는 effort 값에 예외를 던지며, 기본값이 매우 길게 생각하도록 되어 있어 운영 설정을 손보지 않으면 지연·비용이 크게 는다.**
 >
 > 본 문서는 패턴 요약. 풀 가이드: [`reference/qwen-prompt-guide/qwen-3.8-prompt-guide.md`](../../../../reference/qwen-prompt-guide/qwen-3.8-prompt-guide.md)
+
+---
+
+## 작성 체크리스트
+
+- [ ] **ChatML 템플릿**: `<|im_start|>role\n...\n<|im_end|>` (Qwen 3.6 동일)
+- [ ] **`reasoning_effort` 선택**: `xhigh`(기본)/`medium`/`low`만 허용, `high`·`none`은 template 예외. 로컬 27B는 `low`~`medium`부터, 호스팅 API는 `xhigh` 후 실측
+- [ ] **추론 지시문 자동 주입 인지**: `xhigh`·`low`는 시스템 턴 맨 앞에 영문 지시문이 붙음(`medium`은 없음). "천천히 생각하라" 류 문장을 프롬프트에 중복해 넣지 않기
+- [ ] **`preserve_thinking` 기본 ON**: 클라이언트가 `reasoning_content`를 같은 필드로 되돌리는지 확인, 단발 작업은 `false`
+- [ ] **thinking OFF는 27B·Flash-Next만**: 2.4T-A95B는 `enable_thinking=false`가 예외
+- [ ] **Tool 포맷·파서**: XML 스타일 `<function=…><parameter=…>`, `--tool-call-parser qwen3_coder` (Flash-Next는 `qwen3_xml`)
+- [ ] **예약 태그 회피**: `<think>`, `<tool_call>`, `<tool_response>`, `<tools>`, `<function=`, `<parameter=`를 커스텀 XML 태그로 쓰지 않기. 절 구분은 Markdown 헤더
+- [ ] **Sampling 단일 프리셋**: thinking `temp=1.0, top_p=0.95, top_k=20, presence=0.0` / instruct `temp=0.7, top_p=0.8, presence=1.5`. 3.6의 모델별 `presence_penalty` 분기·코딩용 temp 0.6은 폐기
+- [ ] **출력 예산**: reasoning 262,144 / 최종 131,072. 호스팅 API는 `max_completion_tokens`(CoT 포함)
+- [ ] **Long context**: 262K native, YaRN 1M은 실제 길이가 262K를 넘을 때만(static YaRN). API는 1M 디폴트
+- [ ] **라이선스 확인**: 27B만 Apache 2.0. 2.4T-A95B·Flash-Next는 MAU·매출 조건과 MaaS 별도 라이선스
+- [ ] **공식 권장 프레임워크**: Qwen-Agent + MCP. 하네스는 Claude Code·Codex·Qwen Code·Qoder·OpenClaw 공식 설정
 
 ---
 

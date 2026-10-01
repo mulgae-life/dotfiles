@@ -1,6 +1,9 @@
 # GPT-5.6 프롬프트 패턴
 
+대상 모델: `gpt-5.6-sol` · `gpt-5.6-terra` · `gpt-5.6-luna` (별칭 `gpt-5.6` → Sol)
+
 ## 목차
+- [작성 체크리스트](#작성-체크리스트)
 - [개요 (5.5 → 5.6 핵심 변화)](#개요-55--56-핵심-변화)
 - [1. 모델 티어 선택 (신규)](#1-모델-티어-선택-신규)
 - [2. 간결 지시 → 우선순위 지시 (변경)](#2-간결-지시--우선순위-지시-변경)
@@ -15,6 +18,24 @@
 
 GPT-5.6은 Sol/Terra/Luna **3티어 패밀리**. 마이그레이션은 모델만 먼저 교체해 기존 프롬프트·effort로 기준선을 평가한 뒤, 중복 지시와 무관한 도구를 한 그룹씩 줄이고 측정된 회귀에만 최소 지시를 추가하는 방식이다 — 공식: "Preserve the old effective reasoning effort explicitly" / "test the same setting and one lower on representative tasks" (Upgrading to GPT-5.6 Sol).
 공식 내부 평가에서 더 간결한 시스템 프롬프트가 점수 +10~15%, 총토큰 -41~66%, 비용 -33~67%를 기록했다 (prompt-guidance, 대표 작업으로 재검증 필요).
+
+---
+
+## 작성 체크리스트
+
+- [ ] **티어 선택**: `gpt-5.6-sol`(플래그십)/`terra`(균형)/`luna`(고속저가) — 비용 레버리지는 effort보다 티어 라우팅
+- [ ] **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의 (5.5 계승)
+- [ ] **Personality + Collaboration Style 분리** (둘 다 짧게 — 5.5 공식 권고 계승)
+- [ ] `reasoning.effort`: 신규는 `medium` 출발점 / 5.5·5.4에서 마이그레이션은 **기존 값 baseline + 한 단계 낮춰 비교**
+- [ ] `text.verbosity`: 기본 상세도만 설정 — 근거 서술이 중요한 작업(리뷰·감사·마이그레이션)은 `low`/`medium`을 대표 사례로 비교
+- [ ] **막연한 간결 지시("Be concise"류) 효용 재평가** → 우선순위 지시로 대체 ("결론 먼저, 근거, 중대 caveat, 다음 액션") — 5.6은 기본 출력이 더 간결해 과작동(지나치게 짧아짐) 위험
+- [ ] **Markdown 절제** (plain prose 기본 — 5.6은 기본 출력이 더 간결)
+- [ ] **Retrieval Budget** 명시 (도구 사용 시 stopping conditions)
+- [ ] **Structured Outputs**로 스키마 지정 (프롬프트 대신, Responses는 `text.format`)
+- [ ] **Tool Validation**: 출력 검증을 도구로 (변경과 관련된 테스트·린트·렌더링) — 5.6은 overstep 경향이 5.5보다 커 검증 루프 중요도 상승
+- [ ] Chat Completions에서 함수 도구를 쓰면 유효 effort가 `none`이어야 함 → 추론·도구·다중 턴은 Responses
+- [ ] 마이그레이션: 5.5→5.6은 **모델만 교체 → 기존 프롬프트·effort 기준선 평가 → 한 그룹씩 프롬프트 축소 → 측정된 회귀에만 최소 수정**
+- [ ] Message Roles (developer/user)
 
 ---
 
@@ -120,7 +141,7 @@ any material caveat, and the next action.
 - Structured Outputs API 강제
 - 5.4 계열 패턴 (`<output_contract>`, `<completeness_contract>` 등)
 
-5.6에서 새로 추가/변경된 것: §1~§4.
+5.6에서 새로 추가/변경된 것: §1~§4. 5.5 패턴 원문과 GPT-5.5 대상 작성 체크리스트는 [gpt55-patterns.md](gpt55-patterns.md).
 
 ---
 
@@ -154,3 +175,4 @@ any material caveat, and the next action.
 - [Upgrading to GPT-5.6 Sol (공식)](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol)
 - [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 - [Simon Willison — The new GPT-5.6 family (2026-07-09)](https://simonwillison.net/2026/Jul/9/gpt-5-6/)
+- [GPT-5.5 패턴 (이전 세대)](gpt55-patterns.md)

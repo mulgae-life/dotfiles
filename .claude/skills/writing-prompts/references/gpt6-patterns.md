@@ -1,6 +1,9 @@
 # GPT-6 프롬프트 패턴 (Astra·Sol·Luna)
 
+대상 모델: `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6-sol` · `gpt-6-luna`
+
 ## 목차
+- [작성 체크리스트](#작성-체크리스트)
 - [개요 (5.6 → 6 핵심 변화)](#개요-56--6-핵심-변화)
 - [0. GPT-6 제품군 (Sol·Luna 차이)](#0-gpt-6-제품군-solluna-차이)
 - [1. 주도성과 완주 (신규)](#1-주도성과-완주-신규)
@@ -16,6 +19,21 @@
 
 
 GPT-6는 2026-09-03에 Astra 한 모델로 시작했고 2026-09-22에 Sol·Luna가 더해져 3티어가 됐으며, 2026-09-29에는 Sol의 후속 GPT-6.1 Sol이 나왔다. 5.6의 Sol·Terra·Luna는 계속 제공된다. 이 문서의 행동 축과 스니펫은 Astra에서 관찰한 성향을 겨냥한 것이고, 공식 문서는 이를 제품군 전체의 출발점으로 제시한다. 모델별 API 계약 차이는 §0에 모았다. 두 Sol은 "6.1 Sol"·"6 Sol"로 구분하고 그냥 "Sol"은 둘 다를 뜻하며, 이전 세대 모델은 "5.6 Sol", "5.6 Luna"로 적는다. 프롬프트 관점의 변화는 파라미터가 아니라 행동에 있고, 공식 가이드가 조정을 권고하는 축은 주도성, 지시 준수, 문체, 서브에이전트 위임, 테스트·검증 다섯 가지다. 5.6에서 통하던 "지시를 줄여라" 기조가 여기서 뒤집힌다. Astra는 긴 지시를 더 잘 따르는 대신 문맥에 더 민감해서, 분량보다 지시 파일 사이의 모순이 문제를 일으킨다.
+
+---
+
+## 작성 체크리스트
+
+- [ ] **모델 선택**: `gpt-6-astra`(최고 성능)/`gpt-6.1-sol`(Astra에 가까운 성능, 단가는 Astra의 1/5)/`gpt-6-luna`(반복 대량 작업). `gpt-6-sol`은 폐기 공지 없이 남아 있지만 모델 개요 페이지의 대표 목록에서 빠졌고 API 계약이 6.1 Sol과 다름. 5.6 Terra에 대응하는 티어는 없음. Codex 공식 문서는 복잡한 코딩·에이전트 작업에 계정과 클라이언트에서 쓸 수 있으면 6.1 Sol을, 가장 까다로운 작업에는 Astra를 권함
+- [ ] 아래 행동 항목(주도성~문체)은 Astra에서 관찰된 성향이 출처 — 공식 문서도 제품군 공통 출발점으로 제시하되 모델·워크로드별 평가를 요구하므로 6.1 Sol·Luna는 측정 후 채택
+- [ ] **주도성 명시**: 질문하고 멈추는 성향이 이전 세대보다 강함 → 자율 실행이 필요하면 "bias towards action, carry the task to completion" 계열 지시 추가. "can you…/help me…"는 실행 요청으로 취급하게
+- [ ] **지시 파일 모순 감사**: 긴 지시는 잘 따르지만 문맥 모순에 민감 → AGENTS.md·스킬·시스템 프롬프트 사이의 상충·낡은 문구 제거가 감량보다 우선. 사용자 지시 > 스킬 지시 우선순위 명시
+- [ ] **테스트 범위 축소**: 스스로 철저히 검증하는 성향 → "가역적·저영향 변경에 구현을 비추는 테스트 금지, 확대는 새 변경·실패가 정당화할 때만"으로 범위를 좁히는 지시(검증 강화 지시 아님)
+- [ ] **위임 명시**: 서브에이전트 병렬 위임을 학습했지만 기대보다 덜 위임 → 갈래·리더 보유 범위·대기 여부·반환 요약 형식을 프롬프트에 지정
+- [ ] **문체**: 문단 기본, 리스트는 병렬·순서·비교일 때만. 피할 표현("Bottom Line:", "delve", "leverage", "it's worth noting", "In short:") 차단
+- [ ] `reasoning.effort`: 기본 `medium`. Astra·6.1 Sol은 `low`~`max` 5단계(`none`/`minimal` 사용처는 `low`부터), 6 Sol·Luna는 `none`~`max` 6단계. `ultra`는 Codex·ChatGPT 전용(API 값 아님)
+- [ ] **API 변경**: effort가 `none`이 아니면 `temperature`·`top_p`·`top_logprobs` 제거. 도구 호출은 Responses API(6 Sol·Luna만 Chat Completions에서 `reasoning_effort: "none"`일 때 함수 호출 가능, 6.1 Sol은 Astra처럼 불가), `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율
+- [ ] 5.6 계약 구조(Goal/Success criteria/Constraints/Tools/Output/Stop rules)·pro mode·`reasoning.context`·PTC는 그대로 유효 → [gpt56-patterns.md](gpt56-patterns.md)
 
 ---
 

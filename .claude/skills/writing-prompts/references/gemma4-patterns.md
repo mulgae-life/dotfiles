@@ -1,5 +1,7 @@
 # Gemma 4 프롬프트 패턴
 
+대상 모델: `google/gemma-4-{E2B|E4B|12B|26B-A4B|31B}-it` (5종). 작성 체크리스트는 [§8](#8-gemma-3--4-마이그레이션-체크리스트)을 쓴다.
+
 ## 목차
 - [개요 (Gemma 3 → 4 핵심 변화)](#개요-gemma-3--4-핵심-변화)
 - [1. Chat Template 변경 (핵심)](#1-chat-template-변경-핵심)
@@ -319,6 +321,8 @@ LM Studio에서 31B 모델이 출시 직후 chat template 파싱 깨짐으로 `"
 
 ## 8. Gemma 3 → 4 마이그레이션 체크리스트
 
+새 프롬프트를 쓸 때도 2번부터 같은 항목을 작성 체크리스트로 쓴다(1번 모델 ID 교체만 마이그레이션 전용).
+
 1. [ ] 모델 ID 교체: `google/gemma-3-*` → `google/gemma-4-{E2B|E4B|12B|26B-A4B|31B}-it`
 2. [ ] **Chat template 토큰 전수 교체**: `<start_of_turn>` → `<|turn>`, `<end_of_turn>` → `<turn|>`
 3. [ ] **System 지시를 첫 user 메시지에서 분리**하여 별도 `system` role로 이동
@@ -330,7 +334,7 @@ LM Studio에서 31B 모델이 출시 직후 chat template 파싱 깨짐으로 `"
 9. [ ] Vision token budget을 작업 유형별로 명시 (분류 70-140, OCR 1120; `max_soft_tokens`)
 10. [ ] Function calling: `<|"|>` delimiter 포맷 채택, `tool_responses` 구조 사용, 히스토리 `arguments`는 JSON 객체
 11. [ ] vLLM에 `--reasoning-parser gemma4 --tool-call-parser gemma4` 추가
-12. [ ] 샘플링 디폴트를 `temperature=1.0, top_p=0.95, top_k=64`로 정렬
+12. [ ] 샘플링 디폴트를 `temperature=1.0, top_p=0.95, top_k=64`로 정렬 (OpenAI 계열에서 쓰던 `temperature=0.7` 같은 값을 옮겨 오지 않음)
 13. [ ] Context를 실사용 길이로 시작 → 필요 시 증가 (무조건 256K 금지, thinking ON이면 `max_tokens` 여유)
 14. [ ] Audio 워크로드: E2B/E4B/12B 사용 (26B A4B·31B는 audio 미지원)
 15. [ ] 라이선스 변경: Gemma Terms → **Apache 2.0** (상업 배포 자유)

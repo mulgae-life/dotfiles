@@ -1,12 +1,44 @@
 ---
 name: writing-prompts
-description: GPT/Claude/Gemma/Qwen 프롬프트 파일 생성 및 개선. OpenAI + Anthropic + Google + Alibaba 공식 가이드 기반. API 연동 코드는 범위 밖입니다.
+description: GPT/Claude/Gemini/Gemma/Qwen 프롬프트 파일 생성 및 개선. 대상 모델 ID와 API 방식을 먼저 확정해 그 모델의 문서만 적용합니다. OpenAI + Anthropic + Google + Alibaba 공식 가이드 기반. API 연동 코드는 범위 밖입니다.
 when_to_use: "프롬프트 작성해줘, 톤 가이드 적용해줘, 시스템 프롬프트 만들어줘, AI 응답 품질 개선해줘 요청 시. LLM 프롬프트 작성, 챗봇 성격 설정, AI 응답 품질 개선이 필요한 모든 상황에서 사용."
 ---
 
-# 프롬프트 작성 가이드 (OpenAI + Anthropic + 오픈웨이트 통합)
+# 프롬프트 작성 가이드 (OpenAI + Anthropic + Google + 오픈웨이트 통합)
 
-OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.8 공식 가이드 기반. **범용 원칙 우선, 모델별 최적화는 보조**. 한국어 프로젝트 특화 규칙(격식체) 포함.
+OpenAI GPT, Anthropic Claude, Google Gemini 3.x·Gemma 4, Alibaba Qwen 3.8 공식 가이드 기반. **범용 원칙 우선, 모델별 최적화는 대상 모델이 확정됐을 때 그 모델 문서만**. 한국어 프로젝트 특화 규칙(격식체) 포함.
+
+---
+
+## 대상 모델 확정
+
+프롬프트를 쓰기 전에 어느 모델의 어떤 API 경로에 들어갈 프롬프트인지 정한다.
+
+1. **사용자가 지정한 대상 모델과 목적이 우선**한다. 기존 코드가 다른 모델을 쓰면 지정 모델 기준으로 쓰고 차이를 짚는다. 프롬프트 작성 요청이 코드의 실행 모델을 바꾸지는 않는다.
+2. **지정이 없으면 편집 중인 호출 경로를 따라간다**: 호출 코드 → 설정 파일 → 환경변수 참조와 기본값. 무관한 예제나 보관 파일의 모델 ID는 채택하지 않는다. 시크릿 값은 출력하지 않는다.
+3. **프롬프트에 영향을 주는 조건을 확인한다**: 대상 모델, 공급자 경로(직접 호출·호환 계층·클라우드), API 방식(예: Responses ↔ Chat Completions, Interactions ↔ GenerateContent), 사고 설정. 조건을 추론하거나 가정했을 때만 그 선택과 이유를 짧게 밝힌다.
+4. **여러 모델이 섞이면 호출 경로마다 따로 다룬다.** 해소할 수 없는 모호함만 좁게 묻는다. 모델과 무관한 범용 프롬프트 요청에는 모델을 강제하지 않고 공통 원칙을 쓴다.
+5. **ID는 정확히 맞춘다.** 정확한 별칭·스냅샷을 먼저 찾고, 넓은 접두어가 특수 모델(`-tts`, `-image`, `-customtools`, `-pro` 등)을 삼키지 않게 한다. 모르는 접미사를 떼어 내고 가까운 모델로 간주하지 않는다.
+6. **패키지 이름은 공급자 증거가 아니다.** `openai` 라이브러리로 Gemini를 부를 수 있다(`base_url`이 Google 호환 계층). 이때 적용할 문서는 Gemini다.
+
+**적용 범위**: 공통 원칙 + 대상 모델 문서의 해당 절 + 공식 문서가 승계를 확인한 절. 행동 보정 지시는 증상이 있고 근거가 있을 때만 넣는다.
+
+**목록 밖 모델**: 이 스킬에 전용 문서가 없다고 밝히고, 사용자가 지정한 모델을 그대로 둔다. 공식 문서로 확인되는 그 모델의 계약과 공통 기법만 적용하고, 검증하지 않은 모델별 처방은 넣지 않는다. 후속 모델은 폐기·접근 제한·명시적 마이그레이션 요청이 있을 때만 찾아보며, 임의로 모델을 바꾸지 않는다.
+
+| 모델 ID | 문서 | 볼 절 |
+|---------|------|-------|
+| `claude-opus-5-5` | [claude-5-specifics.md](references/claude-5-specifics.md) | 작성 체크리스트 + Opus 5 차이점 + Opus 5 → 5.5 델타 (델타가 바꾼 항목은 델타 우선) |
+| `claude-fable-5-1` | claude-5-specifics.md | 본문 (5.1 기준) |
+| `claude-sonnet-5-5` · `claude-sonnet-5` | claude-5-specifics.md | 작성 체크리스트 + Sonnet 5.5 · Sonnet 5 차이점 |
+| `claude-opus-5` | claude-5-specifics.md | 작성 체크리스트 + Opus 5 차이점 |
+| `claude-fable-5` | claude-5-specifics.md | 본문 (5.1 전용 항목 제외) |
+| `claude-opus-4-8` · `claude-sonnet-4-6` · `claude-haiku-4-5` (`-20251001`) | [claude-4-specifics.md](references/claude-4-specifics.md) | 작성 체크리스트 + 공통 원칙 + 해당 모델 절 |
+| `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6-sol` · `gpt-6-luna` | [gpt6-patterns.md](references/gpt6-patterns.md) | 작성 체크리스트 + §0 모델별 계약 |
+| `gpt-5.6-sol` · `gpt-5.6-terra` · `gpt-5.6-luna` · `gpt-5.6` | [gpt56-patterns.md](references/gpt56-patterns.md) | 작성 체크리스트 |
+| `gpt-5.5` (`-2026-04-23`) | [gpt55-patterns.md](references/gpt55-patterns.md) | 작성 체크리스트 |
+| `gemini-3.8-flash` · `gemini-3.7-flash` · `gemini-3.6-flash` · `gemini-3.5-flash-lite` · `gemini-3.1-flash-lite` · `gemini-3.1-pro-preview` | [gemini3-patterns.md](references/gemini3-patterns.md) | 작성 체크리스트 + §1 모델별 계약 |
+| `google/gemma-4-{E2B\|E4B\|12B\|26B-A4B\|31B}-it` | [gemma4-patterns.md](references/gemma4-patterns.md) | §8 체크리스트 |
+| `Qwen/Qwen3.8-27B` · `-2.4T-A95B` · `-Flash-Next`, `qwen3.8-max` · `-max-0902` · `-flash` · `-27b` | [qwen38-patterns.md](references/qwen38-patterns.md) | 작성 체크리스트 |
 
 ---
 
@@ -15,27 +47,26 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.8 공식 가이드 
 ### 처음이라면?
 
 1. **기본 템플릿** 복사 → [templates.md](references/templates.md)
-2. **Few-shot 예시** 추가 → [few-shot.md](references/few-shot.md)
-3. 필요 시 플랫폼 특화 기능 적용
+2. 필요하면 **예시** 추가 (개수는 대상 모델 문서와 과제별 평가로) → [few-shot.md](references/few-shot.md)
+3. 대상 모델이 정해졌으면 그 모델 문서의 작성 체크리스트 적용 → [대상 모델 확정](#대상-모델-확정)
 
 ---
 
 ## TL;DR
 
-### 클로즈드 API (OpenAI / Anthropic)
+### 클로즈드 API (OpenAI / Anthropic / Google)
 
-| 항목 | 공통 | OpenAI (GPT) | Anthropic (Claude) |
-|------|------|--------------|-------------------|
-| **구조** | Identity → Instructions → Examples → Context | ✅ | ✅ |
-| **어조** | 제품 용도별 분기 (공식=격식체, 캐주얼=해요체) | ✅ | ✅ |
-| **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
-| **Examples** | Frontier 0~2개(포맷 정렬), 소형 3-5개 | Few-shot | Multishot (동일 개념) |
-| **XML 태그** | ✅ 권장 | ✅ | ✅ |
-| **특화 파라미터** | - | `reasoning.effort` (GPT-6 Astra·6.1 Sol: `none` 미지원, low~max / 6 Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, `image_detail` | `output_config.effort` |
-| **Prefilling** | - | ❌ | ❌ (400 → Structured Outputs) |
-| **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
-| **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
-| **모순 제거** | 충돌 지시 금지 | ✅ | ✅ |
+| 항목 | 공통 | OpenAI (GPT) | Anthropic (Claude) | Google (Gemini 3.x) |
+|------|------|--------------|-------------------|------|
+| **구조** | 목표·성공 기준·형식·제약이 드러나게. 섹션 순서와 표기는 대상 모델 문서 기준 | Role → Personality → Goal → Success criteria → Constraints → Output → Stop rules (5.5 이후) | XML 태그로 구분, 긴 문서는 위 | 표기 하나로 일관, 긴 자료 앞·질문 끝 |
+| **어조** | 제품 용도별 분기 (공식=격식체, 캐주얼=해요체) | ✅ | ✅ | ✅ |
+| **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` | `system_instruction` / `user`·`model` |
+| **Examples** | 쓸지와 개수는 대상 모델 문서와 과제별 평가로 | 행동을 바꾸지 않는 예시는 줄임 | 공식 모범 사례는 다양한 예시 3~5개 | 공식 문서는 예시 포함 권장 |
+| **특화 파라미터** | - | `reasoning.effort` (GPT-6 Astra·6.1 Sol: `none` 미지원, low~max / 6 Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, 이미지 항목별 `detail` | `output_config.effort` (Haiku 4.5는 `budget_tokens`) | `thinking_level` (sampling 제거) |
+| **Prefilling** | - | ❌ | ❌ (4.6 이후 400 → Structured Outputs, Haiku 4.5만 예외) | ❌ 새 프롬프트에서 쓰지 않음 (제거 권고는 3.8·Cloud 3.7 문서) |
+| **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) | 긴 자료 앞, 질문 끝 |
+| **제약** | "~하지 마세요" 명시 | ✅ | ✅ | ✅ |
+| **모순 제거** | 충돌 지시 금지 | ✅ | ✅ | ✅ |
 
 ### 오픈웨이트 (Google Gemma / Alibaba Qwen)
 
@@ -90,12 +121,15 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.8 공식 가이드 
 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
-| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시·모델 선택(GPT-6), 티어 선택(5.6) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra·Sol·Luna), `references/gpt56-patterns.md` (5.6) |
-| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), effort `medium` 시작(Opus 5.5), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Opus 5.5·Fable 5.1·Opus 5), `references/long-context.md` |
+| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시·모델 선택(GPT-6), 티어 선택(5.6), 최소 프롬프트 기준선(5.5) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra·Sol·Luna), `references/gpt56-patterns.md` (5.6), `references/gpt55-patterns.md` (5.5) |
+| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), effort `medium` 시작(Opus 5.5), `between_tools`·작업 범위(Sonnet 5.5), 모델별 사고 방식(4.x), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Opus 5.5·Fable 5.1·Sonnet 5.5·Opus 5·Fable 5·Sonnet 5), `references/claude-4-specifics.md` (Opus 4.8·Sonnet 4.6·Haiku 4.5), `references/long-context.md` |
+| Google Gemini 3.x | 모델별 `thinking_level` 허용 값, sampling 제거, 사고 서명 보존, 함수 결과 짝 맞추기, 미디어 해상도 | `references/gemini3-patterns.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` |
 | Alibaba Qwen 3.8 | ChatML, `reasoning_effort` 3단계 + `preserve_thinking` 기본 ON, XML tool 포맷·`qwen3_coder` 파서, 단일 sampling | `references/qwen38-patterns.md` |
 
 ## 기본 템플릿
+
+모델과 무관한 출발점이다. 대상 모델 문서에 권장 구조가 있으면(예: GPT-5.5 이후의 Role → Goal → Success criteria → … → Stop rules) 그쪽을 따른다. 아래 어조는 공식 응대(격식체) 예시이고, 어조와 예시 절은 제품과 대상 모델에 맞게 바꾸거나 뺀다 → [1. 어조 규칙](#1-어조-규칙-한국어-특화).
 
 ```yaml
 system_prompt: |
@@ -139,16 +173,19 @@ system_prompt: |
 
 프롬프트 작성/수정 시 확인:
 
-### 필수 (범용)
-- [ ] 구조: Identity → Instructions → Examples → Context
-- [ ] 격식체 명시 (한국어 톤 가이드 참조)
-- [ ] XML 태그 사용
-- [ ] Few-shot 예시: Frontier 모델은 포맷 정렬용 0~2개, 소형 모델은 3-5개 → [few-shot.md](references/few-shot.md)
-- [ ] 제약 명시 ("~하지 마세요")
-- [ ] 모순 제거
+### 필수 (모든 모델)
+- [ ] 목표, 성공 기준, 출력 형식, 제약이 분명하다
+- [ ] 서로 충돌하는 지시가 없다
+- [ ] 대상 모델의 필수·금지 계약을 지켰다 (사고 설정, 제거된 파라미터, prefill 등 → 대상 모델 문서의 작성 체크리스트)
+- [ ] 사용자 입력과 외부 데이터를 지시와 분리했다
+
+### 선택 (대상 모델 문서와 과제에 맞춰)
+- [ ] 구조 표기·섹션 순서·어조 (한국어 어조는 [templates.md](references/templates.md) 7장, 공식 응대는 격식체)
+- [ ] 예시를 쓸지와 개수: 대상 모델 문서의 권고와 과제별 평가로 정한다 → [few-shot.md](references/few-shot.md)
+- [ ] 수치 기준(예시 개수, sampling 값 등)은 근거가 있는 모델 문서의 값만 쓴다
 
 ### 보안 (민감한 작업)
-- [ ] 사용자 입력 분리 (XML 태그로 경계)
+- [ ] 사용자 입력 분리 (XML 태그 등 대상 모델에 맞는 구분자로 경계)
 - [ ] 출력 검증 로직 고려
 - [ ] 시크릿 하드코딩 확인 → [security.md](references/security.md)
 
@@ -156,74 +193,9 @@ system_prompt: |
 - [ ] Self-correction 체인 고려 → [self-correction.md](references/self-correction.md)
 - [ ] 추론 깊이 적절히 설정 → [reasoning-params.md](references/reasoning-params.md)
 
-### 플랫폼별 최적화 (선택)
+### 모델별 작성 체크리스트
 
-**OpenAI GPT-6 Astra·6.1 Sol·Luna** (최신, 권장):
-- [ ] **모델 선택**: `gpt-6-astra`(최고 성능)/`gpt-6.1-sol`(Astra에 가까운 성능, 단가는 Astra의 1/5)/`gpt-6-luna`(반복 대량 작업). `gpt-6-sol`은 폐기 공지 없이 남아 있지만 모델 개요 페이지의 대표 목록에서 빠졌고 API 계약이 6.1 Sol과 다름. 5.6 Terra에 대응하는 티어는 없음. Codex 공식 문서는 복잡한 코딩·에이전트 작업에 계정과 클라이언트에서 쓸 수 있으면 6.1 Sol을, 가장 까다로운 작업에는 Astra를 권함
-- [ ] 아래 행동 항목(주도성~문체)은 Astra에서 관찰된 성향이 출처 — 공식 문서도 제품군 공통 출발점으로 제시하되 모델·워크로드별 평가를 요구하므로 6.1 Sol·Luna는 측정 후 채택
-- [ ] **주도성 명시**: 질문하고 멈추는 성향이 이전 세대보다 강함 → 자율 실행이 필요하면 "bias towards action, carry the task to completion" 계열 지시 추가. "can you…/help me…"는 실행 요청으로 취급하게
-- [ ] **지시 파일 모순 감사**: 긴 지시는 잘 따르지만 문맥 모순에 민감 → AGENTS.md·스킬·시스템 프롬프트 사이의 상충·낡은 문구 제거가 감량보다 우선. 사용자 지시 > 스킬 지시 우선순위 명시
-- [ ] **테스트 범위 축소**: 스스로 철저히 검증하는 성향 → "가역적·저영향 변경에 구현을 비추는 테스트 금지, 확대는 새 변경·실패가 정당화할 때만"으로 범위를 좁히는 지시(검증 강화 지시 아님)
-- [ ] **위임 명시**: 서브에이전트 병렬 위임을 학습했지만 기대보다 덜 위임 → 갈래·리더 보유 범위·대기 여부·반환 요약 형식을 프롬프트에 지정
-- [ ] **문체**: 문단 기본, 리스트는 병렬·순서·비교일 때만. 피할 표현("Bottom Line:", "delve", "leverage", "it's worth noting", "In short:") 차단
-- [ ] `reasoning.effort`: 기본 `medium`. Astra·6.1 Sol은 `low`~`max` 5단계(`none`/`minimal` 사용처는 `low`부터), 6 Sol·Luna는 `none`~`max` 6단계. `ultra`는 Codex·ChatGPT 전용(API 값 아님)
-- [ ] **API 변경**: effort가 `none`이 아니면 `temperature`·`top_p`·`top_logprobs` 제거. 도구 호출은 Responses API(6 Sol·Luna만 Chat Completions에서 `reasoning_effort: "none"`일 때 함수 호출 가능, 6.1 Sol은 Astra처럼 불가), `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율
-- [ ] 5.6 계약 구조(Goal/Success criteria/Constraints/Tools/Output/Stop rules)·pro mode·`reasoning.context`·PTC는 그대로 유효 → 아래 5.6 항목 참조
-
-**OpenAI GPT-5.6** (이전 세대):
-- [ ] **티어 선택**: `gpt-5.6-sol`(플래그십)/`terra`(균형)/`luna`(고속저가) — 비용 레버리지는 effort보다 티어 라우팅
-- [ ] **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의 (5.5 계승)
-- [ ] **Personality + Collaboration Style 분리** (각 1-2문단 이내)
-- [ ] `reasoning.effort`: 신규는 `medium` 출발점 / 5.5·5.4에서 마이그레이션은 **기존 값 baseline + 한 단계 낮춰 비교**
-- [ ] `text.verbosity`: 기본 상세도만 설정 — 근거 서술이 중요한 작업(리뷰·감사·마이그레이션)은 `low`/`medium`을 대표 사례로 비교
-- [ ] **막연한 간결 지시("Be concise"류) 효용 재평가** → 우선순위 지시로 대체 ("결론 먼저, 근거, 중대 caveat, 다음 액션") — 5.6은 기본 출력이 더 간결해 과작동(지나치게 짧아짐) 위험
-- [ ] **Markdown 절제** (plain prose 기본 — 5.6은 기본 출력이 더 간결)
-- [ ] **Retrieval Budget** 명시 (도구 사용 시 stopping conditions)
-- [ ] **Structured Outputs API**로 스키마 강제 (프롬프트 대신)
-- [ ] **Tool Validation**: 출력 검증을 도구로 (테스트·린트·렌더링) — 5.6은 overstep 경향이 5.5보다 커 검증 루프 중요도 상승
-- [ ] 마이그레이션: 5.5→5.6은 **모델만 교체 → 기존 프롬프트·effort 기준선 평가 → 한 그룹씩 프롬프트 축소 → 측정된 회귀에만 최소 수정**
-- [ ] Message Roles (developer/user)
-
-**Anthropic Claude Opus 5.5·Fable 5.1 / Claude 5 세대** (최신, 권장):
-- [ ] **De-prescribe**: 절차 열거 대신 목표·제약·이유 서술 (과잉 지시는 품질 저하)
-- [ ] **Prefill 금지**: 400 에러 → Structured Outputs(`output_config.format`)로 대체
-- [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발(출력 전 거절도 과금) → 추론은 `display: "summarized"` thinking 블록에서 읽기
-- [ ] **thinking 끄기 전제 제거** (Opus 5.5·Fable 5.1): thinking을 끌 수 없음 → "생각하지 말고 바로 답하라"류 규칙 삭제, 사고량은 effort로 조절
-- [ ] **강제 `tool_choice` 금지** (Opus 5.5·Fable 5.1): `any`/`tool`은 400 → `auto` + 지시문 + `strict: true` (`strict`는 호출 자체를 보장하지 않음)
-- [ ] **대화 이력 append-only** (Opus 5.5·Fable 5.1): 턴별 리마인더는 턴 한정 시스템 메시지로, 이력·system·tools 사후 편집 금지
-- [ ] `output_config.effort`: Fable 5.1·Opus 5는 `high`, Opus 5.5는 기본값 `medium`에서 시작 + 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님). `xhigh`·`max`는 측정된 품질 이득이 있을 때만
-- [ ] **산문 밀도 지시** (5.1): 문장이 길고 단락이 적으면 "mannered prose" 정의문 추가
-- [ ] **범위·테스트 제한** (5.1): 요청 밖 수정·과다 테스트 커밋을 막는 지시문 추가
-- [ ] **반서식 규칙 제거** (5.1): 구모델용 "불릿·헤더 쓰지 마라"가 필요한 구조까지 억제 → 언제 서식이 적절한지로 교체
-- [ ] 장기 자율 런: 진행 보고 근거화 + 메모리 파일 → [claude-5-specifics.md](references/claude-5-specifics.md)
-- [ ] Long context 문서 배치 (맨 위)
-
-**Google Gemma 4** (오픈웨이트):
-- [ ] **Chat template 교체**: `<start_of_turn>` → `<|turn>`, `<end_of_turn>` → `<turn|>` (Gemma 3에서 완전 교체)
-- [ ] **System role 사용**: Gemma 3의 "user 턴에 system 우겨넣기" 워크어라운드 제거
-- [ ] **Thinking 활성화**: 시스템 프롬프트 맨 앞에 `<|think|>` 토큰 추가
-- [ ] **Multi-turn thought strip**: 직전 model 턴의 `<|channel>thought` 블록 제거 (함수 호출 중에는 유지 — template은 `preserve_thinking=True`). OFF여도 빈 블록 strip (E2B/E4B 제외)
-- [ ] **Multimodal placement**: image는 text 앞, audio는 text 뒤
-- [ ] **Visual token budget**: 70/140/280/560/1120 작업별 명시 (분류 70-140, OCR 1120)
-- [ ] **Tool calling**: `<|"|>` delimiter 포맷 사용, 히스토리 `arguments`는 JSON 객체(문자열이면 template 예외)
-- [ ] **공식 sampling**: `temperature=1.0, top_p=0.95, top_k=64` (OpenAI식 0.7 금지)
-- [ ] **vLLM**: `--reasoning-parser gemma4 --tool-call-parser gemma4` 필수
-- [ ] **런타임 template 버전**: 2026-07-15 개정본(`preserve_thinking`·인자 검증)인지 확인
-- [ ] Audio 워크로드: E2B/E4B/12B 사용 (26B A4B·31B 미지원)
-
-**Alibaba Qwen 3.8** (오픈웨이트):
-- [ ] **ChatML 템플릿**: `<|im_start|>role\n...\n<|im_end|>` (Qwen 3.6 동일)
-- [ ] **`reasoning_effort` 선택**: `xhigh`(기본)/`medium`/`low`만 허용, `high`·`none`은 template 예외. 로컬 27B는 `low`~`medium`부터, 호스팅 API는 `xhigh` 후 실측
-- [ ] **추론 지시문 자동 주입 인지**: `xhigh`·`low`는 시스템 턴 맨 앞에 영문 지시문이 붙음(`medium`은 없음). "천천히 생각하라" 류 문장을 프롬프트에 중복해 넣지 않기
-- [ ] **`preserve_thinking` 기본 ON**: 클라이언트가 `reasoning_content`를 같은 필드로 되돌리는지 확인, 단발 작업은 `false`
-- [ ] **thinking OFF는 27B·Flash-Next만**: 2.4T-A95B는 `enable_thinking=false`가 예외
-- [ ] **Tool 포맷·파서**: XML 스타일 `<function=…><parameter=…>`, `--tool-call-parser qwen3_coder` (Flash-Next는 `qwen3_xml`)
-- [ ] **예약 태그 회피**: `<think>`, `<tool_call>`, `<tool_response>`, `<tools>`, `<function=`, `<parameter=`를 커스텀 XML 태그로 쓰지 않기. 절 구분은 Markdown 헤더
-- [ ] **Sampling 단일 프리셋**: thinking `temp=1.0, top_p=0.95, top_k=20, presence=0.0` / instruct `temp=0.7, top_p=0.8, presence=1.5`. 3.6의 모델별 `presence_penalty` 분기·코딩용 temp 0.6은 폐기
-- [ ] **출력 예산**: reasoning 262,144 / 최종 131,072. 호스팅 API는 `max_completion_tokens`(CoT 포함)
-- [ ] **Long context**: 262K native, YaRN 1M은 실제 길이가 262K를 넘을 때만(static YaRN). API는 1M 디폴트
-- [ ] **라이선스 확인**: 27B만 Apache 2.0. 2.4T-A95B·Flash-Next는 MAU·매출 조건과 MaaS 별도 라이선스
-- [ ] **공식 권장 프레임워크**: Qwen-Agent + MCP. 하네스는 Claude Code·Codex·Qwen Code·Qoder·OpenClaw 공식 설정
+[대상 모델 확정](#대상-모델-확정) 표에서 고른 문서의 "작성 체크리스트"를 적용한다(Gemma 4는 §8). 다른 모델의 체크리스트는 섞지 않는다.
 
 ### 추가 도구 (사용자 직접)
 - OpenAI Prompt Optimizer: https://platform.openai.com/chat/edit?optimize=true
@@ -255,12 +227,18 @@ system_prompt: |
 - **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드 (패턴 출처는 OpenAI 가이드 — Claude 5 세대에는 그대로 적용 금지)
 - **[gpt6-patterns.md](references/gpt6-patterns.md)** ⭐ GPT-6 프롬프트 패턴 (Astra 기준 주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, 모델별 effort 범위(Astra `none` 미지원, Sol·Luna 지원), 제거 파라미터, Sol·Luna 차이, 5.6 → 6 마이그레이션)
 - **[gpt56-patterns.md](references/gpt56-patterns.md)** GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) — 계약 구조·신규 API 기능은 GPT-6에서도 유효
+- **[gpt55-patterns.md](references/gpt55-patterns.md)** GPT-5.5 프롬프트 패턴 (outcome-first, 최소 프롬프트 기준선, personality·collaboration 분리, 검색 예산, `text.format` 구조화 출력, 이미지 `detail`, `phase`)
 - **[optimization.md](references/optimization.md)** - GPT 프롬프트 최적화 팁 (모순 제거, 지시 계층, 출력 형식, 캐싱)
 
 ### Anthropic (Claude) 특화
 
-- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Opus 5.5·Fable 5.1·Opus 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Fable 5 → 5.1 델타, Opus 5 → 5.5 델타
+- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Opus 5.5·Fable 5.1·Sonnet 5.5·Opus 5·Fable 5·Sonnet 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Sonnet 5.5·5 차이점, Fable 5 → 5.1 델타, Opus 5 → 5.5 델타
+- **[claude-4-specifics.md](references/claude-4-specifics.md)** Claude 4.x (Opus 4.8·Sonnet 4.6·Haiku 4.5) — 모델별 사고 방식·effort·sampling·prefill 계약, 4.x 공통 원칙
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
+
+### Google Gemini 특화
+
+- **[gemini3-patterns.md](references/gemini3-patterns.md)** Gemini 3.x (3.8·3.7·3.6 Flash, 3.5·3.1 Flash-Lite, 3.1 Pro Preview) 패턴 요약 — 모델별 사고 수준, sampling 제거, Interactions·GenerateContent 계약, 함수 결과 계약, 미디어 해상도, OpenAI 호환 계층
 
 ### Google Gemma 특화 (오픈웨이트)
 
@@ -281,6 +259,7 @@ system_prompt: |
 - [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전 세대)
 - [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
 - [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
+- [GPT-5.5 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.5-prompt-guide.md) (전전 세대) · [Using GPT-5.5 (공식, 5.5 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-5.5.md)
 - [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
@@ -289,12 +268,26 @@ system_prompt: |
 - [Fable 5.1 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) — 행동 변화 대응 스니펫 원문 수록
 - [Fable 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) — 스니펫 원문 전체 수록
 - [Opus 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) — 스캐폴딩 삭제·위임 상한·effort 역전 (Opus 5.5 가이드가 출발점으로 인정)
+- [Sonnet 5.5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-sonnet-5-5-prompt-guide.md) — API 파괴적 변경 5건·effort 재보정·`between_tools`·작업 범위 스니펫
+- [Sonnet 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-sonnet-5-prompt-guide.md) — Sonnet 4.6 대비 API 계약·문자 그대로의 지시 이행
+- [Opus 4.8 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-4-8-prompt-guide.md) — 사고 기본 꺼짐·코딩 `xhigh` 시작·서브에이전트 조절
 - [Prompting Claude Opus 5.5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5) ⭐ 최신
 - [Prompting Claude Fable 5.1 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1)
+- [Prompting Claude Sonnet 5.5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5)
 - [Prompting Claude Fable 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
 - [Prompting Claude Opus 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
+- [Prompting Claude Sonnet 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5)
+- [Prompting Claude Opus 4.8 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-4-8)
+- [Prompting best practices (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices) — 현역 모델 공통 기법 (Sonnet 4.6·Haiku 4.5는 전용 문서 없이 이 문서 기준)
 - [Introducing Claude Fable 5 (공식)](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
+
+### Google Gemini 3.x
+- [Gemini 3.x 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemini-3-prompt-guide.md) — 6개 모델 계약·API 방식별 차이·3.8 Flash 사용자 보고
+- [Gemini 3.8 Flash — Latest model (공식)](https://ai.google.dev/gemini-api/docs/latest-model)
+- [Prompt design strategies (공식)](https://ai.google.dev/gemini-api/docs/prompting-strategies)
+- [Thinking (공식)](https://ai.google.dev/gemini-api/docs/thinking)
+- [OpenAI compatibility (공식)](https://ai.google.dev/gemini-api/docs/openai)
 
 ### Google Gemma 4
 - [Gemma 4 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemma-4-prompt-guide.md) ⭐ 15섹션 + 외부 노하우

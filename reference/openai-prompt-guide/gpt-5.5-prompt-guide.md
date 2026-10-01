@@ -1,24 +1,25 @@
 # GPT-5.5 Prompting Guide
 
 > **출처**:
-> - [Prompt guidance for GPT-5.5 | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance/)
-> - [Using GPT-5.5 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model)
+> - [Using GPT-5.5 | OpenAI API (5.5 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-5.5.md) — 버전 없는 `prompt-guidance/`·`latest-model` 주소는 이제 최신 모델(GPT-6) 문서를 보여준다
+> - [GPT-5.5 모델 페이지 | OpenAI API](https://developers.openai.com/api/docs/models/gpt-5.5)
 > - [Prompt Personalities | OpenAI Cookbook](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 > - [GPT-5.5 prompting guide | Simon Willison (2026-04-25)](https://simonwillison.net/2026/Apr/25/gpt-5-5-prompting-guide/)
 >
-> **날짜**: 2026-04-26
-> **이전 버전**: [GPT-5.4 Prompting Guide](./gpt-5.4-prompt-guide.md)
+> **날짜**: 2026-04-26 (2026-10-01 공식 원문 대조로 API 예시·날짜 예외·과도한 의무 표현 정정)
+> **이전 버전**: [GPT-5.4 Prompting Guide](../archive/openai-prompt-guide/gpt-5.4-prompt-guide.md)
 
 ---
 
 ## ⚠️ 가장 먼저 알아야 할 것 (5.4 → 5.5 핵심 변화)
 
-GPT-5.5는 **5.4의 드롭인 교체가 아닌 새 모델 패밀리**로 다뤄야 한다. 공식 권고:
+GPT-5.5는 **5.2·5.4의 단순 교체가 아니라 새로 맞춰야 할 모델 패밀리**로 다뤄야 한다. 공식 권고:
 
-> "Treat it as a new model family to tune for, not a drop-in replacement."
+> "treat it as a new model family to tune for, not a drop-in replacement for `gpt-5.2` or `gpt-5.4`."
 > "Begin migration with a fresh baseline instead of carrying over every instruction from an older prompt stack."
+> "Start with the smallest prompt that preserves the product contract, then tune reasoning effort, verbosity, tool descriptions, and output format against representative examples."
 
-기존 5.4 프롬프트를 그대로 가져오면 5.5의 효율 향상을 활용하지 못하고, 오히려 과도한 절차 지시 때문에 추론 토큰을 낭비한다. 옛 프롬프트의 효과성은 5.5에서 보장되지 않는다.
+기존 5.4 프롬프트를 그대로 가져오면 5.5의 효율 향상을 활용하지 못하고, 오히려 과도한 절차 지시 때문에 추론 토큰을 낭비할 수 있다. 옛 프롬프트의 효과성은 5.5에서 보장되지 않으므로 검증 없이 호환을 가정하지 않는다.
 
 ### 한 페이지 변화 요약
 
@@ -26,14 +27,14 @@ GPT-5.5는 **5.4의 드롭인 교체가 아닌 새 모델 패밀리**로 다뤄�
 |------|---------|------|
 | 프롬프트 철학 | Output contract + 단계별 절차 명시 | **Outcome-first**, 목표·성공 기준 정의 후 경로는 모델이 선택 |
 | Reasoning effort 기본 | 작업 형태별 매트릭스 | **`medium` 권장 출발점**, 많은 워크로드는 `low`도 충분 |
-| Verbosity | 별도 권장 없음 | **`text.verbosity = "low"` 권장** |
-| Personality 정의 | 통합 personality 블록 | **Personality + Collaboration Style 분리** (각 1-2문단) |
-| Markdown | 절제 권고 | **plain prose 기본**, 헤더·불릿 sparingly |
+| Verbosity | 별도 권장 없음 | API 기본 `medium`, **간결한 응답에는 `low`가 나은 출발점** |
+| Personality 정의 | 통합 personality 블록 | **Personality + Collaboration Style 분리** (둘 다 짧게) |
+| Markdown | 절제 권고 | **일반 대화·설명은 평문 단락 기본**, 헤더·불릿 sparingly |
 | Retrieval | research_mode 3-pass | **명시적 stopping conditions** (`<retrieval_budget>`) |
-| 출력 스키마 | 프롬프트 + 검증 | **Structured Outputs API로 강제** 권장 |
-| Image detail 기본 | `high` | **`original`** (computer use 정확도 향상) |
-| 마이그레이션 | 5.2 → 5.4 드롭인 가능 | **❌ 드롭인 금지**, fresh baseline 재구성 |
-| Anti-pattern | - | `ALWAYS`/`NEVER` 남용, "First A then B" 단계 명령, 옛 프롬프트 이월 |
+| 출력 스키마 | 프롬프트 + 검증 | **가능하면 Structured Outputs** |
+| 이미지 `detail` 미지정·`auto` | `high` 동작 | **`original` 동작** (computer use 정확도 향상) |
+| 마이그레이션 | 5.2 → 5.4 단순 교체 | **검증 없는 단순 교체를 가정하지 않음**, 최소 프롬프트로 새 기준선 |
+| Anti-pattern | - | 불필요한 `ALWAYS`/`NEVER`, "First A then B" 단계 명령, 옛 프롬프트 이월 |
 
 ---
 
@@ -76,11 +77,13 @@ GPT-5.5는 동일 reasoning effort에서 **이전 모델보다 적은 reasoning 
 
 **이전 매트릭스(5.4)와의 차이**: 5.4는 `none`을 실행 중심, `medium`을 연구 중심으로 작업 형태로 분류했지만, 5.5는 `medium`을 디폴트로 두고 거기서 작업 형태에 따라 위아래로 조정하는 접근. 5.5는 효율 향상 덕에 `low` 평가가 먼저 와야 한다.
 
-Reasoning effort를 올리기 전에 먼저 추가할 것 (5.4에서 유지):
-1. `<completeness_contract>` (완성도 계약)
-2. `<verification_loop>` (검증 루프)
-3. `<tool_persistence_rules>` (도구 지속성 규칙)
-4. `<retrieval_budget>` (검색 예산) — 5.5 신규
+공식 문서는 effort가 높다고 자동으로 나아지지 않는다고 경고한다. 지시가 충돌하거나 중단 기준이 약하거나 도구 접근이 열려 있으면 높은 effort가 과잉 사고, 불필요한 검색, 출력 품질 저하로 이어질 수 있다("Higher reasoning effort isn't automatically better.").
+
+그래서 effort를 올리기 전에 관찰된 실패에 맞는 지시만 보완하고 비교한다. 블록을 한꺼번에 넣지 않는다. 후보:
+1. `<completeness_contract>` (완성도 계약) — 항목 누락이 보일 때
+2. `<verification_loop>` (검증 루프) — 검증 없이 끝낼 때
+3. `<tool_persistence_rules>` (도구 지속성 규칙) — 도구 호출을 일찍 멈출 때
+4. `<retrieval_budget>` (검색 예산) — 검색이 과하거나 부족할 때 (5.5 신규)
 
 ---
 
@@ -89,7 +92,8 @@ Reasoning effort를 올리기 전에 먼저 추가할 것 (5.4에서 유지):
 5.5는 `text.verbosity` 파라미터를 의도적으로 사용할 것을 권장.
 
 - **API 기본값**: `medium`
-- **권장 출발점**: `low` (대부분의 응답 시나리오에서 더 적합)
+- **간결한 응답의 출발점**: `low`가 나은 경우가 많다("`low` is often a better starting point for concise responses"). 5.5의 `low`는 5.4의 `low`보다 비례적으로 더 짧다
+- 최종 답 길이는 추론 품질과 별개로 다룬다. 단어 수, 섹션 수, 표 너비, JSON 전용 출력처럼 필요한 길이 조건을 명시
 - 응답이 짧아도 핵심 추론·증거·완료 체크는 누락시키지 말 것
 
 ```xml
@@ -108,7 +112,9 @@ Reasoning effort를 올리기 전에 먼저 추가할 것 (5.4에서 유지):
 
 5.5의 가장 큰 변화. **절차를 미세하게 명령하는 대신 목표·성공 기준·제약을 정의하고 경로 선택은 모델에 맡긴다.**
 
-> "Shorter, outcome-first prompts usually work better than process-heavy prompt stacks."
+> "GPT-5.5 works best when prompts define the outcome and leave room for the model to choose an efficient solution path. Compared with earlier models, you can often use shorter, more outcome-oriented prompts"
+
+정확한 경로 자체가 제품 요구이면 단계를 지시해도 된다("Avoid step-by-step process guidance unless the exact path matters.").
 
 ### 3.1 시스템 프롬프트 권장 구조
 
@@ -156,13 +162,14 @@ make up information. ALWAYS use bullet lists. ...
 ```
 
 > "Avoid carrying over every instruction from an older prompt stack."
-> 진정한 불변(safety/honesty/privacy)에만 `ALWAYS`/`NEVER` 사용. 형식·스타일에는 사용하지 말 것.
+
+`ALWAYS`·`NEVER`·`must`·`only`는 진짜 불변 조건에 쓴다. 공식 예시는 안전 규칙, 필수 출력 필드, 절대 일어나면 안 되는 행동이다("Use those words for true invariants, such as safety rules, required output fields, or actions that should never happen."). 언제 검색할지, 언제 되물을지, 도구를 쓸지, 계속 반복할지 같은 판단에는 결정 규칙을 쓴다.
 
 ---
 
 ## 4. Personality + Collaboration Style 분리 (5.5 신규)
 
-5.5는 **personality**(어떻게 들리는가)와 **collaboration style**(어떻게 일하는가)을 명시적으로 분리할 것을 권장. 각각 1-2문단 이내.
+5.5는 **personality**(어떻게 들리는가)와 **collaboration style**(어떻게 일하는가)을 명시적으로 분리할 것을 권장. 공식 권고는 "Keep both short."이고, 어느 쪽도 목표·성공 기준·도구 규칙·중단 조건을 대신하지 않는다. 기본 문체가 효율적·직접적이므로 고객 대면·지원·코칭·대화형 제품에서 특히 필요하다.
 
 ### 4.1 Personality 분류 (Cookbook prompt_personalities 4종)
 
@@ -175,15 +182,24 @@ make up information. ALWAYS use bullet lists. ...
 
 ### 4.2 Personality 블록 예시 (Steady Task-Focused)
 
-```xml
-<personality>
-You are a capable collaborator: approachable, steady, and direct.
-Assume the user is competent and acting in good faith. Stay concise
-without becoming curt. Use mild warmth, no flattery, no apology spam.
-</personality>
+공식 예시 원문:
+
+```text
+# Personality
+You are a capable collaborator: approachable, steady, and direct. Assume the user is competent and acting in good faith, and respond with patience, respect, and practical helpfulness.
+
+Prefer making progress over stopping for clarification when the request is already clear enough to attempt. Use context and reasonable assumptions to move forward. Ask for clarification only when the missing information would materially change the answer or create meaningful risk, and keep any question narrow.
+
+Stay concise without becoming curt. Give enough context for the user to understand and trust the answer, then stop. Use examples, comparisons, or simple analogies when they make the point easier to grasp. When correcting the user or disagreeing, be candid but constructive. When an error is pointed out, acknowledge it plainly and focus on fixing it.
+
+Match the user's tone within professional bounds. Avoid emojis and profanity by default, unless the user explicitly asks for that style or has clearly established it as appropriate for the conversation.
 ```
 
+공식 문서에는 표현력 있는 협업형 예시("Adopt a vivid conversational presence...")도 있다. 표현력을 더할 때도 블록은 짧게 두고, 불분명한 목표를 personality로 메우지 않는다.
+
 ### 4.3 Collaboration Style 블록 예시
+
+레포 적용 예시(공식 원문 아님):
 
 ```xml
 <collaboration_style>
@@ -191,7 +207,7 @@ without becoming curt. Use mild warmth, no flattery, no apology spam.
   ambiguous and proceeding would waste effort or cause harm.
 - For everything else, choose the most reasonable interpretation,
   state your assumption in one line, and proceed.
-- Validate work via tools (tests, lint, build) before declaring done.
+- Run the most relevant validation available before declaring done.
 - Surface blockers early; do not silently swap to a worse approach.
 </collaboration_style>
 ```
@@ -207,30 +223,32 @@ without becoming curt. Use mild warmth, no flattery, no apology spam.
 
 ## 5. Retrieval Budget / Stopping Conditions (5.5 강조)
 
-5.5는 너무 많이 검색하거나 너무 일찍 멈추는 양극단을 모두 피하기 위해 **명시적 retrieval budget**을 권장.
+5.5는 너무 많이 검색하거나 너무 일찍 멈추는 양극단을 모두 피하기 위해 **명시적 retrieval budget**을 권장. 공식 문서는 이를 "검색의 중단 규칙"으로 설명한다("Retrieval budgets are stopping rules for search."). 공식 예시 원문:
 
-```xml
-<retrieval_budget>
-For ordinary Q&A, start with one broad search.
+```text
+For ordinary Q&A, start with one broad search using short, discriminative keywords. If the top results contain enough citable support for the core request, answer from those results instead of searching again.
 
 Make another retrieval call only when:
-- the core question is not yet answered,
-- a required fact, parameter, or identifier is missing,
-- the user explicitly asked for comprehensive coverage, or
-- a contradiction between sources needs to be resolved.
+- The top results do not answer the core question.
+- A required fact, parameter, owner, date, ID, or source is missing.
+- The user asked for exhaustive coverage, a comparison, or a comprehensive list.
+- A specific document, URL, email, meeting, record, or code artifact must be read.
+- The answer would otherwise contain an important unsupported factual claim.
 
-Use the minimum evidence sufficient to answer correctly, cite it
-precisely, then stop.
-</retrieval_budget>
+Do not search again to improve phrasing, add examples, cite nonessential details, or support wording that can safely be made more generic.
 ```
 
-**원칙**: "Resolve the user query in the fewest useful tool loops, but do not let loop minimization outrank correctness."
+**원칙**: "Resolve the user query in the fewest useful tool loops, but do not let loop minimization outrank correctness, accessible fallback evidence, calculations, or required citation tags for factual claims."
+
+각 결과 뒤에 묻게 한다: "After each result, ask: 'Can I answer the user's core request now with useful evidence and citations for the factual claims?' If yes, answer." 증거가 없다는 사실을 곧바로 "아니다"라는 사실 판단으로 바꾸지 않는다("Absence of evidence shouldn't automatically become a factual 'no.'"). 증거 부족 시 동작: "Use the minimum evidence sufficient to answer correctly, cite it precisely, then stop."
+
+창작형 초안(슬라이드, 출시 문구, 고객 요약 등)은 출처로 뒷받침할 사실과 자유롭게 써도 되는 표현을 구분하게 한다. 근거가 부족하면 지어낸 구체 수치 대신 자리표시자나 가정을 밝힌 일반 초안을 쓰게 한다(공식 "Creative drafting guardrails").
 
 ---
 
 ## 6. Core Prompt Patterns (5.4에서 유지, outcome-first 프레임 안에 배치)
 
-5.4 가이드의 패턴은 5.5에서도 유효하다. 단 **outcome-first 프레임 안에 들어가야** 하며, 단계별 명령으로 변질되어선 안 된다.
+5.4 가이드의 패턴은 5.5에서도 쓸 수 있다. 단 **outcome-first 프레임 안에 들어가야** 하며, 단계별 명령으로 변질되어선 안 된다. 이 절과 §7.2~§12의 블록은 5.4 세대 적용 예시이고 5.5 공식 문서의 권장문이 아니므로, 관찰된 실패에 맞는 것만 골라 쓴다.
 
 ### 6.1 Output Contract
 
@@ -291,16 +309,29 @@ All earlier instructions still apply unless they conflict with this update.
 
 ### 7.1 출력 검증을 도구로 (5.5 강조)
 
-```xml
-<tool_validation>
-- Use tools that let you check your own outputs whenever possible.
-- For coding agents: run unit tests, lint, build checks before declaring done.
-- For visual artifacts: render and inspect for layout, clipping, spacing.
-- For numeric outputs: re-derive or sanity-check via calculation tool.
-</tool_validation>
+> "Give GPT-5.5 access to tools that let it check outputs when validation is possible."
+
+모든 검사를 매번 강제하지 않고 변경과 관련된 검증을 고르게 한다. 공식 예시 원문(코딩 에이전트):
+
+```text
+After making changes, run the most relevant validation available:
+- targeted unit tests for changed behavior
+- type checks or lint checks when applicable
+- build checks for affected packages
+- a minimal smoke test when full validation is too expensive
+
+If validation cannot be run, explain why and describe the next best check.
 ```
 
-> "Give GPT-5.5 access to tools that let it check outputs."
+시각 산출물:
+
+```text
+Render the artifact before finalizing. Inspect the rendered output for layout, clipping, spacing, missing content, and visual consistency. Revise until the rendered output matches the requirements.
+```
+
+구현 계획은 요구사항별 반영 위치, 관련 파일·API, 상태 전이, 검증 명령, 실패 동작, 개인정보·보안 고려, 구현에 영향을 주는 열린 질문을 담게 하면 추적하기 쉽다(공식 예시).
+
+도구별 지침은 대부분 도구 설명 자체에 둔다(무엇을 하는지, 언제 쓰는지, 필수 입력, 부작용, 재시도 안전성, 흔한 오류). 시스템 지시에는 여러 도구에 걸치거나 운영 정책을 바꾸는 내용만 넣는다.
 
 ### 7.2 Tool Persistence Rules
 
@@ -407,15 +438,15 @@ Before finalizing:
 
 ### 9.1 Vision and Computer Use (5.5 변경)
 
-이미지 상세도 기본값이 `high` → **`original`**로 변경 (computer use 정확도 향상 목적).
+`detail`은 최상위 파라미터가 아니라 **이미지 입력 항목마다** 지정한다(`{"type": "input_image", "image_url": ..., "detail": "high"}`). 생략하면 `auto`다. 5.4에서는 `auto`가 `high`와 같은 크기 처리였고, 5.5에서는 **`original`과 같은 크기 처리**로 바뀌었다(computer use 정확도 향상 목적).
 
-| 값 | 사용처 | 토큰 영향 |
+| 값 | 5.5 크기 처리 | 사용처 |
 |-----|--------|----------|
-| `original` | **5.5 기본값**. 컴퓨터 사용, OCR, 클릭 정확도, 대형/밀집 이미지 | 많음 |
-| `high` | 표준 고충실도 이해 (일반 차트·문서 분석) | 중간 |
-| `low` | 속도/비용이 상세도보다 중요할 때만 | 적음 |
+| `original` (미지정·`auto` 포함) | 최대 10,240,000픽셀 또는 한 변 6,000픽셀까지 축소 없이 | 컴퓨터 사용, OCR, 좌표가 중요한 작업, 대형·밀집 이미지 |
+| `high` | 최대 2,500,000픽셀 또는 한 변 2,048픽셀까지 축소 없이 | 원본 좌표가 필요 없는 표준 고충실도 이해 |
+| `low` | 한 변 512픽셀을 넘으면 이전 모델보다 강하게 축소 | 대략적인 이해, 컨텍스트 효율 |
 
-> 5.5에서 `original` 디폴트는 토큰 사용이 늘어날 수 있다. **단순 차트·문서 분석에서는 `high` 명시 권장.** 컴퓨터 사용 워크플로우는 그대로 두면 됨.
+> `original` 동작은 토큰 사용을 늘릴 수 있다. 일반 차트·문서에서 `high`나 `low`로 낮출지는 그 이미지에서 품질과 토큰을 비교해 정한다. 공식 문서는 `low`가 모델에 따라 항상 `high`보다 토큰을 적게 쓰지는 않는다고 적는다. 컴퓨터 사용 워크플로는 그대로 둔다.
 
 ### 9.2 Research and Citations
 
@@ -448,7 +479,7 @@ Before finalizing:
 
 ### 9.3 Structured Output (5.5 강조)
 
-5.5는 **출력 스키마를 프롬프트로 지시하지 말고 Structured Outputs API로 강제**할 것을 강력 권장.
+공식 권고는 **가능하면 출력 스키마 정의를 프롬프트에서 빼고 Structured Outputs를 쓰는 것**이다("Remove output schema definitions from the prompt where possible."). 스키마 없이 형식만 지켜야 하는 경우의 보조 지시:
 
 ```xml
 <structured_output_contract>
@@ -461,7 +492,9 @@ Before finalizing:
 </structured_output_contract>
 ```
 
-> 가능하면 시스템 프롬프트에서 스키마 지시를 빼고 `response_format: { type: "json_schema", json_schema: { ... } }`로 강제. 프롬프트 토큰 절약 + 정확도 향상 + 검증 자동화.
+스키마는 API로 지정한다. Responses API는 `text.format`(`text={"format": {"type": "json_schema", "name": ..., "strict": True, "schema": {...}}}`), Chat Completions는 `response_format`이다. Responses 요청에 `response_format`을 넣는 것은 흔한 이전 실수다.
+
+> 지원하는 스키마로 정상 완료된 출력은 형식이 강제된다. 다만 "Structured Outputs can still contain mistakes."이므로 거절과 불완전 응답(최대 토큰 도달)을 따로 처리하고, 값의 의미와 업무 조건은 별도로 검증한다. 프롬프트의 중복 스키마 설명은 줄일 수 있지만 총 입력 토큰 절약을 보장하지는 않는다.
 
 ### 9.4 Bounding Box Extraction
 
@@ -479,25 +512,19 @@ Before finalizing:
 
 ## 10. Markdown / Formatting (5.5 강조)
 
-5.5는 markdown 절제를 강하게 권장.
+5.5는 출력 형식·구조 지시를 잘 따른다("GPT-5.5 is highly steerable on output format and structure."). 그 통제력은 이해나 제품 적합성을 높일 때 쓰고, 무거운 구조는 이해를 돕거나 UI가 안정된 산출물을 요구할 때만 쓴다. 공식 예시 원문(평문 대화형 형식):
 
-> "Let formatting serve comprehension. Use plain paragraphs as default."
+```text
+Let formatting serve comprehension. Use plain paragraphs as the default format for normal conversation, explanations, reports, documentation, and technical writeups. Keep the presentation clean and readable without making the structure feel heavier than the content.
 
-```xml
-<formatting_policy>
-- Default to plain prose. Use headers, bullets, and bold sparingly.
-- Use markdown only when it materially improves comprehension
-  (true list, side-by-side comparison, hierarchical reference).
-- Respect formatting preferences stated by the user.
-- For editing/summarization tasks, preserve the requested artifact's
-  length, structure, and genre first.
-</formatting_policy>
+Use headers, bold text, bullets, and numbered lists sparingly. Reach for them when the user requests them, when the answer needs clear comparison or ranking, or when the information would be harder to scan as prose. Otherwise, favor short paragraphs and natural transitions.
+
+Respect formatting preferences from the user. If they ask for a terse answer, minimal formatting, no bullets, no headers, or a specific structure, follow that preference unless there is a strong reason not to.
 ```
 
-**원칙**:
-- 모든 응답을 자동으로 헤더+불릿으로 구조화하지 말 것
-- 사용자가 평문 산문체를 원하면 그대로 따를 것
-- 편집/요약 작업은 입력 artifact의 형식을 보존
+독자·길이 지시 예: "Write for a senior business audience. Keep the answer under 400 words. Use short paragraphs and only include bullets when they improve scannability. Prioritize the conclusion first, then the reasoning, then caveats."
+
+편집·요약·고객 메시지는 문체를 고치라고 하기 전에 보존할 것을 먼저 말한다: "Preserve the requested artifact, length, structure, and genre first. Quietly improve clarity, flow, and correctness. Do not add new claims, extra sections, or a more promotional tone unless explicitly requested."
 
 ---
 
@@ -535,14 +562,31 @@ to solve the user's problem.
 
 ### 11.3 Long-Task User-Visible Updates (5.5 신규)
 
-```xml
-<long_task_updates>
-- For tasks that may take significant thinking time before producing a
-  user-visible response, send a short user-visible update that
-  acknowledges the request and names the first step.
-- Keep it to one or two sentences.
-</long_task_updates>
+스트리밍 앱에서 5.5는 보이는 텍스트를 내기 전에 추론·계획·도구 준비에 시간을 쓸 수 있다. 여러 단계이거나 도구 호출이 필요하거나 장기 에이전트 작업이면 짧은 서두(preamble)로 시작하게 한다. 공식 예시 원문:
+
+```text
+Before any tool calls for a multi-step task, send a short user-visible update that acknowledges the request and states the first step. Keep it to one or two sentences.
 ```
+
+메시지 단계를 따로 노출하는 코딩 에이전트용:
+
+```text
+You must always start with an intermediary update before any content in the analysis channel if the task will require calling tools. The user update should acknowledge the request and explain your first step.
+```
+
+#### 수동 이력 재생과 `phase`
+
+`previous_response_id`를 쓰면 API가 이전 assistant 상태를 자동으로 보존한다. 애플리케이션이 assistant 출력 항목을 직접 다음 요청에 재생하면 각 항목의 원래 `phase` 값을 그대로 돌려보낸다. 공식 예시 원문:
+
+```text
+If manually replaying assistant items:
+- Preserve assistant `phase` values exactly.
+- Use `phase: "commentary"` for intermediate user-visible updates.
+- Use `phase: "final_answer"` for the completed answer.
+- Do not add `phase` to user messages.
+```
+
+서두, 반복 도구 호출, 중간 업데이트 뒤의 최종 답이 섞인 응답에서 특히 중요하다. Stateless·Zero Data Retention 흐름은 반환된 출력 항목을 매 턴 돌려보낸다.
 
 ### 11.4 Terminal Tool Hygiene
 
@@ -589,29 +633,33 @@ to solve the user's problem.
 
 ## 13. Migration Strategy: 5.4 → 5.5
 
-| 현재 설정 | 권장 GPT-5.5 시작 | 주의 |
+시작 설정 예시이며 평가로 조정한다.
+
+| 현재 설정 | GPT-5.5 시작 예시 | 주의 |
 |----------|------------------|------|
-| `gpt-5.4` (일반) | **fresh baseline 재구성** + `medium` effort + `low` verbosity | 드롭인 교체 금지 |
-| `gpt-5.4` (코딩 에이전트) | `medium` effort 유지 + outcome-first로 재구조화 + 출력 검증 도구 추가 | preambles + phase 처리 유지 |
+| `gpt-5.4` (일반) | **최소 프롬프트로 새 기준선** + `medium` effort, 짧은 응답이면 `low` verbosity | 검증 없는 단순 교체를 가정하지 않음 |
+| `gpt-5.4` (코딩 에이전트) | `medium` effort 유지 + outcome-first로 재구조화 + 관련 검증 지시 | preambles + phase 처리 유지 |
 | `gpt-5.4` (리서치 어시스턴트) | `medium` effort + retrieval budget 추가 + 단계별 절차 → outcome-first | citation 룰 유지 |
 | `gpt-5.4` (장기 에이전트) | `medium` 또는 `high` + tool persistence + completeness | xhigh는 eval로 검증 후 |
-| `gpt-4.1` / `gpt-4o` | `low` 시작, eval 퇴보 시 `medium` | 빠른 응답 유지 우선 |
+
+GPT-4.1이나 o3 같은 이전 추론 모델에서 옮길 때도 Responses API, 추론 설정, verbosity, Structured Outputs, 프롬프트 캐싱, 도구 설계, 상태 관리를 함께 점검하라는 것이 공식 안내다.
 
 ### 마이그레이션 체크리스트
 
 1. [ ] 모델명 `gpt-5.5`로 변경
-2. [ ] **fresh baseline 재구성** (옛 프롬프트 통째 이월 금지)
+2. [ ] **최소 프롬프트로 새 기준선** (옛 프롬프트를 통째로 옮기지 않음)
 3. [ ] `reasoning.effort` 디폴트 `medium`으로 시작 → eval 보고 `low`로 내릴지, `high`로 올릴지 결정
 4. [ ] `text.verbosity = "low"` 평가
-5. [ ] 출력 스키마 → Structured Outputs API로 이전
+5. [ ] 출력 스키마 → Structured Outputs로 이전 (Responses는 `text.format`, Chat Completions는 `response_format`)
 6. [ ] 단계별 절차("First A then B") → outcome-first goal/success_criteria로 재작성
-7. [ ] Personality + Collaboration Style 분리 (각 1-2문단)
+7. [ ] Personality + Collaboration Style 분리 (둘 다 짧게)
 8. [ ] Retrieval Budget / Stop Rules 명시화
-9. [ ] Markdown 절제 정책 추가
-10. [ ] 프롬프트 캐싱 prefix/suffix 분리 검토
-11. [ ] 시스템 프롬프트에서 현재 날짜 제거 (모델이 인식)
-12. [ ] `phase` 파라미터 처리 검증
-13. [ ] Image detail 기본값(`original`)의 토큰 영향 평가, 필요 시 `high` 명시
+9. [ ] 형식 지시 정리 (평문 단락 기본, 필요한 구조만)
+10. [ ] 프롬프트 캐싱: 정적 내용은 앞, 동적 내용은 뒤, 공유 접두부에 고정 `prompt_cache_key`
+11. [ ] 현재 UTC 날짜를 알리는 중복 지시만 제거. 업무 시간대·정책 발효일·사용자 현지 날짜처럼 작업 의미를 정하는 날짜는 유지
+12. [ ] `phase` 처리 검증: `previous_response_id`를 쓰면 API가 상태를 보존, assistant 항목을 직접 재생하면 원래 `phase`(`commentary`·`final_answer`)를 그대로 돌려보내고 user 메시지에는 넣지 않음
+13. [ ] 이미지 `detail` 미지정·`auto`가 `original` 동작으로 바뀐 영향 평가, 필요하면 항목별로 `high` 지정
+14. [ ] Chat Completions에서 도구를 호출하면 `reasoning_effort: "none"`이어야 함(GPT-5.4부터). 추론·도구·다중 턴은 Responses로
 
 ### 자동 마이그레이션 도구
 
@@ -642,17 +690,17 @@ to solve the user's problem.
 GPT-5.5는 다음일 때 최적 성능:
 
 1. **Outcome-first**: 절차가 아닌 목표·성공 기준·제약·중단 조건으로 정의
-2. **Personality + Collaboration Style 분리**, 각 1-2문단
+2. **Personality + Collaboration Style 분리**, 둘 다 짧게
 3. **Reasoning effort `medium` 기본**, eval 보고 조정
-4. **Verbosity `low`** 시작, 응답 컴팩트하게
-5. **출력 검증 도구** 적극 활용 (테스트·린트·렌더링·재계산)
+4. **간결한 응답이면 Verbosity `low`** (API 기본 `medium`)
+5. **출력 검증 도구** 활용 (변경과 관련된 검증을 고르게)
 6. **Retrieval budget** 명시화로 eagerness 양극단 회피
-7. **Markdown 절제**, 평문 기본
-8. **Structured Outputs API**로 스키마 강제
-9. **Fresh baseline에서 마이그레이션**, 5.4 프롬프트 그대로 사용 금지
-10. **Image detail은 5.5 기본 `original`**, 컴퓨터 사용이 아니면 `high` 명시 검토
+7. **형식은 이해를 돕는 만큼**, 일반 대화·설명은 평문 단락 기본
+8. **가능하면 Structured Outputs**로 스키마 지정 (Responses는 `text.format`)
+9. **최소 프롬프트로 새 기준선**, 5.4 프롬프트를 검증 없이 그대로 쓰지 않음
+10. **이미지 `detail` 미지정·`auto`는 5.5에서 `original` 동작**, 컴퓨터 사용이 아니면 항목별 `high` 비교
 
-**가장 높은 레버리지 변경**: outcome-first 재구조화, personality/collaboration 분리, fresh baseline 마이그레이션.
+**가장 높은 레버리지 변경**: outcome-first 재구조화, personality/collaboration 분리, 최소 프롬프트 기준선 마이그레이션.
 
 ---
 
@@ -721,10 +769,14 @@ You are <one sentence role>.
 response = client.responses.create(
     model="gpt-5.5",
     reasoning={"effort": "medium"},      # 출발점
-    text={"verbosity": "low"},           # 출발점
-    response_format={                    # 스키마는 프롬프트가 아닌 API로
-        "type": "json_schema",
-        "json_schema": { ... }
+    text={
+        "verbosity": "low",              # 짧은 응답이 필요할 때 (API 기본 medium)
+        "format": {                      # 스키마는 프롬프트가 아닌 API로 (Responses는 text.format)
+            "type": "json_schema",
+            "name": "<schema_name>",
+            "strict": True,
+            "schema": { ... },
+        },
     },
     input=[ ... ],
     tools=[ ... ],
@@ -735,8 +787,11 @@ response = client.responses.create(
 
 ## Sources
 
-- [Prompt guidance for GPT-5.5 | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance/)
-- [Using GPT-5.5 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model)
+- [Using GPT-5.5 | OpenAI API (5.5 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-5.5.md)
+- [GPT-5.5 모델 페이지 | OpenAI API](https://developers.openai.com/api/docs/models/gpt-5.5)
+- [Structured Outputs | OpenAI API](https://developers.openai.com/api/docs/guides/structured-outputs)
+- [Migrate to the Responses API | OpenAI API](https://developers.openai.com/api/docs/guides/migrate-to-responses)
+- [Images and vision | OpenAI API](https://developers.openai.com/api/docs/guides/images-vision)
 - [Prompt Personalities | OpenAI Cookbook](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 - [GPT-5.5 prompting guide | Simon Willison (2026-04-25)](https://simonwillison.net/2026/Apr/25/gpt-5-5-prompting-guide/)
-- [GPT-5.4 Prompting Guide (이전 버전 비교)](./gpt-5.4-prompt-guide.md)
+- [GPT-5.4 Prompting Guide (이전 버전 비교)](../archive/openai-prompt-guide/gpt-5.4-prompt-guide.md)
