@@ -104,7 +104,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 스킬 | `.claude/skills/` | `~/.agents/skills` 링크 | `~/.gemini/config/skills` 링크 |
 | 모델·effort | 기본값 추종(서브에이전트만 Opus 강제) | 기본값 추종 | 기본값 추종 |
 | 상태줄 | `statusline-command.sh` | `[tui].status_line` 내장 항목 | `cli/statusline-command.sh` |
-| 검증 버전 | 2.1.280 | 0.156.1 | `agy` 1.1.27~1.1.28 (IDE 층 미검증) |
+| 검증 버전 | 2.1.286 | 0.159.3 | `agy` 1.1.27~1.1.28 (IDE 층 미검증) |
 
 ## 📁 디렉토리 구조
 

@@ -32,7 +32,7 @@ Anthropic
 | **엔드포인트** | `/v1/responses` | `/v1/messages` |
 | **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
 | **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
-| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. Astra는 `none`·`minimal` 미지원 → 5.6에서 none 쓰던 곳은 `low`부터, Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·Opus 5.5는 항상 켜짐, Opus 5.5 기본 effort `medium`, `budget_tokens`는 구모델 전용) |
+| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. Astra·6.1 Sol은 `none`·`minimal` 미지원이고 도구 호출은 Responses 전용 → 5.6에서 none 쓰던 곳은 `low`부터, 6 Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·Opus 5.5는 항상 켜짐, Opus 5.5 기본 effort `medium`, `budget_tokens`는 구모델 전용) |
 | **스트리밍** | `stream: true` | `stream: True` |
 | **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 |
 
@@ -86,8 +86,8 @@ Anthropic
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
-- [GPT-6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — Astra·Sol·Luna 제품군, effort 단계·제거 파라미터·272K 요율·Codex 기본 모델
-- [GPT-6 Astra 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-astra) · [GPT-6 Sol 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-sol) · [GPT-6 Luna 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-luna)
+- [GPT-6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — Astra·6.1 Sol·6 Sol·Luna 제품군, effort 단계·제거 파라미터·272K 요율·Codex 기본 모델
+- [GPT-6 Astra 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-astra) · [GPT-6.1 Sol 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [GPT-6 Sol 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-sol) · [GPT-6 Luna 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-luna)
 - [Using the latest model](https://developers.openai.com/api/docs/guides/latest-model)
 - [Prompt guidance](https://developers.openai.com/api/docs/guides/prompt-guidance)
 - [GPT-5.6 풀 정리 (한국어)](../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) (이전 세대) — 3티어 스펙·가격·신규 파라미터

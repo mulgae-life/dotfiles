@@ -8,10 +8,13 @@
 > - [Effort | Anthropic](https://platform.claude.com/docs/en/build-with-claude/effort)
 > - [Refusals and fallback | Anthropic](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback)
 > - [Claude Opus 5.5 system prompts | Anthropic](https://platform.claude.com/docs/en/release-notes/system-prompts/claude-opus-5-5)
-> - [What a task costs on Opus 5.5 | Claude Blog](https://claude.com/blog/what-a-task-costs-on-opus-5-5)
+> - [What a task costs on Opus 5.5 | Claude Blog](https://claude.dev/blog/what-a-task-costs-on-opus-5-5/) (9/25 개정판)
+> - [Using Claude Code: Spending your effort | Claude Blog](https://claude.dev/blog/spending-your-effort/)
+> - [Optimizing for cost and intelligence | Anthropic](https://platform.claude.com/docs/en/about-claude/models/optimizing-for-cost-and-intelligence)
+> - [Prompt caching | Claude Code](https://code.claude.com/docs/en/prompt-caching)
 >
-> **날짜**: 2026-09-23
-> **관련 조사**: [research-opus55-gpt6-sol.md](../research/research-opus55-gpt6-sol.md) · **자매 가이드**: [Claude Opus 5](./claude-opus-5-prompt-guide.md) · [Claude Fable 5.1](./claude-fable-5-1-prompt-guide.md)
+> **날짜**: 2026-09-23 (2026-10-01 갱신)
+> **관련 조사**: [research-opus55-gpt6-sol.md](../research/research-opus55-gpt6-sol.md) · [research-opus55-sol61.md](../research/research-opus55-sol61.md) · **자매 가이드**: [Claude Opus 5](./claude-opus-5-prompt-guide.md) · [Claude Fable 5.1](./claude-fable-5-1-prompt-guide.md)
 
 Claude Opus 5.5 특화 프롬프팅 가이드입니다. 프롬프트 스니펫은 공식 문서 원문(영문)을 그대로 수록했습니다 — 시스템 프롬프트에 바로 붙여 쓰는 용도이므로 번역하지 않습니다.
 
@@ -61,7 +64,7 @@ Claude Opus 5.5 특화 프롬프팅 가이드입니다. 프롬프트 스니펫�
 - **의사소통**: 작업 중 업데이트와 마지막 요약이 무엇을 했고 무엇을 찾았으며 사용자에게 무엇이 필요한지를 분명하게 말합니다.
 - **차트, 도식, 스크린샷, 컴퓨터 사용**: 가장 낮은 effort에서도 Opus 5 최고 effort보다 조밀한 차트의 값을 정확하게 읽었고, 출력 토큰은 그 일부만 썼습니다. 화살표가 어느 상자를 잇는지처럼 위치가 뜻을 정하는 자료도 더 잘 읽습니다. 컴퓨터 사용(computer use)에서는 기본 effort로 Opus 5가 훨씬 높은 effort에서야 낸 성공률에 도달했습니다.
 
-**Claude Code**: 2.1.280 이상이 필요하고, 이 버전부터 `opus` 별칭이 Opus 5.5를 가리킵니다. 사용자 settings 최상위 `effortLevel`은 Opus 5.5에 적용되지 않으므로, 다른 경로로 정하지 않으면 `medium`으로 시작합니다. 세션 사고 토글과 `alwaysThinkingEnabled`, `MAX_THINKING_TOKENS=0`은 Opus 5.5에서 효과가 없습니다. 세부는 [조사 문서 2.4절](../research/research-opus55-gpt6-sol.md#24-claude-code-적용)에 있습니다.
+**Claude Code**: 2.1.280 이상이 필요하고, 이 버전부터 `opus` 별칭이 Opus 5.5를 가리킵니다. 사용자 settings 최상위 `effortLevel`은 Opus 5.5에 적용되지 않으므로, 다른 경로로 정하지 않으면 `medium`으로 시작합니다. 세션 사고 토글과 `alwaysThinkingEnabled`, `MAX_THINKING_TOKENS=0`은 Opus 5.5에서 효과가 없습니다. API 키나 Claude 구독으로 쓰면 `/effort` 변경이 프롬프트 캐시를 유지하고 확인 없이 바로 적용됩니다. Amazon Bedrock, Google Cloud Agent Platform, Claude apps gateway, `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` 설정, HIPAA 구성에서는 예외로 캐시가 지워집니다. 세부는 [조사 문서 2.4절](../research/research-opus55-gpt6-sol.md#24-claude-code-적용)에 있습니다.
 
 ## 증상별 찾아가기
 
@@ -96,13 +99,15 @@ Claude Opus 5.5 특화 프롬프팅 가이드입니다. 프롬프트 스니펫�
 
 반대로 같은 레벨 안에서는 Opus 5.5가 Opus 5보다 턴마다 더 많이 생각하며, `xhigh`와 `max`에서 그 차이가 가장 큽니다. Opus 5용 값을 유지하면 턴이 길어지고 출력 토큰이 늘어납니다. 공식 가이드가 제시하는 조정은 세 가지입니다.
 
-- **`max_tokens`를 넉넉하게 잡습니다.** 사고 토큰은 사고 내용이 반환되지 않아도 `max_tokens`에 포함됩니다. Opus 5에서 thinking을 끄고 쓰던 크기라면 응답이 잘릴 수 있습니다. 에이전트 코딩의 긴 턴에서는 모델 최대치인 128,000이 Anthropic 테스트에서 잘 동작했습니다.
+- **`max_tokens`를 넉넉하게 잡습니다.** 사고 토큰은 사고 내용이 반환되지 않아도 `max_tokens`에 포함됩니다. Opus 5에서 thinking을 끄고 쓰던 크기라면 응답이 잘릴 수 있습니다. 에이전트 코딩의 긴 턴에서는 모델 최대치인 128,000이 Anthropic 테스트에서 잘 동작했습니다. 마이그레이션 가이드는 `xhigh`나 `max`라면 64K를 권장 시작값으로 적고, 비용 최적화 문서는 에이전트 작업에 64,000, 한 번 잘리는 비용이 큰 작업에 128,000을 권합니다. 같은 문서의 내부 측정에서 16,384토큰 상한은 Opus 5.5 시도의 약 1/4을 잘랐고, 잘린 시도도 과금되어 해결 과제당 비용은 64,000과 거의 같았습니다.
 - **`xhigh`와 `max`는 측정한 뒤에만 씁니다.** 원문은 "Reserve `xhigh` and `max` for work where you've measured a quality gain."입니다.
 - **사고를 줄이려면 effort부터 낮춥니다.** 공식 가이드는 effort를 낮추는 쪽이 프롬프트 지시보다 사고량과 비용과 지연을 더 확실하게 줄인다고 적습니다.
 
-대화 도중에 요청 최상위 `effort` 값을 바꾸면 프롬프트 캐시(prompt cache)가 무효화됩니다. 특정 턴만 다른 레벨로 돌리려면 메시지별 effort 변경(베타, `mid-conversation-output-config-2026-07-01`)을 씁니다. 빈 `content`와 `output_config.effort`만 담은 `role: "system"` 메시지를 넣으면 다음 `user` 턴부터 적용되고 캐시가 유지됩니다.
+API에서는 대화 도중에 요청 최상위 `effort` 값을 바꾸면 프롬프트 캐시(prompt cache)가 무효화됩니다. Claude Code의 `/effort` 변경은 이와 달리 API 키·구독에서 캐시를 유지합니다([모델 개요](#모델-개요) 아래 Claude Code 문단). 특정 턴만 다른 레벨로 돌리려면 메시지별 effort 변경(베타, `mid-conversation-output-config-2026-07-01`)을 씁니다. 빈 `content`와 `output_config.effort`만 담은 `role: "system"` 메시지를 넣으면 다음 `user` 턴부터 적용되고 캐시가 유지됩니다.
 
-비용 블로그가 Claude Code 사용자에게 주는 권고도 같은 방향입니다. 범위가 정해진 일상 작업은 `medium`으로 하고, `medium`이 막히면 `high`로 올리고, 이름 바꾸기처럼 기계적인 작업은 `low`로 합니다. 블로그는 effort를 올리기 전에 모델이 자기 작업을 확인할 수단, 예를 들어 실행할 테스트나 빌드가 있는지부터 보라고 적습니다. 시스템 카드의 FrontierCode 측정에서도 `medium`이 정점이었습니다([시스템 카드 요점](#시스템-카드-요점)). 출시 직후 3자 시험에서는 `max`가 128K 출력 한도를 추론에 모두 쓰고 결과물 없이 끝난 단발 과제 사례가 두 건 보고됐습니다([조사 문서 4.3절](../research/research-opus55-gpt6-sol.md#43-그-밖의-평가)).
+비용 블로그가 Claude Code 사용자에게 주는 권고도 같은 방향입니다. 범위가 정해진 일상 작업은 `medium`으로 하고, `medium`이 막히면 `high`로 올리고, 이름 바꾸기처럼 기계적인 작업은 `low`로 합니다. 블로그는 effort를 올리기 전에 모델이 자기 작업을 확인할 수단, 예를 들어 실행할 테스트나 빌드가 있는지부터 보라고 적고, effort를 올리고 확인 수단을 더해도 풀리지 않을 때 더 큰 모델로 옮기라고 합니다. 9/25 개정판의 Fable 5.1 전환 기준은 "If Opus 5.5 on xhigh hits the same problem twice, switch, and switch back once it's solved."입니다(9/22판은 `high` 기준). 시스템 카드의 FrontierCode 측정에서도 `medium`이 정점이었습니다([시스템 카드 요점](#시스템-카드-요점)). 출시 직후 3자 시험에서는 `max`가 128K 출력 한도를 추론에 모두 쓰고 결과물 없이 끝난 단발 과제 사례가 두 건 보고됐습니다([조사 문서 4.3절](../research/research-opus55-gpt6-sol.md#43-그-밖의-평가)).
+
+9/23 이후 나온 공식 측정도 레벨을 과제별로 시험하라는 쪽입니다. "Spending your effort"는 경험칙으로 `low`는 브레인스토밍과 쉬운 변경, `medium`은 일반 기능 구현, `high`는 검증이 중요하거나 엣지 케이스가 많은 일(기존 코드베이스의 버그 수정), `max`는 사람 없이 끝까지 맡길 어려운 문제를 꼽습니다. 근거로 든 Terminal-Bench 3.0 내부 실행에서 Opus 5.5 `high`(58.9%)는 Fable 5.1 `max`(58.0%)에 가까운 점수를 시도당 중앙값 토큰의 절반으로 냈습니다. 비용 최적화 문서의 SWE-bench Pro 부분집합 측정에서는 `high` 대비 `medium`이 약 2.5점 낮고 비용은 약 70%, `low`는 약 8점 낮고 비용은 약 1/3이었고, `low`로 돌린 뒤 실패한 13%만 `high`로 다시 돌리면 약 97%를 과제당 약 $0.17에 풀어 전부 `high`(95.3%, $0.29)보다 쌌습니다. 두 측정 모두 공개 순위표와 비교할 수 없는 내부 측정이고 측정 조건이 따로 있으므로([조사 문서 3절](../research/research-opus55-sol61.md#3-claude-opus-55-923-이후)), 설정값을 고정하는 근거가 아니라 자기 작업으로 시험할 출발점으로 씁니다.
 
 ### 안전장치 거절
 
@@ -114,19 +119,19 @@ Claude Opus 5.5 특화 프롬프팅 가이드입니다. 프롬프트 스니펫�
 - **사이버(`cyber`)**: 소스 코드에서 취약점을 찾는 작업은 허용되고, 고위험 이중 용도(dual-use) 사이버보안 활동은 허용되지 않습니다.
 - **추론 추출(`reasoning_extraction`)**: 모델의 내부 추론을 응답 텍스트에 재현하라고 미는 요청은 이 범주로 거절될 수 있으며, Opus 5에서 왔다면 새 범주입니다. 프롬프트가 응답 안에 추론을 써 내라고 요구한다면 그 지시를 지우고, `display: "summarized"`를 설정해 사고 블록에서 요약된 추론을 읽습니다.
 
-**처방**: 분기는 `content`가 아니라 `stop_reason`으로 합니다. `stop_details`의 `category`와 `explanation`은 `null`일 수 있습니다. 출력 전에 도착한 거절은 과금되지 않지만 레이트 리밋에는 포함됩니다.
+**처방**: 분기는 `content`가 아니라 `stop_reason`으로 합니다. `stop_details`의 `category`와 `explanation`은 `null`일 수 있습니다. 출력 전에 도착한 거절의 과금은 범주에 따라 갈립니다. `bio`·`frontier_llm`·`reasoning_extraction`은 실행한 모델의 요율로 과금되고, `cyber`·`general_harms`·`null`은 과금되지 않으며, 레이트 리밋에는 어느 쪽이든 포함됩니다. Opus 5에서 왔다면 새로 생긴 두 범주(`bio`, `reasoning_extraction`)가 모두 과금 범주이므로, 내부 추론을 응답에 재현하라는 지시가 부르는 거절에는 비용도 듭니다. 폴백을 쓰면 과금 대상 거절은 폴백 요청과 별도로 청구되고, 폴백 크레딧은 폴백 요청의 캐시 미스 비용만 보상합니다. 과금 범주는 바뀔 수 있으므로 [How refusals are billed](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback#how-refusals-are-billed)를 확인합니다.
 
 다른 모델로 다시 시도하려면 폴백(fallback)을 설정합니다. 서버측 폴백은 Claude API 베타이며, `fallbacks: "default"`와 `server-side-fallback-2026-07-01` 헤더를 보내면 API가 범주별 권장 모델로 같은 요청을 다시 실행합니다. Message Batches API와 Amazon Bedrock, Google Cloud, Microsoft Foundry에서는 쓸 수 없으므로 SDK 미들웨어나 직접 재시도를 씁니다. `reasoning_extraction` 거절은 서버측 폴백이 재시도하지 않고 그대로 돌려줍니다.
 
 시스템 카드 1.5절은 생물 차단을 Opus 5로, 사이버 차단을 Opus 4.8로, 프런티어 LLM 개발과 관련된 좁은 범위의 차단을 Opus 5로 폴백한다고 적었고, 모델 증류 방지 분류기(숨은 추론 추출 시도 등)는 폴백 없이 차단한다고 적었습니다. API의 기본 라우팅은 모델별로 공개되지 않으므로, 실제로 응답한 모델은 응답 최상위 `model` 필드와 `usage.iterations`의 `fallback_message` 항목으로 확인합니다.
 
-Claude Code는 생물 플래그를 Opus 5로, 사이버 플래그를 Opus 4.8로 다시 실행합니다. `switchModelsOnFlag: false`(기본 true)로 끄면 대화형 세션은 멈춰서 선택을 묻고 `claude -p`는 오류로 끝납니다. 출시 직후 후기에서 가장 많이 반복된 불만이 이 폴백이었습니다([조사 문서 5.1절](../research/research-opus55-gpt6-sol.md#51-opus-55)). 서브에이전트에게 시스템 프롬프트의 모델명 줄을 인용하게 한 요청이 차단된 사례(#96139)도 있으므로, 어떤 모델이 응답했는지는 모델에게 묻지 말고 트랜스크립트의 `model` 필드로 확인합니다.
+Claude Code는 생물 플래그를 Opus 5로, 사이버 플래그를 Opus 4.8로 다시 실행합니다. `switchModelsOnFlag: false`(기본 true)로 끄면 대화형 세션은 멈춰서 선택을 묻고 `claude -p`는 오류로 끝납니다. 출시 직후 후기에서 가장 많이 반복된 불만이 이 폴백이었습니다([조사 문서 5.1절](../research/research-opus55-gpt6-sol.md#51-opus-55)). 서브에이전트에게 시스템 프롬프트의 모델명 줄을 인용하게 한 요청이 차단된 사례(#96139)도 있습니다. 일부 Claude Code 버전에서는 `model: "opus"`로 생성한 서브에이전트가 안전 거절 뒤 다른 모델로 계속 실행됐지만 부모에게 전환 사실이 전달되지 않았다는 사용자 보고도 있습니다([#97687](https://github.com/anthropics/claude-code/issues/97687), [#98387](https://github.com/anthropics/claude-code/issues/98387)). 그러니 어떤 모델이 응답했는지는 모델에게 묻지 말고 트랜스크립트의 `message.model` 필드로 확인하고, 서브에이전트는 부모가 아니라 그 서브에이전트 트랜스크립트에서 확인합니다.
 
 ### 구모델용 지시 감사
 
 **증상**: 이전 모델에서 옮겨 온 뒤 모델이 글을 더 길게 쓰거나 같은 도구 호출을 반복합니다.
 
-**처방**: Claude Code에서 `/claude-api prompt-audit`를 실행해 구모델에 맞춰 쓴 지시를 찾습니다. 비용 블로그는 "Instructions written for an older model can make Opus 5.5 write more and repeat tool calls."라고 적고, 이 명령이 스킬과 CLAUDE.md 같은 Claude Code 설정뿐 아니라 Claude Platform에서 만드는 앱의 코드도 점검한다고 설명합니다. 마이그레이션 가이드도 권장 변경 항목에서, Opus 5 행동에 맞춰 조정한 지시가 더는 필요 없을 수 있으므로 다시 평가하라고 적습니다.
+**처방**: Claude Code에서 `/claude-api prompt-audit`를 실행해 구모델에 맞춰 쓴 지시를 찾습니다. 비용 블로그는 "Instructions written for an older model can make Opus 5.5 write more and repeat tool calls."라고 적고, 이 명령이 스킬과 CLAUDE.md 같은 Claude Code 설정뿐 아니라 Claude Platform에서 만드는 앱의 코드도 점검한다고 설명합니다. 마이그레이션 가이드도 권장 변경 항목에서, Opus 5 행동에 맞춰 조정한 지시가 더는 필요 없을 수 있으므로 다시 평가하라고 적습니다. Claude Code 2.1.283부터는 내장 명령 `/doctor prompt-audit`(별칭 `/checkup prompt-audit`)도 있습니다. 이 명령은 CLAUDE.md·스킬·에이전트·명령 파일을 구모델용 패턴 기준으로 감사하고, 낡은 경로와 명령, 서로 모순되는 지시 파일을 보고서 앞에 둡니다. Claude Code 설정은 이 명령으로, API 앱의 프롬프트와 도구 설명은 `/claude-api prompt-audit`로 점검합니다.
 
 블로그가 든 사례는 Opus 4.8에서 Opus 5.5로 옮긴 내부 고객지원 벤치마크(티켓 44건)입니다. 이 벤치마크의 프롬프트에는 그런 패턴이 여러 개 들어 있었습니다. Opus 5.5 `low`로 옮기기만 해도 비용이 약 18% 줄었고, 감사를 돌리자 9%가 더 줄어 Opus 4.8 출발점보다 약 25% 낮아졌습니다. 감사가 지운 것은 여섯 단계 필수 절차, 스크래치패드 규칙, 두 번 검증하라는 규칙, 서로 모순되는 지시였습니다.
 
@@ -146,7 +151,7 @@ Messages API를 직접 호출하는 코드에 해당하는 절입니다.
 |------|------|------|
 | **thinking 끄기 불가** | `thinking: {"type": "disabled"}`와 `{"type": "enabled", "budget_tokens": N}` 모두 400. Opus 5는 `high` 이하에서 `disabled`를 받았음. 베타 헤더와 무관 | `thinking`을 생략하거나 같은 뜻인 `{"type": "adaptive"}`를 보내고, thinking을 끄던 자리에는 낮은 effort를 씀. 응답이 `thinking` 블록으로 시작할 수 있으므로 블록은 위치가 아니라 `type`으로 고르고, 도구 루프에서는 `thinking` 블록을 수정 없이 되돌려 보냄 |
 | **강제 도구 호출 불가** | `tool_choice`가 `{"type": "any"}` 또는 `{"type": "tool", "name": "..."}`이면 400이고 토큰 카운트 엔드포인트도 같음. `auto`(기본)와 `none`만 지원 | 스키마에 맞는 JSON이 필요하면 `auto`에 `strict: true`(strict tool use)를 쓰거나 structured outputs로 옮김. 텍스트 답 대신 도구를 부르게 하려면 프롬프트에 도구를 쓰는 조건을 적음 |
-| **사고 블록의 모델 결합과 대화 결합** | 5.5는 Opus 5와 이전 Opus, Sonnet, Haiku의 사고 블록을 읽지만 Fable과 Mythos의 블록은 못 읽음. Claude API에서 5.5 블록을 읽는 모델은 Fable 5.1과 Mythos 5.1뿐. 읽을 수 없는 블록은 API가 드롭(요청 성공, 과금 없음). 블록 앞의 `system`, `tools`, 이전 메시지가 바뀌면 2026-08-31 00:00 UTC 이후 생성 계정은 기본 400 | 이력을 덧붙이기만 하는(append-only) 방식으로 유지하고, 지시나 도구 변경은 대화 중 시스템 메시지(mid-conversation system message)로 함. 400 대신 드롭하려면 `thinking-binding-controls-2026-08-01` 헤더와 `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`. 이전 계정은 이 필드를 설정해야 검사가 적용됨 |
+| **사고 블록의 모델 결합과 대화 결합** | 5.5는 Opus 5와 이전 Opus, Sonnet, Haiku의 사고 블록과 Claude API의 Sonnet 5.5 사고 블록을 읽지만 Fable과 Mythos의 블록은 못 읽음. Claude API에서 5.5 블록을 읽는 모델은 Fable 5.1과 Mythos 5.1뿐. 읽을 수 없는 블록은 API가 드롭(요청 성공, 과금 없음). 블록 앞의 `system`, `tools`, 이전 메시지가 바뀌면 2026-08-31 00:00 UTC 이후 생성 계정은 기본 400 | 이력을 덧붙이기만 하는(append-only) 방식으로 유지하고, 지시나 도구 변경은 대화 중 시스템 메시지(mid-conversation system message)로 함. 400 대신 드롭하려면 `thinking-binding-controls-2026-08-01` 헤더와 `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`. 이전 계정은 이 필드를 설정해야 검사가 적용됨 |
 | **`computer_20251124` 미지원** | Claude API와 Google Cloud에서 400. Amazon Bedrock에서는 계속 동작 | `computer_toolset_20260801`로 전환. 베타 헤더를 빼고 `name`과 화면 크기 없이 선언하며, 에이전트 루프는 멤버 `tool_use` 블록(동작은 `input.action`이 아니라 블록의 `name`)을 턴당 여러 개 처리하고 결과마다 `toolset_name`을 되돌려 보냄 |
 
 오류 메시지 원문은 아래와 같습니다. `enabled`를 보냈을 때도 같은 형식으로 `"thinking.type.enabled"`가 찍힙니다.
@@ -391,20 +396,21 @@ Opus 5 → 5.5 공식 체크리스트입니다.
 3. `effort`를 명시적으로 설정합니다. 기본값은 `medium`이고 Opus 5는 `high`였습니다.
 4. `tool_choice`의 `any`와 `tool`을 `auto`로 바꾸고 strict tool use나 structured outputs를 씁니다.
 5. Claude API나 Google Cloud에서 컴퓨터 사용을 한다면 `computer_20251124` 대신 `computer_toolset_20260801`(베타 헤더 없음)을 선언하고 에이전트 루프를 도구 세트에 맞게 고칩니다. Amazon Bedrock에서는 `computer_20251124`를 유지하고, 다른 플랫폼은 컴퓨터 사용 도구 문서의 Compatibility 절을 확인합니다.
-6. 라우터나 폴백이 대화를 5.5에서 다른 모델로 옮길 수 있다면, 그 모델은 5.5의 사고 블록 없이 돈다고 예상합니다. Claude API의 Fable 5.1과 Mythos 5.1은 예외로 블록을 유지합니다. 5.5 자신은 Opus 5와 이전 Opus, Sonnet, Haiku의 사고 블록을 읽고, Fable과 Mythos의 블록은 읽지 못합니다.
+6. 라우터나 폴백이 대화를 5.5에서 다른 모델로 옮길 수 있다면, 그 모델은 5.5의 사고 블록 없이 돈다고 예상합니다. Claude API의 Fable 5.1과 Mythos 5.1은 예외로 블록을 유지합니다. 5.5 자신은 Opus 5와 이전 Opus, Sonnet, Haiku의 사고 블록과 Claude API의 Sonnet 5.5 사고 블록을 읽고, Fable과 Mythos의 블록은 읽지 못합니다.
 7. 콘텐츠 블록을 `type`으로 읽고, 도구 루프에서 `thinking` 블록을 수정 없이 되돌려 보냅니다.
 8. 도구 사이 텍스트를 렌더링하는 인터페이스라면 `display: "updates"`(베타)나 `"summarized"`를 설정하고 비어 있지 않은 `thinking` 블록을 렌더링합니다.
 9. 대화 도중에 이전 턴이나 `system` 프롬프트, `tools`를 고치는 코드라면 Preserved thinking 문서를 따릅니다.
 10. `stop_reason: "refusal"`을 처리하고 폴백을 설정합니다.
 11. 고른 effort 레벨에서 비용과 지연의 기준선을 다시 잡습니다.
+12. thinking을 끄고 쓰던 코드라면 사고와 응답 텍스트를 합친 상한인 `max_tokens`를 다시 잡습니다. `xhigh`나 `max`라면 64K에서 시작합니다.
 
 공식 권장 변경은 세 가지입니다. effort 스윕을 다시 돌려 품질이 유지되는 곳은 내리고 가장 까다로운 작업은 올립니다. 모델별 프롬프트 지시를 다시 평가합니다([구모델용 지시 감사](#구모델용-지시-감사)). 운영 트래픽을 옮기기 전에 개발 환경에서 시험합니다.
 
-**Opus 4.8에서 올 때**: Opus 5 마이그레이션 가이드의 Opus 4.8 → Opus 5 체크리스트를 먼저 적용하고 위 체크리스트를 적용합니다. 그 가이드에서 thinking을 `high` 이하에서 끌 수 있다고 한 부분은 5.5로 이어지지 않습니다.
+**Opus 5가 아닌 모델에서 올 때**: Opus 5.5 마이그레이션 가이드의 "Migration checklist by starting model"이 시작 모델별 묶음(Opus 4.8 이하, 4.7 이하, 4.6 이하, 4.5 이하, 4.1 이하, Sonnet 5)을 누적으로 적고 있으므로, 이전처럼 Opus 5 마이그레이션 가이드를 거치지 않습니다. 위 체크리스트에서 시작해 자기 모델이 나오는 묶음까지 차례로 모두 적용하고, Sonnet 5에서 오면 위 체크리스트와 마지막 Sonnet 5 묶음만 적용합니다.
 
-**Opus 4.7 이하에서 올 때**: Opus 5 마이그레이션 가이드에서 자기 모델에 해당하는 절(샘플링 파라미터 거부, 수동 extended thinking 거부, prefill 제거, 새 토크나이저)을 `claude-opus-5-5` 대상으로 적용한 뒤 위 체크리스트를 적용합니다. 그 가이드가 thinking을 끌 수 있다고 한 곳과 기존 `computer_20251124` 통합이 계속 동작한다고 한 곳은 5.5에서 다릅니다. 단 Amazon Bedrock의 `computer_20251124`는 계속 동작합니다.
-
-**Sonnet 5에서 올 때**: Opus 5 마이그레이션 가이드의 Sonnet 5 → Opus 5 절에서 모델 등급이 올라갈 때 달라지는 점을 확인한 뒤 위 체크리스트를 적용합니다.
+- **Opus 4.8 이하**: thinking 없이 돌던 워크로드는 5.5에서 사고가 켜진 채 돌므로 `max_tokens`와 effort를 다시 봅니다. 캐시 최소 길이가 512토큰으로 내려갔고, Priority Tier를 지원하지 않으므로(Opus 4.8은 지원) 약정이 있다면 용량을 따로 계획합니다. `xhigh`·`max`라면 `max_tokens`를 64K부터 잡습니다.
+- **Opus 4.7 이하**: effort 스윕을 새로 돌리고, 컨텍스트 창 베타 헤더를 지우고, 거절 처리에서 `stop_details`를 읽습니다.
+- **Opus 4.6 이하와 그 이전**: 샘플링 파라미터 제거, `budget_tokens` 대신 adaptive와 effort, 토크나이저 변경에 따른 비용과 `max_tokens` 재측정, prefill 제거(4.5 이하) 같은 항목이 더해집니다.
 
 **Claude Managed Agents**: 모델 이름만 바꾸면 됩니다.
 
@@ -421,10 +427,10 @@ Claude Code에서는 아래 명령이 모델 ID 교체와 필요한 파괴적 �
 | **전제** | 기존 Opus 5 프롬프트는 고치지 않아도 잘 동작. 처방은 증상이 관찰될 때만 추가 |
 | **파괴적 변경** | thinking 끄기 불가, 강제 `tool_choice` 400, 사고 블록의 모델 결합과 대화 결합(append-only 유지), `computer_20251124` 미지원(Bedrock 예외) |
 | **응답 모양** | 도구 사이 텍스트가 `thinking` 블록으로 오고 기본값에서 비어 있음. `display: "updates"` 베타로 수신 |
-| **effort** | `medium`에서 시작해 명시 설정하고 스윕. `xhigh`와 `max`는 측정된 이득이 있을 때만. 높은 레벨에서 `max_tokens`를 크게(128K). 사고를 줄일 때는 effort부터 |
+| **effort** | `medium`에서 시작해 명시 설정하고 스윕. `xhigh`와 `max`는 측정된 이득이 있을 때만. 높은 레벨에서 `max_tokens`를 크게(`xhigh`·`max`는 64K부터, 긴 에이전트 턴은 128K). 사고를 줄일 때는 effort부터. Claude Code의 `/effort` 변경은 API 키·구독에서 캐시 유지 |
 | **무인 루프** | 텍스트로 끝난 턴은 보고로 처리하고 체크리스트로 이어가기(두세 번 상한). 무인 추가문은 사람이 있는 환경에서 제외 |
 | **대화형 하네스** | 진행 업데이트 수단 네 가지. 리마인더는 턴 한정 시스템 메시지로 덧붙이고 두세 번에서 멈춤 |
 | **채팅 앱** | 사고 지시 제거 검토. 붙여넣은 텍스트는 `<pasted_content>` 태그와 시스템 프롬프트 노트로 표시 |
 | **작업 유형** | 조밀한 시각 입력은 해상도와 자르기 도구, 프런트엔드는 피할 패턴을 이름으로 |
-| **refusal** | `stop_reason`으로 분기하고 `fallbacks: "default"` 베타 검토. `reasoning_extraction`은 재시도되지 않음 |
-| **감사** | `/claude-api prompt-audit`로 구모델용 지시 점검. 블로그의 9% 추가 절감은 단일 벤치마크 수치 |
+| **refusal** | `stop_reason`으로 분기하고 `fallbacks: "default"` 베타 검토. `reasoning_extraction`은 재시도되지 않음. 출력 전 거절도 `bio`·`frontier_llm`·`reasoning_extraction`은 과금 |
+| **감사** | Claude Code 설정은 `/doctor prompt-audit`, API 앱은 `/claude-api prompt-audit`로 구모델용 지시 점검. 블로그의 9% 추가 절감은 단일 벤치마크 수치 |

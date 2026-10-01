@@ -10,10 +10,10 @@ OpenAI GPT와 Anthropic Claude의 프롬프트 엔지니어링 주요 차이점�
 | **파라미터** | `reasoning_effort`<br/>`verbosity` | `output_config.effort` | - |
 | **Prefilling** | ❌ 없음 | ❌ 400 에러 → Structured Outputs | - |
 | **Long Context** | 일반적 사용 | ✅ 1M(출력 128K)<br/>(문서 맨 위 배치 → 30%↑) | - |
-| **CoT** | "Think step-by-step" | "Let Claude think"<br/>3단계 (Basic/Guided/Structured) | ✅ 공통 개념 |
+| **CoT** | "Think step-by-step" (GPT 추론 모델은 추가 추론 유도 문구 생략) | thinking이 켜져 있으면 일반 지시 우선<br/>끈 경우 3단계 (Basic/Guided/Structured) | ⚠️ 모델·설정별 분기 |
 | **Examples** | Few-shot | Multishot | ✅ 동일 개념 (Frontier 0~2개, 소형 3-5개) |
 | **XML Tags** | ✅ 권장 | ✅ 권장 | ✅ 공통 |
-| **Extended Thinking** | ❌ 없음 | ✅ adaptive thinking 기본 켜짐(Opus 5.5·Fable 5.1은 끌 수 없음), `effort`로 깊이 제어 | - |
+| **Extended Thinking** | 같은 이름의 기능 없음. 추론 모델은 추론 강도 파라미터로 조절 → 6절 | ✅ adaptive thinking 기본 켜짐(Opus 5.5·Fable 5.1은 끌 수 없음), `effort`로 깊이 제어 | - |
 
 ## 상세 비교
 
@@ -89,13 +89,14 @@ prompt = """
 
 #### OpenAI
 ```yaml
-# 간단한 지시
+# 간단한 지시 (비추론 모델 기준)
+# GPT 추론 모델에는 추론 유도용으로 덧붙이는 아래 문구가 불필요. 결과의 근거 설명 요청은 별개 → reasoning-params.md
 - "Think step-by-step"
 - "Explain your reasoning"
 ```
 
 #### Anthropic
-3단계 구분:
+thinking을 끈 경우의 수동 CoT 대안입니다. Opus 5는 낮은 effort로 thinking을 켜 두기를 우선합니다. 3단계 구분:
 ```yaml
 # Basic
 - "Think step-by-step"
@@ -113,12 +114,12 @@ prompt = """
 </answer>
 ```
 
-**공통점**: 사고 과정 출력 필수
+**공통점**: 출력 방식은 모델과 thinking 설정에 따라 다르며, 결과의 근거 설명과 내부 추론 재현을 구분합니다
 
 ### 5. Extended Thinking
 
 #### OpenAI
-- ❌ 없음
+- 같은 이름의 기능은 없습니다. GPT 추론 모델의 내장 추론은 추론 강도 파라미터로 조절합니다 → 아래 6절
 
 #### Anthropic (Claude 5 세대) ⭐
 ```python
@@ -132,9 +133,9 @@ response = client.messages.create(
 ```
 
 **특징**:
-- Fable 5.1·Opus 5.5는 thinking이 상시 adaptive로 켜져 있어 `thinking` 파라미터 자체를 보내지 않습니다 (Opus 5는 effort `high` 이하에서 `disabled`로 끌 수 있음)
+- Fable 5.1·Opus 5.5는 thinking이 상시 adaptive로 켜져 있어 `thinking` 파라미터를 보낼 필요가 없습니다 (Opus 5는 effort `high` 이하에서 `disabled`로 끌 수 있음)
 - 깊이는 `output_config.effort` 한 축으로만 제어 → [claude-5-specifics.md](claude-5-specifics.md)
-- `thinking`/`budget_tokens`, `thinking: {type: "disabled"}`는 **400 에러**
+- Fable 5.1·Opus 5.5에서 `thinking: {type: "enabled", budget_tokens: N}`과 `thinking: {type: "disabled"}`는 **400 에러**입니다. Opus 5의 `disabled` 예외는 첫 항목을 따릅니다
 
 ### 6. GPT-5.x / 6 특화 파라미터
 
@@ -150,8 +151,10 @@ response = client.responses.create(
 ```
 
 **파라미터**:
-- `reasoning_effort`: 추론 깊이 — GPT-5.x·GPT-6 Sol·Luna: none/low/medium/high/xhigh/max · GPT-6 Astra: low~max(`none` 미지원)
+- `reasoning_effort`: 추론 깊이 — GPT-5.x·GPT-6 Sol·Luna: none/low/medium/high/xhigh/max · GPT-6 Astra·6.1 Sol: low~max(`none` 미지원)
 - `verbosity`: low/medium/high (응답 길이)
+
+Responses API는 `reasoning.effort`·`text.verbosity`, Chat Completions API는 `reasoning_effort`·`verbosity`를 사용합니다 (위 예제는 Responses API).
 
 #### Anthropic
 - `output_config.effort` (`low`~`max`)로 추론 깊이 제어 → [claude-5-specifics.md](claude-5-specifics.md)
@@ -248,7 +251,7 @@ response = client.messages.create(
 | **세밀한 파라미터 제어** | ✅ reasoning_effort, verbosity | ✅ output_config.effort |
 | **Prefilling** | ❌ | ❌ (400 → Structured Outputs) |
 | **Long Context 최적화** | - | ✅ 1M (30%↑) |
-| **Extended Thinking** | ❌ | ✅ |
+| **Extended Thinking** | 같은 이름 없음 (내장 추론은 추론 강도로 조절 → 6절) | ✅ |
 | **공통 기법** | ✅ XML, Few-shot, CoT | ✅ XML, Multishot, CoT |
 
 **추천**:

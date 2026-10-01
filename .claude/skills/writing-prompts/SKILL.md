@@ -31,7 +31,7 @@ OpenAI GPT, Anthropic Claude, Google Gemma 4, Alibaba Qwen 3.8 공식 가이드 
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` |
 | **Examples** | Frontier 0~2개(포맷 정렬), 소형 3-5개 | Few-shot | Multishot (동일 개념) |
 | **XML 태그** | ✅ 권장 | ✅ | ✅ |
-| **특화 파라미터** | - | `reasoning.effort` (GPT-6 Astra: `none` 미지원, low~max / Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, `image_detail` | `output_config.effort` |
+| **특화 파라미터** | - | `reasoning.effort` (GPT-6 Astra·6.1 Sol: `none` 미지원, low~max / 6 Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, `image_detail` | `output_config.effort` |
 | **Prefilling** | - | ❌ | ❌ (400 → Structured Outputs) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ |
@@ -158,16 +158,16 @@ system_prompt: |
 
 ### 플랫폼별 최적화 (선택)
 
-**OpenAI GPT-6 Astra·Sol·Luna** (최신, 권장):
-- [ ] **모델 선택**: `gpt-6-astra`(최고 성능)/`gpt-6-sol`(까다로운 작업의 강한 추론, 단가는 Astra의 1/5)/`gpt-6-luna`(반복 대량 작업). 5.6 Terra에 대응하는 티어는 없음. Codex 공식 문서는 대부분 작업을 Sol에서 시작하라고 권함
-- [ ] 아래 행동 항목(주도성~문체)은 Astra에서 관찰된 성향이 출처 — 공식 문서도 제품군 공통 출발점으로 제시하되 모델·워크로드별 평가를 요구하므로 Sol·Luna는 측정 후 채택
+**OpenAI GPT-6 Astra·6.1 Sol·Luna** (최신, 권장):
+- [ ] **모델 선택**: `gpt-6-astra`(최고 성능)/`gpt-6.1-sol`(Astra에 가까운 성능, 단가는 Astra의 1/5)/`gpt-6-luna`(반복 대량 작업). `gpt-6-sol`은 폐기 공지 없이 남아 있지만 모델 개요 페이지의 대표 목록에서 빠졌고 API 계약이 6.1 Sol과 다름. 5.6 Terra에 대응하는 티어는 없음. Codex 공식 문서는 복잡한 코딩·에이전트 작업에 계정과 클라이언트에서 쓸 수 있으면 6.1 Sol을, 가장 까다로운 작업에는 Astra를 권함
+- [ ] 아래 행동 항목(주도성~문체)은 Astra에서 관찰된 성향이 출처 — 공식 문서도 제품군 공통 출발점으로 제시하되 모델·워크로드별 평가를 요구하므로 6.1 Sol·Luna는 측정 후 채택
 - [ ] **주도성 명시**: 질문하고 멈추는 성향이 이전 세대보다 강함 → 자율 실행이 필요하면 "bias towards action, carry the task to completion" 계열 지시 추가. "can you…/help me…"는 실행 요청으로 취급하게
 - [ ] **지시 파일 모순 감사**: 긴 지시는 잘 따르지만 문맥 모순에 민감 → AGENTS.md·스킬·시스템 프롬프트 사이의 상충·낡은 문구 제거가 감량보다 우선. 사용자 지시 > 스킬 지시 우선순위 명시
 - [ ] **테스트 범위 축소**: 스스로 철저히 검증하는 성향 → "가역적·저영향 변경에 구현을 비추는 테스트 금지, 확대는 새 변경·실패가 정당화할 때만"으로 범위를 좁히는 지시(검증 강화 지시 아님)
 - [ ] **위임 명시**: 서브에이전트 병렬 위임을 학습했지만 기대보다 덜 위임 → 갈래·리더 보유 범위·대기 여부·반환 요약 형식을 프롬프트에 지정
 - [ ] **문체**: 문단 기본, 리스트는 병렬·순서·비교일 때만. 피할 표현("Bottom Line:", "delve", "leverage", "it's worth noting", "In short:") 차단
-- [ ] `reasoning.effort`: 기본 `medium`. Astra는 `low`~`max` 5단계(`none`/`minimal` 사용처는 `low`부터), Sol·Luna는 `none`~`max` 6단계. `ultra`는 Codex·ChatGPT 전용(API 값 아님)
-- [ ] **API 변경**: effort가 `none`이 아니면 `temperature`·`top_p`·`top_logprobs` 제거. 도구 호출은 Responses API(Sol·Luna만 Chat Completions에서 `reasoning_effort: "none"`일 때 함수 호출 가능), `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율
+- [ ] `reasoning.effort`: 기본 `medium`. Astra·6.1 Sol은 `low`~`max` 5단계(`none`/`minimal` 사용처는 `low`부터), 6 Sol·Luna는 `none`~`max` 6단계. `ultra`는 Codex·ChatGPT 전용(API 값 아님)
+- [ ] **API 변경**: effort가 `none`이 아니면 `temperature`·`top_p`·`top_logprobs` 제거. 도구 호출은 Responses API(6 Sol·Luna만 Chat Completions에서 `reasoning_effort: "none"`일 때 함수 호출 가능, 6.1 Sol은 Astra처럼 불가), `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율
 - [ ] 5.6 계약 구조(Goal/Success criteria/Constraints/Tools/Output/Stop rules)·pro mode·`reasoning.context`·PTC는 그대로 유효 → 아래 5.6 항목 참조
 
 **OpenAI GPT-5.6** (이전 세대):
@@ -187,7 +187,7 @@ system_prompt: |
 **Anthropic Claude Opus 5.5·Fable 5.1 / Claude 5 세대** (최신, 권장):
 - [ ] **De-prescribe**: 절차 열거 대신 목표·제약·이유 서술 (과잉 지시는 품질 저하)
 - [ ] **Prefill 금지**: 400 에러 → Structured Outputs(`output_config.format`)로 대체
-- [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발 → 추론은 `display: "summarized"` thinking 블록에서 읽기
+- [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발(출력 전 거절도 과금) → 추론은 `display: "summarized"` thinking 블록에서 읽기
 - [ ] **thinking 끄기 전제 제거** (Opus 5.5·Fable 5.1): thinking을 끌 수 없음 → "생각하지 말고 바로 답하라"류 규칙 삭제, 사고량은 effort로 조절
 - [ ] **강제 `tool_choice` 금지** (Opus 5.5·Fable 5.1): `any`/`tool`은 400 → `auto` + 지시문 + `strict: true` (`strict`는 호출 자체를 보장하지 않음)
 - [ ] **대화 이력 append-only** (Opus 5.5·Fable 5.1): 턴별 리마인더는 턴 한정 시스템 메시지로, 이력·system·tools 사후 편집 금지
@@ -273,9 +273,9 @@ system_prompt: |
 ## 참고 자료
 
 ### OpenAI
-- [GPT-6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — Astra·Sol·Luna 제품군, 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
+- [GPT-6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — Astra·6.1 Sol·6 Sol·Luna 제품군, 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
 - [Using GPT-6 — Prompt Guidance·Migration (공식)](https://developers.openai.com/api/docs/guides/latest-model) ⭐ 최신 — 제품군 공통 출발점, Astra에서 관찰된 행동 기준
-- [GPT-6 Astra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-astra) · [GPT-6 Sol 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-sol) · [GPT-6 Luna 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-luna)
+- [GPT-6 Astra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-astra) · [GPT-6.1 Sol 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [GPT-6 Sol 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-sol) · [GPT-6 Luna 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-luna)
 - [GPT-5.6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) (이전 세대) — 티어·마이그레이션·신규 파라미터 수록
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
 - [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전 세대)

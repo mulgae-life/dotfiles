@@ -46,7 +46,7 @@ LLM의 "생각하는 정도"를 제어합니다. 작업 복잡도에 맞게 조�
 
 ### 프롬프트로 제어 (비추론 모델 한정)
 
-> ⚠️ 아래 "깊은 추론 유도" 지시는 Claude 5 세대·GPT 추론 모델에서는 **삭제가 공식 권고**입니다. 사고 과정을 답변에 옮겨 쓰게 하는 지시는 Claude 5 세대에서 `reasoning_extraction` refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md). 추론 모델의 깊이는 `output_config.effort`/`reasoning.effort`로 조절하세요.
+> ⚠️ 아래 "깊은 추론 유도" 지시는 GPT 추론 모델과 Claude 5 세대에서 그대로 쓰지 않습니다. GPT 추론 모델에서는 추론을 유도하려고 덧붙인 문구가 불필요합니다. Claude 5 세대는 thinking이 켜져 있으면 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선하고, 사고 대신 내부 추론을 답변에 재현하게 하는 지시는 `reasoning_extraction` 거절 대상이라 제거합니다 → [6절 공통 팁](#공통-팁), [claude-5-specifics.md](claude-5-specifics.md). GPT와 Claude의 추론 깊이는 `output_config.effort`/`reasoning.effort`로 조절하세요.
 
 ```yaml
 # 깊은 추론 유도
@@ -130,8 +130,8 @@ system_prompt: |
 ```yaml
 system_prompt: |
   <rules>
-  - 문제를 단계별로 분석하세요
-  - 각 단계의 근거를 설명하세요
+  - 해결책을 상세히 제시하세요
+  - 주요 판단의 근거를 설명하세요
   - 코드에는 주석을 포함하세요
   </rules>
 ```
@@ -205,7 +205,7 @@ system_prompt: |
 ```python
 response = client.responses.create(
     model="gpt-6-astra",
-    reasoning={"effort": "high"},  # GPT-6 Astra: low, medium, high, xhigh, max (none·minimal 미지원) / GPT-6 Sol·Luna·GPT-5.x: none, low, medium, high, xhigh, max
+    reasoning={"effort": "high"},  # GPT-6 Astra·6.1 Sol: low, medium, high, xhigh, max (none·minimal 미지원) / GPT-6 Sol·Luna·GPT-5.x: none, low, medium, high, xhigh, max
     text={"verbosity": "low"},      # low, medium, high
     instructions="...",
     input="..."
@@ -214,14 +214,14 @@ response = client.responses.create(
 
 **파라미터 설명**:
 - `reasoning.effort`: 추론 깊이
-  - `none`: 추론 없이 실행 중심. 5.6까지와 GPT-6 Sol·Luna는 지원, GPT-6 Astra는 미지원이라 `low`부터. Sol·Luna의 Chat Completions 함수 호출은 `none`에서만 가능
+  - `none`: 추론 없이 실행 중심. 5.6까지와 GPT-6 Sol·Luna는 지원, GPT-6 Astra·6.1 Sol은 미지원이라 `low`부터. 6 Sol·Luna의 Chat Completions 함수 호출은 `none`에서만 가능
   - `low`: 빠른 응답
   - `medium`: 기본값 (5.6·GPT-6 기본값)
   - `high`: 깊은 추론 (코딩, Agentic에 적합)
   - `xhigh`: 최대 추론 (명확한 eval 이점이 있을 때만)
   - `ultra`: Codex·ChatGPT 제품 전용 자동 위임 모드 — API 값 아님
   - 5.5/5.4 → 5.6 마이그레이션: **기존 값을 baseline으로 두고 한 단계 낮춰 비교** (공식 지침)
-  - 5.6 → 6 마이그레이션: 기존 값을 지원하는 모델에서는 유지 후 비교. Astra로 옮기면 `none` 사용처는 `low`로(Sol·Luna는 `none` 유지 가능), `minimal`은 모델과 관계없이 `low`부터 비교
+  - 5.6 → 6 마이그레이션: 기존 값을 지원하는 모델에서는 유지 후 비교. Astra·6.1 Sol로 옮기면 `none` 사용처는 `low`로(6 Sol·Luna는 `none` 유지 가능), `minimal`은 모델과 관계없이 `low`부터 비교
 - `reasoning.mode`: `"pro"` (5.6 신규) — 오답 비용이 큰 지점만 선별 적용
 - `text.verbosity`: 응답 길이
   - `low`: 간결
@@ -271,14 +271,20 @@ response = client.messages.create(
 - `thinking: {"type": "disabled"}`·`budget_tokens`·sampling 파라미터는 **400 에러** → [claude-5-specifics.md](claude-5-specifics.md)
 - 기본값은 Fable 5.1·Opus 5가 `high`, Opus 5.5가 `medium`. 최고 난도만 `xhigh`/`max`(측정된 품질 이득이 있을 때만), 루틴은 `medium`/`low`
 - 모델 기본값에서 시작하되 전 레벨을 자체 eval로 다시 측정 — effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아 다른 모델의 설정을 그대로 옮기면 안 됩니다. Opus 5.5는 같은 레벨에서 Opus 5보다 턴당 사고가 많아 `max_tokens`에 사고 몫을 남깁니다
-- "단계별로 분석하라"류 사고 유도 지시는 삭제가 공식 권고 — 사고가 기본으로 켜져 있고, 사고 과정 서술 요구는 refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md)
+- thinking이 켜져 있으면 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선합니다. 수동 CoT는 thinking을 끈 경우의 대안이지만, Opus 5는 낮은 effort로 thinking을 켜 두기를 먼저 권합니다. 사고 대신 내부 추론을 응답 본문에 재현하게 하는 지시는 제거합니다. 이 요구는 `reasoning_extraction` 거절 대상이며, 일반적인 결과의 근거 설명과 구분합니다 → [claude-5-specifics.md](claude-5-specifics.md)
 
 ### 공통 팁
 
 ```yaml
 # 복잡한 작업에서 품질 높이기 (비추론 모델 한정)
-# Claude 5 세대·GPT 추론 모델에서는 세 지시 모두 삭제가 공식 권고
-# → claude-5-specifics.md (스스로 검증하므로 지시가 과잉 검증을 부름)
+# GPT 추론 모델: 추론 유도용으로 덧붙인 아래 첫 두 문구는 불필요(OpenAI 추론 모범 사례)
+# Claude 5 계열: thinking이 켜져 있으면 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선
+# 수동 CoT는 thinking을 끈 경우의 대안이나, Opus 5는 낮은 effort로 thinking을 켜 두기를 우선 권고
+# 사고 대신 내부 추론을 응답에 재현하게 하는 지시는 제거(reasoning_extraction 거절 대상)
+# 결과의 근거·변경 이유·테스트 결과 설명 요청은 유지. 영어 표현 자체를 금칙어로 삼는 뜻이 아님
+# Claude 모델별 조건 → claude-5-specifics.md
+# 자기 검토 요청은 Opus 5만 삭제 대상(스스로 검증해 지시가 과잉 검증을 부름). 다른 추론 모델은
+# 반복 의식 대신 완료 기준과 확인 방법으로 바꿔 유지 → self-correction.md §6
 - 단계별 사고 요청 ("step by step")
 - 근거 제시 요청 ("explain your reasoning")
 - 자기 검토 요청 ("verify your answer")
@@ -288,6 +294,8 @@ response = client.messages.create(
 - 형식 지정 ("answer only yes or no")
 - 설명 제외 ("without explanation")
 ```
+
+근거: [OpenAI 추론 모범 사례](https://developers.openai.com/api/docs/guides/reasoning-best-practices#how-to-prompt-reasoning-models-effectively) · [Anthropic 사고 기능 활용](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#leverage-thinking-and-interleaved-thinking-capabilities)
 
 ---
 

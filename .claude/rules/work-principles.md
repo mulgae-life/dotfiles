@@ -14,7 +14,7 @@
 - **리소스 제약 추측 금지**: 충분한 CPU/RAM/GPU가 있다고 가정. 제약을 추측해 분석을 생략하지 않기
 - **시간 소요 작업 인내**: 빌드/테스트/검색이 진행 중이면 멈춘 구체적 증거 없이 조급해하지 않기
 - **산출물 정리**: 본인이 만든 임시 파일(스크립트·데모·로그·실험 결과·체크포인트)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 **이동** — 보존 목적이므로 `rm` 금지, 사용자가 명시적으로 삭제를 요청한 경우만 예외. 관련 없는 기존 파일/데드 코드는 대상 아님(언급만)
-- **위험 명령은 사용자 요청 시에만**: 확인 프롬프트(ask) 계층은 전면 해제되어 아래 명령도 **기술적으로는 무확인 실행됩니다**. 그래서 이 지침이 유일한 통제입니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`, `python -c "shutil.rmtree(...)"`)로 돌려 쓰는 것도 동일하게 금지:
+- **위험 명령은 사용자 요청 시에만**: `permissions.ask` 규칙은 전부 제거했고 아래 명령도 **기술적으로는 대부분 무확인 실행됩니다**. 따라서 제품의 확인·차단에 기대지 말고 이 지침을 따릅니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`, `python -c "shutil.rmtree(...)"`)로 돌려 쓰는 것도 동일하게 금지:
   - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, `find -delete` — 보존 원칙상 `.archive/`로 `mv`가 기본. `/tmp` 스크래치는 지우지 말고 두기(재부팅 시 소멸)
   - **Git 쓰기**: `push`, `commit`, `reset`, `clean`, `rebase`, `merge`, `cherry-pick`, `revert`, `am`, `apply`, `branch -d/-D`, `tag -d/-f` (조회와 `add`·`checkout`·`switch`·`stash`는 자유)
   - **GitHub CLI 쓰기**: `gh pr/issue/release/repo`의 create·close·delete·merge·edit·comment, `gh api` 쓰기 플래그, `gh auth login/logout`

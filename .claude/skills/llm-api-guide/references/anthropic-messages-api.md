@@ -97,7 +97,7 @@ messages = [
 
 Claude의 추론 기능 (OpenAI의 reasoning과 유사). **모델 세대에 따라 설정 방법이 다릅니다.**
 
-### 현행 모델 (Opus 5.5, Fable 5·5.1, Opus 5, Sonnet 5): Adaptive Thinking
+### 현행 모델 (Opus 5.5, Sonnet 5.5, Fable 5·5.1, Opus 5, Sonnet 5): Adaptive Thinking
 
 ```python
 response = client.messages.create(
@@ -124,6 +124,7 @@ for block in response.content:
 - **Opus 5.5·Fable 5.1의 도구 사이 텍스트**: 도구 호출 사이에 모델이 쓰는 짧은 진행 문구가 `text`가 아니라 진행 업데이트 `thinking` 블록으로 옵니다(도구 호출 하나 앞에 최대 하나). 기본 `omitted`에서는 비어 있어 이를 사용자에게 스트리밍하던 앱이 조용해집니다. `display: "updates"`(beta `thinking-display-updates-2026-08-18`)는 추론은 숨기고 진행 업데이트만, `"summarized"`는 둘을 섞어 돌려줍니다. 비어 있지 않은 블록을 뒤따르는 `tool_use` 앞에 표시하고, 블록은 수정 없이 되돌려 보냅니다
 - **Opus 5**: thinking **기본 켜짐** — 생략 시 adaptive로 실행 (사고 없이 실행되던 Opus 4.8과 다름, `max_tokens`는 사고+응답 합산 리밋이라 재검토 필요). `disabled`는 effort `high` 이하에서만 허용 — `xhigh`/`max` 조합은 400
 - **Opus 5·Sonnet 5**: `budget_tokens`는 400 에러
+- **Sonnet 5.5**: `disabled`·`budget_tokens`는 400. 사전 사고(up-front thinking)를 끄려면 `{"type": "between_tools"}`를 보냅니다. effort `high` 이하에서만 받고 `xhigh`·`max`에서는 400이며, Sonnet 5.5 전용 값이라 Opus 5.5·Fable에 보내도 400입니다
 
 ### effort 가이드
 
@@ -465,10 +466,11 @@ except APIError as e:
 | `claude-fable-5` | $10 / $50 | 레거시 — 5.1로 대체됨. 캐시 읽기는 $1로 4배 |
 | `claude-opus-5-5` | $4 / $20 | 기본 선택 — 장기 에이전틱 코딩·지식 작업. 공식 권고는 "대부분 워크로드는 Opus 5.5로 시작". 캐시 읽기 $0.20(0.05배), 컨텍스트 1M / 출력 128K, 기본 effort `medium`, 컷오프 2026-06, 은퇴 하한 2027-09-22 ([주의사항](#opus-55-주의사항) 필독) |
 | `claude-opus-5` | $5 / $25 | 이전 기본 선택 — thinking을 끌 수 있고 강제 `tool_choice`가 되는 마지막 Opus ([주의사항](#opus-5-주의사항) 참조) |
-| `claude-sonnet-5` | $2 / $10 | 균형 — 도입가였으나 정가로 확정 (2026-08 확인, $3/$15 인상 미시행) |
+| `claude-sonnet-5-5` | $2 / $10 | 균형 — 캐시 읽기 $0.20, 컨텍스트 1M / 출력 128K, API 기본 effort `high`(Claude Code는 `medium`), 컷오프 2026-06, 은퇴 하한 2027-09-28. thinking `disabled`는 400이고 사전 사고를 끄려면 `between_tools`([Thinking](#thinking-추론-제어) 참조) |
+| `claude-sonnet-5` | $2 / $10 | 이전 균형 모델 — 도입가였으나 정가로 확정 (2026-08 확인, $3/$15 인상 미시행) |
 | `claude-haiku-4-5` | $1 / $5 | 빠르고 저렴, 단순 작업 |
 
-> 신규 코드는 위 표 기준. Opus 5는 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다.
+> 신규 코드는 위 표 기준. Opus 5.5와 Opus 5는 각각 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다.
 
 ---
 
@@ -486,7 +488,7 @@ Opus 5는 effort `high` 이하에서 `thinking: {"type": "disabled"}`를 받았�
 
 ### 3. 사고 블록의 모델·대화 결합
 
-- **읽을 수 있는 블록**: Opus 5.5는 Opus 5와 그 이전 Opus·Sonnet·Haiku의 블록을 읽지만 Fable·Mythos 블록은 못 읽습니다. Claude API에서 Opus 5.5 블록을 읽는 것은 Fable 5.1·Mythos 5.1뿐입니다. 못 읽는 블록은 API가 드롭하고 과금하지 않으며, beta `thinking-binding-controls-2026-08-01`을 보내면 드롭 내역이 `input_transformations`로 보고됩니다.
+- **읽을 수 있는 블록**: Opus 5.5는 Opus 5와 그 이전 Opus·Sonnet·Haiku의 블록, 그리고 Claude API에서는 Sonnet 5.5의 블록을 읽지만 Fable·Mythos 블록은 못 읽습니다. Claude API에서 Opus 5.5 블록을 읽는 것은 Fable 5.1·Mythos 5.1뿐입니다. 못 읽는 블록은 API가 드롭하고 과금하지 않으며, beta `thinking-binding-controls-2026-08-01`을 보내면 드롭 내역이 `input_transformations`로 보고됩니다.
 - **이력 편집 금지**: 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀐 뒤 그 블록을 다시 보내면 400입니다. Fable 5.1과 같이 2026-08-31 00:00 UTC 이후 생성 계정은 기본 강제이고, 드롭으로 바꾸려면 같은 beta 헤더와 `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`을 씁니다.
 - 실무 요건은 [대화 이력 관리](#대화-이력-관리)의 append-only 원칙이고, 지시·도구 변경은 대화 중 시스템 메시지로 합니다.
 
@@ -498,11 +500,13 @@ Claude API와 Google Cloud에서는 `computer_toolset_20260801` 툴셋만 받고
 
 - **도구 사이 텍스트**: [Thinking](#thinking-추론-제어) 절의 진행 업데이트 설명대로 `thinking` 블록으로 옵니다. 기본 `omitted`에서 비어 있으므로 진행 문구를 보여 주던 앱은 `display`를 설정합니다.
 - **기본 effort `medium`**: `effort`를 생략하면 Opus 5의 `high`가 아니라 `medium`으로 실행됩니다. 같은 effort에서도 사고가 더 많으니 `max_tokens`를 넉넉히 둡니다.
-- **안전장치 범주 추가**: 사이버 분류기에 더해 생물 분류기가 돌고, 응답 본문에 내부 추론을 재현하라는 요청은 `reasoning_extraction`으로 거절될 수 있습니다. 거절은 HTTP 200 + `stop_reason: "refusal"`이고 `stop_details.category`에 범주가 옵니다. `fallbacks: "default"`(beta `server-side-fallback-2026-07-01`)로 범주별 권장 모델에 재시도하되, `reasoning_extraction` 거절은 서버 폴백이 재시도하지 않고 그대로 돌려줍니다. 추론이 필요하면 응답 안에 쓰게 하지 말고 `display: "summarized"`로 요약된 thinking을 읽습니다.
+- **안전장치 범주 추가**: 사이버 분류기에 더해 생물 분류기가 돌고, 응답 본문에 내부 추론을 재현하라는 요청은 `reasoning_extraction`으로 거절될 수 있습니다. 거절은 HTTP 200 + `stop_reason: "refusal"`이고 `stop_details.category`에 범주가 옵니다. 출력 전 거절이라도 `bio`·`frontier_llm`·`reasoning_extraction` 범주는 과금되고, 레이트 리밋에는 범주와 관계없이 포함됩니다([과금 규칙](#4-refusal-처리--fallback-구성)). `fallbacks: "default"`(beta `server-side-fallback-2026-07-01`)로 범주별 권장 모델에 재시도하되, `reasoning_extraction` 거절은 서버 폴백이 재시도하지 않고 그대로 돌려줍니다. 추론이 필요하면 응답 안에 쓰게 하지 말고 `display: "summarized"`로 요약된 thinking을 읽습니다.
 
 ### 기타
 
 - 프롬프트 캐시 최소 512 토큰, 캐시 읽기 $0.20/MTok(기본 입력의 0.05배), 5분 캐시 쓰기 $5·1시간 $8, 배치 $2 / $10
+- `xhigh`·`max`에서는 `max_tokens`를 64K부터 잡는 것이 공식 권장 시작값입니다. `max_tokens`는 사고와 응답 텍스트를 합친 상한입니다
+- Priority Tier 미지원(Opus 4.8은 지원)
 - Message Batches API는 beta `output-300k-2026-03-24`로 출력 300K까지
 - Fast mode(연구 프리뷰)는 Claude API에서만, `speed: "fast"` + beta `fast-mode-2026-02-01`
 - 메시지별 effort(beta), 대화 중 시스템 메시지, 작업 예산(task budgets), 요청 시 압축(beta `compact-2026-09-04`)을 지원합니다. 요청 시 압축은 남긴 턴의 사고 블록을 조건부로 유효하게 유지해 대화 결합 제약과 함께 쓰기 좋습니다
@@ -562,7 +566,7 @@ else:
     print("".join(b.text for b in response.content if b.type == "text"))
 ```
 
-출력 전 거부는 과금되지 않고, 폴백 크레딧이 캐시 전환 비용을 환불합니다.
+출력 전 거절의 과금은 범주에 따라 다릅니다. `stop_details.category`가 `bio`·`frontier_llm`·`reasoning_extraction`이면 실행한 모델의 요율로 과금되고, `cyber`·`general_harms`·`null`이면 과금되지 않습니다. 레이트 리밋에는 어느 쪽이든 포함됩니다. 폴백을 쓰면 과금 대상 거절(위 세 범주이거나 스트리밍 도중의 거절)은 폴백 요청과 별도로 청구되고, 폴백 크레딧은 폴백 요청의 캐시 미스 비용만 보상합니다. 과금 범주는 바뀔 수 있으므로 [How refusals are billed](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback#how-refusals-are-billed)를 확인하세요.
 
 ### 5. 데이터 보존 요건
 

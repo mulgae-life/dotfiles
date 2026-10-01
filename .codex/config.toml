@@ -203,7 +203,7 @@ memories = false    # 공식 메모리(세션 요약을 백그라운드로 생�
 # 키 이름·신규 키(max_concurrent_threads_per_session, default_subagent_*)로의 변경은 보류 — 근거는 reference/research/research-gpt6.md
 [agents]
 max_threads = 12            # max_concurrent_threads_per_session의 별칭. 동시 열린 스레드 상한(공식 기본 6). 토큰·지연 비용도 늘므로 실제 스폰 수는 필요한 최소로 제한
-max_depth = 1               # V1 백엔드 전용 중첩 깊이 — V2(Astra 기본)에서는 무시됨(config_toml.rs 소스 주석). 삭제는 보류
+max_depth = 1               # V1 백엔드 전용 중첩 깊이 — V2 백엔드에서는 무시됨(config_toml.rs 소스 주석). 삭제는 보류
 job_max_runtime_seconds = 1800  # 호환용 no-op(config_toml.rs 소스 주석) — 워커 타임아웃으로 동작하지 않음. 삭제는 보류
 
 # ── 상태줄 설정 ──────────────────────────────
