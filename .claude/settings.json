@@ -14,7 +14,6 @@
       "Edit(./.claude/**)",
       "Write",
       "NotebookEdit",
-      "SendMessage",
       "WebSearch",
       "WebFetch",
       "Bash(git status*)",
