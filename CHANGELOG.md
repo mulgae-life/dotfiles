@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.51** | `harness-evolve` 스킬 신설 — RRSI 논문의 정규화 원리(관찰된 문제만, 한 번에 하나, 예측을 다음 회고에서 확인해 유지·되돌림)로 Claude·Codex 세션 기록을 회고해 프로젝트 `agent-guide` 개선점 하나를 제안하고 승인 후 반영한다. 전역 지침은 대상이 아니며, Claude 기록과 Codex 기록 4가지 형식을 읽는 요약 스크립트를 포함하고 README·Codex 스킬 목록·SKILL-SOURCES에 등록 |
 | **v2.50** | `init-project`의 SESSION 템플릿 이력을 `update-docs` 형식(하루 한 행 표, 소제목 없음)으로 맞춤 — 새 프로젝트가 처음부터 반대 형식으로 시작해 이후 직접 편집이 그 형식을 따라 쓰던 문제. `SKILL-SOURCES.md`의 skill-creator 격리 문구를 실제 적용 파일(`improve_description.py`) 기준으로 정정. `update-docs`의 새 작업 우선순위를 P1~P3에서 GUIDE 템플릿·다른 스킬과 같은 P0부터로 통일 |
 | **v2.49** | `settings.json` 허용 목록에서 `SendMessage` 삭제 — schemastore 스키마의 도구 이름 패턴에 없어 편집기 경고가 떴고, `bypassPermissions` 기본이라 허용 목록 항목은 동작에 영향이 없다 |
 | **v2.48** | `writing-prompts` 지원 범위를 계열별 최신·직전·전전 세대로 넓힘 — Gemini 3.x·Sonnet 5.5·5·Claude 4.x(Opus 4.8·Sonnet 4.6·Haiku 4.5)·GPT-5.5 문서를 추가·복원하고, 대상 모델 ID와 API 방식을 먼저 확정해 그 모델 문서의 작성 체크리스트만 적용하는 라우팅을 Codex와 함께 설계해 넣음. 근거가 엇갈리던 예시 개수 수치는 범용 체크리스트에서 빼 모델 문서로 넘김 |

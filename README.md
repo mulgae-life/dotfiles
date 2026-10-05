@@ -32,7 +32,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 - **`/init-project`** 로 새 프로젝트에 `agent-guide/`(GUIDE · PROJECT · SESSION) 3종을 만들면, 루트 `CLAUDE.md`·`AGENTS.md`가 GUIDE 링크로 생겨 세 도구가 전역 지침 뒤에 프로젝트 지침을 이어 읽는다.
 - 나머지는 아래 스킬을 `/이름`(Codex는 `$이름`)으로 호출한다.
 
-## ⚙️ 스킬 (24개, 세 도구 공용)
+## ⚙️ 스킬 (25개, 세 도구 공용)
 
 출처 열의 "이식"은 공식 저장소의 스킬을 가져온 것, "차용"은 일부 기준만 가져온 것이다. 둘 다 상류 갱신 대상이며 경로와 절차는 [docs/SKILL-SOURCES.md](docs/SKILL-SOURCES.md).
 
@@ -42,6 +42,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | | `/brief` | 프로젝트 목적·기대 대비 진행 현황과 인사이트 브리핑 — 과정·실무 정보 제외 | 자체 |
 | | `/init-project` | agent-guide 3종 생성 + 루트 진입 링크 | 자체 |
 | | `/update-docs` | 작업 후 프로젝트 문서 갱신 | 자체 |
+| | `/harness-evolve` | 세션 기록을 회고해 프로젝트 지침(agent-guide) 개선점 하나를 제안·반영하고 다음 회고 때 효과 확인 | 자체 |
 | | `/skill-creator` | 새 스킬 생성 가이드 | Anthropic 이식 |
 | 코드 품질 | `/code-review` | 심각도 등급별 심층 리뷰 리포트 | Anthropic 차용 (오탐 기준만) |
 | | `/work-verify` | 작업 후 빠른 점검 | 자체 |
