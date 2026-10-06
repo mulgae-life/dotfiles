@@ -411,7 +411,7 @@ main() {
   # config/skills 만 레포가 소유한다 (antigravity-cli/skills 는 관리 제외)
   safe_link "$DOTFILES_DIR/.claude/skills" "$HOME/.gemini/config/skills"
   # 전역 지침은 ~/.gemini/GEMINI.md 하나만 — CLI·IDE 공식 문서가 명시한 경로. config/GEMINI.md 도 로드되므로
-  # 둘 다 두면 같은 지침이 두 번 주입된다 (1.1.28 마커 실측)
+  # 서로 다른 파일을 두면 같은 지침이 두 번 주입된다 (1.1.28 마커 실측. 1.2.15부터 같은 파일 링크는 한 번만 주입)
   safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/GEMINI.md"
   # 이전 설치가 남긴 링크 정리 — Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료)로 ~/.gemini 바로 아래 남은 것,
   # GEMINI.md 로 통합된 AGENTS.md, 이중 로드 원인이던 config/GEMINI.md

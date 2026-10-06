@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.52** | 도구 버전 현행화 — Claude Code 2.1.286→2.1.290, Codex 0.159.3→0.160.1, agy 1.1.28→1.2.17 변경 이력을 설정·훅·권한 층과 대조해 기능 변경 불요 확인(정책 회귀 36건, agy 실측 6건 통과). agy 1.2.15부터 같은 파일을 가리키는 전역 지침 링크는 한 번만 주입되므로, 이중 주입 서술을 서로 다른 파일일 때로 한정 |
 | **v2.51** | `harness-evolve` 스킬 신설 — RRSI 논문의 정규화 원리(관찰된 문제만, 한 번에 하나, 예측을 다음 회고에서 확인해 유지·되돌림)로 Claude·Codex 세션 기록을 회고해 프로젝트 `agent-guide` 개선점 하나를 제안하고 승인 후 반영한다. 전역 지침은 대상이 아니며, Claude 기록과 Codex 기록 4가지 형식을 읽는 요약 스크립트를 포함하고 README·Codex 스킬 목록·SKILL-SOURCES에 등록 |
 | **v2.50** | `init-project`의 SESSION 템플릿 이력을 `update-docs` 형식(하루 한 행 표, 소제목 없음)으로 맞춤 — 새 프로젝트가 처음부터 반대 형식으로 시작해 이후 직접 편집이 그 형식을 따라 쓰던 문제. `SKILL-SOURCES.md`의 skill-creator 격리 문구를 실제 적용 파일(`improve_description.py`) 기준으로 정정. `update-docs`의 새 작업 우선순위를 P1~P3에서 GUIDE 템플릿·다른 스킬과 같은 P0부터로 통일 |
 | **v2.49** | `settings.json` 허용 목록에서 `SendMessage` 삭제 — schemastore 스키마의 도구 이름 패턴에 없어 편집기 경고가 떴고, `bypassPermissions` 기본이라 허용 목록 항목은 동작에 영향이 없다 |
