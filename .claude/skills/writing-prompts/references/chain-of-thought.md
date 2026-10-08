@@ -210,7 +210,7 @@ system_prompt: |
 
 ### Claude thinking과의 관계
 
-Claude 5 세대는 adaptive thinking이 기본으로 켜져 있습니다. Opus 5.5·Fable 5·5.1은 끌 수 없고, Opus 5는 effort `high` 이하에서만 `thinking: {"type": "disabled"}`로 끌 수 있습니다. Sonnet 5.5의 가장 낮은 사고 설정은 `between_tools`이며, effort가 `high` 이하일 때 허용됩니다. 켜져 있을 때는:
+Claude 5 세대는 adaptive thinking이 기본으로 켜져 있습니다. Opus 5.5·Fable 5·5.1은 끌 수 없고, Opus 5·Haiku 5.5는 effort `high` 이하에서만 `thinking: {"type": "disabled"}`로 끌 수 있습니다. Sonnet 5.5의 가장 낮은 사고 설정은 `between_tools`이며, effort가 `high` 이하일 때 허용됩니다. 켜져 있을 때는:
 - 모델이 자동으로 구조적 추론을 수행
 - 수동 CoT 프롬프팅 대신 `output_config.effort`로 깊이 제어
 - 추론 감사(audit)가 필요하면 thinking 블록(`display: "summarized"`)을 읽고, 내부 추론을 답변에 재현하게 하지 않기. 일반적인 결과의 근거 설명은 요청할 수 있음

@@ -32,7 +32,7 @@ Anthropic
 | **엔드포인트** | `/v1/responses` | `/v1/messages` |
 | **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
 | **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
-| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. Astra·6.1 Sol은 `none`·`minimal` 미지원이고 도구 호출은 Responses 전용 → 5.6에서 none 쓰던 곳은 `low`부터, 6 Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·Opus 5.5는 항상 켜짐, Opus 5.5 기본 effort `medium`, `budget_tokens`는 구모델 전용) |
+| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. Astra·6.1 Sol은 `none`·`minimal` 미지원이고 도구 호출은 Responses 전용 → 5.6에서 none 쓰던 곳은 `low`부터, 6 Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·Opus 5.5는 항상 켜짐, Opus 5.5·Haiku 5.5 기본 effort `medium`, `budget_tokens`는 Haiku 4.5 등 구모델 전용) |
 | **스트리밍** | `stream: true` | `stream: True` |
 | **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 |
 
@@ -101,6 +101,8 @@ Anthropic
 - [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (Claude 5 세대)
 - [What's new in Claude Opus 5.5](https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5) ⭐ 최신 — 기본 effort `medium`, 도구 사이 텍스트의 `thinking` 블록 이동
 - [Opus 5.5 Migration Guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide) — Opus 5에서 옮길 때 깨지는 변경 4건(thinking 끄기·강제 `tool_choice`·사고 블록 결합·`computer_20251124`)
+- [What's new in Claude Haiku 5.5](https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5) — 첫 Haiku effort, 프롬프트 길이별 두 요율
+- [Haiku 5.5 Migration Guide](https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide) — Haiku 4.5에서 옮길 때 깨지는 변경 5건(`budget_tokens`·sampling·prefill·`computer_20250124`·이력 편집)
 - [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1) — 사고 블록 바인딩·신규 베타 3종
 - [Fable 5.1 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide) — 강제 `tool_choice` 400 등 파괴적 변경 3건과 체크리스트
 - [Prompting Claude Fable 5.1](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) — effort 재측정·행동 변화 대응 지시문

@@ -13,6 +13,7 @@
 - [Opus 5.5 주의사항](#opus-55-주의사항)
 - [Fable 5.1 주의사항](#fable-51-주의사항)
 - [Opus 5 주의사항](#opus-5-주의사항)
+- [Haiku 5.5 주의사항](#haiku-55-주의사항)
 - [Usage 정보](#usage-정보)
 - [참고 자료](#참고-자료)
 
@@ -97,7 +98,7 @@ messages = [
 
 Claude의 추론 기능 (OpenAI의 reasoning과 유사). **모델 세대에 따라 설정 방법이 다릅니다.**
 
-### 현행 모델 (Opus 5.5, Sonnet 5.5, Fable 5·5.1, Opus 5, Sonnet 5): Adaptive Thinking
+### 현행 모델 (Opus 5.5, Sonnet 5.5, Haiku 5.5, Fable 5·5.1, Opus 5, Sonnet 5): Adaptive Thinking
 
 ```python
 response = client.messages.create(
@@ -124,13 +125,14 @@ for block in response.content:
 - **Opus 5.5·Fable 5.1의 도구 사이 텍스트**: 도구 호출 사이에 모델이 쓰는 짧은 진행 문구가 `text`가 아니라 진행 업데이트 `thinking` 블록으로 옵니다(도구 호출 하나 앞에 최대 하나). 기본 `omitted`에서는 비어 있어 이를 사용자에게 스트리밍하던 앱이 조용해집니다. `display: "updates"`(beta `thinking-display-updates-2026-08-18`)는 추론은 숨기고 진행 업데이트만, `"summarized"`는 둘을 섞어 돌려줍니다. 비어 있지 않은 블록을 뒤따르는 `tool_use` 앞에 표시하고, 블록은 수정 없이 되돌려 보냅니다
 - **Opus 5**: thinking **기본 켜짐** — 생략 시 adaptive로 실행 (사고 없이 실행되던 Opus 4.8과 다름, `max_tokens`는 사고+응답 합산 리밋이라 재검토 필요). `disabled`는 effort `high` 이하에서만 허용 — `xhigh`/`max` 조합은 400
 - **Opus 5·Sonnet 5**: `budget_tokens`는 400 에러
-- **Sonnet 5.5**: `disabled`·`budget_tokens`는 400. 사전 사고(up-front thinking)를 끄려면 `{"type": "between_tools"}`를 보냅니다. effort `high` 이하에서만 받고 `xhigh`·`max`에서는 400이며, Sonnet 5.5 전용 값이라 Opus 5.5·Fable에 보내도 400입니다
+- **Sonnet 5.5**: `disabled`·`budget_tokens`는 400. 사전 사고(up-front thinking)를 끄려면 `{"type": "between_tools"}`를 보냅니다. effort `high` 이하에서만 받고 `xhigh`·`max`에서는 400이며, Sonnet 5.5 전용 값이라 Opus 5.5·Fable·Haiku 5.5에 보내도 400입니다
+- **Haiku 5.5**: thinking **기본 켜짐**(Haiku 4.5는 요청할 때만). `budget_tokens`는 400이고, `disabled`는 Opus 5처럼 effort `high` 이하에서만 받습니다 → [Haiku 5.5 주의사항](#haiku-55-주의사항)
 
 ### effort 가이드
 
 | effort | 용도 |
 |--------|------|
-| `low` / `medium` | 루틴·저지연 작업, 서브에이전트. Opus 5.5는 `medium`이 기본값 |
+| `low` / `medium` | 루틴·저지연 작업, 서브에이전트. Opus 5.5·Haiku 5.5는 `medium`이 기본값 |
 | `high` | Opus 5·Fable 5.1의 기본값 — 대부분 작업의 균형점 |
 | `xhigh` | 코딩·에이전트 고난도 작업 |
 | `max` | 비용보다 정확성이 중요할 때 |
@@ -466,9 +468,10 @@ except APIError as e:
 | `claude-fable-5` | $10 / $50 | 레거시 — 5.1로 대체됨. 캐시 읽기는 $1로 4배 |
 | `claude-opus-5-5` | $4 / $20 | 기본 선택 — 장기 에이전틱 코딩·지식 작업. 공식 권고는 "대부분 워크로드는 Opus 5.5로 시작". 캐시 읽기 $0.20(0.05배), 컨텍스트 1M / 출력 128K, 기본 effort `medium`, 컷오프 2026-06, 은퇴 하한 2027-09-22 ([주의사항](#opus-55-주의사항) 필독) |
 | `claude-opus-5` | $5 / $25 | 이전 기본 선택 — thinking을 끌 수 있고 강제 `tool_choice`가 되는 마지막 Opus ([주의사항](#opus-5-주의사항) 참조) |
-| `claude-sonnet-5-5` | $2 / $10 | 균형 — 캐시 읽기 $0.20, 컨텍스트 1M / 출력 128K, API 기본 effort `high`(Claude Code는 `medium`), 컷오프 2026-06, 은퇴 하한 2027-09-28. thinking `disabled`는 400이고 사전 사고를 끄려면 `between_tools`([Thinking](#thinking-추론-제어) 참조) |
+| `claude-sonnet-5-5` | $2 / $10 | 균형 — 캐시 읽기 $0.10(2026-10-07 인하, 0.05배), 컨텍스트 1M / 출력 128K, API 기본 effort `high`(Claude Code는 `medium`), 컷오프 2026-06, 은퇴 하한 2027-09-28. thinking `disabled`는 400이고 사전 사고를 끄려면 `between_tools`([Thinking](#thinking-추론-제어) 참조) |
 | `claude-sonnet-5` | $2 / $10 | 이전 균형 모델 — 도입가였으나 정가로 확정 (2026-08 확인, $3/$15 인상 미시행) |
-| `claude-haiku-4-5` | $1 / $5 | 빠르고 저렴, 단순 작업 |
+| `claude-haiku-5-5` | $0.10 / $0.50 (프롬프트 10만 토큰 초과 시 $0.50 / $2.50) | 대량·저지연 — 분류·추출·라우팅·서브에이전트. 캐시 읽기 0.1배, 컨텍스트 1M / 출력 128K, 기본 effort `medium`, 컷오프 2026-06, 은퇴 하한 2027-10-07. Haiku 4.5와 요청 계약이 크게 다름([주의사항](#haiku-55-주의사항) 필독) |
+| `claude-haiku-4-5` | $1 / $5 | 레거시 — 은퇴 하한 2026-10-15. 컨텍스트 200K / 출력 64K, effort 미지원 |
 
 > 신규 코드는 위 표 기준. Opus 5.5와 Opus 5는 각각 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다.
 
@@ -488,7 +491,7 @@ Opus 5는 effort `high` 이하에서 `thinking: {"type": "disabled"}`를 받았�
 
 ### 3. 사고 블록의 모델·대화 결합
 
-- **읽을 수 있는 블록**: Opus 5.5는 Opus 5와 그 이전 Opus·Sonnet·Haiku의 블록, 그리고 Claude API에서는 Sonnet 5.5의 블록을 읽지만 Fable·Mythos 블록은 못 읽습니다. Claude API에서 Opus 5.5 블록을 읽는 것은 Fable 5.1·Mythos 5.1뿐입니다. 못 읽는 블록은 API가 드롭하고 과금하지 않으며, beta `thinking-binding-controls-2026-08-01`을 보내면 드롭 내역이 `input_transformations`로 보고됩니다.
+- **읽을 수 있는 블록**: Opus 5.5는 Opus 5와 그 이전 Opus·Sonnet·Haiku의 블록, 그리고 Claude API·Google Cloud에서는 Sonnet 5.5·Haiku 5.5의 블록을 읽지만 Fable·Mythos 블록은 못 읽습니다. Claude API에서 Opus 5.5 블록을 읽는 것은 Fable 5.1·Mythos 5.1뿐입니다. 못 읽는 블록은 API가 드롭하고 과금하지 않으며, beta `thinking-binding-controls-2026-08-01`을 보내면 드롭 내역이 `input_transformations`로 보고됩니다.
 - **이력 편집 금지**: 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀐 뒤 그 블록을 다시 보내면 400입니다. Fable 5.1과 같이 2026-08-31 00:00 UTC 이후 생성 계정은 기본 강제이고, 드롭으로 바꾸려면 같은 beta 헤더와 `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`을 씁니다.
 - 실무 요건은 [대화 이력 관리](#대화-이력-관리)의 append-only 원칙이고, 지시·도구 변경은 대화 중 시스템 메시지로 합니다.
 
@@ -628,6 +631,61 @@ response = client.beta.messages.create(
 - 프롬프트 캐시 최소 512 토큰 (4.8은 1,024) — 짧은 프롬프트도 캐시 가능해짐
 - 대화 중 도구 변경: beta `mid-conversation-tool-changes-2026-07-01` (`tool_addition`/`tool_removal` 블록 + `defer_loading`, 캐시 보존)
 - 프롬프팅 요령(검증 지시 삭제, 위임 상한, 장황함 대응)은 [Opus 5 풀 가이드](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) 참조
+
+---
+
+## Haiku 5.5 주의사항
+
+`claude-haiku-5-5`(2026-10-07 출시)는 Haiku 4.5에서 모델 ID만 바꾸면 깨지는 변경이 다섯 가지입니다. Haiku 4.5는 사고를 요청할 때만 생각했지만 5.5는 기본으로 생각하므로, 4.5용 코드는 대부분 이 절에 걸립니다.
+
+### 1. 수동 사고 예산 400
+
+`thinking={"type": "enabled", "budget_tokens": N}`은 400입니다. 생략하거나 `{"type": "adaptive"}`를 보내고 `output_config.effort`로 사고량을 정합니다(기본 `medium`). `thinking={"type": "disabled"}`는 effort `high` 이하에서만 받고, 사고를 끄면 메시지별 effort 변경과 `thinking.block_binding`이 400입니다.
+
+```python
+# ❌ Haiku 4.5 방식 — 5.5에서 400
+thinking={"type": "enabled", "budget_tokens": 8000}
+
+# ✅ 적응형 사고 + effort. 사고가 max_tokens에 포함되므로 짧은 분류도 여유를 둔다
+response = client.messages.create(
+    model="claude-haiku-5-5",
+    max_tokens=1024,
+    output_config={"effort": "low"},
+    messages=[{"role": "user", "content": "긍정/부정/중립 중 한 단어로 분류: ..."}],
+)
+answer = next(b.text for b in response.content if b.type == "text")  # 첫 블록이 thinking일 수 있음
+```
+
+### 2. sampling 파라미터 400
+
+`temperature`·`top_p`·`top_k`를 모두 뺍니다. `temperature`는 1, `top_p`는 기본값 0.99만 받고, 다른 값과 `top_k`, 두 값을 함께 보내는 요청은 400입니다. 분류 경로의 `temperature=0`은 구조화 출력이나 enum 필드 도구로 바꿉니다.
+
+### 3. assistant prefill 400
+
+사고를 끈 요청에서도 마지막 assistant 턴은 400입니다. 형식 강제는 구조화 출력(`output_config.format`, Amazon Bedrock은 미지원이라 도구), 서두 생략은 시스템 프롬프트, 이어 쓰기는 user 메시지로 옮깁니다.
+
+### 4. `computer_20250124` 미지원 (Claude API·Google Cloud)
+
+`computer_toolset_20260801` 툴셋만 받습니다. `computer-use-2025-01-24` 헤더를 빼고, 툴셋과 함께 보내면 400인 `fine-grained-tool-streaming-2025-05-14` 헤더도 지웁니다. 루프는 멤버 `tool_use` 블록의 `name`·`toolset_name`으로 분기합니다. 브라우저 사용 도구(`browser_toolset_20260801`)도 새로 지원합니다.
+
+### 5. 이력 편집 시 사고 블록 무효
+
+사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾼 뒤 그 블록을 다시 보내면 400입니다. 2026-08-31 00:00 UTC 이후 생성 계정은 기본 강제이고, 그 전 계정은 `thinking.block_binding.prefix_mismatch_behavior`를 설정한 요청에서만 검사합니다. [대화 이력 관리](#대화-이력-관리)의 append-only 원칙을 지키고 지시 변경은 대화 중 시스템 메시지(베타 헤더 불필요)로 합니다.
+
+### 요청은 성공하지만 결과가 바뀌는 것
+
+- 응답이 `thinking` 블록으로 시작할 수 있고, 사고 텍스트는 기본으로 비어 옵니다(4.5는 요약 반환). 블록은 `type`으로 고르고, 텍스트가 빈 블록도 지우지 않고 그대로 돌려보냅니다. 요약이 필요하면 `display: "summarized"`
+- 같은 텍스트가 약 30% 많은 토큰이 됩니다. `count_tokens`를 `claude-haiku-5-5`로 다시 돌리고 `max_tokens`·비용 추정을 재검토합니다
+- 사고 블록은 만든 계정(또는 연결된 계정)에서만 유효합니다. 다른 계정으로 재전송하면 API가 블록을 버리고 추론 없이 답합니다
+- 강제 `tool_choice`(`any`·`tool`)는 받지만 응답이 도구 호출로 시작하고 `thinking` 블록이 없습니다
+
+### 기타
+
+- 가격은 프롬프트 길이로 갈립니다. 10만 토큰 이하 $0.10/$0.50, 초과 $0.50/$2.50, 캐시 읽기는 입력가의 0.1배
+- 컨텍스트 1M / 출력 128K(4.5는 200K / 64K), 프롬프트 캐시 최소 512 토큰(4.5는 4,096)
+- 안전 분류기 거절(`cyber`·`bio`·`frontier_llm`·`general_harms`)이 새로 생겼고 **서버 측 폴백이 없습니다**. `fallbacks`를 보내지 말고 클라이언트에서 `stop_reason: "refusal"`을 처리합니다
+- Priority Tier 미지원
+- 프롬프팅 요령(검색 날짜, 조기 종료, 검증, 챗봇 지시 유지)은 [Haiku 5.5 풀 가이드](../../../../reference/claude-prompt-guide/claude-haiku-5-5-prompt-guide.md) 참조
 
 ---
 

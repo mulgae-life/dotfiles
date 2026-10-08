@@ -30,6 +30,7 @@ OpenAI GPT, Anthropic Claude, Google Gemini 3.x·Gemma 4, Alibaba Qwen 3.8 공�
 | `claude-opus-5-5` | [claude-5-specifics.md](references/claude-5-specifics.md) | 작성 체크리스트 + Opus 5 차이점 + Opus 5 → 5.5 델타 (델타가 바꾼 항목은 델타 우선) |
 | `claude-fable-5-1` | claude-5-specifics.md | 본문 (5.1 기준) |
 | `claude-sonnet-5-5` · `claude-sonnet-5` | claude-5-specifics.md | 작성 체크리스트 + Sonnet 5.5 · Sonnet 5 차이점 |
+| `claude-haiku-5-5` | claude-5-specifics.md | 작성 체크리스트 + Haiku 5.5 차이점 |
 | `claude-opus-5` | claude-5-specifics.md | 작성 체크리스트 + Opus 5 차이점 |
 | `claude-fable-5` | claude-5-specifics.md | 본문 (5.1 전용 항목 제외) |
 | `claude-opus-4-8` · `claude-sonnet-4-6` · `claude-haiku-4-5` (`-20251001`) | [claude-4-specifics.md](references/claude-4-specifics.md) | 작성 체크리스트 + 공통 원칙 + 해당 모델 절 |
@@ -62,7 +63,7 @@ OpenAI GPT, Anthropic Claude, Google Gemini 3.x·Gemma 4, Alibaba Qwen 3.8 공�
 | **어조** | 제품 용도별 분기 (공식=격식체, 캐주얼=해요체) | ✅ | ✅ | ✅ |
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` | `system_instruction` / `user`·`model` |
 | **Examples** | 쓸지와 개수는 대상 모델 문서와 과제별 평가로 | 행동을 바꾸지 않는 예시는 줄임 | 공식 모범 사례는 다양한 예시 3~5개 | 공식 문서는 예시 포함 권장 |
-| **특화 파라미터** | - | `reasoning.effort` (GPT-6 Astra·6.1 Sol: `none` 미지원, low~max / 6 Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, 이미지 항목별 `detail` | `output_config.effort` (Haiku 4.5는 `budget_tokens`) | `thinking_level` (sampling 제거) |
+| **특화 파라미터** | - | `reasoning.effort` (GPT-6 Astra·6.1 Sol: `none` 미지원, low~max / 6 Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, 이미지 항목별 `detail` | `output_config.effort` (Haiku 5.5부터 지원, Haiku 4.5는 `budget_tokens`) | `thinking_level` (sampling 제거) |
 | **Prefilling** | - | ❌ | ❌ (4.6 이후 400 → Structured Outputs, Haiku 4.5만 예외) | ❌ 새 프롬프트에서 쓰지 않음 (제거 권고는 3.8·Cloud 3.7 문서) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) | 긴 자료 앞, 질문 끝 |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ | ✅ |
@@ -122,7 +123,7 @@ OpenAI GPT, Anthropic Claude, Google Gemini 3.x·Gemma 4, Alibaba Qwen 3.8 공�
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
 | OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시·모델 선택(GPT-6), 티어 선택(5.6), 최소 프롬프트 기준선(5.5) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra·Sol·Luna), `references/gpt56-patterns.md` (5.6), `references/gpt55-patterns.md` (5.5) |
-| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), effort `medium` 시작(Opus 5.5), `between_tools`·작업 범위(Sonnet 5.5), 모델별 사고 방식(4.x), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Opus 5.5·Fable 5.1·Sonnet 5.5·Opus 5·Fable 5·Sonnet 5), `references/claude-4-specifics.md` (Opus 4.8·Sonnet 4.6·Haiku 4.5), `references/long-context.md` |
+| Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), effort `medium` 시작(Opus 5.5·Haiku 5.5), `between_tools`·작업 범위(Sonnet 5.5), 검색 날짜·조기 종료(Haiku 5.5), 모델별 사고 방식(4.x), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Opus 5.5·Fable 5.1·Sonnet 5.5·Haiku 5.5·Opus 5·Fable 5·Sonnet 5), `references/claude-4-specifics.md` (Opus 4.8·Sonnet 4.6·Haiku 4.5), `references/long-context.md` |
 | Google Gemini 3.x | 모델별 `thinking_level` 허용 값, sampling 제거, 사고 서명 보존, 함수 결과 짝 맞추기, 미디어 해상도 | `references/gemini3-patterns.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` |
 | Alibaba Qwen 3.8 | ChatML, `reasoning_effort` 3단계 + `preserve_thinking` 기본 ON, XML tool 포맷·`qwen3_coder` 파서, 단일 sampling | `references/qwen38-patterns.md` |
@@ -232,7 +233,7 @@ system_prompt: |
 
 ### Anthropic (Claude) 특화
 
-- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Opus 5.5·Fable 5.1·Sonnet 5.5·Opus 5·Fable 5·Sonnet 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Sonnet 5.5·5 차이점, Fable 5 → 5.1 델타, Opus 5 → 5.5 델타
+- **[claude-5-specifics.md](references/claude-5-specifics.md)** ⭐ Claude 5 세대 (Opus 5.5·Fable 5.1·Sonnet 5.5·Haiku 5.5·Opus 5·Fable 5·Sonnet 5) 베스트 프랙티스 — De-prescribe, 하드 제약, 권장 스니펫, Opus 5 차이점, Sonnet 5.5·5 차이점, Haiku 5.5 차이점, Fable 5 → 5.1 델타, Opus 5 → 5.5 델타
 - **[claude-4-specifics.md](references/claude-4-specifics.md)** Claude 4.x (Opus 4.8·Sonnet 4.6·Haiku 4.5) — 모델별 사고 방식·effort·sampling·prefill 계약, 4.x 공통 원칙
 - **[long-context.md](references/long-context.md)** ⭐ Long Context 최적화 (30%↑)
 
@@ -270,10 +271,12 @@ system_prompt: |
 - [Opus 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) — 스캐폴딩 삭제·위임 상한·effort 역전 (Opus 5.5 가이드가 출발점으로 인정)
 - [Sonnet 5.5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-sonnet-5-5-prompt-guide.md) — API 파괴적 변경 5건·effort 재보정·`between_tools`·작업 범위 스니펫
 - [Sonnet 5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-sonnet-5-prompt-guide.md) — Sonnet 4.6 대비 API 계약·문자 그대로의 지시 이행
+- [Haiku 5.5 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-haiku-5-5-prompt-guide.md) — Haiku 4.5 대비 API 파괴적 변경 5건·첫 Haiku effort·검색·조기 종료·검증·챗봇 스니펫
 - [Opus 4.8 풀 가이드 (한국어)](../../../reference/claude-prompt-guide/claude-opus-4-8-prompt-guide.md) — 사고 기본 꺼짐·코딩 `xhigh` 시작·서브에이전트 조절
 - [Prompting Claude Opus 5.5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5) ⭐ 최신
 - [Prompting Claude Fable 5.1 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1)
 - [Prompting Claude Sonnet 5.5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5-5)
+- [Prompting Claude Haiku 5.5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-haiku-5-5)
 - [Prompting Claude Fable 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
 - [Prompting Claude Opus 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
 - [Prompting Claude Sonnet 5 (공식)](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-sonnet-5)

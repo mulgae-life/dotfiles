@@ -44,7 +44,7 @@ Claude Sonnet 5.5 특화 프롬프팅 가이드입니다. 프롬프트 스니펫
 | **모델 ID** | `claude-sonnet-5-5` (2026-09-28 출시, 날짜 접미사 없음). Amazon Bedrock은 `anthropic.claude-sonnet-5-5` |
 | **포지션** | 공식 표현은 "The best combination of speed and intelligence". 가장 어려운 장기 작업은 Opus를 권합니다 |
 | **컨텍스트/출력** | 1M 토큰, 최대 128K 출력 (Batch API는 `output-300k-2026-03-24` 베타로 300K) |
-| **가격** | $2 / $10 per MTok, 캐시 읽기 $0.20 (Sonnet 5와 같음) |
+| **가격** | $2 / $10 per MTok (Sonnet 5와 같음), 캐시 읽기 $0.10 (2026-10-07 Haiku 5.5 출시와 함께 입력가의 0.1배에서 0.05배로 인하) |
 | **캐시 최소** | 512 토큰 (Sonnet 5·4.6은 1,024) |
 | **지식 컷오프** | 2026-06 |
 | **토크나이저** | Sonnet 5와 같음. Sonnet 4.6·Haiku 4.5보다 같은 텍스트에서 약 30% 많은 토큰 |
@@ -78,7 +78,7 @@ Sonnet 5에서 모델 ID만 바꾸면 실패하는 변경입니다.
 
 1. **응답 전 사고 끄기는 `between_tools`로**: `thinking: {"type": "disabled"}`는 400입니다. `thinking: {"type": "between_tools"}`를 보내되 effort `low`·`medium`·`high`에서만 됩니다. `xhigh`·`max`에서는 400이므로 그 레벨은 적응형 사고로 돌립니다(`thinking` 생략 또는 `{"type": "adaptive"}`). `between_tools`에는 `display`·`budget_tokens`·`block_binding`을 같이 보낼 수 없습니다. 수동 사고 예산(`enabled` + `budget_tokens`)도 400입니다.
 2. **강제 도구 사용 불가**: `tool_choice`의 `{"type": "any"}`와 `{"type": "tool", ...}`는 400입니다. `auto`(기본)와 `none`은 됩니다. 스키마에 맞는 도구 입력이 필요하면 `auto`를 유지하고 도구 정의에 `strict: true`를 겁니다.
-3. **사고 블록은 모델과 대화에 묶임**: Sonnet 5.5는 Sonnet 5·Opus 4.8·Haiku 4.5와 그 이전 모델의 사고 블록은 읽지만, Opus 5·Opus 5.5·Fable·Mythos의 블록은 읽지 않습니다(Claude API에서는 Opus 5.5가 Sonnet 5.5 블록을 읽음). 또 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀌었는지 검사합니다. 2026-08-31 00:00 UTC 이후 만든 계정은 Claude API·Amazon Bedrock·Google Cloud에서 이 검사가 기본으로 켜져 있어, 이력을 고친 뒤 블록을 다시 보내면 400입니다. 대화를 append-only로 유지하고, 지시나 도구는 대화 중 시스템 메시지(mid-conversation system message)로 바꿉니다.
+3. **사고 블록은 모델과 대화에 묶임**: Sonnet 5.5는 Sonnet 5·Opus 4.8·Haiku 4.5와 그 이전 모델의 사고 블록, 그리고 Claude API·Google Cloud에서는 Haiku 5.5의 블록을 읽지만, Opus 5·Opus 5.5·Fable·Mythos의 블록은 읽지 않습니다(Claude API·Google Cloud에서는 Opus 5.5가 Sonnet 5.5 블록을 읽음). 또 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀌었는지 검사합니다. 2026-08-31 00:00 UTC 이후 만든 계정은 Claude API·Amazon Bedrock·Google Cloud에서 이 검사가 기본으로 켜져 있어, 이력을 고친 뒤 블록을 다시 보내면 400입니다. 대화를 append-only로 유지하고, 지시나 도구는 대화 중 시스템 메시지(mid-conversation system message)로 바꿉니다.
 4. **`computer_20251124` 거부** (Claude API·Google Cloud): `computer_toolset_20260801` 툴셋만 받습니다. Amazon Bedrock은 이전 도구를 받습니다.
 5. **advisor 도구 조합 축소** (베타): Sonnet 5.5 실행자의 advisor로 Opus 4.8·Opus 4.7·Sonnet 5는 쓸 수 없습니다.
 

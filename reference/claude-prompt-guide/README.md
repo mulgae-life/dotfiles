@@ -28,6 +28,7 @@
 - **[claude-opus-5-5-prompt-guide.md](claude-opus-5-5-prompt-guide.md)** ⭐ 최신 - Claude Opus 5.5 특화 (API 파괴적 변경 4건, effort `medium` 시작, 무인 루프·대화형 하네스·채팅 앱별 증상과 처방, 붙여넣은 텍스트 표시)
 - **[claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md)** ⭐ - Claude Fable 5.1 / Mythos 5.1 특화 (effort 재측정, 행동 변화 7건, append-only 이력, 작업 완주·범위 제한)
 - **[claude-sonnet-5-5-prompt-guide.md](claude-sonnet-5-5-prompt-guide.md)** ⭐ - Claude Sonnet 5.5 특화 (API 파괴적 변경 5건, effort 재보정, `between_tools`, 작업 범위 스니펫 3종, JSON 추론 작업)
+- **[claude-haiku-5-5-prompt-guide.md](claude-haiku-5-5-prompt-guide.md)** ⭐ - Claude Haiku 5.5 특화 (Haiku 4.5 대비 API 파괴적 변경 5건, 첫 Haiku effort와 `medium` 기본값, 검색·조기 종료·검증·챗봇 스니펫, 두 요율 가격)
 - **[claude-opus-5-prompt-guide.md](claude-opus-5-prompt-guide.md)** - Claude Opus 5 특화 (스캐폴딩 삭제, effort, thinking 비활성화 결함)
 - **[claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md)** - Claude Fable 5 / Mythos 5 특화 (De-prescribe, effort, 장기 자율 런, refusal/fallback)
 - **[claude-sonnet-5-prompt-guide.md](claude-sonnet-5-prompt-guide.md)** - Claude Sonnet 5 특화 (Sonnet 4.6 대비 API 계약, 문자 그대로의 지시 이행, 디자인 기본값, 리뷰 하네스)
@@ -48,7 +49,7 @@
    - 인용 기반 grounding
 
 3. **Adaptive Thinking** (Claude 4.6 이후)
-   - Claude 5 세대는 기본 켜짐(Opus 5.5·Fable은 끌 수 없음), Opus 4.8·Sonnet 4.6은 기본 꺼짐, Haiku 4.5는 확장 사고(`budget_tokens`)만. `output_config.effort`로 깊이 제어
+   - Claude 5 세대는 기본 켜짐(Opus 5.5·Fable은 끌 수 없음, Haiku 5.5는 effort `high` 이하에서만 끌 수 있음), Opus 4.8·Sonnet 4.6은 기본 꺼짐, Haiku 4.5는 확장 사고(`budget_tokens`)만. `output_config.effort`로 깊이 제어
    - 사고 과정 서술 지시는 refusal 유발
 
 ### 용어 차이
@@ -83,6 +84,7 @@
 - **Claude Fable 5.1 / Mythos 5.1**: [claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md) 먼저 읽기 — Fable 5 가이드와 방향이 다른 항목(반서식 규칙 제거, 서식 규칙 반전, 강제 tool_choice 금지)에 주의
 - **Claude Fable 5 / Claude 5 세대**: [claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md) 먼저 읽기 — 4.x와 방향이 다른 항목(De-prescribe, prefill 불가, thinking 상시 on)에 주의
 - **Claude Sonnet 5.5 / Sonnet 5**: [claude-sonnet-5-5-prompt-guide.md](claude-sonnet-5-5-prompt-guide.md) · [claude-sonnet-5-prompt-guide.md](claude-sonnet-5-prompt-guide.md) — 두 모델은 사고 끄기 방식(Sonnet 5.5는 응답 전 사고만 끄는 `between_tools`, Sonnet 5는 `disabled`)과 강제 `tool_choice` 허용 여부가 다르므로 모델 ID를 먼저 확인
+- **Claude Haiku 5.5**: [claude-haiku-5-5-prompt-guide.md](claude-haiku-5-5-prompt-guide.md) — Haiku 4.5와 요청 계약이 크게 다름(사고 기본 켜짐, `budget_tokens`·sampling·prefill 400). 기본 effort가 `medium`이고 프롬프트 길이 10만 토큰을 넘으면 요율이 바뀜
 - **Claude Opus 4.8**: [claude-opus-4-8-prompt-guide.md](claude-opus-4-8-prompt-guide.md) — 사고가 기본 꺼짐이고 effort 권장 시작점이 Opus 5 세대와 다름(코딩 `xhigh`)
 - 이후 핵심 9개 기법 적용 (단, Prefilling은 Claude 5 세대에서 400 에러)
 
@@ -95,8 +97,8 @@
 ## 업데이트
 
 - **최초 수집**: 2025-02-01
-- **최근 갱신**: 2026-10-01 — Claude Sonnet 5.5·Sonnet 5·Opus 4.8 가이드 추가
-- **수집 범위**: 9개 핵심 기법 + 모델별 가이드 7종 (Opus 5.5·Fable 5.1·Sonnet 5.5·Opus 5·Fable 5·Sonnet 5·Opus 4.8)
+- **최근 갱신**: 2026-10-08 — Claude Haiku 5.5 가이드 추가
+- **수집 범위**: 9개 핵심 기법 + 모델별 가이드 8종 (Opus 5.5·Fable 5.1·Sonnet 5.5·Haiku 5.5·Opus 5·Fable 5·Sonnet 5·Opus 4.8)
 
 ## 관련 문서
 

@@ -7,13 +7,13 @@ OpenAI GPT, Anthropic Claude, Google Gemini의 프롬프트 엔지니어링 주�
 | 항목 | OpenAI (GPT-5.x / 6) | Anthropic (Claude) | Google (Gemini 3.x) | 공통 |
 |------|----------------|-------------------|------|------|
 | **Message Roles** | `developer` (최고 우선순위)<br/>`user`, `assistant` | `system` 파라미터<br/>`user`, `assistant` | `system_instruction`<br/>`user`, `model` | 사용자 입력과 지시 분리 |
-| **파라미터** | `reasoning_effort`<br/>`verbosity` | `output_config.effort` (Haiku 4.5는 `budget_tokens`) | `thinking_level` (sampling 제거) | - |
+| **파라미터** | `reasoning_effort`<br/>`verbosity` | `output_config.effort` (Haiku 5.5부터 지원, Haiku 4.5는 `budget_tokens`) | `thinking_level` (sampling 제거) | - |
 | **Prefilling** | ❌ 없음 | ❌ 4.6 이후 400 → Structured Outputs (Haiku 4.5만 사고를 끈 요청에서 허용) | ❌ 새 프롬프트에서 쓰지 않음 (제거 권고는 3.8·Cloud 3.7 문서) | 형식 강제는 구조화 출력 |
-| **Long Context** | 일반적 사용 | ✅ 최대 1M (Haiku 4.5는 200K)<br/>(문서 맨 위 배치 → 30%↑) | 입력 1,048,576 / 출력 65,536 (사고 포함)<br/>긴 자료 앞, 질문 끝 | - |
+| **Long Context** | 일반적 사용 | ✅ 최대 1M (Haiku 4.5는 200K, Haiku 5.5는 10만 토큰 초과 프롬프트에 높은 요율)<br/>(문서 맨 위 배치 → 30%↑) | 입력 1,048,576 / 출력 65,536 (사고 포함)<br/>긴 자료 앞, 질문 끝 | - |
 | **CoT** | "Think step-by-step" (GPT 추론 모델은 추가 추론 유도 문구 생략) | thinking이 켜져 있으면 일반 지시 우선<br/>끈 경우 3단계 (Basic/Guided/Structured) | 추론 단계를 답에 쓰게 할 필요는 대체로 없음, `thinking_level`로 조절 | ⚠️ 모델·설정별 분기 |
 | **Examples** | Few-shot. 행동을 바꾸지 않는 예시는 줄임(5.6) | Multishot. 공식 모범 사례는 다양한 예시 3~5개 | 공식 문서는 예시 포함 권장. 수는 과제별 평가 | 개수는 대상 모델 문서와 과제별 평가로 |
 | **XML Tags** | ✅ 권장 | ✅ 권장 | 구조 표기(XML 또는 Markdown) 하나로 일관 | 구분자 일관성 |
-| **Extended Thinking** | 같은 이름의 기능 없음. 추론 모델은 추론 강도 파라미터로 조절 → 6절 | Claude 5 세대는 기본 켜짐(Opus 5.5·Fable은 끌 수 없음, Sonnet 5.5는 `between_tools`까지), Opus 4.8·Sonnet 4.6은 기본 꺼짐, Haiku 4.5는 확장 사고만 | 끌 수 없음. `minimal`도 끄기가 아님 | - |
+| **Extended Thinking** | 같은 이름의 기능 없음. 추론 모델은 추론 강도 파라미터로 조절 → 6절 | Claude 5 세대는 기본 켜짐(Opus 5.5·Fable은 끌 수 없음, Sonnet 5.5는 `between_tools`까지, Haiku 5.5는 effort `high` 이하에서 `disabled`), Opus 4.8·Sonnet 4.6은 기본 꺼짐, Haiku 4.5는 확장 사고만 | 끌 수 없음. `minimal`도 끄기가 아님 | - |
 
 ## 상세 비교
 
@@ -144,7 +144,7 @@ response = client.messages.create(
 ```
 
 **특징**:
-- Fable 5.1·Opus 5.5는 thinking이 상시 adaptive로 켜져 있어 `thinking` 파라미터를 보낼 필요가 없습니다 (Opus 5는 effort `high` 이하에서 `disabled`로 끌 수 있음)
+- Fable 5.1·Opus 5.5는 thinking이 상시 adaptive로 켜져 있어 `thinking` 파라미터를 보낼 필요가 없습니다 (Opus 5·Haiku 5.5는 effort `high` 이하에서 `disabled`로 끌 수 있음)
 - 깊이는 `output_config.effort` 한 축으로만 제어 → [claude-5-specifics.md](claude-5-specifics.md)
 - Fable 5.1·Opus 5.5에서 `thinking: {type: "enabled", budget_tokens: N}`과 `thinking: {type: "disabled"}`는 **400 에러**입니다. Opus 5의 `disabled` 예외는 첫 항목을 따릅니다
 - Sonnet 5는 `disabled`를 받고, Sonnet 5.5의 가장 낮은 설정은 응답 전 사고만 끄는 `between_tools`(effort `high` 이하)입니다 → [claude-5-specifics.md](claude-5-specifics.md#sonnet-55--sonnet-5-차이점)
@@ -185,7 +185,7 @@ response = client.responses.create(
 Responses API는 `reasoning.effort`·`text.verbosity`, Chat Completions API는 `reasoning_effort`·`verbosity`를 사용합니다 (위 예제는 Responses API).
 
 #### Anthropic
-- `output_config.effort` (`low`~`max`)로 추론 깊이 제어 → [claude-5-specifics.md](claude-5-specifics.md). 지원 레벨은 모델마다 다름(Sonnet 4.6은 `xhigh` 없음, Haiku 4.5는 effort 미지원 → [claude-4-specifics.md](claude-4-specifics.md))
+- `output_config.effort` (`low`~`max`)로 추론 깊이 제어 → [claude-5-specifics.md](claude-5-specifics.md). 지원 레벨과 기본값은 모델마다 다름(Opus 5.5·Haiku 5.5는 기본 `medium`, Sonnet 4.6은 `xhigh` 없음, Haiku 4.5는 effort 미지원 → [claude-4-specifics.md](claude-4-specifics.md))
 - 응답 길이는 프롬프트로 제어:
   ```
   "간결하게 답변하세요" (verbosity low 대신)
