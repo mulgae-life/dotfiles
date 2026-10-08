@@ -5,6 +5,8 @@
 
 # model·추론 수준 미설정 = Codex 기본값 추종(세대 교체 때 config가 낡지 않도록). /model·/effort 런타임 값은 재설치 시 레포 버전으로 복원됨
 model_reasoning_summary = "concise"
+model_context_window = 800000
+model_auto_compact_token_limit = 400000
 # service_tier = "fast"            # 대표님이 /fast 또는 수동으로 토글
 
 # ── 문서/파일 연동 ─────────────────────────
