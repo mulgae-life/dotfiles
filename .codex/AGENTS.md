@@ -106,6 +106,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 | `langchain-guide` | LangChain/LangGraph 에이전트 | "에이전트 만들어줘" |
 | `feedback-analysis` | 피드백 분석·우선순위 정리 | "피드백 분석해줘" |
 | `recursive-discussion` | Claude와 대등 토론으로 결과물 개선 | "코덱스랑 토론해서", "재귀 토론" |
+| `cowork-set` | 프로젝트에 Claude–Codex 협업 체계 세팅 — 대표님 직접 호출 전용 | `$cowork-set` |
 | `reference-verification` | 논문 인용·수식↔코드·benchmark 원문 검증 절차 | "논문 인용", "수식 구현 대조" |
 | `start` | 세션 시작 — agent-guide와 핵심 코드 읽고 현재 상태·실행 흐름 요약 | "시작" |
 | `brief` | 프로젝트 목적·기대 대비 진행 현황과 인사이트 브리핑 — 과정·실무 정보 제외 | "지금 어디까지 왔어", "브리핑해줘" |

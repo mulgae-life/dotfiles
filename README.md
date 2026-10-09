@@ -32,7 +32,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 - **`/init-project`** 로 새 프로젝트에 `agent-guide/`(GUIDE · PROJECT · SESSION) 3종을 만들면, 루트 `CLAUDE.md`·`AGENTS.md`가 GUIDE 링크로 생겨 세 도구가 전역 지침 뒤에 프로젝트 지침을 이어 읽는다.
 - 나머지는 아래 스킬을 `/이름`(Codex는 `$이름`)으로 호출한다.
 
-## ⚙️ 스킬 (25개, 세 도구 공용)
+## ⚙️ 스킬 (26개, 세 도구 공용)
 
 출처 열의 "이식"은 공식 저장소의 스킬을 가져온 것, "차용"은 일부 기준만 가져온 것이다. 둘 다 상류 갱신 대상이며 경로와 절차는 [docs/SKILL-SOURCES.md](docs/SKILL-SOURCES.md).
 
@@ -63,6 +63,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 프롬프트·협업 | `/writing-prompts` | LLM 프롬프트 작성 | 자체 |
 | | `/reference-verification` | 논문·수식·벤치마크 인용 시 원문 검증 | 자체 |
 | | `/recursive-discussion` | Claude↔Codex 왕복 토론으로 결과물 개선 | 자체 |
+| | `/cowork-set` | 프로젝트 유형에 맞는 Claude–Codex 협업 체계를 GUIDE에 세우고 tmux 상대 세션에 역할을 확인받음 (직접 호출 전용) | 자체 |
 
 ## 🧩 규칙 · 에이전트 · 훅
 
