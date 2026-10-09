@@ -99,6 +99,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 | `visual-check` | Chromium 렌더링 스크린샷·진단으로 UI 결과 검증 | "화면 확인해줘", "모바일에서 깨지는지 봐줘" |
 | `hw-design` | 한화 브랜드 디자인 표준(DESIGN.md·토큰·폰트) 프로젝트 배포 | "한화 톤으로 UI", "hw 적용해줘" |
 | `hw-ppt` | 한화손해보험 톤 16:9 슬라이드 덱 생성 | "한화손보 PPT", "한화 제안서" |
+| `office-docs` | PDF·Word·PowerPoint·Excel 파일 생성·읽기·편집 — OOXML 검증, 수식 재계산, 렌더링 검수 | "PDF 합쳐줘", "보고서 docx로", "엑셀 수식 고쳐줘" |
 | `react-best-practices` | React/Next.js 성능 최적화 | "컴포넌트 최적화" |
 | `postgres-best-practices` | Postgres 스키마·마이그레이션·RLS·쿼리 | "쿼리 최적화", "RLS 정책", "마이그레이션 작성" |
 | `writing-prompts` | GPT/Claude/Gemini/Gemma/Qwen 프롬프트 작성 | "프롬프트 작성해줘" |
