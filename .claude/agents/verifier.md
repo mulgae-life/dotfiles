@@ -7,7 +7,6 @@ tools:
   - Glob
   - Grep
   - Bash
-memory: project
 ---
 
 # Verifier Agent
