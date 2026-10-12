@@ -2,7 +2,13 @@
 
 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) · [Codex](https://github.com/openai/codex) · [Antigravity CLI](https://antigravity.google)(`agy`)의 전역 설정을 한 레포에서 관리한다. 한 번 설치하면 어떤 프로젝트에서든 같은 **규칙 · 에이전트 · 스킬 · 훅**이 적용된다.
 
-원칙은 셋이다. 확인 프롬프트 없이 자율 실행하되 파국형 명령만 기계로 막고, 위험 명령 통제는 지침이 맡으며, Claude 층을 정본으로 다른 도구가 공유한다. 근거와 결정 기록은 [docs/DECISIONS.md](docs/DECISIONS.md), 버전별 변경은 [CHANGELOG.md](CHANGELOG.md).
+**원칙**
+
+- 확인 프롬프트 없이 자율 실행하고, 파국형 명령만 기계로 막는다.
+- `rm`·`git push` 같은 위험 명령은 지침으로 통제한다. 사용자가 요청할 때만 쓴다.
+- Claude 층이 정본이고, 다른 도구는 그것을 공유한다.
+
+근거와 결정 기록은 [docs/DECISIONS.md](docs/DECISIONS.md), 버전별 변경은 [CHANGELOG.md](CHANGELOG.md)에 있다.
 
 ## 📦 설치
 
@@ -11,26 +17,59 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 ~/dotfiles/install.sh            # --dry-run 으로 미리 확인 가능
 ```
 
-- 대부분은 `~/dotfiles/` → `~/` 심볼릭 링크다. 도구가 되쓰는 `settings.json`·`config.toml`은 복사, `agy` settings는 관리 키만 병합한다. 재설치하면 런타임에서 바꾼 모델·effort 같은 값은 레포 기본으로 돌아온다.
-- `jq`가 없으면 자동 설치를 시도한다. Antigravity IDE 설정 동기화는 macOS·Windows만.
-- 스킬 의존성도 함께 설치한다. `scripts/setup.sh`를 둔 스킬(`visual-check`의 Playwright·Chromium, `office-docs`의 파이썬 가상환경·npm 패키지·나눔고딕)은 사용자 권한으로 설치하고, LibreOffice·poppler처럼 관리자 권한이 필요한 것은 `sudo apt-get`을 시도한 뒤 실패하면 수동 명령을 안내한다. 링크만 다시 걸 때는 `--skip-deps`.
+설치는 파일 성격에 따라 세 방식으로 나뉜다.
+
+```
+~/dotfiles ── install.sh ─┬─ 링크 ─ 지시 파일 · rules · agents · skills · hooks · 상태줄
+                          │         → 레포에서 고치면 다음 세션부터 반영
+                          ├─ 복사 ─ .claude/settings.json · .codex/config.toml
+                          │         → 도구가 되쓰는 파일. 레포에서 고친 뒤 재설치
+                          └─ 병합 ─ agy cli/settings.json (관리 키만)
+                                    → 레포에서 고친 뒤 재설치
+```
+
+- 재설치하면 런타임에서 바꾼 모델·effort 같은 값은 레포 기본으로 돌아온다.
+- `jq`가 없으면 자동 설치를 시도한다.
+- 스킬 의존성도 함께 설치한다.
+  - 사용자 권한: `visual-check`(Playwright·Chromium), `office-docs`(파이썬 가상환경·npm 패키지·나눔고딕)
+  - 관리자 권한(LibreOffice·poppler): `sudo apt-get`을 시도하고, 실패하면 수동 명령을 안내한다.
+  - 링크만 다시 걸 때는 `--skip-deps`.
+- Antigravity IDE 설정 동기화는 macOS·Windows에서만 한다.
 
 ## ⚡ 자동으로 일어나는 것
 
 | 기능 | 설명 |
 |------|------|
 | 규칙 자동 적용 | 코딩 스타일·보안·한국어 응답 등 7개 규칙이 매 세션 적용 |
-| 무프롬프트 실행 | 확인 없이 실행. 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작 등)만 차단하고 `rm`·`git push`·`sudo` 같은 위험 명령은 사용자가 요청할 때만 쓰도록 지침으로 통제 |
+| 무프롬프트 실행 | 확인 없이 실행. 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작 등)만 차단 |
 | 에이전트 자동 위임 | 빌드 실패 → `build-resolver`, 보안 민감 코드 → `security-reviewer` |
 | 데스크톱 알림 | 입력 대기·턴 완료 시 `notify-send` |
 | 상태줄 | 입력창 아래에 프로젝트 · 모델 · effort · 컨텍스트 사용률 · 5시간/주간 한도를 세 도구 모두 표시 |
-| compact 리마인더 | 컨텍스트 압축 뒤 "요약을 사실로 단정하지 말고 파일을 다시 읽으라, 새 사용자 메시지가 있으면 이전 작업 재개보다 그것을 먼저"를 주입 |
+| compact 리마인더 | 컨텍스트 압축 뒤 "요약을 믿지 말고 파일을 다시 읽으라, 새 요청이 있으면 그것부터"를 주입 |
 
 ## 🎯 사용법
 
 - **`시작`**이라고 치면 프로젝트 문서와 핵심 코드를 읽고 현재 상태를 요약한다.
-- **`/init-project`** 로 새 프로젝트에 `agent-guide/`(GUIDE · PROJECT · SESSION) 3종을 만들면, 루트 `CLAUDE.md`·`AGENTS.md`가 GUIDE 링크로 생겨 세 도구가 전역 지침 뒤에 프로젝트 지침을 이어 읽는다.
+- **`/init-project`** 는 새 프로젝트에 `agent-guide/`(GUIDE · PROJECT · SESSION) 3종을 만든다.
+  - 루트 `CLAUDE.md`·`AGENTS.md`가 GUIDE 링크로 생긴다.
+  - 그래서 세 도구 모두 전역 지침 뒤에 프로젝트 지침을 이어 읽는다.
 - 나머지는 아래 스킬을 `/이름`(Codex는 `$이름`)으로 호출한다.
+
+## ✏️ 페르소나 바꾸기
+
+기본 설정은 사용자를 "대표님"으로 부르고 한국어 합쇼체로 답한다. 호칭·말투·역할을 바꾸려면 포크한 레포에서 아래 세 곳을 같은 내용으로 고친다. 지시 파일이 도구마다 따로 있어서, 한 곳만 고치면 다른 도구는 예전 말투로 답한다.
+
+| 도구 | 파일 | 고칠 자리 |
+|------|------|-----------|
+| Claude Code | `.claude/rules/communication.md` | `## 페르소나` 절 |
+| Codex | `.codex/config.toml` | `developer_instructions`의 `<identity>` 블록 |
+| Antigravity CLI | `.antigravity/GEMINI.md` | `<identity>` 블록 |
+
+- 반영 방식은 [설치](#-설치) 그림을 따른다. `config.toml`은 복사본이라 `~/.codex/`에서 직접 고치면 재설치할 때 덮어써진다.
+- 응답 언어를 바꾸려면 다음도 함께 고친다.
+  - `.claude/settings.json`의 `"language"`
+  - 세 파일의 언어 절: `communication.md`의 `## 언어`, `config.toml`의 한국어 표현 항목, `GEMINI.md`의 `<language>`
+- 호칭을 바꿨다면 `.claude/skills/cowork-set/`도 고친다. 스킬 본문과 tmux 메시지 머리말(`[대표님 지시]`)이 "대표님"을 전제로 쓰여 있다.
 
 ## ⚙️ 스킬 (26개, 세 도구 공용)
 
@@ -42,7 +81,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | | `/brief` | 프로젝트 목적·기대 대비 진행 현황과 인사이트 브리핑 — 과정·실무 정보 제외 | 자체 |
 | | `/init-project` | agent-guide 3종 생성 + 루트 진입 링크 | 자체 |
 | | `/update-docs` | 작업 후 프로젝트 문서 갱신 | 자체 |
-| | `/harness-evolve` | 세션 기록을 회고해 프로젝트 지침(agent-guide) 개선점 하나를 제안·반영하고 다음 회고 때 효과 확인 | 자체 |
+| | `/harness-evolve` | 세션 회고로 agent-guide 개선점 하나를 반영하고 다음 회고에서 효과 확인 | 자체 |
 | | `/skill-creator` | 새 스킬 생성 가이드 | Anthropic 이식 |
 | 코드 품질 | `/code-review` | 심각도 등급별 심층 리뷰 리포트 | Anthropic 차용 (오탐 기준만) |
 | | `/work-verify` | 작업 후 빠른 점검 | 자체 |
@@ -59,11 +98,11 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | 백엔드·데이터 | `/postgres-best-practices` | Postgres 스키마·마이그레이션·RLS·쿼리 모범 사례 | Supabase 이식 |
 | | `/llm-api-guide` | OpenAI/Anthropic API 연동 | 자체 |
 | | `/langchain-guide` | LangChain/LangGraph 에이전트·워크플로우 | 자체 |
-| 문서 파일 | `/office-docs` | PDF·Word·PowerPoint·Excel 파일 생성·읽기·편집 — OOXML 검증, 수식 재계산, 렌더링 검수 스크립트 포함 | Anthropic 이식 (pdf·docx·pptx·xlsx 4종 통합) |
+| 문서 파일 | `/office-docs` | PDF·Word·PowerPoint·Excel 생성·읽기·편집, 검증·렌더링 검수 스크립트 포함 | Anthropic 이식 (4종 통합) |
 | 프롬프트·협업 | `/writing-prompts` | LLM 프롬프트 작성 | 자체 |
 | | `/reference-verification` | 논문·수식·벤치마크 인용 시 원문 검증 | 자체 |
 | | `/recursive-discussion` | Claude↔Codex 왕복 토론으로 결과물 개선 | 자체 |
-| | `/cowork-set` | 프로젝트 유형에 맞는 Claude–Codex 협업 체계를 GUIDE에 세우고 tmux 상대 세션에 역할을 확인받음 (직접 호출 전용) | 자체 |
+| | `/cowork-set` | Claude–Codex 협업 체계를 GUIDE에 세우고 tmux 상대 세션에 확인받음 (직접 호출 전용) | 자체 |
 
 ## 🧩 규칙 · 에이전트 · 훅
 
@@ -74,7 +113,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 | `coding-style.md` | 코딩 스타일, 에러 처리, 리소스 관리 |
 | `security.md` | 시크릿 관리, 입력 검증, 취약점 방지 |
 | `architecture.md` | 파일 구조, 단일 역할, 의존성 방향 |
-| `communication.md` | 한국어 응답, 변경 이유 설명, 용어 병기 |
+| `communication.md` | 페르소나, 한국어 응답, 변경 이유 설명, 용어 병기 |
 | `context-management.md` | 계획 영속화, 부에이전트 공유 |
 | `work-principles.md` | 정확성 우선, 위험 명령 통제, 산출물 정리 |
 | `agents.md` | 에이전트 자동 위임 조건 |
@@ -90,11 +129,15 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 **훅**
 
-| 도구 | 이벤트 → 동작 |
-|------|--------------|
-| Claude Code | PreToolUse(`mcp__.*`) → MCP 자동 승인 · PostToolUseFailure(Bash) → 실패 대응 가이던스 · Notification → 알림 · SessionStart(compact) → 리마인더 |
-| Codex | Stop → 알림 · SessionStart(compact) → 리마인더 |
-| Antigravity | 훅 없음 — 알림은 내장 `notifications` |
+| 도구 | 이벤트 | 동작 |
+|------|--------|------|
+| Claude Code | PreToolUse(`mcp__.*`) | MCP 자동 승인 |
+| | PostToolUseFailure(Bash) | 실패 대응 가이던스 |
+| | Notification | 알림 |
+| | SessionStart(compact) | 리마인더 |
+| Codex | Stop | 알림 |
+| | SessionStart(compact) | 리마인더 |
+| Antigravity | — | 훅 없음. 알림은 내장 `notifications` |
 
 ## 🔧 도구별 구조
 
