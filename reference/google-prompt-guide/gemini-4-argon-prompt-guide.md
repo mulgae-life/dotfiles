@@ -164,7 +164,7 @@ Google이 "Gemini 4 Argon can work on a task independently for a long time"을 �
 | 쿼터 | 고정 횟수가 아니라 작업량에 비례("the rate limits correlate with the amount of work done by the agent"). 유료 Pro는 Argon 전용 주간 버킷(`gemini-argon-wtu-weekly`)이 따로 있고 5시간 한도는 없음. Ultra는 Argon 몫이 Gemini 버킷에 포함됨("For paid Pro plans, Argon quota is separate. Higher Argon quota (included as part of the larger Gemini quota bucket) is available on Ultra plans.", `agy -p "/usage"`) |
 | 미확인 | 출고 기본 모델·변형, CLI에서 쓸 수 있는 창 크기, 변형이 API `thinking_level`로 그대로 전달되는지 |
 
-dotfiles의 agy 상태줄(`.antigravity/cli/statusline-command.sh`)은 Argon을 고르면 `gemini-argon`으로 시작하는 주간 버킷을 읽어 7일 사용률만 표시하고, 그 버킷이 없으면(Ultra) `gemini-5h`·`gemini-weekly`를 읽습니다. 상태줄 페이로드의 키가 `/usage`의 버킷 ID와 같다는 전제이며, Argon 버킷이 실제로 실리는지는 아직 실측하지 않았습니다.
+dotfiles의 agy 상태줄(`.antigravity/cli/statusline-command.sh`)은 Argon을 고르면 `gemini-argon`으로 시작하는 주간 버킷과 Flash가 쓰는 Gemini 버킷(5시간·주간)을 나란히 표시하고, Argon 버킷이 없으면(Ultra) `gemini-5h`·`gemini-weekly`를 읽습니다. 상태줄 페이로드의 키가 `/usage`의 버킷 ID와 같다는 전제이며, Argon 버킷이 실제로 실리는지는 아직 실측하지 않았습니다.
 
 ## 9. 마이그레이션 체크리스트
 

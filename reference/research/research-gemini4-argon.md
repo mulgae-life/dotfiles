@@ -47,7 +47,7 @@
 | 새 문서 | Argon 풀 가이드 + `writing-prompts/references/gemini4-argon-patterns.md`. 3.x 파일에 덧붙이지 않은 이유는 API 계약 차이가 크고 전용 운용 권고가 있어서입니다 |
 | 승계 규칙 | Argon 전용 권고와 공식 문서가 Gemini 4에 명시한 공통 계약을 우선하고, 나머지는 스킬 범용 원칙을 씁니다. Gemini 3 전용 처방은 자동 적용하지 않습니다(Codex 제안) |
 | 3.7 Flash | 범위에 남기고 서비스별 상태를 적습니다. 보관 조건이 "공급자가 은퇴시킨 모델"인데 Cloud는 아직 제공하기 때문입니다. Cloud 종료일이 지나도 자동 보관하지 않고 그때 상태를 다시 확인합니다 |
-| agy 상태줄 | 대표님 지적으로 확인한 결과, 유료 Pro는 Argon 전용 주간 버킷(`gemini-argon-wtu-weekly`, 5시간 한도 없음)이 따로 있었습니다(`agy -p "/usage"`는 할당량을 쓰지 않음). Argon 선택 시 이 버킷을 읽도록 고쳤고, 버킷이 없는 Ultra는 기존 `gemini` 버킷을 읽습니다 |
+| agy 상태줄 | 대표님 지적으로 확인한 결과, 유료 Pro는 Argon 전용 주간 버킷(`gemini-argon-wtu-weekly`, 5시간 한도 없음)이 따로 있었습니다(`agy -p "/usage"`는 할당량을 쓰지 않음). Argon 선택 시 이 버킷과, 하위 에이전트로 함께 쓰는 Flash의 `gemini` 버킷을 나란히 보이도록 고쳤고, 버킷이 없는 Ultra는 기존 `gemini` 버킷을 읽습니다 |
 | `agy-live-check.sh` | 기존 검사 조건(`gemini-3.8-flash-low`)을 유지합니다. Argon으로 바꿀 필요는 확인되지 않았습니다 |
 | 설치·권한 | 변경 없음 |
 

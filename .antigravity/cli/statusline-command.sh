@@ -62,43 +62,53 @@ case "$model" in
   Gemini*) bucket="gemini" ;;
   *)       bucket="3p" ;;
 esac
-five_key="$bucket-5h"
-week_key="$bucket-weekly"
+
+# 버킷 하나 묶음(5h·7d 사용률 + 7d 초기화 일시)을 출력. 인자: 라벨, 5h 키, 7d 키
+quota_segment() {
+  local label=$1 five_key=$2 week_key=$3 five_h seven_d seven_d_reset pct_int reset_kst out=""
+  # remaining_fraction(남은 비율) → 사용률 %
+  five_h=$(echo "$input" | jq -r --arg k "$five_key" '.quota[$k].remaining_fraction // empty | (1 - .) * 100')
+  seven_d=$(echo "$input" | jq -r --arg k "$week_key" '.quota[$k].remaining_fraction // empty | (1 - .) * 100')
+  seven_d_reset=$(echo "$input" | jq -r --arg k "$week_key" '.quota[$k].reset_time // empty')
+  [ -z "$five_h" ] && [ -z "$seven_d" ] && return
+  [ -n "$label" ] && out="\033[0;37m${label}\033[00m "
+  if [ -n "$five_h" ]; then
+    pct_int=$(printf "%.0f" "$five_h")
+    out="${out}$(rate_color "$pct_int")5h ${pct_int}%\033[00m"
+  fi
+  if [ -n "$seven_d" ]; then
+    pct_int=$(printf "%.0f" "$seven_d")
+    [ -n "$five_h" ] && out="$out \033[0;90m·\033[00m "
+    out="${out}$(rate_color "$pct_int")7d ${pct_int}%\033[00m"
+    # 7일 한도 초기화 일시 (KST)
+    if [ -n "$seven_d_reset" ]; then
+      reset_kst=$(TZ=Asia/Seoul date -d "$seven_d_reset" '+%-m/%-d %H:%M' 2>/dev/null)
+      [ -n "$reset_kst" ] && out="${out} \033[0;90m→${reset_kst}\033[00m"
+    fi
+  fi
+  printf "%s" "$out"
+}
+
+sep="\033[1;90m│\033[00m"
+limit_parts=$(quota_segment "" "$bucket-5h" "$bucket-weekly")
 
 # Argon: Pro 요금제는 별도 주간 버킷(gemini-argon-*-weekly, 5시간 한도 없음)을 쓴다.
-# Ultra는 gemini 버킷에 포함돼 별도 버킷이 없으므로 그때는 위 gemini 키를 그대로 쓴다
+# 하위 에이전트·모델 전환으로 Flash도 함께 쓰므로 Gemini 그룹(Flash·Pro) 버킷을 옆에 같이 보인다.
+# Ultra는 Argon이 gemini 버킷에 포함돼 별도 버킷이 없으므로 위 gemini 묶음만 보인다
 case "$model" in
   *Argon*)
     argon_key=$(echo "$input" | jq -r '.quota // {} | keys[] | select(startswith("gemini-argon") and endswith("-weekly"))' | head -n1)
     if [ -n "$argon_key" ]; then
-      five_key=""
-      week_key="$argon_key"
+      argon_part=$(quota_segment "Argon" "" "$argon_key")
+      flash_part=$(quota_segment "Flash" "gemini-5h" "gemini-weekly")
+      limit_parts="$argon_part"
+      [ -n "$flash_part" ] && limit_parts="${limit_parts:+$limit_parts $sep }$flash_part"
     fi
     ;;
 esac
 
-# remaining_fraction(남은 비율) → 사용률 %
-five_h=$(echo "$input" | jq -r --arg k "$five_key" '.quota[$k].remaining_fraction // empty | (1 - .) * 100')
-seven_d=$(echo "$input" | jq -r --arg k "$week_key" '.quota[$k].remaining_fraction // empty | (1 - .) * 100')
-seven_d_reset=$(echo "$input" | jq -r --arg k "$week_key" '.quota[$k].reset_time // empty')
-
-if [ -n "$five_h" ] || [ -n "$seven_d" ]; then
-  limit_parts=""
-  if [ -n "$five_h" ]; then
-    pct_int=$(printf "%.0f" "$five_h")
-    limit_parts="$(rate_color "$pct_int")5h ${pct_int}%\033[00m"
-  fi
-  if [ -n "$seven_d" ]; then
-    pct_int=$(printf "%.0f" "$seven_d")
-    [ -n "$limit_parts" ] && limit_parts="$limit_parts \033[0;90m·\033[00m "
-    limit_parts="${limit_parts}$(rate_color "$pct_int")7d ${pct_int}%\033[00m"
-    # 7일 한도 초기화 일시 (KST)
-    if [ -n "$seven_d_reset" ]; then
-      reset_kst=$(TZ=Asia/Seoul date -d "$seven_d_reset" '+%-m/%-d %H:%M' 2>/dev/null)
-      [ -n "$reset_kst" ] && limit_parts="${limit_parts} \033[0;90m→${reset_kst}\033[00m"
-    fi
-  fi
-  [ -n "$line2" ] && line2="$line2 $(printf '\033[1;90m│\033[00m') "
+if [ -n "$limit_parts" ]; then
+  [ -n "$line2" ] && line2="$line2 $(printf "%b" "$sep") "
   line2="${line2}$(printf "%b" "$limit_parts")"
 fi
 
