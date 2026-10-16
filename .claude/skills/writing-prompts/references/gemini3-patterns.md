@@ -16,6 +16,8 @@
 > 여섯 모델은 공통 프롬프팅 원칙을 공유하지만 사고 수준·기본값·일부 도구 지원이 모델마다 다르고, 같은 모델도 API 방식(Interactions·GenerateContent·OpenAI 호환)에 따라 필드 경로와 이력 처리가 다르다. 공통 절과 대상 모델의 행만 적용한다. Gemma(오픈웨이트)는 별개 제품군이므로 [gemma4-patterns.md](gemma4-patterns.md)를 쓴다.
 >
 > 본 문서는 패턴 요약. 풀 가이드: [`reference/google-prompt-guide/gemini-3-prompt-guide.md`](../../../../reference/google-prompt-guide/gemini-3-prompt-guide.md)
+>
+> `gemini-4-argon`은 이 문서가 아니라 [gemini4-argon-patterns.md](gemini4-argon-patterns.md)를 본다. 아래 3.x 처방을 Argon에 자동 적용하지 않는다.
 
 ---
 
@@ -42,14 +44,14 @@
 
 | 모델 ID | 상태 | 사고 수준 (기본값) | 특이사항 |
 |------|------|------|------|
-| `gemini-3.8-flash` | Stable | `low`·`medium`·`high` (`medium`) | 길고 복잡한 작업에서 설계상 토큰을 더 씀(작은 추론 단계·반복 도구 호출·중간 검증). 일상 작업은 `low`나 3.7 Flash가 공식 대안. 컴퓨터 사용 Preview |
-| `gemini-3.7-flash` | Stable | `low`·`medium`·`high` (`medium`) | `minimal`은 오류 |
-| `gemini-3.6-flash` | Stable | `minimal`·`low`·`medium`·`high` (`medium`) | 3.7·3.8로 옮길 때 `minimal`은 `low`로 |
+| `gemini-3.8-flash` | Stable | `low`·`medium`·`high` (`medium`) | 길고 복잡한 작업에서 설계상 토큰을 더 씀(작은 추론 단계·반복 도구 호출·중간 검증). 일상 작업은 사고 수준을 낮추거나 3.6 Flash가 공식 대안. 컴퓨터 사용 Preview |
+| `gemini-3.7-flash` | Gemini API: 폐기(2026-10-08), 요청은 3.8로 자동 연결 / Cloud: 2027-01-28 종료 예정 | `low`·`medium`·`high` (`medium`) | `minimal`은 오류. 일반 API에서는 독립 모델로 고를 수 없으므로 새 대상으로 권하지 않는다 |
+| `gemini-3.6-flash` | Stable (Cloud: 2026-11-19 종료 예정) | `minimal`·`low`·`medium`·`high` (`medium`) | 3.7·3.8로 옮길 때 `minimal`은 `low`로 |
 | `gemini-3.5-flash-lite` | Stable | `minimal`·`low`·`medium`·`high` (`minimal`) | 서브에이전트·문서 파싱·단순 추출 등 대량 저지연 작업. 컴퓨터 사용 Preview |
 | `gemini-3.1-flash-lite` | Stable | `minimal`·`low`·`medium`·`high` (`minimal`) | 고급 추론이 필요 없는 저비용 대량 작업. 컴퓨터 사용 미지원 |
 | `gemini-3.1-pro-preview` | Preview | `low`·`medium`·`high` (`high`) | 기본 사고 수준이 Flash와 다름. 파일 검색은 AI Studio 전용. `-customtools` 변형은 별도 ID |
 
-이 범위 밖의 `gemini-3.5-flash`도 공급자 기준으로는 안정판이다. 지원 목록에서 뺀 것을 폐기로 표현하지 않는다.
+이 범위 밖의 `gemini-3.5-flash`는 Gemini API에서 2026-10-08에 폐기됐고 요청은 3.6 Flash로 자동 연결된다. 범위 안의 `gemini-3.5-flash-lite`(Flash-Lite)와 혼동하지 않는다. 폐기·종료 일정은 Gemini API와 Cloud가 따로 정하므로 서비스를 밝혀 쓴다.
 
 ---
 
@@ -109,7 +111,7 @@
 Before calling any other tool, in every response you MUST first call `update` with all required parameters (previous_step, plan, next_step, external).
 ```
 
-- 구조화 출력 + 내장 도구 병용은 Gemini 3 전용 Preview. 문법이 맞아도 값은 애플리케이션에서 검증한다
+- 구조화 출력 + 내장 도구 병용은 Gemini 4·3 계열 전용 Preview. 문법이 맞아도 값은 애플리케이션에서 검증한다
 - 결과 JSON의 작업 선택과 실제 함수 호출은 별개 평가 항목이다
 
 ---
@@ -140,7 +142,8 @@ Before calling any other tool, in every response you MUST first call `update` wi
 ## 참고
 
 - [Gemini 3.x 풀 가이드 (한국어)](../../../../reference/google-prompt-guide/gemini-3-prompt-guide.md)
-- [Gemini 3.8 Flash — Latest model (공식)](https://ai.google.dev/gemini-api/docs/latest-model)
+- [What's new in Gemini 3.8 Flash (공식)](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8) · [GenerateContent판](https://ai.google.dev/gemini-api/docs/generate-content/whats-new-gemini-3.8)
+- [Deprecations (공식)](https://ai.google.dev/gemini-api/docs/deprecations) · [Cloud 모델 수명주기](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/model-versions)
 - [What's new in Gemini 3.5 Flash (공식)](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5) — 3.x 공통 파라미터·프롬프팅 절
 - [Models (공식)](https://ai.google.dev/gemini-api/docs/models)
 - [Thinking (공식)](https://ai.google.dev/gemini-api/docs/thinking)

@@ -2,7 +2,7 @@
 # Antigravity CLI(agy) statusLine 명령어 — .claude/statusline-command.sh와 같은 배치
 # 표시 항목: prj dir | model | effort | context% | 5h/7d 쿼터 사용률
 # 페이로드는 Claude Code와 같은 골격이나 쿼터는 remaining_fraction(남은 비율)이고
-# 버킷이 gemini-*·3p-*(Claude·GPT 모델)로 나뉜다
+# 버킷이 gemini-*·3p-*(Claude·GPT 모델)·gemini-argon-*(Pro 요금제의 Argon)로 나뉜다
 
 input=$(cat)
 
@@ -62,11 +62,25 @@ case "$model" in
   Gemini*) bucket="gemini" ;;
   *)       bucket="3p" ;;
 esac
+five_key="$bucket-5h"
+week_key="$bucket-weekly"
+
+# Argon: Pro 요금제는 별도 주간 버킷(gemini-argon-*-weekly, 5시간 한도 없음)을 쓴다.
+# Ultra는 gemini 버킷에 포함돼 별도 버킷이 없으므로 그때는 위 gemini 키를 그대로 쓴다
+case "$model" in
+  *Argon*)
+    argon_key=$(echo "$input" | jq -r '.quota // {} | keys[] | select(startswith("gemini-argon") and endswith("-weekly"))' | head -n1)
+    if [ -n "$argon_key" ]; then
+      five_key=""
+      week_key="$argon_key"
+    fi
+    ;;
+esac
 
 # remaining_fraction(남은 비율) → 사용률 %
-five_h=$(echo "$input" | jq -r --arg b "$bucket" '.quota[$b + "-5h"].remaining_fraction // empty | (1 - .) * 100')
-seven_d=$(echo "$input" | jq -r --arg b "$bucket" '.quota[$b + "-weekly"].remaining_fraction // empty | (1 - .) * 100')
-seven_d_reset=$(echo "$input" | jq -r --arg b "$bucket" '.quota[$b + "-weekly"].reset_time // empty')
+five_h=$(echo "$input" | jq -r --arg k "$five_key" '.quota[$k].remaining_fraction // empty | (1 - .) * 100')
+seven_d=$(echo "$input" | jq -r --arg k "$week_key" '.quota[$k].remaining_fraction // empty | (1 - .) * 100')
+seven_d_reset=$(echo "$input" | jq -r --arg k "$week_key" '.quota[$k].reset_time // empty')
 
 if [ -n "$five_h" ] || [ -n "$seven_d" ]; then
   limit_parts=""

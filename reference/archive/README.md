@@ -11,9 +11,9 @@
 | Claude Opus | 5.5 · 5 · 4.8 |
 | Claude Sonnet | 5.5 · 5 · 4.6 |
 | Claude Fable | 5.1 · 5 |
-| Claude Haiku | 4.5 |
+| Claude Haiku | 5.5 · 4.5 |
 | GPT | 6 (Astra·6.1 Sol·6 Sol·Luna) · 5.6 · 5.5 |
-| Gemini | Flash 3.8 · 3.7 · 3.6, Flash-Lite 3.5 · 3.1, Pro 3.1 Preview |
+| Gemini | 4 Argon, Flash 3.8 · 3.7 (Cloud 제공, Gemini API는 3.8로 자동 연결) · 3.6, Flash-Lite 3.5 · 3.1, Pro 3.1 Preview |
 | Gemma | 4 (최신 세대만) |
 | Qwen | 3.8 (최신 세대만. 3.7은 API 전용이라 오픈웨이트 계보는 3.6 → 3.8) |
 

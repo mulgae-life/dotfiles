@@ -15,6 +15,8 @@ OpenAI GPT, Anthropic Claude, Google Gemini의 프롬프트 엔지니어링 주�
 | **XML Tags** | ✅ 권장 | ✅ 권장 | 구조 표기(XML 또는 Markdown) 하나로 일관 | 구분자 일관성 |
 | **Extended Thinking** | 같은 이름의 기능 없음. 추론 모델은 추론 강도 파라미터로 조절 → 6절 | Claude 5 세대는 기본 켜짐(Opus 5.5·Fable은 끌 수 없음, Sonnet 5.5는 `between_tools`까지, Haiku 5.5는 effort `high` 이하에서 `disabled`), Opus 4.8·Sonnet 4.6은 기본 꺼짐, Haiku 4.5는 확장 사고만 | 끌 수 없음. `minimal`도 끄기가 아님 | - |
 
+Gemini 열은 3.x 기준입니다. Gemini 4 Argon은 창이 입력·사고·출력 통합 1,048,576이고, 출력이 64K를 넘으면 API 방식별 장문 출력을 따로 씁니다(GenerateContent 직접 비스트리밍 REST는 요청당 32K). 명시 캐싱도 없습니다. 이 열의 3.x 처방을 옮겨 쓰지 말고 [gemini4-argon-patterns.md](gemini4-argon-patterns.md)를 봅니다.
+
 ## 상세 비교
 
 ### 1. Message Roles (시스템 지침)
@@ -164,6 +166,9 @@ interaction = client.interactions.create(
 - 사고는 끌 수 없고 `minimal`도 끄기가 아닙니다. 허용 값과 기본값은 모델마다 다릅니다(3.8·3.7 Flash는 `low`·`medium`·`high`, 3.6 Flash·Flash-Lite는 `minimal` 포함)
 - `max_output_tokens`에 사고 토큰이 포함됩니다
 - 사고 서명·블록은 받은 그대로 이력에 유지합니다 → [gemini3-patterns.md](gemini3-patterns.md)
+
+#### Google Gemini 4 Argon
+- `low`·`medium`(기본)·`high`만 받고 `minimal`은 없습니다. `thinking_budget`은 Gemini API의 GenerateContent에서는 경고 후 가까운 수준으로 바뀌고, Cloud에서는 400입니다 → [gemini4-argon-patterns.md](gemini4-argon-patterns.md)
 
 ### 6. GPT-5.x / 6 특화 파라미터
 

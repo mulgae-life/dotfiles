@@ -6,7 +6,7 @@ when_to_use: "프롬프트 작성해줘, 톤 가이드 적용해줘, 시스템 �
 
 # 프롬프트 작성 가이드 (OpenAI + Anthropic + Google + 오픈웨이트 통합)
 
-OpenAI GPT, Anthropic Claude, Google Gemini 3.x·Gemma 4, Alibaba Qwen 3.8 공식 가이드 기반. **범용 원칙 우선, 모델별 최적화는 대상 모델이 확정됐을 때 그 모델 문서만**. 한국어 프로젝트 특화 규칙(격식체) 포함.
+OpenAI GPT, Anthropic Claude, Google Gemini 4 Argon·3.x·Gemma 4, Alibaba Qwen 3.8 공식 가이드 기반. **범용 원칙 우선, 모델별 최적화는 대상 모델이 확정됐을 때 그 모델 문서만**. 한국어 프로젝트 특화 규칙(격식체) 포함.
 
 ---
 
@@ -37,6 +37,7 @@ OpenAI GPT, Anthropic Claude, Google Gemini 3.x·Gemma 4, Alibaba Qwen 3.8 공�
 | `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6-sol` · `gpt-6-luna` | [gpt6-patterns.md](references/gpt6-patterns.md) | 작성 체크리스트 + §0 모델별 계약 |
 | `gpt-5.6-sol` · `gpt-5.6-terra` · `gpt-5.6-luna` · `gpt-5.6` | [gpt56-patterns.md](references/gpt56-patterns.md) | 작성 체크리스트 |
 | `gpt-5.5` (`-2026-04-23`) | [gpt55-patterns.md](references/gpt55-patterns.md) | 작성 체크리스트 |
+| `gemini-4-argon` (agy의 `-low`·`-medium`·`-high` 변형도 이 모델. Cloud `-cyber-permissive`는 기본 사고 수준이 다른 별도 ID) | [gemini4-argon-patterns.md](references/gemini4-argon-patterns.md) | 작성 체크리스트 + §1 모델 계약 |
 | `gemini-3.8-flash` · `gemini-3.7-flash` · `gemini-3.6-flash` · `gemini-3.5-flash-lite` · `gemini-3.1-flash-lite` · `gemini-3.1-pro-preview` | [gemini3-patterns.md](references/gemini3-patterns.md) | 작성 체크리스트 + §1 모델별 계약 |
 | `google/gemma-4-{E2B\|E4B\|12B\|26B-A4B\|31B}-it` | [gemma4-patterns.md](references/gemma4-patterns.md) | §8 체크리스트 |
 | `Qwen/Qwen3.8-27B` · `-2.4T-A95B` · `-Flash-Next`, `qwen3.8-max` · `-max-0902` · `-flash` · `-27b` | [qwen38-patterns.md](references/qwen38-patterns.md) | 작성 체크리스트 |
@@ -68,6 +69,8 @@ OpenAI GPT, Anthropic Claude, Google Gemini 3.x·Gemma 4, Alibaba Qwen 3.8 공�
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) | 긴 자료 앞, 질문 끝 |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ | ✅ |
 | **모순 제거** | 충돌 지시 금지 | ✅ | ✅ | ✅ |
+
+Gemini 열은 3.x 기준이다. Gemini 4 Argon은 이 열을 옮겨 쓰지 않고 [gemini4-argon-patterns.md](references/gemini4-argon-patterns.md)를 본다(목표·성공 조건 선합의, 검증 수단 제공, 통합 1M 창과 장문 출력, 명시 캐싱 없음).
 
 ### 오픈웨이트 (Google Gemma / Alibaba Qwen)
 
@@ -124,6 +127,7 @@ OpenAI GPT, Anthropic Claude, Google Gemini 3.x·Gemma 4, Alibaba Qwen 3.8 공�
 |--------|----------|------------|
 | OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시·모델 선택(GPT-6), 티어 선택(5.6), 최소 프롬프트 기준선(5.5) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra·Sol·Luna), `references/gpt56-patterns.md` (5.6), `references/gpt55-patterns.md` (5.5) |
 | Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), effort `medium` 시작(Opus 5.5·Haiku 5.5), `between_tools`·작업 범위(Sonnet 5.5), 검색 날짜·조기 종료(Haiku 5.5), 모델별 사고 방식(4.x), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Opus 5.5·Fable 5.1·Sonnet 5.5·Haiku 5.5·Opus 5·Fable 5·Sonnet 5), `references/claude-4-specifics.md` (Opus 4.8·Sonnet 4.6·Haiku 4.5), `references/long-context.md` |
+| Google Gemini 4 Argon | 장시간 작업 운용 팁 5가지(의도 선합의·검증 수단·멀티모달 참조·조율자·회고), 통합 1M 창과 API별 장문 출력, 명시 캐싱 없음, 서비스별 `thinking_budget` 처리 | `references/gemini4-argon-patterns.md` |
 | Google Gemini 3.x | 모델별 `thinking_level` 허용 값, sampling 제거, 사고 서명 보존, 함수 결과 짝 맞추기, 미디어 해상도 | `references/gemini3-patterns.md` |
 | Google Gemma 4 | `<\|turn>` 템플릿, `<\|think\|>` 토글, multi-turn thought strip, `<\|"\|>` delimiter | `references/gemma4-patterns.md` |
 | Alibaba Qwen 3.8 | ChatML, `reasoning_effort` 3단계 + `preserve_thinking` 기본 ON, XML tool 포맷·`qwen3_coder` 파서, 단일 sampling | `references/qwen38-patterns.md` |
@@ -239,6 +243,7 @@ system_prompt: |
 
 ### Google Gemini 특화
 
+- **[gemini4-argon-patterns.md](references/gemini4-argon-patterns.md)** ⭐ Gemini 4 Argon 패턴 요약 — 장시간 작업 운용 팁 5가지, 사고 수준과 출력 한도, API별 장문 출력, 3.x와 달라진 계약·공유 계약
 - **[gemini3-patterns.md](references/gemini3-patterns.md)** Gemini 3.x (3.8·3.7·3.6 Flash, 3.5·3.1 Flash-Lite, 3.1 Pro Preview) 패턴 요약 — 모델별 사고 수준, sampling 제거, Interactions·GenerateContent 계약, 함수 결과 계약, 미디어 해상도, OpenAI 호환 계층
 
 ### Google Gemma 특화 (오픈웨이트)
@@ -285,9 +290,11 @@ system_prompt: |
 - [Introducing Claude Fable 5 (공식)](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
 
-### Google Gemini 3.x
+### Google Gemini
+- [Gemini 4 Argon 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemini-4-argon-prompt-guide.md) ⭐ 최신 — 운용 팁 5가지·통합 창과 장문 출력·서비스별 계약·agy 이용 조건
+- [What's new in Gemini 4 Argon (공식)](https://ai.google.dev/gemini-api/docs/latest-model) · [Gemini 4 Argon: Developer Guide (AI Studio)](https://aistudio.google.com/learn/gemini-4-argon-developer-guide)
 - [Gemini 3.x 풀 가이드 (한국어)](../../../reference/google-prompt-guide/gemini-3-prompt-guide.md) — 6개 모델 계약·API 방식별 차이·3.8 Flash 사용자 보고
-- [Gemini 3.8 Flash — Latest model (공식)](https://ai.google.dev/gemini-api/docs/latest-model)
+- [What's new in Gemini 3.8 Flash (공식)](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8)
 - [Prompt design strategies (공식)](https://ai.google.dev/gemini-api/docs/prompting-strategies)
 - [Thinking (공식)](https://ai.google.dev/gemini-api/docs/thinking)
 - [OpenAI compatibility (공식)](https://ai.google.dev/gemini-api/docs/openai)

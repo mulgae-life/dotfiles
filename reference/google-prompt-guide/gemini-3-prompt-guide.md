@@ -3,7 +3,8 @@
 > **대상 모델**: Flash 3.8 · 3.7 · 3.6 / Flash-Lite 3.5 · 3.1 / Pro 3.1 Preview
 >
 > **출처 (공식 1차)**:
-> - [Gemini 3.8 Flash — Latest model | Google AI for Developers](https://ai.google.dev/gemini-api/docs/latest-model)
+> - [What's new in Gemini 3.8 Flash | Google AI for Developers](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8) · [GenerateContent판](https://ai.google.dev/gemini-api/docs/generate-content/whats-new-gemini-3.8) (`latest-model` 주소는 이제 Gemini 4 Argon 문서라 3.8 근거로 쓰지 않음)
+> - [Gemini deprecations](https://ai.google.dev/gemini-api/docs/deprecations) · [Cloud 모델 수명주기](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/model-versions) (2026-10-16 확인)
 > - [What's new in Gemini 3.5 Flash | Google AI for Developers](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5) (Gemini 3.x 공통 파라미터·프롬프팅 절)
 > - [Models | Google AI for Developers](https://ai.google.dev/gemini-api/docs/models) 및 모델별 페이지 ([3.8 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) · [3.7 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash) · [3.6 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash) · [3.5 Flash-Lite](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) · [3.1 Flash-Lite](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite) · [3.1 Pro Preview](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview))
 > - [Thinking | Google AI for Developers](https://ai.google.dev/gemini-api/docs/thinking)
@@ -18,7 +19,8 @@
 > **출처 (사용자 보고, 2차)**: [§12](#12-38-flash-사용자-보고) 참조. 작성자 보고이며 독립 재현하지 않았습니다.
 >
 > **날짜**: 2026-10-01 (모든 공식 URL을 이날 원문으로 확인)
-> **자매 가이드**: [Gemma 4](./gemma-4-prompt-guide.md) (Gemini와 별개 제품군인 오픈웨이트 모델)
+> **갱신**: 2026-10-16 (폐기 상태와 Gemini 4 공유 범위 재확인)
+> **자매 가이드**: [Gemini 4 Argon](./gemini-4-argon-prompt-guide.md) (이 가이드의 3.x 처방을 자동 적용하지 않음) · [Gemma 4](./gemma-4-prompt-guide.md) (Gemini와 별개 제품군인 오픈웨이트 모델)
 
 Gemini 3.x API 모델용 프롬프팅 가이드입니다. 여섯 모델은 공통 프롬프팅 원칙을 공유하지만, **사고 수준·기본값·일부 도구 지원·API 방식별 이력 처리가 모델마다 다릅니다.** 한 파일로 묶되 모델별 계약은 [§2 모델 개요](#2-모델-개요)와 [§4 사고 수준](#4-사고-수준-thinking_level)의 표를 기준으로 적용합니다.
 
@@ -58,13 +60,13 @@ Gemini 3.x API 모델용 프롬프팅 가이드입니다. 여섯 모델은 공�
 | 모델 ID | 상태 | 사고 수준 (기본값) | 공식 포지션 | 메모 |
 |------|------|------|------|------|
 | `gemini-3.8-flash` | Stable (2026-09) | `low`·`medium`·`high` (`medium`) | 가장 지능이 높은 Flash. 장기 소프트웨어 엔지니어링·자율 에이전트·복잡한 기업 워크플로 | 소개가 $0.75/$3.75 (2026-12-31까지), 2027-01-01부터 $1.50/$7.50. 컴퓨터 사용 Preview |
-| `gemini-3.7-flash` | Stable (2026-08) | `low`·`medium`·`high` (`medium`) | 3.8 가이드가 "remains fully supported"로 명시하는 대안 | `minimal`은 오류 |
-| `gemini-3.6-flash` | Stable (2026-07) | `minimal`·`low`·`medium`·`high` (`medium`) | — | 이 범위의 Flash 중 `minimal`을 받는 유일한 모델 |
+| `gemini-3.7-flash` | Gemini API: 2026-10-08 폐기, 요청은 3.8로 자동 연결(AI Studio 선택 불가) / Cloud: 2027-01-28 종료 예정 | `low`·`medium`·`high` (`medium`) | 일반 API에서는 독립 모델로 고를 수 없음. Cloud에서 쓰는 기존 프로젝트용으로만 범위에 남김 | `minimal`은 오류 |
+| `gemini-3.6-flash` | Stable (2026-07). Cloud: 2026-11-19 종료 예정 | `minimal`·`low`·`medium`·`high` (`medium`) | 3.8 가이드가 일상 작업 대안으로 명시("Gemini 3.6 Flash remains supported") | 이 범위의 Flash 중 `minimal`을 받는 유일한 모델 |
 | `gemini-3.5-flash-lite` | Stable (2026-07) | `minimal`·`low`·`medium`·`high` (`minimal`) | 저지연·저비용. 서브에이전트 작업·문서 파싱·대량 에이전트 워크플로·단순 추출 | 컴퓨터 사용 Preview |
 | `gemini-3.1-flash-lite` | Stable (2026-05) | `minimal`·`low`·`medium`·`high` (`minimal`) | 3.5 가이드가 고급 추론이 필요 없는 저비용·대량 작업에 권하는 장기 안정 모델 | 컴퓨터 사용 미지원. Thinking 표에 텍스트 모델 행이 없어 사고 수준은 3.5 가이드의 모델별 열로 확인 |
 | `gemini-3.1-pro-preview` | Preview (2026-02) | `low`·`medium`·`high` (`high`) | Gemini 3 Pro 계열의 성능·신뢰성 개선판. 소프트웨어 엔지니어링·에이전트 워크플로 | 파일 검색은 AI Studio 전용. 사용자 정의 도구 우선순위가 다른 `gemini-3.1-pro-preview-customtools` 변형이 따로 있음 |
 
-`gemini-3.5-flash`는 이 가이드의 범위 밖이지만 공급자 기준으로는 여전히 안정판입니다. 범위에서 뺀 것을 폐기로 표현하지 않습니다.
+범위 밖의 `gemini-3.5-flash`는 Gemini API에서 2026-10-08에 폐기됐고, 요청은 3.6 Flash로 자동 연결됩니다. 범위 안의 `gemini-3.5-flash-lite`(Flash-Lite)와 다른 모델입니다. 폐기·종료 일정은 Gemini API와 Cloud가 따로 정하므로 날짜를 쓸 때는 서비스를 밝힙니다.
 
 ## 3. 공통 프롬프팅 원칙
 
@@ -176,13 +178,13 @@ You have a limited action budget of <n> tool calls. Use them efficiently.
 ## 8. 구조화 출력
 
 - 여섯 모델 모두 함수 호출과 구조화 출력을 지원합니다. 최종 JSON 응답과 실제 도구 호출은 별개이므로 평가도 따로 합니다.
-- 구조화 출력과 내장 도구(Google 검색, URL 컨텍스트, 코드 실행, 함수 호출)를 함께 쓰는 기능은 Gemini 3 계열 전용이고 Preview입니다.
+- 구조화 출력과 내장 도구(Google 검색, URL 컨텍스트, 코드 실행, 함수 호출)를 함께 쓰는 기능은 Gemini 4·3 계열 전용이고 Preview입니다("available only to Gemini 4 and Gemini 3 series models").
 - JSON Schema의 지원 하위 집합을 씁니다. 문법이 맞아도 값의 타당성은 애플리케이션에서 검증합니다("always validate values in your application").
 - 프롬프트에는 "선택한 API의 구조화 출력 기능을 쓴다"는 원칙만 두고, 스키마를 프롬프트 본문에 중복해 설명하지 않습니다.
 
 ## 9. 미디어 해상도
 
-Gemini 3는 콘텐츠 항목별로 해상도를 지정할 수 있습니다("Per-content-item media resolution (Gemini 3 only)").
+Gemini 4·3은 콘텐츠 항목별로 해상도를 지정할 수 있습니다("Per-content-item media resolution (Gemini 4 and Gemini 3 models)"). 아래 권장값과 토큰 수도 두 세대가 같은 표를 씁니다.
 
 | 입력 | 공식 권장 | 토큰 (대략) | 메모 |
 |------|------|------|------|
@@ -205,9 +207,9 @@ Gemini 3는 콘텐츠 항목별로 해상도를 지정할 수 있습니다("Per-
 
 ## 11. 모델별 메모
 
-**3.8 Flash**: 길고 복잡한 작업에서 설계상 토큰을 더 씁니다. 공식 설명은 "the model takes smaller reasoning steps, calls tools iteratively, and verifies its work along the way"이고, 모든 워크플로에 이 수준의 검증이 필요하지는 않으니 일상 작업은 사고 수준을 낮추거나 3.7 Flash를 쓰라고 권합니다. 모든 작업에 `high`를 줄 근거는 없습니다. Gemini Managed Agents의 기본 에이전트(Antigravity)와 Antigravity SDK의 기본 모델입니다.
+**3.8 Flash**: 길고 복잡한 작업에서 설계상 토큰을 더 씁니다. 공식 설명은 "the model takes smaller reasoning steps, calls tools iteratively, and verifies its work along the way"이고, 모든 워크플로에 이 수준의 검증이 필요하지는 않으니 일상 작업은 사고 수준을 낮추거나 3.6 Flash를 쓰라고 권합니다("Alternatively, Gemini 3.6 Flash remains supported."). 모든 작업에 `high`를 줄 근거는 없습니다. Gemini Managed Agents의 기본 에이전트(Antigravity)와 Antigravity SDK의 기본 모델입니다.
 
-**3.7 Flash**: 3.8과 같은 사고 수준 체계(`minimal` 없음, 기본 `medium`)입니다. 3.8의 토큰 증가가 부담인 일상 워크플로의 공식 대안입니다.
+**3.7 Flash**: 3.8과 같은 사고 수준 체계(`minimal` 없음, 기본 `medium`)입니다. Gemini API에서는 2026-10-08부터 요청이 3.8로 자동 연결되므로, 그 경로의 코드는 실제로 3.8의 동작(토큰 증가 포함)을 받는다고 보고 평가합니다. Cloud에서는 2027-01-28 종료 예정까지 독립 모델로 제공됩니다. 종료일이 지나도 자동으로 보관하지 않고, 그때의 제공 상태를 다시 확인해 정합니다.
 
 **3.6 Flash**: 이 범위의 Flash 중 `minimal`을 받는 유일한 모델입니다. 3.6용 설정을 3.7·3.8로 옮길 때 `minimal`을 `low`로 바꿉니다.
 
@@ -238,7 +240,7 @@ Gemini 3는 콘텐츠 항목별로 해상도를 지정할 수 있습니다("Per-
 - [ ] `candidate_count` 제거
 - [ ] 멀티턴은 서버 측 `previous_interaction_id`로 표준화, 미리 채운 model 턴 제거
 - [ ] 함수 호출 감사: 멀티모달은 결과 안에, 추가 지시는 `\n\n`으로, 도구 전 텍스트로 `Malformed_Function_Call`이 나면 [§7](#7-함수-호출)의 우회책
-- [ ] 토큰 사용 재측정: 길고 복잡한 작업에서 설계상 더 씀. 일상 작업은 `low`나 3.7 Flash 검토
+- [ ] 토큰 사용 재측정: 길고 복잡한 작업에서 설계상 더 씀. 일상 작업은 `low`나 3.6 Flash 검토
 - [ ] SDK 갱신과 사고 서명 보존은 3.5 마이그레이션 체크리스트가 기준 (Python은 `google-genai` v2.0.0 이상 권장, Interactions API 파괴적 변경 포함)
 
 **Flash → Flash-Lite로 내릴 때**
