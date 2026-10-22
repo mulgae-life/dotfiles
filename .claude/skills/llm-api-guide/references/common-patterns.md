@@ -89,7 +89,10 @@ async def chat(
 | `RateLimitError` | 요청 한도 초과 | 지수 백오프 재시도 |
 | `APIConnectionError` | 네트워크 문제 | 재시도 또는 실패 |
 | `AuthenticationError` | API 키 문제 | 즉시 실패 (재시도 무의미) |
-| `APIError` | 기타 서버 에러 | 로깅 후 적절히 처리 |
+| `APIStatusError` | 그 밖의 4xx·5xx 응답 | `status_code`와 함께 로깅 |
+| `APIError` | 그 밖의 API 오류 (OpenAI 스트리밍 중 오류처럼 `status_code`가 없을 수 있음) | 로깅 후 적절히 처리 |
+
+`status_code`는 모든 API 오류의 부모인 `APIError`에는 없고 `APIStatusError` 같은 하위 클래스에만 있습니다. `APIError`에서 읽으면 타입 검사가 실패하고, OpenAI SDK가 스트리밍 중 오류로 던지는 `APIError`에서는 `AttributeError`가 납니다.
 
 ### OpenAI 에러 핸들링
 
@@ -97,6 +100,7 @@ async def chat(
 from openai import (
     OpenAI,
     APIError,
+    APIStatusError,
     RateLimitError,
     APIConnectionError,
     AuthenticationError
@@ -127,8 +131,13 @@ def call_openai(client: OpenAI, input: str) -> str:
         logger.error(f"Connection error: {e}")
         raise
 
-    except APIError as e:
+    except APIStatusError as e:
         logger.error(f"API error {e.status_code}: {e.message}")
+        raise
+
+    except APIError as e:
+        # 그 밖의 API 오류 (스트리밍 중 오류처럼 status_code가 없을 수 있음)
+        logger.error(f"API error: {e.message}")
         raise
 ```
 
@@ -138,6 +147,7 @@ def call_openai(client: OpenAI, input: str) -> str:
 from anthropic import (
     Anthropic,
     APIError,
+    APIStatusError,
     RateLimitError,
     APIConnectionError,
     AuthenticationError
@@ -164,8 +174,13 @@ def call_anthropic(client: Anthropic, message: str) -> str:
         logger.error(f"Connection error: {e}")
         raise
 
-    except APIError as e:
+    except APIStatusError as e:
         logger.error(f"API error {e.status_code}: {e.message}")
+        raise
+
+    except APIError as e:
+        # 그 밖의 API 오류 (status_code가 없을 수 있음)
+        logger.error(f"API error: {e.message}")
         raise
 ```
 

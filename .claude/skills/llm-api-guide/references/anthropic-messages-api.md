@@ -469,6 +469,7 @@ response = client.messages.create(
 ```python
 from anthropic import (
     APIError,
+    APIStatusError,
     RateLimitError,
     APIConnectionError,
     AuthenticationError
@@ -488,9 +489,13 @@ except APIConnectionError as e:
     # 네트워크 문제
     logger.error(f"Connection failed: {e}")
     raise
-except APIError as e:
-    # 기타 API 에러
+except APIStatusError as e:
+    # 그 밖의 4xx·5xx 응답 (status_code는 여기에만 있음)
     logger.error(f"API error: {e.status_code} - {e.message}")
+    raise
+except APIError as e:
+    # 기타 API 에러 (status_code가 없을 수 있음)
+    logger.error(f"API error: {e.message}")
     raise
 ```
 

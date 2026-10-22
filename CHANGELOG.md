@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.61** | `llm-api-guide` 에러 처리 예제 세 곳이 모든 API 오류의 부모인 `APIError`에서 `status_code`를 읽던 것을 바로잡음 — 이 속성은 `APIStatusError` 같은 하위 클래스에만 있어 타입 검사가 실패하고, OpenAI SDK가 스트리밍 중 오류로 던지는 `APIError`에서는 `AttributeError`가 원래 예외를 덮는다. `status_code`는 `APIStatusError` 분기에서만 읽고, 나머지 API 오류는 마지막 `APIError` 분기에서 `status_code` 없이 기록하도록 고쳐 오류 표와 체크리스트에도 반영 |
 | **v2.60** | agy가 `SKILL.md` 본문의 앞 24,000바이트만 읽어 `writing-prompts` 끝의 참고 자료(Gemma 4·Qwen 3.8 링크 등)가 경고 없이 잘리던 것을 바로잡음 — 링크 목록을 `references/sources.md`로 옮겨 본문을 26,703바이트에서 18,845바이트로 줄이고, `verify-policies.sh`에 본문 크기 검사를 추가(영문 원문을 유지하는 `skill-creator`만 예외, 근거는 `docs/DECISIONS.md` 5절) |
 | **v2.59** | Claude API 버전 `2026-10-21`(10/21) 반영 — Codex와 독립 조사·대조로 `llm-api-guide`에 버전·SDK 절(SDK 메이저별 기본 날짜, Messages 400 세 건, Python 2.0·TypeScript 1.0 변경)을 넣고, 새 버전에서 그대로 따르면 400이 나는 sampling 서술만 `writing-prompts`와 Claude 풀 가이드에서 버전을 구분해 고침. Python SDK 1.0부터 낡아 있던 Anthropic `Timeout` 예제(`httpx2`)와 역할 표의 `system` 행도 바로잡음. 이와 별도로, 대표님 지시에 따라 Codex를 인라인 모드(`tui.alternate_screen = "never"`)로 바꿔 tmux에서 마우스를 잡지 않게 함 |
 | **v2.58** | Gemini 4 Argon(10/13 GA) 반영 — Codex와 독립 조사·대조로 풀 가이드와 `writing-prompts` 패턴 요약을 새로 만들고 라우팅에 넣음. 3.x 처방은 Argon에 자동 승계하지 않음. 같은 주 바뀐 3.x 상태(Gemini API에서 3.7·3.5 Flash 폐기·자동 연결, 3.8 가이드의 일상 대안 3.6 Flash, Cloud 종료 일정)와 3.8 근거 링크를 바로잡고, 3.7은 Cloud 제공 중이라 범위에 남김. 범위표 Haiku 칸에 v2.53에서 빠진 5.5도 추가. agy 상태줄은 Argon 선택 시 Pro 요금제의 별도 주간 버킷(`gemini-argon-*-weekly`)과 Flash의 `gemini` 버킷을 나란히 보이도록 고침(대표님 지적) |

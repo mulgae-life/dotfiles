@@ -60,7 +60,7 @@ Anthropic
 
 - [ ] 클라이언트 초기화: 앱 수명주기로 관리 (요청마다 생성 금지)
 - [ ] API 키: 환경변수 사용 (하드코딩 금지)
-- [ ] 에러 핸들링: RateLimitError, APIError 처리
+- [ ] 에러 핸들링: RateLimitError, APIStatusError, APIError 처리. `status_code`는 `APIStatusError`에서만 읽음
 - [ ] 타임아웃 설정
 - [ ] Anthropic API 버전: SDK 기본값(Python 2.x·TypeScript 1.x는 `2026-10-21`)과 직접 지정한 헤더 확인. `2026-10-21`이면 `temperature`·`top_p`·`top_k`를 보내지 않음 → [API 버전과 SDK](references/anthropic-messages-api.md#api-버전과-sdk)
 
