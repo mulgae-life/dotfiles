@@ -24,7 +24,7 @@ Claude 5 세대(Fable 5.1 `claude-fable-5-1`, Mythos 5.1 `claude-mythos-5-1`, Fa
 **공통 (Claude 5 세대 전체)**
 - [ ] **De-prescribe**: 절차 열거 대신 목표·제약·이유 서술 (과잉 지시는 품질 저하)
 - [ ] **Prefill 금지**: 400 에러 → Structured Outputs(`output_config.format`)로 대체
-- [ ] **`budget_tokens`·sampling 제거**: `thinking: {type: "enabled"}`와 기본값이 아닌 `temperature`·`top_p`·`top_k`는 400
+- [ ] **`budget_tokens`·sampling 제거**: `thinking: {type: "enabled"}`와 기본값이 아닌 `temperature`·`top_p`·`top_k`는 400(API `2026-10-21`은 기본값도 400)
 - [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발(출력 전 거절도 과금, Haiku 5.5에는 이 거절 범주가 없음) → 추론은 `display: "summarized"` thinking 블록에서 읽기
 - [ ] `output_config.effort`: 모델별 기본값(Opus 5.5·Haiku 5.5는 `medium`, 나머지는 `high`)에서 시작해 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님). `xhigh`·`max`는 측정된 품질 이득이 있을 때만. 모델별 단서는 [Effort 상호작용](#effort-상호작용)
 - [ ] 장기 자율 런: 진행 보고 근거화 + 메모리 파일 → [권장 스니펫](#권장-스니펫)

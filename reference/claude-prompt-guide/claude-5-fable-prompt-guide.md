@@ -209,7 +209,7 @@ Between tool calls, when you have content the user must read verbatim (a partial
 | **지시 밀도** | 명시적·상세 지시 권장 ("above and beyond"는 요청해야) | De-prescribe — 짧은 지시로 조향, 과잉 지시는 품질 저하 |
 | **Thinking** | Extended Thinking + `budget_tokens` | 항상 켜진 adaptive, `effort`로만 제어 |
 | **Prefilling** | Anthropic 특화 기법으로 활용 | 400 에러 — Structured Outputs로 대체 |
-| **Sampling** | `temperature` 조절 가능 | 파라미터 제거 — 프롬프트로 변주 유도 |
+| **Sampling** | `temperature` 조절 가능 (API `2023-06-01`에서 허용하는 일부 4.x 모델·사고 설정만) | 파라미터 제거 — 프롬프트로 변주 유도 |
 | **서브에이전트** | 남발 억제 가이드 필요 | 적극 활용 + 위임 기준 명시 |
 | **컨텍스트 인식** | 토큰 예산 추적 지시 활용 | 잔여 카운트 노출 자체를 피할 것 (불안 유발) |
 | **think 단어 민감성** | "think" 변형어 회피 (Opus 4.5) | 해당 없음 (thinking 상시 on) |

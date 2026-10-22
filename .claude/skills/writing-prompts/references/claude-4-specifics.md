@@ -29,9 +29,9 @@
 - [ ] **긴 자료 배치**: 긴 문서는 위, 질문은 끝 → [long-context.md](long-context.md)
 
 **모델별** (대상 모델 행만)
-- [ ] **Opus 4.8**: prefill·`budget_tokens`·기본값이 아닌 sampling은 400. 사고는 `thinking: {type: "adaptive"}`를 보내야 켜짐. 코딩·에이전트는 effort `xhigh`를 명시(API 기본은 `high`). 지시를 문자 그대로 적용하므로 넓게 적용할 지시는 범위 명시
-- [ ] **Sonnet 4.6**: prefill 400. 사고는 적응형 권장(`enabled` + `budget_tokens`는 폐기 예정이지만 동작). effort는 `low`·`medium`·`high`·`max`(`xhigh` 없음), 기본 `high`지만 공식 권장 기본은 `medium` → 값을 명시. sampling은 사고를 끈 요청에서만 자유롭게 쓴다(사고 중에는 `temperature`·`top_k` 불가, `top_p`는 0.95~1)
-- [ ] **Haiku 4.5**: effort 미지원 → 사고량은 `thinking: {type: "enabled", budget_tokens: N}`(`adaptive`는 400). 사고를 켜면 prefill·강제 `tool_choice`를 쓸 수 없고 `temperature`·`top_k`도 막힌다. `temperature`와 `top_p`는 둘 중 하나만(둘 다 400). 컨텍스트 200K·출력 64K
+- [ ] **Opus 4.8**: prefill·`budget_tokens`·기본값이 아닌 sampling은 400(API `2026-10-21`은 기본값도 400). 사고는 `thinking: {type: "adaptive"}`를 보내야 켜짐. 코딩·에이전트는 effort `xhigh`를 명시(API 기본은 `high`). 지시를 문자 그대로 적용하므로 넓게 적용할 지시는 범위 명시
+- [ ] **Sonnet 4.6**: prefill 400. 사고는 적응형 권장(`enabled` + `budget_tokens`는 폐기 예정이지만 동작). effort는 `low`·`medium`·`high`·`max`(`xhigh` 없음), 기본 `high`지만 공식 권장 기본은 `medium` → 값을 명시. sampling은 API `2023-06-01`에서만, 사고를 끈 요청에 자유롭게 쓴다(사고 중에는 `temperature`·`top_k` 불가, `top_p`는 0.95~1. `2026-10-21`은 항상 400)
+- [ ] **Haiku 4.5**: effort 미지원 → 사고량은 `thinking: {type: "enabled", budget_tokens: N}`(`adaptive`는 400). 사고를 켜면 prefill·강제 `tool_choice`를 쓸 수 없고 `temperature`·`top_k`도 막힌다. `temperature`와 `top_p`는 둘 중 하나만(둘 다 400. API `2026-10-21`은 sampling 전부 400). 컨텍스트 200K·출력 64K
 
 ---
 
@@ -46,12 +46,14 @@
 | **지식 컷오프** | 2026-01 | 2025-08 | 2025-02 |
 | **사고** | 적응형만, 기본 꺼짐. `enabled` 400 | 적응형 + 확장(폐기 예정), 기본 꺼짐 | 확장만. `adaptive` 400 |
 | **effort** | `low`~`max` 5단계, 기본 `high` | `low`·`medium`·`high`·`max`, 기본 `high` | 미지원 |
-| **sampling** | 기본값이 아닌 값 400 | 사고를 끈 요청에서 허용. 사고 중에는 `temperature`·`top_k` 불가, `top_p`는 0.95~1만 | 사고를 끈 요청에서 허용. 사고 중 제약은 Sonnet 4.6과 같음 (`temperature`·`top_p` 동시 지정은 항상 400) |
+| **sampling** (API `2023-06-01`) | 기본값이 아닌 값 400 | 사고를 끈 요청에서 허용. 사고 중에는 `temperature`·`top_k` 불가, `top_p`는 0.95~1만 | 사고를 끈 요청에서 허용. 사고 중 제약은 Sonnet 4.6과 같음 (`temperature`·`top_p` 동시 지정은 항상 400) |
 | **prefill** | 400 | 400 | 사고를 끈 요청에서만 |
 | **강제 `tool_choice`** | 허용 | 허용 (`enabled` 사고와는 불가) | 사고를 끈 요청에서만 |
 | **캐시 최소** | 1,024 토큰 | 1,024 토큰 | 4,096 토큰 |
 | **이미지** | 고해상도 티어(긴 변 2576px) | 표준(1568px) | 표준(1568px) |
 | **컨텍스트 인식** | — | 지원 | 지원 |
+
+sampling 행과 이 문서의 sampling 서술은 API `2023-06-01` 기준이다. `2026-10-21`에서는 세 모델 모두 `temperature`·`top_p`·`top_k`를 보내면 기본값이어도 400이다. sampling에 기대던 요청은 `2023-06-01`에 남기거나, 파라미터를 빼고 원하는 출력을 프롬프트와 구조화 출력으로 다시 설계한다. 같은 확률 효과를 내는 설정은 없다.
 
 사고를 켠 요청에서 Sonnet 4.6·Haiku 4.5는 `temperature`·`top_k`를 받지 않고 `top_p`는 0.95~1만 받는다. 확장 사고(`enabled`)는 `tool_choice`가 `auto`·`none`일 때만 동작한다.
 
@@ -147,7 +149,7 @@ Opus 4.8·Sonnet 4.6은 `thinking`을 생략하면 사고 없이 실행된다. �
 
 - **사고**: `thinking`을 생략하면 사고 없이 실행된다. 켜려면 `{"type": "adaptive"}` + effort. `{"type": "enabled", "budget_tokens": N}`은 아직 동작하지만 폐기 예정이고, 사고 비용의 확실한 상한이 필요할 때만 쓴다
 - **prefill 400**: 4.6 세대부터 마지막 assistant 턴 prefill을 받지 않는다. JSON 등 형식은 Structured Outputs, 서두 생략은 시스템 프롬프트 지시, 이어 쓰기는 user 메시지로
-- **sampling**: 사고를 끈 요청에서는 `temperature`·`top_p`·`top_k`를 받는다(Sonnet 5부터 사고와 무관하게 400). 다양성을 sampling에 기대는 프롬프트는 Sonnet 5 이후로 옮길 때 다시 설계해야 한다
+- **sampling** (API `2023-06-01`): 사고를 끈 요청에서는 `temperature`·`top_p`·`top_k`를 받는다(Sonnet 5부터 사고와 무관하게 400). 다양성을 sampling에 기대는 프롬프트는 Sonnet 5 이후로 옮길 때 다시 설계해야 한다
 - **주도성**: 4.6 세대는 더 주도적이다. 이전 모델용 "더 철저히" 지시를 덜어낸다
 - **후속 모델 대비**: Sonnet 5에서는 `thinking` 생략 시 사고가 켜지고 토큰이 약 30% 늘어난다. 4.6용 `max_tokens`가 그대로 맞는다고 가정하지 않는다
 
@@ -160,7 +162,7 @@ Opus 4.8·Sonnet 4.6은 `thinking`을 생략하면 사고 없이 실행된다. �
 - **사고**: 확장 사고만. `thinking: {type: "enabled", budget_tokens: N}`으로 켜고, `adaptive`는 400. 공식 마이그레이션 문서는 코딩·추론 작업에서 확장 사고를 켜면 성능이 크게 오른다고 권한다. 확장 사고는 프롬프트 캐시 효율에 영향을 준다
 - **도구 사이 사고(interleaved thinking) 미지원**: 공식 thinking 문서 원문은 "Claude Haiku 4.5 does not support interleaved thinking."이다. 도구 결과마다 사고 블록이 이어진다고 가정하지 않는다
 - **effort 미지원**: `output_config.effort`를 보내지 않는다. 사고량은 `budget_tokens`, 응답 길이는 프롬프트로 조절한다
-- **sampling**: `temperature`와 `top_p` 중 하나만. 둘 다 보내면 400. 사고를 켜면 `temperature`·`top_k`는 쓸 수 없다
+- **sampling** (API `2023-06-01`): `temperature`와 `top_p` 중 하나만. 둘 다 보내면 400. 사고를 켜면 `temperature`·`top_k`는 쓸 수 없다
 - **prefill**: 사고를 끈 요청에서만 마지막 assistant 턴을 미리 채울 수 있다. 다만 후속 모델(4.6 이후 전부)에서는 400이므로, 모델 교체 가능성이 있으면 Structured Outputs와 시스템 프롬프트 지시로 쓰는 편이 옮기기 쉽다
 
 | 목적 | prefill 예 |
@@ -185,7 +187,7 @@ prefill은 짧게 두고 공백으로 끝내지 않는다(끝 공백은 API 오�
 | **사고 켜기** | `adaptive` | `adaptive` (예산은 폐기 예정) | `enabled` + `budget_tokens` |
 | **깊이 조절** | effort (코딩 `xhigh`) | effort (권장 `medium`) | `budget_tokens` |
 | **형식 강제** | Structured Outputs | Structured Outputs | prefill(사고 끈 요청) 또는 Structured Outputs |
-| **sampling** | 쓰지 않음 | 사고 끈 요청에서 사용 | 사고 끈 요청에서 둘 중 하나만 |
+| **sampling** (API `2023-06-01`) | 쓰지 않음 | 사고 끈 요청에서 사용 | 사고 끈 요청에서 둘 중 하나만 |
 | **프롬프트 성향** | 문자 그대로, 범위 명시 | 주도적, 구모델용 강조 덜어내기 | 간결, 필요한 설명은 명시 |
 
 **핵심**: 세 모델의 사고 설정을 섞지 않는다. 같은 "4.x"라도 사고 방식·effort·prefill 계약이 모두 다르다.

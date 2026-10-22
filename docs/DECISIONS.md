@@ -61,6 +61,7 @@ Codex 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 tmpfs로 덮�
 | | Claude Code | Codex | Antigravity |
 |---|---|---|---|
 | 커스텀 명령 | 스킬(`/이름`) — `commands/*.md`는 사용하지 않음 | 스킬(`$이름`·`/skills`) + `~/.codex/prompts/*.md`(`/prompts:이름`, 미사용) | 스킬(`/이름`, 헤드리스 `-p "/이름 …"`도 확장) |
+| 스킬 본문 한도 | — | — | `SKILL.md` 본문(frontmatter 뒤, 앞뒤 공백 제외)의 앞 24,000바이트만 읽는다(`agy plugin validate` 경고). `verify-policies.sh`가 정적으로 막고, 영문 원문을 유지하는 이식 스킬 `skill-creator`만 예외로 둔다. 잘리는 뒷부분은 `claude -p` 기반 설명 최적화 루프, Claude.ai·Cowork 전용 절, 앞에서 이미 언급한 참고 파일 목록이다 |
 | 에이전트 | `agents/*.md` 4개 | 없음 — AGENTS.md의 역할 트리거로 절차형 대응 | Subagents(`/agents`) — 정의 0개 |
 | 지시 파일 설치 경로 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | `~/.gemini/GEMINI.md`(CLI·IDE 공식 경로 하나. `config/GEMINI.md`는 비공식 경로이고, 다른 파일을 두면 이중 주입) |
 | IDE 층 | — | — | `.antigravity/settings.json`·`hooks/mcp-config-guard.sh`는 추정치, 미검증 |

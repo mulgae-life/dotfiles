@@ -62,6 +62,7 @@ Anthropic
 - [ ] API 키: 환경변수 사용 (하드코딩 금지)
 - [ ] 에러 핸들링: RateLimitError, APIError 처리
 - [ ] 타임아웃 설정
+- [ ] Anthropic API 버전: SDK 기본값(Python 2.x·TypeScript 1.x는 `2026-10-21`)과 직접 지정한 헤더 확인. `2026-10-21`이면 `temperature`·`top_p`·`top_k`를 보내지 않음 → [API 버전과 SDK](references/anthropic-messages-api.md#api-버전과-sdk)
 
 ### 권장
 
@@ -98,6 +99,8 @@ Anthropic
 ### Anthropic
 
 - [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
+- [API 버전 2026-10-21 이전 안내서](https://platform.claude.com/docs/en/api/migration-2026-10-21) — Messages API의 파괴적 변경 3건과 SDK 메이저별 변경
+- [API versions](https://platform.claude.com/docs/en/api/versioning) — 버전 선택과 플랫폼별 지원 범위
 - [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (Claude 5 세대)
 - [What's new in Claude Opus 5.5](https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5) ⭐ 최신 — 기본 effort `medium`, 도구 사이 텍스트의 `thinking` 블록 이동
 - [Opus 5.5 Migration Guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide) — Opus 5에서 옮길 때 깨지는 변경 4건(thinking 끄기·강제 `tool_choice`·사고 블록 결합·`computer_20251124`)

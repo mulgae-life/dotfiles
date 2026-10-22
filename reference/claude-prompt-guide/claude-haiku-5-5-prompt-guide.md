@@ -51,7 +51,7 @@ Claude Haiku 5.5 특화 프롬프팅 가이드입니다. 프롬프트 스니펫�
 | **토크나이저** | Claude 4.7 이후 모델과 같은 새 토크나이저. 같은 텍스트가 Haiku 4.5보다 약 30% 많은 토큰 |
 | **Thinking** | 적응형 사고(adaptive thinking)가 기본으로 켜짐. `disabled`는 effort `high` 이하에서만 받음. 수동 사고 예산(`enabled` + `budget_tokens`)은 400. 사고 텍스트는 기본으로 비어 옴 |
 | **기본 effort** | `medium` (Claude API·Claude Code). 5단계 `low`~`max` 모두 지원. effort가 있는 첫 Haiku |
-| **sampling** | 생략합니다. `temperature`는 1, `top_p`는 기본값 0.99만 받고, 다른 값과 `top_k`, 두 값을 함께 보내는 요청은 400 |
+| **sampling** | 세 파라미터를 모두 생략합니다. API `2026-10-21`에서는 기본값을 명시해도 400입니다. 구 API 요청도 해당 모델의 공식 안내에 따라 생략합니다 |
 | **강제 `tool_choice`** | 받음. 다만 응답이 도구 호출로 시작하고 `thinking` 블록이 없음 |
 | **입출력** | 텍스트·이미지 입력 → 텍스트 출력 |
 | **Priority Tier** | 미지원 |

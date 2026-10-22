@@ -436,6 +436,7 @@ client = Anthropic(
 
 ```python
 import httpx
+from anthropic import Timeout
 
 # OpenAI
 response = client.responses.create(
@@ -444,12 +445,12 @@ response = client.responses.create(
     timeout=httpx.Timeout(30.0, connect=5.0)  # 연결 5초, 전체 30초
 )
 
-# Anthropic
+# Anthropic — SDK 1.0부터 httpx2 기반이라 SDK가 내보내는 Timeout을 씁니다
 response = client.messages.create(
     model="claude-opus-5-5",
     messages=[...],
     max_tokens=1024,
-    timeout=httpx.Timeout(30.0, connect=5.0)
+    timeout=Timeout(30.0, connect=5.0)
 )
 ```
 

@@ -68,7 +68,7 @@ Claude Fable 5.1 / Mythos 5.1 특화 프롬프팅 가이드입니다. 프롬프�
 
 ### 변경 없음 · 폴백
 
-Fable 5에서 그대로 이어지는 항목: adaptive 상시 켜짐, `thinking.display` 기본 `"omitted"`, 도구 호출 사이 추론은 텍스트가 아니라 사고 블록에 담기고 interleaved thinking은 헤더 없이 자동, 프리필 400, 비기본 `temperature`·`top_p`·`top_k` 400, 캐시 최소 512토큰, mid-conversation 시스템 메시지·도구 변경 지원.
+Fable 5에서 그대로 이어지는 항목: adaptive 상시 켜짐, `thinking.display` 기본 `"omitted"`, 도구 호출 사이 추론은 텍스트가 아니라 사고 블록에 담기고 interleaved thinking은 헤더 없이 자동, 프리필 400, 비기본 `temperature`·`top_p`·`top_k` 400(API `2026-10-21`은 기본값도 400), 캐시 최소 512토큰, mid-conversation 시스템 메시지·도구 변경 지원.
 
 거부는 HTTP 200 + `stop_reason: "refusal"` + `stop_details.category`(`cyber`·`bio`·`reasoning_extraction` 등)로 옵니다. `fallbacks: "default"`(베타)의 5.1 허용 대상은 **Opus 4.8과 Opus 5**입니다. 출력 전에 도착한 거부는 과금하지 않고, 폴백 크레딧이 모델 전환에 따른 프롬프트 캐시 비용을 환불합니다.
 

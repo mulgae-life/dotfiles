@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 정책 회귀 테스트 실행기 — Codex execpolicy(실제 엔진) + Antigravity CLI 설정 정적 검사(모델 미호출)
+# 정책 회귀 테스트 실행기 — Codex execpolicy(실제 엔진) + Antigravity CLI 설정·스킬 크기 정적 검사(모델 미호출)
 # 사용: bash scripts/verify-policies.sh [codex|agy]  (인자 없으면 전체)
 # 케이스: scripts/policy-cases.tsv — 정책 파일 수정 시 케이스 추가 후 이 스크립트로 검증
 # 배경: 매 수정마다 배터리를 재작성하던 것을 영속화 (2026-07-10 코드 리뷰 P2-2 수용)
@@ -71,6 +71,15 @@ run_agy() {
   for must in 'command(rm -rf /)' 'command(rm -rf ~)' 'command(rm -rf .)' 'command(mkfs)' 'command(reboot)' 'command(crontab -r)'; do
     chk "deny 필수: $must" "jq -e --arg m '$must' '.permissions.deny | index(\$m) != null' '$AGY_SETTINGS' >/dev/null"
   done
+  # SKILL.md 본문: agy는 frontmatter 뒤 본문(앞뒤 공백 제외)의 앞 24,000바이트만 읽는다(1.4.x `agy plugin validate` 경고와 같은 계산)
+  # skill-creator는 영문 원문을 유지하는 이식 스킬이라 예외 (docs/DECISIONS.md 5절)
+  local skill bytes over=""
+  for skill in "$REPO"/.claude/skills/*/SKILL.md; do
+    [[ "$skill" == */skill-creator/SKILL.md ]] && continue
+    bytes=$(LC_ALL=C awk 'n<2{if($0~/^---[[:space:]]*$/)n++;next}{b=b $0 "\n"}END{sub(/^[[:space:]]+/,"",b);sub(/[[:space:]]+$/,"",b);print length(b)}' "$skill")
+    if (( bytes > 24000 )); then over+=" ${skill#"$REPO"/}(${bytes})"; fi
+  done
+  chk "SKILL.md 본문 24,000바이트 이하${over:+ — 초과:$over}" "[[ -z '$over' ]]"
   echo "agy 소계: $pass PASS / $fail FAIL"
   TOTAL_PASS=$((TOTAL_PASS+pass)); TOTAL_FAIL=$((TOTAL_FAIL+fail))
 }

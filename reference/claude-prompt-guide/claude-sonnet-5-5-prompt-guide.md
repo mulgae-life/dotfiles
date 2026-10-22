@@ -50,7 +50,7 @@ Claude Sonnet 5.5 특화 프롬프팅 가이드입니다. 프롬프트 스니펫
 | **토크나이저** | Sonnet 5와 같음. Sonnet 4.6·Haiku 4.5보다 같은 텍스트에서 약 30% 많은 토큰 |
 | **Thinking** | 적응형 사고(adaptive thinking)가 기본으로 켜짐. 가장 낮은 설정은 `between_tools`(effort `high` 이하). `disabled`와 `enabled`(`budget_tokens`)는 400 |
 | **기본 effort** | `high` (Claude API). 5단계 `low`~`max` 모두 지원 |
-| **sampling** | `temperature`·`top_p`·`top_k`를 기본값이 아닌 값으로 보내면 400 |
+| **sampling** | `temperature`·`top_p`·`top_k`를 기본값이 아닌 값으로 보내면 400 (API `2026-10-21`은 기본값도 400) |
 | **이미지** | 고해상도 티어: 긴 변 2576px, 이미지당 최대 4,784 토큰 (Sonnet 4.6·Haiku 4.5는 1568px·1,568 토큰) |
 | **은퇴** | 2027-09-28 이전에는 은퇴하지 않음 |
 
@@ -233,7 +233,7 @@ When you change code that can be run, built, or type-checked, run a real check t
 
 **Sonnet 4.6 이하에서**
 - [ ] `thinking` 필드 없는 요청도 사고가 돌므로 `max_tokens` 재검토, 사고 예산은 effort로 교체(예산과 effort의 고정 대응은 없어 두세 레벨을 평가)
-- [ ] 기본값이 아닌 `temperature`·`top_p`·`top_k` 제거, 사고 텍스트를 보여주면 `display: "summarized"`
+- [ ] `temperature`·`top_p`·`top_k` 제거(API `2026-10-21`은 기본값도 400), 사고 텍스트를 보여주면 `display: "summarized"`
 - [ ] 토큰 재계산(약 30% 증가), 이미지 토큰 예산 재설정
 
 **Sonnet 4.5·Haiku 4.5에서** (위 그룹에 더해)

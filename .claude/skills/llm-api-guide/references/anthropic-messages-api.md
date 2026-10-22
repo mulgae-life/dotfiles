@@ -1,6 +1,7 @@
 # Anthropic Messages API 상세 가이드
 
 ## 목차
+- [API 버전과 SDK](#api-버전과-sdk)
 - [기본 사용법](#기본-사용법)
 - [Message 구조](#message-구조)
 - [Thinking (추론 제어)](#thinking-추론-제어)
@@ -19,6 +20,40 @@
 
 
 Anthropic의 유일한 API로, Claude 모델과 상호작용합니다.
+
+---
+
+## API 버전과 SDK
+
+요청의 API 버전은 `anthropic-version` 헤더가 정합니다. SDK는 메이저마다 기본 날짜를 자동으로 보내므로, SDK를 올릴 때는 이 기본값과 직접 지정한 헤더를 함께 확인합니다. 헤더를 구 날짜로 고정해도 새 SDK에서 빠진 인자·타입은 돌아오지 않습니다.
+
+| SDK | `2026-10-21`이 기본인 버전 | `2023-06-01`이 기본인 버전 |
+|-----|----------------------------|----------------------------|
+| Python `anthropic` | 2.x | 1.x 이하 |
+| TypeScript `@anthropic-ai/sdk` | 1.x | 0.x |
+
+C# 13, Go 2, Java 3, PHP 1, Ruby 2, `ant` CLI 2부터도 `2026-10-21`이 기본입니다. `2023-06-01`도 계속 받고 종료 일정은 공지되지 않았습니다. Amazon Bedrock은 Claude 4.7 이상 모델에서만 `2026-10-21`을 받습니다.
+
+### `2026-10-21`에서 400이 되는 Messages 요청
+
+Messages, 토큰 계산, 이 버전으로 만든 배치의 개별 요청에 적용됩니다. Admin API와 Enterprise Analytics API의 응답 필드 이름 변경은 [이전 안내서](https://platform.claude.com/docs/en/api/migration-2026-10-21)를 봅니다.
+
+| 요청 | 처리 |
+|------|------|
+| `temperature`·`top_p`·`top_k`를 보냄 (모델·사고 설정과 무관, 기본값이어도) | 뺍니다. 서버는 기본값으로 샘플링하고, 대신할 설정은 없습니다. 기본값이 아닌 값에 기대는 요청은 `2023-06-01`에 남깁니다 |
+| assistant 메시지에 `document` 블록을 직접 넣음 | user 메시지로 옮깁니다. web fetch 결과처럼 다른 블록 안에 든 문서는 받습니다 |
+| user 메시지 `text` 블록에 비어 있지 않은 `citations` (`search_result` 안 포함) | 인용을 지웁니다. assistant 응답의 인용 재전송과 `citations: {"enabled": true}` 설정은 받습니다 |
+
+### SDK 메이저 변경 중 코드에 닿는 것
+
+- 메시지를 dict·객체 리터럴로 쓰면 그대로 동작합니다. `MessageParam`은 역할별 유니언(`UserMessageParam`·`AssistantMessageParam`·`SystemMessageParam`)이 되어, Python에서 `MessageParam(...)`을 호출하면 `TypeError`입니다
+- `client.models.list`·`retrieve`의 `betas`가 빠졌습니다(→ `client.beta.models`). 베타 Messages의 `betas=`는 그대로입니다
+- 기본 클라이언트(Python `Anthropic`·`AsyncAnthropic`, TypeScript `Anthropic`)는 API 키를 `Authorization: Bearer`로 보내고 자격 증명을 하나만 받습니다(`api_key`와 `auth_token`을 함께 주면 Python `ValueError`, TypeScript `TypeError`. 환경변수는 `ANTHROPIC_API_KEY`를 먼저 찾습니다). `x-api-key`만 읽는 프록시·게이트웨이와 플랫폼 전용 클라이언트는 따로 확인합니다
+- TypeScript 1.0은 Text Completions(`client.completions`)와 툴 러너 `compactionControl`을 뺐습니다(→ 서버 측 압축). Python은 1.0에서 이미 뺐고, 이때 Messages 메서드의 sampling 인자도 없어졌습니다(키워드로 넘기면 `TypeError`, `2023-06-01`에서 꼭 필요하면 `extra_body`). HTTP 계층도 이때 `httpx2`로 바뀌어, 직접 만드는 `Timeout`·HTTP 클라이언트는 `httpx2` 객체여야 합니다(`from anthropic import Timeout`)
+- 최소 환경: Python 3.10, TypeScript 5.0, 지원 중인 Node.js 20 이상
+- `langchain-anthropic` 1.7.6은 `anthropic<2.0.0`을 요구해 SDK 2.x와 함께 설치할 수 없습니다. 헤더를 따로 지정하지 않으면 `2023-06-01`로 호출합니다
+
+Claude Code 2.1.307 이상에서는 `/claude-api api-version`이 기존 코드를 `2026-10-21`로 옮기는 일을 돕습니다. API 날짜 변경과 SDK 자체 변경을 함께 보고, 제안된 변경은 프로젝트 테스트로 확인합니다.
 
 ---
 
@@ -67,6 +102,7 @@ response = client.messages.create(
 |------|------|
 | `user` | 사용자 입력 |
 | `assistant` | 모델 응답 (대화 이력용) |
+| `system` | 지원 모델에서 대화 중 지시를 바꿉니다(메시지별 effort는 베타). 배치 제약은 [대화 중 시스템 메시지](https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages#limitations)를 따르고, 외부 자료는 넣지 않습니다. Sonnet 5는 미지원입니다 |
 
 **참고**: OpenAI의 `developer` role에 해당하는 것은 `system` 파라미터.
 
@@ -537,7 +573,7 @@ response = client.messages.create(
 )
 ```
 
-`temperature`/`top_p`/`top_k`도 400 — 프롬프트로 제어합니다.
+`temperature`/`top_p`/`top_k`도 400 — 프롬프트로 제어합니다([API 버전과 SDK](#api-버전과-sdk)).
 
 ### 2. 강제 tool_choice 400 (Fable 5 → 5.1 파괴적 변경)
 
@@ -658,7 +694,7 @@ answer = next(b.text for b in response.content if b.type == "text")  # 첫 블�
 
 ### 2. sampling 파라미터 400
 
-`temperature`·`top_p`·`top_k`를 모두 뺍니다. `temperature`는 1, `top_p`는 기본값 0.99만 받고, 다른 값과 `top_k`, 두 값을 함께 보내는 요청은 400입니다. 분류 경로의 `temperature=0`은 구조화 출력이나 enum 필드 도구로 바꿉니다.
+`temperature`·`top_p`·`top_k`를 모두 뺍니다. API `2026-10-21`에서는 기본값을 보내도 400입니다([API 버전과 SDK](#api-버전과-sdk)). 분류 경로의 `temperature=0`은 구조화 출력이나 enum 필드 도구로 바꿉니다.
 
 ### 3. assistant prefill 400
 
@@ -704,6 +740,8 @@ print(f"Output tokens: {usage.output_tokens}")
 ## 참고 자료
 
 - [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
+- [API 버전 2026-10-21 이전 안내서](https://platform.claude.com/docs/en/api/migration-2026-10-21) — Messages API의 파괴적 변경 3건과 SDK 메이저별 변경
+- [API versions](https://platform.claude.com/docs/en/api/versioning) — 버전 선택과 플랫폼별 지원 범위
 - [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking)
 - [Effort Parameter](https://platform.claude.com/docs/en/build-with-claude/effort)
 - [What's new in Claude Opus 5.5](https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5)

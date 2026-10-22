@@ -70,7 +70,7 @@ Opus 4.8은 Opus 4.7의 파괴적 변경을 그대로 이어받고, 4.7 대비 1
 | 항목 | Opus 4.8 동작 |
 |------|------|
 | 사고 | `thinking` 생략 시 사고 없이 실행. 켜려면 `{"type": "adaptive"}`, 끄기는 `{"type": "disabled"}` 또는 생략. 수동 예산(`enabled` + `budget_tokens`)은 400 (4.7부터) |
-| sampling | `temperature`·`top_p`·`top_k`를 기본값이 아닌 값으로 보내면 400 (4.7부터) |
+| sampling | `temperature`·`top_p`·`top_k`를 기본값이 아닌 값으로 보내면 400 (4.7부터. API `2026-10-21`은 기본값도 400) |
 | prefill | 마지막 assistant 턴 prefill은 400 (4.6부터). 형식은 구조화 출력, 서두 생략은 시스템 프롬프트로 |
 | 강제 도구 사용 | `tool_choice` `any`·`tool` 허용 |
 | 도구 사이 텍스트 | `text` 블록으로 반환 (Opus 5.5·Sonnet 5.5는 `thinking` 블록) |
