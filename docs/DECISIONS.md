@@ -40,7 +40,7 @@
 | 모드 | `defaultMode: bypassPermissions` (사용자 settings에서만 유효 — 2.1.257부터 프로젝트 파일 값은 무시). 진입 확인창은 `skipDangerousModePermissionPrompt: true`로 생략(역시 사용자 settings에서 읽음 — 레포에 없으면 설치 때 덮어써져 확인창이 다시 뜸) | `approval_policy = "never"` + `sandbox_mode = "danger-full-access"` | `toolPermission: always-proceed`, `artifactReviewPolicy: always-proceed` |
 | 기계 차단 | `permissions.deny` 49건 | Starlark `rules/default.rules` (`forbidden`) | `permissions.deny` 66건 |
 | 차단 범위 | 파국형 + 넓은 재귀 삭제. 규칙의 `*`는 공백 포함 임의 문자열에 매칭되므로 `rm -rf /*`·`rm -rf ./*`는 절대경로·`./` 하위 `rm -rf` 전부에 걸린다(의도는 파국형이지만 구현은 이만큼 넓다) | 파일 삭제·Git 쓰기·`sudo`·`gh api`·`chmod`·`ln -sf`·`sed -i` 등 위험 명령 전반. 인자값·임의 위치 매칭은 불가(prefix_rule) | 파국형만. 토큰 단위 정확 일치·접두 매칭이며 글롭과 `regex:`는 동작하지 않아 `rm -rf /home*`·`dd of=/dev/sd*` 같은 규칙은 옮길 수 없다(`dd`·`fdisk`·`parted`·`shred`는 지침 통제) |
-| 회귀 검증 | — (훅 은퇴로 케이스 아카이브) | `scripts/verify-policies.sh codex` — 실제 엔진 20건 | `scripts/verify-policies.sh agy` 정적 16건 + `scripts/agy-live-check.sh` 실측 6건 |
+| 회귀 검증 | — (훅 은퇴로 케이스 아카이브) | `scripts/verify-policies.sh codex` — 실제 엔진 20건 | `scripts/verify-policies.sh agy` 정적 17건 + `scripts/agy-live-check.sh` 실측 6건 |
 
 Codex 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 tmpfs로 덮어 GPU 장치를 노출하지 않기 때문이다. 유일한 방어선이 Starlark 규칙이므로 `shell_environment_policy`로 시크릿 env 유출을 함께 막는다. Codex 훅 신뢰는 정의의 해시로 기록되며, 훅을 새로 만들거나 바꾸면 `/hooks`에서 검토·신뢰할 때까지 건너뛴다(시작 시 경고만, 자동 확인창 없음).
 
