@@ -232,11 +232,11 @@ NEVER:
 
 Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인 프롬프트 없이 그대로 실행됩니다**. 워크스페이스 밖 파일 접근을 샌드박스가 막아 준다고 가정하지 않습니다. 파국형 명령만 `permissions.deny`가 기계적으로 차단하고, 나머지 위험 명령의 통제는 이 지침뿐입니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 서브에이전트도 같은 지침을 따릅니다. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`)로 돌려 쓰는 것도 동일하게 금지:
 
-- **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
+- **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, Windows PowerShell의 `Remove-Item`(`ri`·`del`·`erase`·`rd` 포함)·`Clear-Content` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
 - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
 - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash`(단, `stash list`/`stash show` 조회는 자유), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
 - **GitHub CLI 쓰기**: `gh pr/issue/release/repo create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
-- **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`
+- **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`, Windows의 `Stop-Computer`·`Restart-Computer`·`Format-Volume`·`Clear-Disk`·`Remove-Partition`·`diskpart`
 - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
 - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
 - **MCP 서버 추가·변경**: `~/.gemini/config/mcp_config.json` 편집, `agy mcp add`
