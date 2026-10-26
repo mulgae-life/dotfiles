@@ -122,6 +122,12 @@ function Invoke-Logged([string]$exe, [string[]]$argv, [string]$cwd, [string]$inF
   return $p.ExitCode
 }
 
+# 전체 실행에서 설치되지 않은 도구는 이 PC에서 쓰지 않는 것이므로 건너뛰고, 그 도구만 지정했으면 판정불가로 센다
+function Skip-Missing([string]$tag, [string]$what) {
+  if ($Only -eq 'all') { Report '건너뜀' $tag "$what — 이 PC에서 쓰지 않는 도구로 보고 시험하지 않음" }
+  else { Report '판정불가' $tag $what }
+}
+
 function Get-Version([string]$exe) {
   $out = Join-Path $Root ('version-' + [IO.Path]::GetFileNameWithoutExtension($exe) + '.txt')
   $rc = Invoke-Logged $exe @('--version') $Root $EmptyIn $out 60
@@ -134,10 +140,33 @@ function Get-Version([string]$exe) {
 # 판정: stream-json의 tool_use 중 도구 이름과 명령 원문이 같은 마지막 호출의 tool_result가
 #   "has been denied"면 차단, 아니면 실행. 시험용 폴더가 남았는지로 교차 확인한다.
 
+# 데스크톱 앱은 Claude Code를 %APPDATA%\Claude\claude-code\<버전>\[<해시>\]claude.exe로 받아 두고 PATH에 넣지 않는다.
+# 버전 폴더가 가장 높은 것을 고른다. 앱 본체(Claude.exe)는 이 폴더 밖에 있어 섞이지 않는다
+function Find-DesktopClaude {
+  $base = Join-Path $env:APPDATA 'Claude\claude-code'
+  if (-not (Test-Path -LiteralPath $base)) { return $null }
+  $best = $null
+  $bestVer = $null
+  foreach ($d in @(Get-ChildItem -LiteralPath $base -Directory)) {
+    $v = $null
+    if (-not [version]::TryParse($d.Name, [ref]$v)) { continue }
+    $hit = @(Get-ChildItem -LiteralPath $d.FullName -Recurse -File -Filter 'claude.exe' -ErrorAction SilentlyContinue | Select-Object -First 1)
+    if ($hit.Count -eq 0) { continue }
+    if ($null -eq $bestVer -or $v -gt $bestVer) { $bestVer = $v; $best = $hit[0].FullName }
+  }
+  return $best
+}
+
 function Test-Claude {
   $exe = Resolve-Tool 'claude'
-  if (-not $exe) { Report '판정불가' 'claude' 'claude CLI가 PATH에 없어 건너뜀'; return }
-  Report '정보' 'claude' ("버전 " + (Get-Version $exe))
+  if (-not $exe) {
+    $exe = Find-DesktopClaude
+    if ($exe) { Report '정보' 'claude' "PATH에 없어 데스크톱 앱의 Claude Code를 씀: $exe" }
+  }
+  if (-not $exe) { Skip-Missing 'claude' 'claude CLI가 PATH에 없고 데스크톱 앱의 Claude Code도 없음'; return }
+  $ver = Get-Version $exe
+  if ($ver -notmatch 'Claude Code') { Report '판정불가' 'claude' "Claude Code 실행 파일이 아님: $exe ($ver)"; return }
+  Report '정보' 'claude' "버전 $ver"
   # settings.json은 복사 설치라 git pull 뒤 install.cmd를 다시 돌리지 않으면 옛 deny로 시험하게 된다
   $installed = Join-Path $HOME '.claude\settings.json'
   if ($RepoDir -and (Test-Path -LiteralPath $installed)) {
@@ -213,8 +242,10 @@ $($lines -join "`n")
   $uses = New-Object System.Collections.Generic.List[object]
   $results = @{}
   $init = $null
+  $final = ''
   foreach ($e in (Read-JsonLines $out)) {
     if ((Prop $e 'type') -eq 'system' -and (Prop $e 'subtype') -eq 'init') { $init = $e }
+    if ((Prop $e 'type') -eq 'result') { $final = [string](Prop $e 'result') }
     foreach ($b in @(Prop (Prop $e 'message') 'content')) {
       $bt = Prop $b 'type'
       if ($bt -eq 'tool_use') {
@@ -226,7 +257,14 @@ $($lines -join "`n")
       }
     }
   }
-  if ($null -eq $init) { Report '판정불가' 'claude' "init 기록 없음 — 실행 실패. $out.err 확인"; return }
+  # 로그인 문제처럼 명령을 하나도 못 돌린 경우는 사례별 판정불가를 늘어놓지 않고 원인 한 줄만 보인다
+  if ($null -eq $init -or $uses.Count -eq 0) {
+    $why = if ($final) { $final } elseif (Test-Path -LiteralPath "$out.err") { [IO.File]::ReadAllText("$out.err", [Text.Encoding]::UTF8) } else { '' }
+    $why = ($why -replace '\s+', ' ').Trim()
+    $head = if ($null -eq $init) { 'init 기록 없음' } else { '도구 호출이 한 건도 없음' }
+    Report '판정불가' 'claude' ("$head`: " + $why.Substring(0, [Math]::Min(200, $why.Length)))
+    return
+  }
   $tools = @(Prop $init 'tools')
   Report '정보' 'claude' ("권한 모드 {0}, PowerShell 도구 {1}" -f (Prop $init 'permissionMode'), ($(if ($tools -contains 'PowerShell') { '있음' } else { '없음' })))
 
@@ -255,7 +293,7 @@ $($lines -join "`n")
 
 function Test-Codex {
   $exe = Resolve-Tool 'codex'
-  if (-not $exe) { Report '판정불가' 'codex' 'codex CLI가 PATH에 없어 건너뜀'; return }
+  if (-not $exe) { Skip-Missing 'codex' 'codex CLI가 PATH에 없음'; return }
   Report '정보' 'codex' ("버전 " + (Get-Version $exe))
 
   $dir = Join-Path $Root 'codex'
@@ -342,7 +380,7 @@ function Update-AgySettings([string]$jq, [string]$settings, [string]$filter) {
 
 function Test-Agy {
   $exe = Resolve-Tool 'agy'
-  if (-not $exe) { Report '판정불가' 'agy' 'agy CLI가 PATH에 없어 건너뜀'; return }
+  if (-not $exe) { Skip-Missing 'agy' 'agy CLI가 PATH에 없음'; return }
   $jq = Resolve-Tool 'jq'
   if (-not $jq) { Report '판정불가' 'agy' 'jq가 없어 건너뜀 (install.cmd가 설치를 시도한다)'; return }
   Report '정보' 'agy' ("버전 " + (Get-Version $exe))
