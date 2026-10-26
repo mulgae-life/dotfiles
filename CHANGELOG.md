@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.65** | Windows 위험 명령 차단 실측 스크립트 `scripts/windows-live-check.cmd` 추가 — 세 도구를 그 PC의 실제 설정으로 돌리고, 모델의 답변 대신 도구의 구조화된 기록과 시험 폴더의 존재로 판정한다. 데스크톱 앱의 Claude Code(2.1.308)에서 PowerShell·Git Bash 21건이 모두 의도대로 막히거나 통과했고, Codex와 agy는 이 PC에서 쓰지 않아 실측하지 않았다 |
 | **v2.64** | `writing-prompts` 점검표에 프롬프트 파일 자체의 작성 문체 항목을 넣음 — 장황한 산문 대신 개조식으로 쓰고, 모델 행동을 바꾸지 않는 정보와 상투어·번역투·자작 조어를 빼게 했다. 대상 모델이 내놓을 출력의 문체는 지금처럼 모델별 문서가 정한다 |
 | **v2.63** | Windows 설치기를 `install.cmd` 한 파일로 합침 — 앞쪽 ASCII 배치가 PowerShell을 띄워 파일 전체를 UTF-8로 읽어 실행한다. 함께 Git Bash의 `ln -s`가 개발자 모드에서도 사본을 만들어 `init-project`의 루트 `CLAUDE.md`·`AGENTS.md`가 `GUIDE.md`와 어긋날 수 있던 것을, 사용자 환경 변수 `MSYS=winsymlinks:nativestrict`와 개발자 모드일 때만 켜는 `core.symlinks`로 바로잡음 |
 | **v2.62** | Windows 네이티브 설치기 추가 — WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 사용자를 위해 `install.ps1`(진입점 `install.cmd`)이 세 도구를 설치한다. 함께 `.gitattributes`로 줄바꿈을 LF로 고정하고, Claude deny에 PowerShell 38건과 Git Bash `C:/` 경로 3건을, Codex 규칙과 훅, 세 도구 지침의 위험 명령 목록에 Windows용 항목을 더했으며, agy deny가 Windows에서 사실상 동작하지 않음을 문서화했다. Claude 규칙은 실제 엔진으로 44건을 확인했고 Windows 실기기 실측은 아직이다 |

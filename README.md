@@ -183,4 +183,4 @@ dotfiles/
 └── install.cmd       Windows 네이티브 설치기 (CMD·PowerShell·더블클릭 공용)
 ```
 
-정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건). Windows에서는 `scripts\windows-live-check.cmd`가 세 도구를 실제 설정으로 돌려 차단을 확인한다. 모델을 호출하므로 쿼터를 쓰고, 시험 명령은 막히지 않아도 해가 없게 만들었다.
+정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건). Windows에서는 `scripts\windows-live-check.cmd`가 세 도구를 실제 설정으로 돌려 차단을 확인한다. 모델을 호출하므로 쿼터를 쓰고, 시험 명령은 막히지 않아도 해가 없게 만들었다. 데스크톱 앱만 쓰는 PC에서는 앱에 들어 있는 `claude.exe`를 찾아 쓰는데, 이 실행 파일은 앱의 로그인을 물려받지 않으므로 처음 한 번 `claude.exe auth login`으로 로그인한다.
