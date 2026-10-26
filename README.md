@@ -34,7 +34,25 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
   - 사용자 권한: `visual-check`(Playwright·Chromium), `office-docs`(파이썬 가상환경·npm 패키지·나눔고딕)
   - 관리자 권한(LibreOffice·poppler): `sudo apt-get`을 시도하고, 실패하면 수동 명령을 안내한다.
   - 링크만 다시 걸 때는 `--skip-deps`.
-- Antigravity IDE 설정 동기화는 macOS·Windows에서만 한다.
+- `install.sh`의 Antigravity IDE 설정 동기화는 macOS와 Windows(Git Bash로 실행할 때)에서만 한다.
+
+### Windows (PowerShell · CMD, WSL 없이)
+
+Claude 데스크톱 앱이나 Windows 터미널에서 쓰는 방법이다. 먼저 [Git for Windows](https://git-scm.com/downloads/win)를 설치해야 한다(`winget install --id Git.Git -e`).
+
+```powershell
+git clone https://github.com/mulgae-life/dotfiles.git "$HOME\dotfiles"
+& "$HOME\dotfiles\install.cmd"          # -DryRun 으로 미리 확인 가능
+```
+
+CMD에서는 `"%USERPROFILE%\dotfiles\install.cmd"`로 실행하고, 탐색기에서 `install.cmd`를 더블클릭해도 된다. WSL 안에서는 위의 `install.sh`를 쓴다.
+
+- 폴더(rules·agents·skills·hooks)는 정션(junction)으로 연결해 레포 변경이 바로 반영된다. 파일(`CLAUDE.md`·`AGENTS.md`·`GEMINI.md`·상태줄)은 Windows 심볼릭 링크에 개발자 모드나 관리자 권한이 필요해 복사하므로, `git pull` 뒤에 `install.cmd`를 다시 실행한다.
+- Claude의 훅과 상태줄은 Git Bash로 돈다. Codex 훅은 PowerShell용 명령(`command_windows`)을 따로 둔다. `jq`가 없으면 `winget`으로 설치를 시도한다.
+- 데스크톱 앱에서 확인 없이 실행하려면 Settings → Claude Code의 "Allow bypass permissions mode"를 켠다. Team·Enterprise 플랜에서는 조직 정책이 이 설정을 정한다.
+- agy는 Windows에서 PowerShell 명령을 전체 줄이 정확히 같을 때만 막아, deny 규칙이 사실상 동작하지 않는다(바이너리 분석 결과이며 실측 전). 상태줄도 `cmd /c`로 실행돼 레포 상태줄은 설치하지 않는다. 근거는 [.antigravity/README.md](.antigravity/README.md).
+- 스킬 의존성 자동 설치와 Antigravity IDE 설정 동기화는 하지 않는다.
+- `irm … | iex` 한 줄 설치는 지원하지 않는다. 설치기는 한글이 깨지지 않도록 BOM을 붙인 UTF-8로 저장하는데, `iex`는 BOM이 붙은 첫 줄을 읽지 못한다.
 
 ## ⚡ 자동으로 일어나는 것
 
@@ -145,7 +163,7 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 |---|---|---|---|
 | 지시 파일 | `CLAUDE.md` + `rules/*.md` | `AGENTS.md` + `config.toml` | `GEMINI.md` |
 | 설정 | `settings.json` (복사) | `config.toml` (복사) | `cli/settings.json` (관리 키 병합) |
-| 권한 | `bypassPermissions` + deny 49건 | `approval_policy="never"` + Starlark 규칙 | `always-proceed` + deny 66건 |
+| 권한 | `bypassPermissions` + deny 90건 (Bash 52 · PowerShell 38) | `approval_policy="never"` + Starlark 규칙 | `always-proceed` + deny 66건 |
 | 스킬 | `.claude/skills/` | `~/.agents/skills` 링크 | `~/.gemini/config/skills` 링크 |
 | 모델·effort | 기본값 추종(서브에이전트만 Opus 강제) | 기본값 추종 | 기본값 추종 |
 | 상태줄 | `statusline-command.sh` | `[tui].status_line` 내장 항목 | `cli/statusline-command.sh` |
@@ -161,7 +179,8 @@ dotfiles/
 ├── scripts/          verify-policies.sh (정책 회귀) · agy-live-check.sh (agy 실측) · policy-cases.tsv · setup-apparmor.sh
 ├── docs/             DECISIONS.md(설계 원칙·결정 기록) · SKILL-SOURCES.md(스킬 출처·상류 갱신 절차)
 ├── reference/        프롬프트 가이드(Claude·OpenAI·Google·Qwen) · 모델 조사 원문(research/) · 디자인 원본
-└── install.sh
+├── install.sh        Linux·macOS·WSL 설치기
+└── install.ps1 · install.cmd   Windows 네이티브 설치기 (install.cmd가 진입점)
 ```
 
-정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 20건 + agy 정적 17건).
+정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건).

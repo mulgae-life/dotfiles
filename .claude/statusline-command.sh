@@ -2,6 +2,9 @@
 # Claude Code statusLine 명령어
 # 표시 항목: prj dir | model | effort | context% | rate limits
 
+# Windows(Git Bash)의 jq.exe는 출력 줄 끝을 CRLF로 바꿔 값에 \r이 붙는다 — jq 매뉴얼이 MSYS2·Cygwin에 권하는 -b로 끈다
+case "$OSTYPE" in msys*|cygwin*) jq() { command jq -b "$@"; } ;; esac
+
 input=$(cat)
 
 # 프로젝트 디렉토리 (~ 치환)

@@ -4,6 +4,7 @@
 
 | 버전 | 핵심 변경 |
 |------|-----------|
+| **v2.62** | Windows 네이티브 설치기 추가 — WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 사용자를 위해 `install.ps1`(진입점 `install.cmd`)이 세 도구를 설치한다. 함께 `.gitattributes`로 줄바꿈을 LF로 고정하고, Claude deny에 PowerShell 38건과 Git Bash `C:/` 경로 3건을, Codex 규칙과 훅에 Windows용 항목을 더했으며, agy deny가 Windows에서 사실상 동작하지 않음을 문서화했다. Claude 규칙은 실제 엔진으로 44건을 확인했고 Windows 실기기 실측은 아직이다 |
 | **v2.61** | `llm-api-guide` 에러 처리 예제 세 곳이 모든 API 오류의 부모인 `APIError`에서 `status_code`를 읽던 것을 바로잡음 — 이 속성은 `APIStatusError` 같은 하위 클래스에만 있어 타입 검사가 실패하고, OpenAI SDK가 스트리밍 중 오류로 던지는 `APIError`에서는 `AttributeError`가 원래 예외를 덮는다. `status_code`는 `APIStatusError` 분기에서만 읽고, 나머지 API 오류는 마지막 `APIError` 분기에서 `status_code` 없이 기록하도록 고쳐 오류 표와 체크리스트에도 반영 |
 | **v2.60** | agy가 `SKILL.md` 본문의 앞 24,000바이트만 읽어 `writing-prompts` 끝의 참고 자료(Gemma 4·Qwen 3.8 링크 등)가 경고 없이 잘리던 것을 바로잡음 — 링크 목록을 `references/sources.md`로 옮겨 본문을 26,703바이트에서 18,845바이트로 줄이고, `verify-policies.sh`에 본문 크기 검사를 추가(영문 원문을 유지하는 `skill-creator`만 예외, 근거는 `docs/DECISIONS.md` 5절) |
 | **v2.59** | Claude API 버전 `2026-10-21`(10/21) 반영 — Codex와 독립 조사·대조로 `llm-api-guide`에 버전·SDK 절(SDK 메이저별 기본 날짜, Messages 400 세 건, Python 2.0·TypeScript 1.0 변경)을 넣고, 새 버전에서 그대로 따르면 400이 나는 sampling 서술만 `writing-prompts`와 Claude 풀 가이드에서 버전을 구분해 고침. Python SDK 1.0부터 낡아 있던 Anthropic `Timeout` 예제(`httpx2`)와 역할 표의 `system` 행도 바로잡음. 이와 별도로, 대표님 지시에 따라 Codex를 인라인 모드(`tui.alternate_screen = "never"`)로 바꿔 tmux에서 마우스를 잡지 않게 함 |

@@ -31,6 +31,16 @@
 
 **스킬 공유 경로.** `~/.agents/skills → ~/.claude/skills`로 통합되고 Codex는 이 공용 경로로 받는다. Antigravity는 CLI용 `~/.gemini/config/skills`와 IDE용 `~/.gemini/antigravity/skills`로 따로 연결한다(`~/.gemini/antigravity-cli/skills`는 `agy`가 스스로 만드는 링크라 관리 제외). Gemini CLI 시절 `~/.gemini` 바로 아래 남은 링크(`agents`·`commands`·`policies`·`hooks`·`skills`·`AGENTS.md`)는 설치 때 정리한다.
 
+**Windows 네이티브 설치 (`install.ps1`).** WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 사용자를 위해, `install.sh`와 같은 대상에 같은 규칙으로 설치한다. 다른 점은 다음과 같다.
+
+- 폴더는 정션(junction)으로 연결하고 파일은 복사한다. Windows의 파일 심볼릭 링크는 개발자 모드나 관리자 권한이 있어야 하고, 정션은 권한 없이 만들어진다. 설치기가 만든 사본은 해시를 `.install-state.json`에 남겨 다음 실행에서 백업 없이 덮어쓰고, 기록에 없는 기존 파일은 `safe_link`처럼 백업한다.
+- Git for Windows를 필수로 둔다. 훅과 상태줄이 Git Bash로 돌아야 하는데, Git Bash가 없으면 Claude Code가 훅을 PowerShell로 실행해 `.sh` 훅이 깨진다. Git for Windows 기본값(`core.autocrlf=true`)은 `.sh`를 CRLF로 바꿔 Git Bash가 실행하지 못하게 하고 `SKILL.md` 바이트 수도 Linux와 어긋나게 하므로, `.gitattributes`로 텍스트를 LF로 고정했다. 그 전에 클론한 사본은 작업 트리가 깨끗할 때 설치기가 색인에서 다시 꺼낸다.
+- 설치기는 한글 때문에 UTF-8 BOM으로 저장한다. Windows PowerShell 5.1은 BOM 없는 스크립트를 시스템 코드 페이지로 읽는다. BOM이 붙은 문자열은 `iex`가 첫 줄을 명령 이름으로 읽고 `irm`도 BOM을 벗기지 않아(pwsh 7.6 실측), `irm | iex` 한 줄 설치는 지원하지 않고 ASCII로 쓴 `install.cmd`를 진입점으로 둔다.
+- Codex는 Windows에서 훅을 PowerShell로 실행하므로 `command_windows`에 대체 명령을 둔다. compact 리마인더는 `.sh`의 heredoc을 정본으로 두고 `.ps1`이 그것을 꺼내 낸다. 바깥 PowerShell이 자식 출력을 시스템 코드 페이지로 다시 인코딩해도 한글이 깨지지 않도록 비ASCII 문자는 JSON 이스케이프(`\uXXXX`)로 바꾼다.
+- Git Bash에서 Windows용 `jq.exe`는 출력 줄 끝을 CRLF로 바꾼다. Claude 상태줄은 jq 값을 숫자로 쓰므로, `$OSTYPE`이 `msys`·`cygwin`일 때만 jq 매뉴얼이 권하는 `-b`를 붙인다.
+- agy는 Windows에서 상태줄을 `cmd /c`로 실행해 레포의 bash 명령이 동작하지 않으므로, 병합할 때 레포 `statusLine`을 뺀다. `~/.antigravity`도 연결하지 않는다. Windows에서 이 폴더는 구버전 Antigravity 1.0의 확장 폴더라서, 백업으로 옮기면 그 확장이 빠진다.
+- 스킬 의존성 설치는 하지 않는다. `setup.sh`와 `SKILL.md`가 Linux 가상환경 경로(`venv/bin`)를 전제하기 때문이다. Antigravity IDE 층도 다루지 않는다. 은퇴한 Gemini CLI가 남긴 링크 정리도 하지 않는다. 새로 설치하는 Windows에는 그 링크가 없다.
+
 **레포 안에서 작업할 때.** 레포의 `.claude/`·`.codex/`는 dotfiles 디렉토리에서 프로젝트 설정으로도 읽힌다. Claude는 같은 훅을 한 번만 실행하고 프로젝트 파일의 `bypassPermissions`는 무시한다. Codex는 상위 층 훅을 대체하지 않고 누적 로드하므로 이 레포 안에서는 알림·리마인더 훅이 두 층에서 등록된다. 설정을 바로 확인할 수 있는 이점이 있어 그대로 둔다.
 
 ## 3. 권한 통제 — 도구별 상세
@@ -38,9 +48,9 @@
 | | Claude Code | Codex | Antigravity CLI |
 |---|---|---|---|
 | 모드 | `defaultMode: bypassPermissions` (사용자 settings에서만 유효 — 2.1.257부터 프로젝트 파일 값은 무시). 진입 확인창은 `skipDangerousModePermissionPrompt: true`로 생략(역시 사용자 settings에서 읽음 — 레포에 없으면 설치 때 덮어써져 확인창이 다시 뜸) | `approval_policy = "never"` + `sandbox_mode = "danger-full-access"` | `toolPermission: always-proceed`, `artifactReviewPolicy: always-proceed` |
-| 기계 차단 | `permissions.deny` 49건 | Starlark `rules/default.rules` (`forbidden`) | `permissions.deny` 66건 |
-| 차단 범위 | 파국형 + 넓은 재귀 삭제. 규칙의 `*`는 공백 포함 임의 문자열에 매칭되므로 `rm -rf /*`·`rm -rf ./*`는 절대경로·`./` 하위 `rm -rf` 전부에 걸린다(의도는 파국형이지만 구현은 이만큼 넓다) | 파일 삭제·Git 쓰기·`sudo`·`gh api`·`chmod`·`ln -sf`·`sed -i` 등 위험 명령 전반. 인자값·임의 위치 매칭은 불가(prefix_rule) | 파국형만. 토큰 단위 정확 일치·접두 매칭이며 글롭과 `regex:`는 동작하지 않아 `rm -rf /home*`·`dd of=/dev/sd*` 같은 규칙은 옮길 수 없다(`dd`·`fdisk`·`parted`·`shred`는 지침 통제) |
-| 회귀 검증 | — (훅 은퇴로 케이스 아카이브) | `scripts/verify-policies.sh codex` — 실제 엔진 20건 | `scripts/verify-policies.sh agy` 정적 17건 + `scripts/agy-live-check.sh` 실측 6건 |
+| 기계 차단 | `permissions.deny` 90건 (Bash 52 · PowerShell 38) | Starlark `rules/default.rules` (`forbidden`) | `permissions.deny` 66건 |
+| 차단 범위 | 파국형 + 넓은 재귀 삭제. 규칙의 `*`는 공백 포함 임의 문자열에 매칭되므로 `rm -rf /*`·`rm -rf ./*`는 절대경로·`./` 하위 `rm -rf` 전부에 걸린다(의도는 파국형이지만 구현은 이만큼 넓다). PowerShell 38건은 같은 범위(드라이브·홈·`.`·`..` 재귀 삭제, 디스크·전원)를 옮긴 것으로, `Remove-Item`의 경로와 `-Recurse` 순서 세 가지를 각각 규칙으로 둔다. 다만 `.`·`..` 경로는 앞에 임의 문자열을 허용하면 `release..old`·`build/./cache` 같은 일반 이름까지 걸리므로, 경로가 첫 인자인 형태와 다른 인자 뒤에 오는 형태로 나눠 공백 경계를 지킨다. 규칙 문자열의 역슬래시는 두 번 해석된다. 설정을 읽을 때 `\\`가 `\` 하나로 줄고, 매칭할 때 `\*`는 문자 그대로의 별표가 된다. 그래서 `C:\`·`.\` 뒤의 와일드카드는 JSON에 역슬래시 8개를 쓴다. 끝이 `:*`인 규칙은 옛 접두 문법(`Bash(ls:*)`)으로 읽히므로 `C:*` 같은 형태도 쓸 수 없다(2.1.310 실측). Git Bash의 `C:/` 경로 `rm -rf`도 막는다 | 파일 삭제·Git 쓰기·`sudo`·`gh api`·`chmod`·`ln -sf`·`sed -i` 등 위험 명령 전반. 인자값·임의 위치 매칭은 불가(prefix_rule). Windows에서는 PowerShell 스크립트를 명령 단위로 쪼개 대조하므로 `Remove-Item` 계열 삭제와 전원·디스크 cmdlet을 추가했다. 첫 토큰은 철자 그대로 대조한다(소문자·확장자 정규화는 절대경로로 실행할 때만). 그래서 정식 표기와 소문자 표기, `shutdown.exe`·`diskpart.exe`를 함께 두며, 그 밖의 대소문자 조합은 막지 못한다(0.164.0 소스 확인) | 파국형만. 토큰 단위 정확 일치·접두 매칭이며 글롭과 `regex:`는 동작하지 않아 `rm -rf /home*`·`dd of=/dev/sd*` 같은 규칙은 옮길 수 없다(`dd`·`fdisk`·`parted`·`shred`는 지침 통제). Windows(1.4.7)에서는 PowerShell 명령을 전체 줄 정확 일치로만 판정해 이 규칙들이 사실상 동작하지 않는다(바이너리 정적 분석, 실측 전) |
+| 회귀 검증 | 상시 스크립트 없음(훅 은퇴로 케이스 아카이브). PowerShell 규칙은 Linux에서 PowerShell 도구를 켜고(`CLAUDE_CODE_USE_POWERSHELL_TOOL=1`, pwsh 필요) `dontAsk` 모드로 실제 엔진 44건(차단 33건, 대조군 11건)을 확인했다. 허용 규칙과 승인 훅을 두지 않은 별도 설정에서 검사해 44개 호출이 모두 거부 응답을 반환했고, 명시 deny 거부와 `dontAsk` 자동 거부의 메시지 차이로 판정했다 | `scripts/verify-policies.sh codex` — 실제 엔진 30건 | `scripts/verify-policies.sh agy` 정적 17건 + `scripts/agy-live-check.sh` 실측 6건 |
 
 Codex 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 tmpfs로 덮어 GPU 장치를 노출하지 않기 때문이다. 유일한 방어선이 Starlark 규칙이므로 `shell_environment_policy`로 시크릿 env 유출을 함께 막는다. Codex 훅 신뢰는 정의의 해시로 기록되며, 훅을 새로 만들거나 바꾸면 `/hooks`에서 검토·신뢰할 때까지 건너뛴다(시작 시 경고만, 자동 확인창 없음).
 

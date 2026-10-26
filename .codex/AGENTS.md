@@ -55,11 +55,11 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 ### 행동 원칙
 
 - **Starlark `forbidden` 명령은 시도 자체 금지**: 아래 명령은 `.codex/rules/default.rules`에서 `forbidden`으로 설정되어 **사용자 명시 요청 여부와 무관하게 차단**됩니다 (Starlark에 `prompt` 판정은 있으나 `approval_policy = "never"` 정책상 쓰지 않음 — 승인 경로 없음). 자율 작업 중에는 절대 시도하지 말고, 사용자가 요청한 경우에는 **사용자에게 직접 실행을 부탁드린다고 안내**:
-  - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`
+  - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, Windows PowerShell의 `Remove-Item`(`ri`·`del`·`erase`·`rd` 포함)·`Clear-Content`
   - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git rm`, `git branch -d/-D`, `git tag -d/-f`
   - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash` (전체), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
   - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api` (전체), `gh auth login/logout`
-  - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `sudo`, `dd`, `mkfs`, `fdisk`, `parted`
+  - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `sudo`, `dd`, `mkfs`, `fdisk`, `parted`, Windows의 `Stop-Computer`·`Restart-Computer`·`Format-Volume`·`Clear-Disk`·`Remove-Partition`·`diskpart`
   - **파일 수정/링크 강제/권한**: `ln` (전체 차단, -f/-sf 위험), `chmod`, `chown`, `sed -i` / `awk -i inplace` / `gawk -i inplace` (표준 옵션 위치만 매칭) — Edit 도구 우회·보안 상태 변경
   - **Docker 삭제**: `docker rm/rmi`, `docker compose down/rm`
   - (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 allow)
@@ -68,6 +68,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 > - `sed -i` / `awk -i inplace` 옵션 순서가 바뀐 케이스 (예: `sed -e 'pattern' -i file`, `awk -f prog.awk -i inplace file`) — 표준 위치(`sed -i ...`, `awk/gawk -i inplace ...`)는 룰로 차단됨. `sed --in-place=.bak`(값 결합 토큰)도 미매칭
 > - **git 전역옵션 경유**: `git -C <경로> push`, `git -c <키=값> commit`, `git --git-dir=<경로> push` 등 — prefix_rule은 `["git", "push"]` 토큰 순서만 매칭하므로 전역옵션이 끼면 미차단. 읽기(`git -C <경로> status`)까지 막지 않기 위해 룰 추가 안 함 → 쓰기 하위명령은 전역옵션 형태로도 시도 금지
 > - `xargs rm` / `ls | xargs rm` (rm이 첫 토큰이 아니어서 미매칭)
+> - Windows PowerShell cmdlet의 다른 대소문자 표기 (예: `REMOVE-ITEM`) — 규칙은 정식 표기와 소문자만 매칭
 > - `echo "..." | bash` / `curl ... | bash` (파이프로 셸에 전달 — 따옴표 stripping 우회)
 > - `bash <(...)` (process substitution — 셸 명령 우회)
 > - `find ... -delete` (rm 없이 동일 효과)

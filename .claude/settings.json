@@ -262,7 +262,53 @@
       "Bash(loginctl reboot*)",
       "Bash(loginctl poweroff*)",
 
-      "Bash(crontab -r*)"
+      "Bash(crontab -r*)",
+
+      "Bash(rm -rf *:/*)",
+      "Bash(rm -fr *:/*)",
+      "Bash(rm --recursive --force *:/*)",
+
+      "PowerShell(Remove-Item -r*:\\\\\\\\*)",
+      "PowerShell(Remove-Item * -r*:\\\\\\\\*)",
+      "PowerShell(Remove-Item *:\\\\\\\\* -r*)",
+      "PowerShell(Remove-Item -r*:/*)",
+      "PowerShell(Remove-Item * -r*:/*)",
+      "PowerShell(Remove-Item *:/* -r*)",
+      "PowerShell(Remove-Item -r*~*)",
+      "PowerShell(Remove-Item * -r*~*)",
+      "PowerShell(Remove-Item *~* -r*)",
+      "PowerShell(Remove-Item -r*$HOME*)",
+      "PowerShell(Remove-Item * -r*$HOME*)",
+      "PowerShell(Remove-Item *$HOME* -r*)",
+      "PowerShell(Remove-Item -r*$env:USERPROFILE*)",
+      "PowerShell(Remove-Item * -r*$env:USERPROFILE*)",
+      "PowerShell(Remove-Item *$env:USERPROFILE* -r*)",
+
+      "PowerShell(Remove-Item -r* .)",
+      "PowerShell(Remove-Item -r* .\\\\\\\\*)",
+      "PowerShell(Remove-Item -r* ./*)",
+      "PowerShell(Remove-Item -r* ..*)",
+      "PowerShell(Remove-Item * -r* .)",
+      "PowerShell(Remove-Item * -r* .\\\\\\\\*)",
+      "PowerShell(Remove-Item * -r* ./*)",
+      "PowerShell(Remove-Item * -r* ..*)",
+      "PowerShell(Remove-Item . -r*)",
+      "PowerShell(Remove-Item .\\\\\\\\* -r*)",
+      "PowerShell(Remove-Item ./* -r*)",
+      "PowerShell(Remove-Item ..* -r*)",
+      "PowerShell(Remove-Item * . -r*)",
+      "PowerShell(Remove-Item * .\\\\\\\\* -r*)",
+      "PowerShell(Remove-Item * ./* -r*)",
+      "PowerShell(Remove-Item * ..* -r*)",
+
+      "PowerShell(Format-Volume*)",
+      "PowerShell(Clear-Disk*)",
+      "PowerShell(Remove-Partition*)",
+      "PowerShell(diskpart*)",
+
+      "PowerShell(Stop-Computer*)",
+      "PowerShell(Restart-Computer*)",
+      "PowerShell(shutdown*)"
     ],
     "defaultMode": "bypassPermissions"
   },
@@ -305,7 +351,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$HOME/.claude/hooks/on-tool-failure.sh",
+            "command": "\"$HOME/.claude/hooks/on-tool-failure.sh\"",
             "timeout": 10
           }
         ]
@@ -320,6 +366,6 @@
   "language": "한국어",
   "statusLine": {
     "type": "command",
-    "command": "bash $HOME/.claude/statusline-command.sh"
+    "command": "bash \"$HOME/.claude/statusline-command.sh\""
   }
 }

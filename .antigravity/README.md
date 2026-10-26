@@ -55,7 +55,9 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 
 deny 매칭 실측(1.1.27): **토큰 단위 정확 일치 + 접두 매칭**. `command(printf X)`는 `printf X extra`를 막고 `printf X_y`는 통과. `*`는 글롭이 아니다(`command(printf G*)`가 `printf Gx`를 못 막음 — 따라서 `rm -rf /*`의 `/*`는 리터럴 토큰). `regex:` 접두는 `command(regex:^…)`·`regex:command(…)`·비앵커 세 형태 모두 deny에서 무효. 복합 명령(`rm -rf X && echo`)은 파트별로 검사돼 차단됨. `always-proceed`에서도 명시 deny는 유지된다.
 
-Claude deny 49건과의 차이: 글롭이 없어 `rm -rf /home*`·`dd of=/dev/sd*`·`fdisk /dev/*`·`parted /dev/*`·`shred /dev/*`를 표현할 수 없다. `dd`·`fdisk`·`parted`·`shred`를 통째로 막으면 `fdisk -l` 같은 조회까지 막히므로 deny에서 제외하고 지침 통제에 둔다. 반대로 `rm -rf /tmp/x` 같은 일반 절대경로 삭제는 Claude에서는 `*` 확장 때문에 막히지만 여기서는 통과한다(설계 의도인 "파국형만"에 더 가깝다).
+Windows(1.4.7 바이너리 정적 분석, 실측 전): 에이전트 명령은 PowerShell(`pwsh`, 없으면 `powershell`)로 실행되고, 셸이 PowerShell이면 토큰 매칭 대신 **전체 줄 정확 일치**로만 판정한다(`terminal.RequiresExactMatch`). 별칭·대소문자·인자 순서 변형을 모두 통과시키므로 위 deny 규칙은 Windows에서 사실상 동작하지 않는다. 같은 코드에 `regex:` 규칙을 `^(?:…)$`로 감싸 전체 줄과 대조하는 경로가 있어, 위의 "`regex:` 무효" 실측(1.1.27, Linux)도 재확인이 필요하다. 상태줄과 훅은 Windows에서 `cmd /c`로 실행돼 `$HOME`이 확장되지 않으므로 `install.ps1`은 `statusLine`을 빼고 병합한다.
+
+Claude deny의 Bash 규칙과의 차이: 글롭이 없어 `rm -rf /home*`·`dd of=/dev/sd*`·`fdisk /dev/*`·`parted /dev/*`·`shred /dev/*`를 표현할 수 없다. `dd`·`fdisk`·`parted`·`shred`를 통째로 막으면 `fdisk -l` 같은 조회까지 막히므로 deny에서 제외하고 지침 통제에 둔다. 반대로 `rm -rf /tmp/x` 같은 일반 절대경로 삭제는 Claude에서는 `*` 확장 때문에 막히지만 여기서는 통과한다(설계 의도인 "파국형만"에 더 가깝다).
 
 외부 접근 실측(한정 조건: 1.1.27 / Linux / 헤드리스 `-p --add-dir` / `allowNonWorkspaceAccess` 기본값 false / `toolPermission: always-proceed`): 파일 도구로 `~/x.txt` 쓰기 1건과 `/etc/hostname` 읽기 1건이 프롬프트 없이 통과했다. 대화형 모드와 명시 `false` 대조군은 미실측이다. `~/.gemini/config/config.json`의 `userSettings.permissions`는 읽히지 않는다(로그 `no shared config permissions`). 프로젝트 권한(`~/.gemini/config/projects/`)의 allow와 전역 deny가 충돌할 때의 우선순위는 미실측.
 

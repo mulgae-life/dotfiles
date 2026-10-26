@@ -6,6 +6,7 @@ __pycache__/
 .agents/
 
 .archive/
+.install-state.json
 .claude/scratch/
 .claude/skills/synced/
 .collab-loop/

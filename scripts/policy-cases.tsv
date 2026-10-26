@@ -18,6 +18,16 @@ codex	forbidden	gh api repos/x
 codex	forbidden	chmod 755 f
 codex	forbidden	ln -sf a b
 codex	forbidden	sed -i s/a/b/ f
+codex	forbidden	Remove-Item -Recurse -Force x
+codex	forbidden	remove-item x
+codex	forbidden	del x
+codex	forbidden	Clear-Content f
+codex	forbidden	Stop-Computer
+codex	forbidden	Format-Volume -DriveLetter D
+codex	forbidden	shutdown.exe /s
+codex	forbidden	diskpart.exe
+codex	none	Remove-ItemProperty x
+codex	none	Get-ChildItem
 codex	allow	git status
 codex	allow	git log --oneline
 codex	allow	gh pr list

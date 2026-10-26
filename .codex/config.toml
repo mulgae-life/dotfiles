@@ -222,12 +222,15 @@ alternate_screen = "never"  # 인라인 모드(= --no-alt-screen). 대체 화면
 # Claude Code settings.json의 알림·compact 리마인더 훅에 대응. 모두 작업 중단 없는 알림/리마인더 전용
 # PreToolUse 자동 승인은 의도적 미설정 — approval_policy="never" + rules/default.rules가 이미 통제
 # matcher 미설정 = 모든 매칭, 명시할 때만 regex 적용
+# Windows는 훅을 PowerShell로 실행하므로 command_windows로 대체 명령을 둔다 ($HOME은 PowerShell이 확장).
+# .sh를 그대로 두면 Git for Windows의 파일 연결로 Git Bash 창이 뜬다
 
-# Stop: 턴 완료 시 데스크톱 알림 (notify-send)
+# Stop: 턴 완료 시 데스크톱 알림 (notify-send). Windows에는 notify-send가 없어 notify.sh와 같은 빈 응답만 낸다
 [[hooks.Stop]]
 [[hooks.Stop.hooks]]
 type = "command"
 command = "$HOME/.codex/hooks/notify.sh"
+command_windows = "Write-Output '{}'"
 timeout = 5
 
 # PostToolUse 실패알림 훅은 제거 — payload에 exit code가 없어 실패 감지 불가(docs/DECISIONS.md §4 참조). 복원본은 .archive/2026-07-02_codex-dead-hook/
@@ -239,6 +242,7 @@ matcher = "^compact$"
 [[hooks.SessionStart.hooks]]
 type = "command"
 command = "$HOME/.codex/hooks/compact-reminder.sh"
+command_windows = 'powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\.codex\hooks\compact-reminder.ps1"'
 timeout = 5
 
 # ── 공식 OpenAI 개발자 문서 MCP ──────────────
