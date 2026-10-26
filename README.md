@@ -38,21 +38,22 @@ git clone https://github.com/mulgae-life/dotfiles.git ~/dotfiles
 
 ### Windows (PowerShell · CMD, WSL 없이)
 
-Claude 데스크톱 앱이나 Windows 터미널에서 쓰는 방법이다. 먼저 [Git for Windows](https://git-scm.com/downloads/win)를 설치해야 한다(`winget install --id Git.Git -e`).
+Claude 데스크톱 앱이나 Windows 터미널에서 쓴다. 먼저 [Git for Windows](https://git-scm.com/downloads/win)를 설치한다(`winget install --id Git.Git -e`).
 
 ```powershell
 git clone https://github.com/mulgae-life/dotfiles.git "$HOME\dotfiles"
 & "$HOME\dotfiles\install.cmd"          # -DryRun 으로 미리 확인 가능
 ```
 
-CMD에서는 `"%USERPROFILE%\dotfiles\install.cmd"`로 실행하고, 탐색기에서 `install.cmd`를 더블클릭해도 된다. WSL 안에서는 위의 `install.sh`를 쓴다.
+- CMD에서는 `"%USERPROFILE%\dotfiles\install.cmd"`로 실행하고, 탐색기에서 더블클릭해도 된다.
+- 폴더는 정션으로 연결하고 파일은 복사한다. 그래서 `git pull` 뒤에는 `install.cmd`를 다시 실행한다.
+- 개발자 모드를 켜 둔다(설정 앱에서 "개발자용" 검색). 꺼져 있으면 `init-project`가 루트 `CLAUDE.md`·`AGENTS.md` 링크를 만들지 못한다.
+- 데스크톱 앱에서 확인 없이 실행하려면 Settings → Claude Code의 "Allow bypass permissions mode"를 켠다.
+- `jq`가 없으면 `winget`으로 설치를 시도한다.
+- 스킬 의존성 설치와 Antigravity IDE 설정 동기화는 하지 않는다.
+- agy는 레포 상태줄을 설치하지 않고, deny 규칙도 Windows에서는 거의 걸리지 않는다(정적 분석 결과이며 실측 전). 근거는 [.antigravity/README.md](.antigravity/README.md).
 
-- 폴더(rules·agents·skills·hooks)는 정션(junction)으로 연결해 레포 변경이 바로 반영된다. 파일(`CLAUDE.md`·`AGENTS.md`·`GEMINI.md`·상태줄)은 Windows 심볼릭 링크에 개발자 모드나 관리자 권한이 필요해 복사하므로, `git pull` 뒤에 `install.cmd`를 다시 실행한다.
-- 개발자 모드를 켜 둔다(설정 앱에서 "개발자용" 검색). `init-project` 스킬이 프로젝트 루트의 `CLAUDE.md`·`AGENTS.md`를 심볼릭 링크로 만드는데, 개발자 모드가 꺼져 있으면 링크를 만들 수 없다. 설치기는 Git Bash의 `ln -s`가 사본 대신 진짜 링크를 만들도록 사용자 환경 변수 `MSYS=winsymlinks:nativestrict`를 넣고, 개발자 모드가 켜져 있으면 git의 `core.symlinks`도 켠다.
-- Claude의 훅과 상태줄은 Git Bash로 돈다. Codex 훅은 PowerShell용 명령(`command_windows`)을 따로 둔다. `jq`가 없으면 `winget`으로 설치를 시도한다.
-- 데스크톱 앱에서 확인 없이 실행하려면 Settings → Claude Code의 "Allow bypass permissions mode"를 켠다. Team·Enterprise 플랜에서는 조직 정책이 이 설정을 정한다.
-- agy는 Windows에서 PowerShell 명령을 전체 줄이 정확히 같을 때만 막아, deny 규칙이 사실상 동작하지 않는다(바이너리 분석 결과이며 실측 전). 상태줄도 `cmd /c`로 실행돼 레포 상태줄은 설치하지 않는다. 근거는 [.antigravity/README.md](.antigravity/README.md).
-- 스킬 의존성 자동 설치와 Antigravity IDE 설정 동기화는 하지 않는다.
+Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있다.
 
 ## ⚡ 자동으로 일어나는 것
 
@@ -183,4 +184,4 @@ dotfiles/
 └── install.cmd       Windows 네이티브 설치기 (CMD·PowerShell·더블클릭 공용)
 ```
 
-정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건). Windows에서는 `scripts\windows-live-check.cmd`가 세 도구를 실제 설정으로 돌려 차단을 확인한다. 모델을 호출하므로 쿼터를 쓰고, 시험 명령은 막히지 않아도 해가 없게 만들었다. 데스크톱 앱만 쓰는 PC에서는 앱에 들어 있는 `claude.exe`를 찾아 쓰는데, 이 실행 파일은 앱의 로그인을 물려받지 않으므로 처음 한 번 `claude.exe auth login`으로 로그인한다.
+정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건). Windows에서는 `scripts\windows-live-check.cmd`로 실제 차단을 확인한다. 모델을 호출하므로 쿼터를 쓴다. 데스크톱 앱만 쓰는 PC에서는 앱에 들어 있는 `claude.exe`로 처음 한 번 `auth login`을 해야 한다.
