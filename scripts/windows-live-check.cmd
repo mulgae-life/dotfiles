@@ -157,6 +157,23 @@ function Find-DesktopClaude {
   return $best
 }
 
+function Compare-ClaudeSettings([string]$installedPath, [string]$repoPath) {
+  $a = [IO.File]::ReadAllText($installedPath, [Text.Encoding]::UTF8) | ConvertFrom-Json
+  $b = [IO.File]::ReadAllText($repoPath, [Text.Encoding]::UTF8) | ConvertFrom-Json
+  $denyA = @(Prop (Prop $a 'permissions') 'deny')
+  $denyB = @(Prop (Prop $b 'permissions') 'deny')
+  $keys = @(@($a.PSObject.Properties.Name) + @($b.PSObject.Properties.Name) | Sort-Object -Unique)
+  $other = @($keys | Where-Object {
+    (ConvertTo-Json -InputObject (Prop $a $_) -Depth 20 -Compress) -cne (ConvertTo-Json -InputObject (Prop $b $_) -Depth 20 -Compress)
+  })
+  return [pscustomobject]@{
+    DenySame  = (($denyA -join "`n") -ceq ($denyB -join "`n"))
+    Installed = $denyA.Count
+    Repo      = $denyB.Count
+    OtherKeys = $other
+  }
+}
+
 function Test-Claude {
   $exe = Resolve-Tool 'claude'
   if (-not $exe) {
@@ -167,12 +184,14 @@ function Test-Claude {
   $ver = Get-Version $exe
   if ($ver -notmatch 'Claude Code') { Report '판정불가' 'claude' "Claude Code 실행 파일이 아님: $exe ($ver)"; return }
   Report '정보' 'claude' "버전 $ver"
-  # settings.json은 복사 설치라 git pull 뒤 install.cmd를 다시 돌리지 않으면 옛 deny로 시험하게 된다
+  # settings.json은 복사 설치라 git pull 뒤 install.cmd를 다시 돌리지 않으면 옛 deny로 시험하게 된다.
+  # 앱이 실행 중에 모델 같은 값을 이 파일에 되쓰므로 파일 전체가 아니라 deny 목록만 레포와 대조한다
   $installed = Join-Path $HOME '.claude\settings.json'
   if ($RepoDir -and (Test-Path -LiteralPath $installed)) {
-    $same = (Get-FileHash -LiteralPath $installed).Hash -eq (Get-FileHash -LiteralPath (Join-Path $RepoDir '.claude\settings.json')).Hash
-    if ($same) { Report '정보' 'claude' '설치된 settings.json이 레포와 같음' }
-    else { Report '판정불가' 'claude' '설치된 settings.json이 레포와 다름 — install.cmd를 다시 실행한 뒤 시험하세요'; return }
+    $cmp = Compare-ClaudeSettings $installed (Join-Path $RepoDir '.claude\settings.json')
+    if (-not $cmp.DenySame) { Report '판정불가' 'claude' "설치된 deny $($cmp.Installed)건이 레포 $($cmp.Repo)건과 다름 — install.cmd를 다시 실행한 뒤 시험하세요"; return }
+    $note = if ($cmp.OtherKeys.Count -gt 0) { " (레포와 다른 최상위 키: $($cmp.OtherKeys -join ', '))" } else { '' }
+    Report '정보' 'claude' "설치된 deny $($cmp.Installed)건이 레포와 같음$note"
   }
 
   $dir = Join-Path $Root 'claude'
