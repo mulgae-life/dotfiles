@@ -31,11 +31,12 @@
 
 **스킬 공유 경로.** `~/.agents/skills → ~/.claude/skills`로 통합되고 Codex는 이 공용 경로로 받는다. Antigravity는 CLI용 `~/.gemini/config/skills`와 IDE용 `~/.gemini/antigravity/skills`로 따로 연결한다(`~/.gemini/antigravity-cli/skills`는 `agy`가 스스로 만드는 링크라 관리 제외). Gemini CLI 시절 `~/.gemini` 바로 아래 남은 링크(`agents`·`commands`·`policies`·`hooks`·`skills`·`AGENTS.md`)는 설치 때 정리한다.
 
-**Windows 네이티브 설치 (`install.ps1`).** WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 사용자를 위해, `install.sh`와 같은 대상에 같은 규칙으로 설치한다. 다른 점은 다음과 같다.
+**Windows 네이티브 설치 (`install.cmd`).** WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 사용자를 위해, `install.sh`와 같은 대상에 같은 규칙으로 설치한다. 다른 점은 다음과 같다.
 
 - 폴더는 정션(junction)으로 연결하고 파일은 복사한다. Windows의 파일 심볼릭 링크는 개발자 모드나 관리자 권한이 있어야 하고, 정션은 권한 없이 만들어진다. 설치기가 만든 사본은 해시를 `.install-state.json`에 남겨 다음 실행에서 백업 없이 덮어쓰고, 기록에 없는 기존 파일은 `safe_link`처럼 백업한다.
 - Git for Windows를 필수로 둔다. 훅과 상태줄이 Git Bash로 돌아야 하는데, Git Bash가 없으면 Claude Code가 훅을 PowerShell로 실행해 `.sh` 훅이 깨진다. Git for Windows 기본값(`core.autocrlf=true`)은 `.sh`를 CRLF로 바꿔 Git Bash가 실행하지 못하게 하고 `SKILL.md` 바이트 수도 Linux와 어긋나게 하므로, `.gitattributes`로 텍스트를 LF로 고정했다. 그 전에 클론한 사본은 작업 트리가 깨끗할 때 설치기가 색인에서 다시 꺼낸다.
-- 설치기는 한글 때문에 UTF-8 BOM으로 저장한다. Windows PowerShell 5.1은 BOM 없는 스크립트를 시스템 코드 페이지로 읽는다. BOM이 붙은 문자열은 `iex`가 첫 줄을 명령 이름으로 읽고 `irm`도 BOM을 벗기지 않아(pwsh 7.6 실측), `irm | iex` 한 줄 설치는 지원하지 않고 ASCII로 쓴 `install.cmd`를 진입점으로 둔다.
+- 설치기는 `install.cmd` 한 파일이다. 앞쪽 ASCII 배치 부분이 PowerShell을 띄우고, PowerShell은 이 파일 전체를 UTF-8로 읽어 스크립트 블록으로 실행한다. PowerShell에게 배치 부분은 블록 주석(`<# … #>`)이다. `.ps1`만 두면 Windows 기본 실행 정책에 막히고 더블클릭하면 메모장이 열린다. 그렇다고 실행용 `.cmd`를 따로 두면 사용자가 어느 파일을 실행할지 헷갈리므로 하나로 합쳤다. cmd.exe는 배치 파일을 OEM 코드 페이지로 읽고 BOM을 첫 명령의 일부로 읽으므로, 배치 부분은 ASCII로만 쓰고 파일은 BOM 없이 저장한다. 한글은 cmd.exe가 읽지 않는 아래쪽에만 둔다.
+- `init-project`는 Git Bash의 `ln -s`로 루트 `CLAUDE.md`·`AGENTS.md` 링크를 만든다. 그런데 Git Bash의 `ln -s`는 개발자 모드를 켜도 기본값이 사본이다(실기기 확인). 사본이면 나중에 `GUIDE.md`를 고쳐도 세 도구가 옛 지침을 읽는다. 그래서 설치기는 사용자 환경 변수 `MSYS`에 `winsymlinks:nativestrict`를 넣는다. 그러면 링크를 만들 수 있을 때는 진짜 링크를 만들고, 만들 수 없을 때는 사본 대신 실패한다. git의 `core.symlinks`는 개발자 모드가 켜져 있을 때만 켠다. 링크를 만들 수 없는데 켜 두면 git이 클론할 때 사본으로 대신하지 않고 `unable to create symlink` 오류를 낸다.
 - Codex는 Windows에서 훅을 PowerShell로 실행하므로 `command_windows`에 대체 명령을 둔다. compact 리마인더는 `.sh`의 heredoc을 정본으로 두고 `.ps1`이 그것을 꺼내 낸다. 바깥 PowerShell이 자식 출력을 시스템 코드 페이지로 다시 인코딩해도 한글이 깨지지 않도록 비ASCII 문자는 JSON 이스케이프(`\uXXXX`)로 바꾼다.
 - Git Bash에서 Windows용 `jq.exe`는 출력 줄 끝을 CRLF로 바꾼다. Claude 상태줄은 jq 값을 숫자로 쓰므로, `$OSTYPE`이 `msys`·`cygwin`일 때만 jq 매뉴얼이 권하는 `-b`를 붙인다.
 - agy는 Windows에서 상태줄을 `cmd /c`로 실행해 레포의 bash 명령이 동작하지 않으므로, 병합할 때 레포 `statusLine`을 뺀다. `~/.antigravity`도 연결하지 않는다. Windows에서 이 폴더는 구버전 Antigravity 1.0의 확장 폴더라서, 백업으로 옮기면 그 확장이 빠진다.
