@@ -52,7 +52,6 @@ $EmptyIn = Join-Path $Root 'empty.in'
 $NoHost = 'dotfiles-test.invalid'
 $RepoDir = if ($env:DOTFILES_LIVE_CHECK_CMD) { Split-Path -Parent (Split-Path -Parent $env:DOTFILES_LIVE_CHECK_CMD) } else { $null }
 
-$Summary = New-Object System.Collections.Generic.List[string]
 $script:Pass = 0; $script:Fail = 0; $script:Undet = 0
 
 function Report([string]$status, [string]$tag, [string]$detail) {
@@ -60,7 +59,6 @@ function Report([string]$status, [string]$tag, [string]$detail) {
   $line = '{0} [{1}] {2}' -f $status, $tag, $detail
   $color = switch ($status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } '판정불가' { 'Yellow' } default { 'Cyan' } }
   Write-Host $line -ForegroundColor $color
-  $Summary.Add($line)
 }
 
 # StrictMode에서 없는 속성을 읽으면 예외가 나므로 JSON 객체는 이 함수로만 읽는다
@@ -479,10 +477,7 @@ if ($Only -eq 'all' -or $Only -eq 'claude') { Test-Claude }
 if ($Only -eq 'all' -or $Only -eq 'codex') { Test-Codex }
 if ($Only -eq 'all' -or $Only -eq 'agy') { Test-Agy }
 
-$Summary.Add("합계: $($script:Pass) PASS / $($script:Fail) FAIL / $($script:Undet) 판정불가")
-[IO.File]::WriteAllLines((Join-Path $Root 'summary.txt'), $Summary, $Utf8NoBom)
 Write-Host '────────────────────────'
 Write-Host "합계: $($script:Pass) PASS / $($script:Fail) FAIL / $($script:Undet) 판정불가"
-Write-Host "요약: $(Join-Path $Root 'summary.txt')"
 if ($script:Fail -gt 0 -or $script:Undet -gt 0) { exit 1 }
 exit 0
