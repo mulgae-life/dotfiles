@@ -257,6 +257,11 @@ function Merge-AgySettings([string]$src, [string]$dst) {
 
 # ── 사전 조건 ───────────────────────────────
 
+# winget이 바꾼 PATH는 이미 열린 세션에 반영되지 않으므로 레지스트리 값을 다시 읽어 덧붙인다 (이 프로세스에만 있던 항목은 유지)
+function Update-SessionPath {
+  $env:Path = $env:Path + ';' + [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+}
+
 function Test-Prerequisites {
   $git = Get-Command git -ErrorAction SilentlyContinue
   if (-not $git) {
@@ -272,6 +277,8 @@ function Test-Prerequisites {
     else { warn "Git Bash(bin\bash.exe)를 찾지 못했습니다. 찾은 위치를 사용자 환경 변수로 지정하세요: setx CLAUDE_CODE_GIT_BASH_PATH `"<bash.exe 경로>`" (settings.json은 재설치 때 레포 버전으로 덮어써집니다)" }
   }
 
+  # 이 터미널이 jq 설치 전에 열렸으면 현재 PATH에 없으므로, 설치를 시도하기 전에 PATH를 다시 읽는다
+  if (-not (Get-Command jq -ErrorAction SilentlyContinue)) { Update-SessionPath }
   if (Get-Command jq -ErrorAction SilentlyContinue) { ok "jq 이미 설치됨"; return }
   info "jq가 설치되어 있지 않습니다. 설치를 시도합니다..."
   if ($DryRun) { info "winget install --id jqlang.jq (dry-run)"; return }
@@ -280,8 +287,7 @@ function Test-Prerequisites {
     return
   }
   Invoke-Native { winget install --id jqlang.jq -e --source winget --accept-source-agreements --accept-package-agreements } | Out-Host
-  # winget이 바꾼 PATH는 현재 세션에 반영되지 않으므로 다시 읽어 덧붙인다 (이 프로세스에만 있던 항목은 유지)
-  $env:Path = $env:Path + ';' + [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('Path', 'User')
+  Update-SessionPath
   if (Get-Command jq -ErrorAction SilentlyContinue) { ok "jq 설치 완료 (winget) — 열려 있는 데스크톱 앱·터미널은 다시 시작해야 jq를 찾습니다" }
   else { warn "jq 자동 설치 실패. 직접 실행하세요: winget install --id jqlang.jq -e" }
 }
@@ -300,9 +306,13 @@ function Repair-LineEndings {
     return
   }
   if ($DryRun) { info "[EOL]    CRLF로 받은 파일 $($bad.Count)개를 LF로 다시 꺼냄 (dry-run)"; return }
-  Invoke-Native { & git -C $DotfilesDir checkout-index --force --all 2>$null }
-  if ($LASTEXITCODE -eq 0) { ok "[EOL]    CRLF로 받은 파일 $($bad.Count)개를 LF로 다시 꺼냄" }
-  else { warn "줄바꿈 정리 실패. 레포를 지우고 다시 클론하세요" }
+  # checkout-index는 색인에 기록된 크기·시각과 같은 파일을 --force여도 다시 쓰지 않는다.
+  # 작업 트리가 깨끗하므로 색인을 HEAD에서 새로 읽어 그 기록을 비운 뒤 꺼낸다 (--index가 기록을 다시 채움)
+  Invoke-Native { & git -C $DotfilesDir read-tree HEAD 2>$null }
+  if ($LASTEXITCODE -eq 0) { Invoke-Native { & git -C $DotfilesDir checkout-index --force --all --index 2>$null } }
+  $left = @(Invoke-Native { & git -C $DotfilesDir ls-files --eol 2>$null } | Where-Object { $_ -match 'w/crlf' -and $_ -match 'eol=lf' }).Count
+  if ($LASTEXITCODE -eq 0 -and $left -eq 0) { ok "[EOL]    CRLF로 받은 파일 $($bad.Count)개를 LF로 다시 꺼냄" }
+  else { warn "줄바꿈 정리 실패 (CRLF로 남은 파일 $left개). 레포를 지우고 다시 클론하세요"; $script:HasError = $true }
 }
 
 # ── 메인 ────────────────────────────────────
