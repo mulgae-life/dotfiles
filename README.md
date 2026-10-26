@@ -176,11 +176,11 @@ dotfiles/
 ├── .claude/          CLAUDE.md · rules/ · agents/ · hooks/ · skills/ · settings.json · statusline-command.sh
 ├── .codex/           AGENTS.md · config.toml · rules/ (Starlark 차단 규칙) · hooks/ · skills → ../.claude/skills
 ├── .antigravity/     GEMINI.md · cli/settings.json · cli/statusline-command.sh · README.md (실측·병합 계약) · IDE용 settings·hooks (미검증)
-├── scripts/          verify-policies.sh (정책 회귀) · agy-live-check.sh (agy 실측) · policy-cases.tsv · setup-apparmor.sh
+├── scripts/          verify-policies.sh (정책 회귀) · agy-live-check.sh (agy 실측) · windows-live-check.cmd (Windows 차단 실측) · policy-cases.tsv · setup-apparmor.sh
 ├── docs/             DECISIONS.md(설계 원칙·결정 기록) · SKILL-SOURCES.md(스킬 출처·상류 갱신 절차)
 ├── reference/        프롬프트 가이드(Claude·OpenAI·Google·Qwen) · 모델 조사 원문(research/) · 디자인 원본
 ├── install.sh        Linux·macOS·WSL 설치기
 └── install.cmd       Windows 네이티브 설치기 (CMD·PowerShell·더블클릭 공용)
 ```
 
-정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건).
+정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건). Windows에서는 `scripts\windows-live-check.cmd`가 세 도구를 실제 설정으로 돌려 차단을 확인한다. 모델을 호출하므로 쿼터를 쓰고, 시험 명령은 막히지 않아도 해가 없게 만들었다.
