@@ -1,0 +1,381 @@
+# 추론 파라미터 가이드
+
+## 목차
+- [TL;DR](#tldr)
+- [1. 추론 깊이 (Reasoning Depth)](#1-추론-깊이-reasoning-depth)
+- [2. 응답 길이 (Verbosity)](#2-응답-길이-verbosity)
+- [3. 조합 패턴](#3-조합-패턴)
+- [4. 컨텍스트별 다른 수준 적용](#4-컨텍스트별-다른-수준-적용)
+- [5. 권장 조합](#5-권장-조합)
+- [6. 모델별 팁](#6-모델별-팁)
+- [7. 성능 vs 비용/속도](#7-성능-vs-비용속도)
+- [8. 프롬프트 템플릿](#8-프롬프트-템플릿)
+
+
+LLM의 추론 깊이와 응답 길이를 제어하는 범용 가이드입니다.
+
+## TL;DR
+
+| 파라미터 | 목적 | 낮음 | 중간 | 높음 |
+|---------|------|------|------|------|
+| **추론 깊이** | 복잡한 사고 제어 | 빠른 응답 | 기본값 | 깊은 추론 |
+| **응답 길이** | 출력 분량 제어 | 간결 | 1-2문단 | 상세 |
+
+---
+
+## 1. 추론 깊이 (Reasoning Depth)
+
+### 범용 원칙
+
+LLM의 "생각하는 정도"를 제어합니다. 작업 복잡도에 맞게 조절하세요.
+
+| 수준 | 용도 | 예시 작업 |
+|------|------|-----------|
+| **낮음** | 빠른 응답, 간단한 작업 | 분류, 번역, 간단한 Q&A |
+| **중간** | 기본값, 대부분의 작업 | 일반 대화, 요약, 검색 |
+| **높음** | 복잡한 작업, 깊은 추론 | 코딩, 멀티스텝 추론, 분석 |
+
+### 선택 가이드
+
+```
+작업 복잡도 평가:
+- 단일 단계 작업? → 낮음
+- 2-3 단계 작업? → 중간
+- 멀티스텝/Agentic? → 높음
+```
+
+### 프롬프트로 제어 (비추론 모델 한정)
+
+> ⚠️ 아래 "깊은 추론 유도" 지시는 GPT 추론 모델과 Claude 5 세대에서 그대로 쓰지 않습니다. GPT 추론 모델에서는 추론을 유도하려고 덧붙인 문구가 불필요합니다. Claude 5 세대는 thinking이 켜져 있으면 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선하고, 사고 대신 내부 추론을 답변에 재현하게 하는 지시는 `reasoning_extraction` 거절 대상이라 제거합니다 → [6절 공통 팁](#공통-팁), [claude-5-specifics.md](claude-5-specifics.md). GPT와 Claude의 추론 깊이는 `output_config.effort`/`reasoning.effort`로 조절하세요.
+
+```yaml
+# 깊은 추론 유도
+system_prompt: |
+  <thinking_style>
+  - 답변하기 전에 문제를 단계별로 분석하세요
+  - 여러 관점을 고려하세요
+  - 결론에 도달한 과정을 설명하세요
+  </thinking_style>
+
+# 빠른 응답 유도
+system_prompt: |
+  <response_style>
+  - 바로 핵심 답변을 제공하세요
+  - 불필요한 설명을 생략하세요
+  - 간결하게 응답하세요
+  </response_style>
+```
+
+---
+
+## 2. 응답 길이 (Verbosity)
+
+### 범용 원칙
+
+출력 분량을 제어합니다.
+
+| 수준 | 용도 | 예시 출력 |
+|------|------|----------|
+| **낮음** | 간결한 응답 | "네", "긍정", 1-2문장 |
+| **중간** | 기본값 | 1-2문단 |
+| **높음** | 상세한 응답 | 여러 문단, 상세 설명 |
+
+### 프롬프트로 제어 (범용)
+
+```yaml
+# 간결한 응답
+system_prompt: |
+  <output_rules>
+  - 한 문장으로 답변하세요
+  - 부가 설명을 포함하지 마세요
+  </output_rules>
+
+# 상세한 응답
+system_prompt: |
+  <output_rules>
+  - 각 포인트를 상세히 설명하세요
+  - 예시를 포함하세요
+  - 근거를 제시하세요
+  </output_rules>
+```
+
+---
+
+## 3. 조합 패턴
+
+### 빠르고 간결 (분류/번역)
+
+```yaml
+system_prompt: |
+  <rules>
+  - 바로 답변만 제공하세요
+  - 설명을 포함하지 마세요
+  - 한 단어 또는 한 문장으로 응답하세요
+  </rules>
+```
+
+### 깊지만 간결 (Agentic, 상태 업데이트)
+
+```yaml
+system_prompt: |
+  <rules>
+  - 문제를 철저히 분석하세요
+  - 하지만 응답은 핵심 결론만 간결하게
+  - 진행 상황은 짧은 상태 업데이트로
+  </rules>
+```
+
+### 깊고 상세 (코딩/분석)
+
+```yaml
+system_prompt: |
+  <rules>
+  - 해결책을 상세히 제시하세요
+  - 주요 판단의 근거를 설명하세요
+  - 코드에는 주석을 포함하세요
+  </rules>
+```
+
+---
+
+## 4. 컨텍스트별 다른 수준 적용
+
+한 프롬프트 내에서 컨텍스트에 따라 다른 수준을 지정할 수 있습니다.
+
+### 예시: 텍스트는 간결, 코드는 상세
+
+```yaml
+system_prompt: |
+  <code_writing>
+  코드 작성 시:
+  - 명확한 변수명 사용
+  - 필요 시 주석 추가
+  - 읽기 쉬운 구조 유지
+  </code_writing>
+
+  <text_response>
+  텍스트 응답 시:
+  - 간결하게 유지
+  - 불필요한 설명 생략
+  </text_response>
+```
+
+### 예시: 분석은 상세, 요약은 간결
+
+```yaml
+system_prompt: |
+  <analysis_section>
+  분석 부분:
+  - 데이터를 상세히 검토
+  - 여러 관점 고려
+  - 근거 제시
+  </analysis_section>
+
+  <summary_section>
+  요약 부분:
+  - 핵심 결론만 1-2문장
+  - 불릿 포인트 최소화
+  </summary_section>
+```
+
+---
+
+## 5. 권장 조합
+
+| 작업 유형 | 추론 깊이 | 응답 길이 |
+|----------|----------|----------|
+| 분류 | 낮음 | 낮음 |
+| 번역 | 낮음 | 중간 |
+| 질의응답 | 중간 | 중간 |
+| 요약 | 중간 | 낮음 |
+| 코딩 | 높음 | 중간~높음* |
+| Agentic 워크플로우 | 높음 | 낮음 (텍스트), 높음 (코드)* |
+| 분석 | 높음 | 높음 |
+
+*컨텍스트별 다른 수준 적용
+
+---
+
+## 6. 모델별 팁
+
+### OpenAI (GPT-5.x / GPT-6)
+
+**API 파라미터로 직접 제어**:
+
+```python
+response = client.responses.create(
+    model="gpt-6-astra",
+    reasoning={"effort": "high"},  # GPT-6 Astra·6.1 Sol: low, medium, high, xhigh, max (none·minimal 미지원) / GPT-6.1 Terra·6 Sol·Luna·GPT-5.x: none, low, medium, high, xhigh, max
+    text={"verbosity": "low"},      # low, medium, high
+    instructions="...",
+    input="..."
+)
+```
+
+**파라미터 설명**:
+- `reasoning.effort`: 추론 깊이
+  - `none`: 추론 없이 실행 중심. 5.6까지와 GPT-6.1 Terra·GPT-6 Sol·Luna는 지원, GPT-6 Astra·6.1 Sol은 미지원이라 `low`부터. 6 Sol·Luna의 Chat Completions 함수 호출은 `none`에서만 가능(6.1 Terra는 `none`에서도 Chat Completions 도구 호출 불가, Responses 필요)
+  - `low`: 빠른 응답
+  - `medium`: 기본값 (5.6·GPT-6 기본값)
+  - `high`: 깊은 추론 (코딩, Agentic에 적합)
+  - `xhigh`: 최대 추론 (명확한 eval 이점이 있을 때만)
+  - `ultra`: Codex·ChatGPT 제품 전용 자동 위임 모드 — API 값 아님
+  - 5.5/5.4 → 5.6 마이그레이션: **기존 값을 baseline으로 두고 한 단계 낮춰 비교** (공식 지침)
+  - 5.6 → 6 마이그레이션: 기존 값을 지원하는 모델에서는 유지 후 비교. Astra·6.1 Sol로 옮기면 `none` 사용처는 `low`로(6.1 Terra·6 Sol·Luna는 `none` 유지 가능), `minimal`은 모델과 관계없이 `low`부터 비교
+- `reasoning.mode`: `"pro"` (5.6 신규) — 오답 비용이 큰 지점만 선별 적용
+- `text.verbosity`: 응답 길이
+  - `low`: 간결
+  - `medium`: 기본값
+  - `high`: 상세
+
+**프롬프트 우선 접근법 (5.4+)**:
+
+reasoning effort를 올리기 전에 먼저 프롬프트 패턴을 추가:
+1. `<output_contract>` (출력 계약)
+2. `<completeness_contract>` (완성도 계약)
+3. `<verification_loop>` (검증 루프)
+4. 이후에도 부족하면 effort 증가
+
+→ 상세: [gpt6-patterns.md](gpt6-patterns.md), [gpt56-patterns.md](gpt56-patterns.md)
+
+**자연어 오버라이드**: 전역 설정을 프롬프트에서 컨텍스트별로 재정의 가능
+
+```python
+response = client.responses.create(
+    model="gpt-6-astra",
+    text={"verbosity": "low"},  # 전역: 간결
+    instructions="""
+    코드 작성 시에는 높은 verbosity를 사용하세요.
+    명확한 변수명과 주석을 포함하세요.
+    텍스트 응답은 간결하게 유지하세요.
+    """,
+    input="..."
+)
+```
+
+### Anthropic (Claude)
+
+#### Claude 5 세대 (Opus 5.5·Fable 5.1) — `output_config.effort`
+
+```python
+response = client.messages.create(
+    model="claude-fable-5-1",
+    max_tokens=16000,
+    output_config={"effort": "high"},  # low, medium, high, xhigh, max
+    messages=[...]
+)
+```
+
+**특징**:
+- Opus 5.5·Fable 5.1은 thinking이 상시 adaptive로 켜져 있어 `output_config.effort`로만 깊이 제어 (Opus 5는 effort `high` 이하에서 끌 수 있음)
+- `thinking: {"type": "disabled"}`·`budget_tokens`·sampling 파라미터는 **400 에러** → [claude-5-specifics.md](claude-5-specifics.md)
+- 기본값은 Fable 5.1·Opus 5가 `high`, Opus 5.5가 `medium`. 최고 난도만 `xhigh`/`max`(측정된 품질 이득이 있을 때만), 루틴은 `medium`/`low`
+- 모델 기본값에서 시작하되 전 레벨을 자체 eval로 다시 측정 — effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아 다른 모델의 설정을 그대로 옮기면 안 됩니다. Opus 5.5는 같은 레벨에서 Opus 5보다 턴당 사고가 많아 `max_tokens`에 사고 몫을 남깁니다
+- thinking이 켜져 있으면 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선합니다. 수동 CoT는 thinking을 끈 경우의 대안이지만, Opus 5는 낮은 effort로 thinking을 켜 두기를 먼저 권합니다. 사고 대신 내부 추론을 응답 본문에 재현하게 하는 지시는 제거합니다. 이 요구는 `reasoning_extraction` 거절 대상이며, 일반적인 결과의 근거 설명과 구분합니다 → [claude-5-specifics.md](claude-5-specifics.md)
+
+### 공통 팁
+
+```yaml
+# 복잡한 작업에서 품질 높이기 (비추론 모델 한정)
+# GPT 추론 모델: 추론 유도용으로 덧붙인 아래 첫 두 문구는 불필요(OpenAI 추론 모범 사례)
+# Claude 5 계열: thinking이 켜져 있으면 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선
+# 수동 CoT는 thinking을 끈 경우의 대안이나, Opus 5는 낮은 effort로 thinking을 켜 두기를 우선 권고
+# 사고 대신 내부 추론을 응답에 재현하게 하는 지시는 제거(reasoning_extraction 거절 대상)
+# 결과의 근거·변경 이유·테스트 결과 설명 요청은 유지. 영어 표현 자체를 금칙어로 삼는 뜻이 아님
+# Claude 모델별 조건 → claude-5-specifics.md
+# 자기 검토 요청은 Opus 5만 삭제 대상(스스로 검증해 지시가 과잉 검증을 부름). 다른 추론 모델은
+# 반복 의식 대신 완료 기준과 확인 방법으로 바꿔 유지 → self-correction.md §6
+- 단계별 사고 요청 ("step by step")
+- 근거 제시 요청 ("explain your reasoning")
+- 자기 검토 요청 ("verify your answer")
+
+# 간결한 응답 얻기
+- 길이 제한 명시 ("in one sentence")
+- 형식 지정 ("answer only yes or no")
+- 설명 제외 ("without explanation")
+```
+
+근거: [OpenAI 추론 모범 사례](https://developers.openai.com/api/docs/guides/reasoning-best-practices#how-to-prompt-reasoning-models-effectively) · [Anthropic 사고 기능 활용](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices#leverage-thinking-and-interleaved-thinking-capabilities)
+
+---
+
+## 7. 성능 vs 비용/속도
+
+```
+낮은 비용/빠름 ←──────────────────→ 높은 비용/느림
+낮은 추론 + 낮은 길이              높은 추론 + 높은 길이
+```
+
+**원칙**: 작업에 맞는 최소 수준 선택
+
+| 상황 | 권장 |
+|------|------|
+| 대량 처리 | 낮은 추론, 낮은 길이 |
+| 실시간 응답 | 낮은~중간 추론, 낮은 길이 |
+| 품질 중시 | 높은 추론, 적절한 길이 |
+| 비용 민감 | 낮은 추론, 낮은 길이 |
+
+---
+
+## 8. 프롬프트 템플릿
+
+### 간결한 분류기
+
+```yaml
+system_prompt: |
+  당신은 분류기입니다.
+
+  <rules>
+  - 분류 결과만 출력하세요
+  - 설명을 포함하지 마세요
+  </rules>
+
+  <categories>
+  - 긍정
+  - 부정
+  - 중립
+  </categories>
+```
+
+### 상세한 분석가
+
+```yaml
+system_prompt: |
+  당신은 데이터 분석가입니다.
+
+  <analysis_approach>
+  - 데이터를 다각도로 검토하세요
+  - 패턴과 이상치를 식별하세요
+  - 통계적 근거를 제시하세요
+  </analysis_approach>
+
+  <output_format>
+  ## 분석 결과
+  [상세 분석]
+
+  ## 주요 인사이트
+  [핵심 발견]
+
+  ## 권장사항
+  [조치 제안]
+  </output_format>
+```
+
+### Agentic 워크플로우
+
+```yaml
+system_prompt: |
+  당신은 자율 에이전트입니다.
+
+  <thinking>
+  - 문제를 철저히 분석하세요
+  - 여러 접근 방식을 고려하세요
+  - 최적의 방법을 선택하세요
+  </thinking>
+
+  <communication>
+  - 상태 업데이트는 간결하게
+  - 코드는 읽기 쉽게 상세히
+  - 최종 결과만 요약하여 보고
+  </communication>
+```

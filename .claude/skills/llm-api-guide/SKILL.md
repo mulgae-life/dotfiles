@@ -1,0 +1,114 @@
+---
+name: llm-api-guide
+description: LLM API(OpenAI, Anthropic) 연동 코드 구현 가이드. 프롬프트 내용 작성은 범위 밖입니다.
+when_to_use: "OpenAI API 연동해줘, Claude API 사용해줘, LLM 호출 코드 작성해줘 요청 시. SDK 초기화, 스트리밍, tool calling, 에러 핸들링 등 LLM API 코드 구현 시 반드시 참조."
+---
+
+# LLM API 개발 가이드
+
+LLM API(OpenAI, Anthropic) 연동 **코드** 구현 가이드. 프롬프트 **내용**(톤·구조) 작성은 범위 밖.
+
+---
+
+## Quick Start
+
+### API 선택 가이드
+
+```
+OpenAI
+├── Responses API (권장) ← Reasoning 모델, Tool Calling, CoT 유지
+└── Chat Completions API ← 레거시, 단순 대화
+
+Anthropic
+└── Messages API ← 유일한 선택
+```
+
+---
+
+## TL;DR
+
+| 항목 | OpenAI (Responses API) | Anthropic (Messages API) |
+|------|------------------------|--------------------------|
+| **엔드포인트** | `/v1/responses` | `/v1/messages` |
+| **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
+| **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
+| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. Astra·6.1 Sol은 `none`·`minimal` 미지원이고 도구 호출은 Responses 전용 → 5.6에서 none 쓰던 곳은 `low`부터, 6.1 Terra는 `none`~`max` 지원이지만 도구 호출은 Responses 전용, 6 Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·Opus 5.5는 항상 켜짐, Opus 5.5·Haiku 5.5 기본 effort `medium`, `budget_tokens`는 Haiku 4.5 등 구모델 전용) |
+| **스트리밍** | `stream: true` | `stream: True` |
+| **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 |
+
+---
+
+## 구현 패턴 참조
+
+| 주제 | 핵심 원칙 | 상세 가이드 |
+|------|----------|------------|
+| 클라이언트 초기화 | 앱 수명주기로 관리, 요청마다 생성 금지 | `references/common-patterns.md` |
+| Message Roles | system/user/assistant 역할 분리, 우선순위 준수 | 각 API references |
+| Reasoning | OpenAI: `reasoning.effort`, Anthropic: adaptive thinking + `output_config.effort` | 각 API references |
+| 스트리밍 | SSE 기반, 청크 조립 + 에러 핸들링 | `references/common-patterns.md` |
+| 에러 핸들링 | 타입별 분기 + 지수 백오프 재시도 | `references/common-patterns.md` |
+| 대화 이력 | OpenAI: `previous_response_id`, Anthropic: 수동 메시지 배열 관리 | 각 API references |
+| Tool Calling | 함수 스키마 정의 + 호출 결과 전달 루프 | 각 API references |
+| 출력 검증 | Pydantic/구조화 출력으로 LLM 응답 파싱 | `references/common-patterns.md` |
+| 프롬프트 캐싱 | 정적 prefix + 동적 suffix 배치 | `references/common-patterns.md` |
+
+---
+
+## 체크리스트
+
+### 필수
+
+- [ ] 클라이언트 초기화: 앱 수명주기로 관리 (요청마다 생성 금지)
+- [ ] API 키: 환경변수 사용 (하드코딩 금지)
+- [ ] 에러 핸들링: RateLimitError, APIStatusError, APIError 처리. `status_code`는 `APIStatusError`에서만 읽음
+- [ ] 타임아웃 설정
+- [ ] Anthropic API 버전: SDK 기본값(Python 2.x·TypeScript 1.x는 `2026-10-21`)과 직접 지정한 헤더 확인. `2026-10-21`이면 `temperature`·`top_p`·`top_k`를 보내지 않음 → [API 버전과 SDK](references/anthropic-messages-api.md#api-버전과-sdk)
+
+### 권장
+
+- [ ] 스트리밍: 긴 응답은 스트리밍 사용
+- [ ] Reasoning effort: 작업 복잡도에 맞게 설정
+- [ ] 대화 이력: `previous_response_id` (OpenAI) 또는 수동 관리 (Anthropic)
+
+---
+
+## 상세 가이드
+
+- **[openai-responses-api.md](references/openai-responses-api.md)** - OpenAI Responses API 상세
+- **[anthropic-messages-api.md](references/anthropic-messages-api.md)** - Anthropic Messages API 상세
+- **[common-patterns.md](references/common-patterns.md)** - 공통 패턴 (초기화, 에러, 스트리밍, SSE)
+
+---
+
+## 참고 자료
+
+### OpenAI
+
+- [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
+- [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
+- [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
+- [GPT-6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — Astra·6.1 Sol·6.1 Terra·6 Sol·Luna 제품군, effort 단계·제거 파라미터·272K 요율·Codex 기본 모델
+- [GPT-6 Astra 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-astra) · [GPT-6.1 Sol 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [GPT-6.1 Terra 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6.1-terra) · [GPT-6 Sol 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-sol) · [GPT-6 Luna 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-luna)
+- [Using the latest model](https://developers.openai.com/api/docs/guides/latest-model)
+- [Prompt guidance](https://developers.openai.com/api/docs/guides/prompt-guidance)
+- [GPT-5.6 풀 정리 (한국어)](../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) (이전 세대) — 3티어 스펙·가격·신규 파라미터
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전 세대)
+- [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
+- [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
+
+### Anthropic
+
+- [Messages API Reference](https://platform.claude.com/docs/en/api/messages)
+- [API 버전 2026-10-21 이전 안내서](https://platform.claude.com/docs/en/api/migration-2026-10-21) — Messages API의 파괴적 변경 3건과 SDK 메이저별 변경
+- [API versions](https://platform.claude.com/docs/en/api/versioning) — 버전 선택과 플랫폼별 지원 범위
+- [Adaptive Thinking Guide](https://platform.claude.com/docs/en/build-with-claude/adaptive-thinking) ⭐ 최신 (Claude 5 세대)
+- [What's new in Claude Opus 5.5](https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5) ⭐ 최신 — 기본 effort `medium`, 도구 사이 텍스트의 `thinking` 블록 이동
+- [Opus 5.5 Migration Guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide) — Opus 5에서 옮길 때 깨지는 변경 4건(thinking 끄기·강제 `tool_choice`·사고 블록 결합·`computer_20251124`)
+- [What's new in Claude Haiku 5.5](https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5) — 첫 Haiku effort, 프롬프트 길이별 두 요율
+- [Haiku 5.5 Migration Guide](https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide) — Haiku 4.5에서 옮길 때 깨지는 변경 5건(`budget_tokens`·sampling·prefill·`computer_20250124`·이력 편집)
+- [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1) — 사고 블록 바인딩·신규 베타 3종
+- [Fable 5.1 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide) — 강제 `tool_choice` 400 등 파괴적 변경 3건과 체크리스트
+- [Prompting Claude Fable 5.1](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) — effort 재측정·행동 변화 대응 지시문
+- [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5) — refusal/fallback·30일 보존 등 통합 시 필독
+- [What's new in Claude Opus 5](https://platform.claude.com/docs/en/about-claude/models/whats-new-opus-5) — thinking 기본 켜짐·`fallbacks: "default"`·web fetch 미지원 등 통합 시 필독
+- [Tool Use Guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview)

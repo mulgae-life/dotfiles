@@ -1,0 +1,103 @@
+# 설계 원칙과 결정 기록
+
+> README는 사용법만 담는다. 이 문서는 "왜 이렇게 했는가"와 실측 근거, 복원용 아카이브 위치를 담는다. 버전별 변경은 [CHANGELOG.md](../CHANGELOG.md).
+
+## 1. 설계 원칙
+
+**자율성 우선, 최소 차단.** 모든 작업을 확인 프롬프트 없이 실행해 장기 작업이 중단되지 않게 한다(Claude Code는 ask 계층 전면 해제). 위험 명령(`rm` · `git push` · `sudo` 등)의 통제는 지침(rules)이 담당하고 — 자율 작업 중 사용 금지, 사용자 요청 시에만 — 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작, 크론탭 삭제)과 넓은 재귀 삭제 패턴(절대경로·`./` 하위 `rm -rf`)만 `permissions.deny`가 프롬프트 없이 차단한다. 차단 목록의 범위는 도구별로 다르다(§3). 예외로 Claude Code는 2.1.281부터 `bypassPermissions`에서도 제품이 핵심 경로 또는 위험한 변수·명령 치환 형태로 판정한 `rm`·`rmdir`에 확인창을 띄우고, 기본적으로 터미널에서 응답 없이 2분이 지나면 거부한다. deny에 걸리는 명령은 그보다 먼저 차단된다. 응답이 없으면 거부하고 작업을 이어 가므로 장기 작업이 멈추지 않아, 기본 시간 제한을 유지한다(`CLAUDE_CODE_DISABLE_DANGEROUS_RM_TIMEOUT` 미설정). 그래서 지침은 제품의 확인·차단에 기대지 말라고만 적고 "유일한 통제"라고 하지 않는다.
+
+**auto 모드를 쓰지 않는 이유.** Claude Code는 2026-08-14부터 Pro/Max/Team의 기본 시작 모드가 auto(분류기 검토)다. 분류기는 CLAUDE.md 지침을 읽어 차단에 반영하지만, 3회 연속 또는 20회 누적 차단 시 승인 대기로 후퇴하고 이 임계값은 조정할 수 없다. 장기 작업이 중간에 멈추지 않아야 한다는 위 원칙과 맞지 않아 `bypassPermissions`를 유지한다. Codex의 Guardian auto-review도 `approval_policy="never"`의 일반 실행에서는 검토할 승인 요청이 생기지 않아 같은 이유로 쓰지 않는다.
+
+**Codex 공식 메모리를 쓰지 않는 이유.** `features.memories`는 세션을 백그라운드로 요약해 `~/.codex/memories/`에 쌓고 다음 세션에 자동 주입한다. 기본이 꺼짐이고 `false`로 의도를 명시해 둔다. 교훈은 프로젝트별 `.codex/lessons.md`가 담당하는데, 둘은 역할이 겹치면서 성질이 다르다. 메모리는 단위가 전역 하나여서 프로젝트가 섞이고, 내용을 모델이 골라 쓰므로 무엇이 남을지 통제할 수 없다. 추출과 통합이 모델 호출이라 사용량 한도를 소모하며, 잔여 25% 미만이면 생성이 멈춘다. 세션 중 에이전트는 읽기만 허용되어 피드백을 받은 자리에서 바로 적는 용도로도 쓸 수 없다. 공식 문서도 반드시 적용될 규칙은 `AGENTS.md`에 두고 메모리는 보조 회상 계층으로만 취급하라고 권한다. 대신 lessons에는 자동 주입이 없으므로 읽기를 지침이 지시한다 — `AGENTS.md`의 교훈 항목이 세션 첫 작업 전 읽기를, compact 리마인더 훅이 압축 후 재읽기를 담당한다.
+
+**서브에이전트 영구 메모리를 쓰지 않는 이유.** 에이전트 정의의 `memory: project`는 그 에이전트가 호출된 프로젝트마다 `.claude/agent-memory/<에이전트>/`를 만들고 메모를 쌓는다. 2026-04에 Claude 제안으로 `verifier`·`security-reviewer`에 넣었지만, 반년 동안 쌓인 메모는 네 프로젝트에 두 건씩뿐이었다. 그사이 빈 폴더가 생기거나 미추적 파일로 드러났고, 한 프로젝트에는 커밋까지 됐다. `verifier`는 v2.17부터 요청 시에만 호출되어 쌓일 기회도 적다. 교훈은 본 대화의 자동 메모리가 맡으므로 v2.55에서 제거했다.
+
+**모델·추론 수준은 고정하지 않는다.** 세 도구 모두 설정에 모델과 effort를 두지 않고 기본값을 따른다. 세대가 바뀔 때 config가 낡지 않게 하기 위함이다. `/model`·`/effort`로 런타임에 고른 값은 재설치 때 레포 값으로 돌아간다. 예외는 Claude의 서브에이전트 Opus 강제(`CLAUDE_CODE_SUBAGENT_MODEL=opus` + `_FORCE=1`) — Fable 계열 서브에이전트 팬아웃이 구독 한도를 가장 빨리 소진하므로 비용 통제 목적으로 둔다. 서브에이전트 effort도 `high`로 고정한다. Claude Code 2.1.317부터 메인과 다른 모델의 서브에이전트는 세션 effort를 이어받지 않고 그 모델의 저장값이나 기본값을 쓴다. 그래서 같은 서브에이전트가 메인 모델과 `/effort` 이력에 따라 medium에서 xhigh까지 달라졌고, 이를 한 값으로 묶는다. 장치는 §4의 PreToolUse(`Agent`) 훅이다.
+
+**Claude 층이 정본, 완전히 공유되는 자산만 링크.** 스킬처럼 그대로 쓸 수 있는 자산은 다른 도구가 `.claude/`를 링크로 받고, 형식이나 내용이 도구마다 달라야 하는 규칙 본문(Codex `config.toml`·Antigravity `GEMINI.md`)은 직접 동기화한다. 일부만 맞는 자산을 링크하려고 정본 구조를 쪼개지 않는다.
+
+**공개 레포에는 릴리즈만 올린다.** 공개 레포는 파일뿐 아니라 커밋 메시지와 작성자 이메일까지 누구에게나 보이는데, GitHub에는 기록만 숨기는 설정이 없다. 기록을 한 커밋으로 합쳐 강제 푸시해도 옛 커밋은 해시로 계속 열리고, GitHub 지원팀은 민감하지 않은 데이터는 지워 주지 않는다. 그래서 커밋 기록은 비공개 작업 레포에 두고, 공개 레포에는 `scripts/publish-release.sh`가 릴리즈 시점의 파일을 커밋 하나로 올린다. 이 커밋은 부모를 공개 레포의 직전 릴리즈로 잡아(`git commit-tree`) 비공개 기록이 전송되지 않고, 작성자는 GitHub 대리 주소(noreply)를 쓴다. 공개 주소를 지키려고 기존 레포는 이름을 바꿔 비공개로 돌리고 같은 이름으로 새 공개 레포를 만들었다. 그래서 설치 명령은 그대로지만, 분리 전에 받아 둔 사본은 기록이 이어지지 않아 다시 클론해야 한다. 분리 전의 GitHub Releases(v1.x)는 비공개 쪽에 남았다. 로컬 작업 폴더는 `~/dotfiles` 하나이고, 원격 `origin`이 비공개 레포를, `public`이 공개 레포를 가리킨다.
+
+## 2. 설치 방식 — 링크 · 복사 · 병합
+
+`install.sh`는 `~/dotfiles/` → `~/`로 심볼릭 링크를 만든다. 단 도구가 런타임에 수정하는 파일은 링크하면 레포 원본이 오염되므로 방식을 나눈다.
+
+| 방식 | 대상 | 이유 |
+|------|------|------|
+| 링크 | `CLAUDE.md`, `rules/`, `agents/`, `skills/`, `hooks/`, `AGENTS.md`, `GEMINI.md` 등 | 도구가 읽기만 한다 |
+| 복사 | `.claude/settings.json`, `.codex/config.toml` | 도구가 되쓴다(`/model`·`/effort`, trust, 훅 신뢰 해시). 레포가 정본이므로 재설치가 런타임 조정값을 덮어쓴다 — Codex는 훅 신뢰 해시가 사라지면 시작 시 경고를 내고 `/hooks`에서 한 번 재승인하면 된다 |
+| 병합 | `~/.gemini/antigravity-cli/settings.json` | `agy`가 `model`·`trustedWorkspaces`·승인 캐시를 같은 파일에 되쓴다. 레포의 관리 키(`permissions` 3배열은 통째 교체)만 적용하고 나머지 키는 보존. `jq` 부재·파싱 실패·검증 실패면 대상을 건드리지 않고 오류 + 종료 코드 1. 계약 상세는 [.antigravity/README.md](../.antigravity/README.md) |
+| 병합(IDE) | Antigravity IDE 글로벌 settings | 런타임 필드를 보존하는 깊은 병합. macOS·Windows만 하고, Linux는 경로가 미검증이라 건너뛰고 안내만 출력한다 |
+
+런타임 데이터(`projects/` 등)는 건드리지 않는다. `jq`가 없으면 자동 설치를 시도한다.
+
+**스킬 공유 경로.** `~/.agents/skills → ~/.claude/skills`로 통합되고 Codex는 이 공용 경로로 받는다. Antigravity는 CLI용 `~/.gemini/config/skills`와 IDE용 `~/.gemini/antigravity/skills`로 따로 연결한다(`~/.gemini/antigravity-cli/skills`는 `agy`가 스스로 만드는 링크라 관리 제외). Gemini CLI 시절 `~/.gemini` 바로 아래 남은 링크(`agents`·`commands`·`policies`·`hooks`·`skills`·`AGENTS.md`)는 설치 때 정리한다.
+
+**Windows 네이티브 설치 (`install.cmd`).** WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 사용자를 위해, `install.sh`와 같은 대상에 같은 규칙으로 설치한다. 다른 점은 다음과 같다.
+
+- 폴더는 정션(junction)으로 연결하고 파일은 복사한다. Windows의 파일 심볼릭 링크는 개발자 모드나 관리자 권한이 있어야 하고, 정션은 권한 없이 만들어진다. 설치기가 만든 사본은 해시를 `.install-state.json`에 남겨 다음 실행에서 백업 없이 덮어쓰고, 기록에 없는 기존 파일은 `safe_link`처럼 백업한다.
+- Git for Windows를 필수로 둔다. 훅과 상태줄이 Git Bash로 돌아야 하는데, Git Bash가 없으면 Claude Code가 훅을 PowerShell로 실행해 `.sh` 훅이 깨진다. Git for Windows 기본값(`core.autocrlf=true`)은 `.sh`를 CRLF로 바꿔 Git Bash가 실행하지 못하게 하고 `SKILL.md` 바이트 수도 Linux와 어긋나게 하므로, `.gitattributes`로 텍스트를 LF로 고정했다. 그 전에 클론한 사본은 작업 트리가 깨끗할 때 설치기가 색인에서 다시 꺼낸다.
+- 설치기는 `install.cmd` 한 파일이다. 앞쪽 ASCII 배치 부분이 PowerShell을 띄우고, PowerShell은 이 파일 전체를 UTF-8로 읽어 스크립트 블록으로 실행한다. PowerShell에게 배치 부분은 블록 주석(`<# … #>`)이다. `.ps1`만 두면 Windows 기본 실행 정책에 막히고 더블클릭하면 메모장이 열린다. 그렇다고 실행용 `.cmd`를 따로 두면 사용자가 어느 파일을 실행할지 헷갈리므로 하나로 합쳤다. cmd.exe는 배치 파일을 OEM 코드 페이지로 읽고 BOM을 첫 명령의 일부로 읽으므로, 배치 부분은 ASCII로만 쓰고 파일은 BOM 없이 저장한다. 한글은 cmd.exe가 읽지 않는 아래쪽에만 둔다.
+- `init-project`는 Git Bash의 `ln -s`로 루트 `CLAUDE.md`·`AGENTS.md` 링크를 만든다. 그런데 Git Bash의 `ln -s`는 개발자 모드를 켜도 기본값이 사본이다(실기기 확인). 사본이면 나중에 `GUIDE.md`를 고쳐도 세 도구가 옛 지침을 읽는다. 그래서 설치기는 사용자 환경 변수 `MSYS`에 `winsymlinks:nativestrict`를 넣는다. 그러면 링크를 만들 수 있을 때는 진짜 링크를 만들고, 만들 수 없을 때는 사본 대신 실패한다. git의 `core.symlinks`는 개발자 모드가 켜져 있을 때만 켠다. 링크를 만들 수 없는데 켜 두면 git이 클론할 때 사본으로 대신하지 않고 `unable to create symlink` 오류를 낸다.
+- Codex는 Windows에서 훅을 PowerShell로 실행하므로 `command_windows`에 대체 명령을 둔다. compact 리마인더는 `.sh`의 heredoc을 정본으로 두고 `.ps1`이 그것을 꺼내 낸다. 바깥 PowerShell이 자식 출력을 시스템 코드 페이지로 다시 인코딩해도 한글이 깨지지 않도록 비ASCII 문자는 JSON 이스케이프(`\uXXXX`)로 바꾼다.
+- Git Bash에서 Windows용 `jq.exe`는 출력 줄 끝을 CRLF로 바꾼다. Claude 상태줄은 jq 값을 숫자로 쓰므로, `$OSTYPE`이 `msys`·`cygwin`일 때만 jq 매뉴얼이 권하는 `-b`를 붙인다.
+- agy는 Windows에서 상태줄을 `cmd /c`로 실행해 레포의 bash 명령이 동작하지 않으므로, 병합할 때 레포 `statusLine`을 뺀다. `~/.antigravity`도 연결하지 않는다. Windows에서 이 폴더는 구버전 Antigravity 1.0의 확장 폴더라서, 백업으로 옮기면 그 확장이 빠진다.
+- 스킬 의존성 설치는 하지 않는다. `setup.sh`와 `SKILL.md`가 Linux 가상환경 경로(`venv/bin`)를 전제하기 때문이다. Antigravity IDE 층도 다루지 않는다. 은퇴한 Gemini CLI가 남긴 링크 정리도 하지 않는다. 새로 설치하는 Windows에는 그 링크가 없다.
+
+**레포 안에서 작업할 때.** 레포의 `.claude/`·`.codex/`는 dotfiles 디렉토리에서 프로젝트 설정으로도 읽힌다. Claude는 같은 훅을 한 번만 실행하고 프로젝트 파일의 `bypassPermissions`는 무시한다. Codex는 상위 층 훅을 대체하지 않고 누적 로드하므로 이 레포 안에서는 알림·리마인더 훅이 두 층에서 등록된다. 설정을 바로 확인할 수 있는 이점이 있어 그대로 둔다.
+
+## 3. 권한 통제 — 도구별 상세
+
+| | Claude Code | Codex | Antigravity CLI |
+|---|---|---|---|
+| 모드 | `defaultMode: bypassPermissions` (사용자 settings에서만 유효 — 2.1.257부터 프로젝트 파일 값은 무시). 진입 확인창은 `skipDangerousModePermissionPrompt: true`로 생략(역시 사용자 settings에서 읽음 — 레포에 없으면 설치 때 덮어써져 확인창이 다시 뜸) | `approval_policy = "never"` + `sandbox_mode = "danger-full-access"` | `toolPermission: always-proceed`, `artifactReviewPolicy: always-proceed` |
+| 기계 차단 | `permissions.deny` 90건 (Bash 52 · PowerShell 38) | Starlark `rules/default.rules` (`forbidden`) | `permissions.deny` 66건 |
+| 차단 범위 | 파국형 + 넓은 재귀 삭제. 규칙의 `*`는 공백 포함 임의 문자열에 매칭되므로 `rm -rf /*`·`rm -rf ./*`는 절대경로·`./` 하위 `rm -rf` 전부에 걸린다(의도는 파국형이지만 구현은 이만큼 넓다). PowerShell 38건은 같은 범위(드라이브·홈·`.`·`..` 재귀 삭제, 디스크·전원)를 옮긴 것으로, `Remove-Item`의 경로와 `-Recurse` 순서 세 가지를 각각 규칙으로 둔다. 다만 `.`·`..` 경로는 앞에 임의 문자열을 허용하면 `release..old`·`build/./cache` 같은 일반 이름까지 걸리므로, 경로가 첫 인자인 형태와 다른 인자 뒤에 오는 형태로 나눠 공백 경계를 지킨다. 규칙 문자열의 역슬래시는 두 번 해석된다. 설정을 읽을 때 `\\`가 `\` 하나로 줄고, 매칭할 때 `\*`는 문자 그대로의 별표가 된다. 그래서 `C:\`·`.\` 뒤의 와일드카드는 JSON에 역슬래시 8개를 쓴다. 끝이 `:*`인 규칙은 옛 접두 문법(`Bash(ls:*)`)으로 읽히므로 `C:*` 같은 형태도 쓸 수 없다(2.1.310 실측). Git Bash의 `C:/` 경로 `rm -rf`도 막는다 | 파일 삭제·Git 쓰기·`sudo`·`gh api`·`chmod`·`ln -sf`·`sed -i` 등 위험 명령 전반. 인자값·임의 위치 매칭은 불가(prefix_rule). Windows에서는 PowerShell 스크립트를 명령 단위로 쪼개 대조하므로 `Remove-Item` 계열 삭제와 전원·디스크 cmdlet을 추가했다. 첫 토큰은 철자 그대로 대조한다(소문자·확장자 정규화는 절대경로로 실행할 때만). 그래서 정식 표기와 소문자 표기, `shutdown.exe`·`diskpart.exe`를 함께 두며, 그 밖의 대소문자 조합은 막지 못한다(0.164.0 소스 확인) | 파국형만. 토큰 단위 정확 일치·접두 매칭이며 글롭과 `regex:`는 동작하지 않아 `rm -rf /home*`·`dd of=/dev/sd*` 같은 규칙은 옮길 수 없다(`dd`·`fdisk`·`parted`·`shred`는 지침 통제). Windows(1.4.7)에서는 PowerShell 명령을 전체 줄 정확 일치로만 판정해 이 규칙들이 사실상 동작하지 않는다(바이너리 정적 분석, 실측 전) |
+| 회귀 검증 | 상시 스크립트 없음(훅 은퇴로 케이스 아카이브). PowerShell 규칙은 Linux에서 PowerShell 도구를 켜고(`CLAUDE_CODE_USE_POWERSHELL_TOOL=1`, pwsh 필요) `dontAsk` 모드로 실제 엔진 44건(차단 33건, 대조군 11건)을 확인했다. 허용 규칙과 승인 훅을 두지 않은 별도 설정에서 검사해 44개 호출이 모두 거부 응답을 반환했고, 명시 deny 거부와 `dontAsk` 자동 거부의 메시지 차이로 판정했다. Windows 실기기에서는 `scripts\windows-live-check.cmd`로 데스크톱 앱에 들어 있는 Claude Code(2.1.308)를 실제 설정 그대로 bypass 모드로 돌려 21건을 확인했다. PowerShell 도구의 차단 16건과 허용 대조군 2건, Git Bash 경로(`C:/`·`/c/`) 차단 2건과 허용 대조군 1건이 모두 의도대로 동작했고, 막힌 명령의 시험 폴더는 그대로 남았다 | `scripts/verify-policies.sh codex` — 실제 엔진 30건 | `scripts/verify-policies.sh agy` 정적 17건 + `scripts/agy-live-check.sh` 실측 6건 |
+
+Codex 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 tmpfs로 덮어 GPU 장치를 노출하지 않기 때문이다. 유일한 방어선이 Starlark 규칙이므로 `shell_environment_policy`로 시크릿 env 유출을 함께 막는다. Codex 훅 신뢰는 정의의 해시로 기록되며, 훅을 새로 만들거나 바꾸면 `/hooks`에서 검토·신뢰할 때까지 건너뛴다(시작 시 경고만, 자동 확인창 없음).
+
+## 4. 훅 결정 기록
+
+| 도구 | 결정 | 이유 |
+|------|------|------|
+| Claude | Bash 자동승인 훅(`auto-approve-readonly.sh`) 은퇴, `permissions.ask` 전면 해제 (v2.10) | 504줄 텍스트 매칭이 따옴표 속 문구("rm 금지" 등)를 명령으로 오인하는 오탐이 누적됐고, ask 규칙은 bypass 모드에서도 발동해(실측) 자율 흐름을 끊었다. 원본·회귀 케이스·기존 ask 목록은 `.archive/2026-07-18_hook-retirement/` |
+| Claude | MCP 자동승인 훅(PreToolUse `mcp__.*`) 유지 | 의도된 정책 — 보안 리뷰에서 취약점으로 다루지 않는다 |
+| Claude | 서브에이전트 effort 훅(PreToolUse `Agent`) 추가 (v2.67) | 서브에이전트에만 적용되는 effort 설정이 없다. 세션 effort 설정(`CLAUDE_CODE_EFFORT_LEVEL`·`modelSettings`)은 메인 대화까지 묶고, 에이전트 정의의 `effort`는 내장 general-purpose·Explore에 닿지 않는다. 훅은 `Agent` 호출 입력에 `effort: "high"`를 넣는다. Claude가 effort를 직접 넘긴 호출과 fork는 건드리지 않는다. 앞의 것은 사용자가 그 호출에 값을 요청한 경우이고, fork는 메인의 모델과 effort로 돈다. 실측은 general-purpose·Explore·사용자 정의 에이전트까지이고, 워크플로 에이전트와 에이전트 팀 팀원은 확인하지 않았다 |
+| Claude·Codex | compact 리마인더를 PostCompact가 아니라 SessionStart(`compact`)에 둠 (v2.21) | PostCompact는 `systemMessage`·stdout을 모델에 전달하지 않는다(Codex는 `compact.rs`에서 UI 경고 전용 확인) |
+| Claude·Codex | compact 리마인더는 재개를 재촉하지 않고 사용자 메시지 우선을 명시 (v2.40) | 압축 뒤에는 요약의 "이어가라" 지시, 리마인더의 "다음 단계 파악", 압축 전 호출 스킬의 "재실행 금지" 안내가 한 창에 겹친다. 이 셋이 압축 직후의 새 스킬 호출(`/brief`)을 이전 작업 재개의 첫 단계로 흡수한 사례가 있어, 새 메시지·스킬 호출이 있으면 그것이 이번 턴의 작업임을 리마인더가 못 박는다. 이전 작업 인지는 요약이 이미 담고 있어 리마인더가 재촉할 필요가 없다 |
+| Codex | 실패알림 훅(PostToolUse) 제거 (v2.0) | payload(`tool_response`)가 exit code 없는 포맷 문자열이고 `PostToolUseFailure` 이벤트도 없어(0.142.5·0.144.1 `shell.rs`·`protocol.rs` 확인) 실패를 일반적으로 판정할 수 없다. Codex가 exit_code를 노출하면 `.archive/2026-07-02_codex-dead-hook/`에서 복원 |
+| Codex | PreToolUse 의도적 미설정 | `approval_policy = "never"` + Starlark가 이미 통제 |
+| Antigravity | 훅 미사용 | 알림은 내장 `notifications: true`. 압축 후 이벤트가 없고 `PreInvocation`은 매 모델 호출마다 실행돼 리마인더 용도로 과하다. `~/.gemini/config/hooks.json`이 로드됨은 실측(`PreToolUse`·`PostToolUse`·`PreInvocation`·`PostInvocation`·`Stop`) |
+
+## 5. 도구별 세부 사항
+
+| | Claude Code | Codex | Antigravity |
+|---|---|---|---|
+| 커스텀 명령 | 스킬(`/이름`) — `commands/*.md`는 사용하지 않음 | 스킬(`$이름`·`/skills`) + `~/.codex/prompts/*.md`(`/prompts:이름`, 미사용) | 스킬(`/이름`, 헤드리스 `-p "/이름 …"`도 확장) |
+| 스킬 본문 한도 | — | — | `SKILL.md` 본문(frontmatter 뒤, 앞뒤 공백 제외)의 앞 24,000바이트만 읽는다(`agy plugin validate` 경고). `verify-policies.sh`가 정적으로 막고, 영문 원문을 유지하는 이식 스킬 `skill-creator`만 예외로 둔다. 잘리는 뒷부분은 `claude -p` 기반 설명 최적화 루프, Claude.ai·Cowork 전용 절, 앞에서 이미 언급한 참고 파일 목록이다 |
+| 에이전트 | `agents/*.md` 4개 | 없음 — AGENTS.md의 역할 트리거로 절차형 대응 | Subagents(`/agents`) — 정의 0개 |
+| 지시 파일 설치 경로 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | `~/.gemini/GEMINI.md`(CLI·IDE 공식 경로 하나. `config/GEMINI.md`는 비공식 경로이고, 다른 파일을 두면 이중 주입) |
+| IDE 층 | — | — | `.antigravity/settings.json`·`hooks/mcp-config-guard.sh`는 추정치, 미검증 |
+| 약관 | — | — | Antigravity 로그인 자격증명을 타사 클라이언트에서 재사용하는 접근은 공식 FAQ의 제한 대상. 공식 `agy` CLI를 다른 에이전트가 호출하는 구성의 적용 범위는 미확인 |
+
+레퍼런스 검증 규칙은 상시 로드에서 온디맨드 스킬(`/reference-verification`)로 전환했고, work-principles에 호출 트리거 1줄만 남겼다(v2.12).
+
+**규칙 사이 기준이 겹칠 때는 담당을 나눈다(v2.45).** `security-reviewer`의 자동 위임 범위는 `rules/agents.md` 위임 표(인증·암호화·시크릿)가 정하고, 에이전트 정의는 이를 따른다. 정의가 API·DB 쿼리·사용자 입력까지 넓혀 두 파일이 어긋났는데, 취약점을 발견한 뒤의 대응은 `rules/security.md`가 따로 맡으므로 좁혀도 빈틈이 없다. 충돌 시 우선순위는 코드 품질이 프로젝트 문서 우선(`coding-style.md`), 파일 배치·폴더 구조가 기존 구조 우선(`architecture.md`)이다. `architecture.md`는 도입 때부터 기존 구조를 문서보다 앞에 두도록 설계됐으므로, 두 순서를 하나로 통일하지 않고 `coding-style.md`에 구조 판단은 `architecture.md`를 따른다고 명시했다.
+
+**멈춤을 줄이자는 감사 제안은 합의가 실제로 필요한 곳만 받는다(v2.46).** 프롬프트 감사가 질문·합의·계획 저장·재현 테스트·토론 최소 라운드의 문턱을 낮추자고 제안했다. 파일 트리 사전 합의만 "파일 2개 이상"에서 "새 디렉토리나 모듈 구조를 정할 때"로 올렸다. 파일 2개는 거의 모든 기능 작업에 해당하고, 기존 구조를 벗어나는 일은 `architecture.md`의 MUST 조항(기존 폴더 구조 먼저 확인)이 이미 막기 때문이다. 나머지는 유지했다. 질문 규칙에는 이미 "모호하면"이라는 조건이 있고, 스크래치 테스트는 산출물 정리 규칙과 구조 규칙이 막으며, 계획 파일은 압축을 넘기는 긴 작업의 기준이 되고, 최소 라운드는 과잉 합의를 막는 토론 스킬의 핵심 설계다. Opus 5.5가 진행 전에 허락을 더 자주 구해 파괴적 행동이 줄었다는 시스템 카드 관찰도, 멈춤을 줄이는 쪽의 비용으로 함께 고려했다.
+
+**`writing-prompts`는 계열별 최신·직전·전전 세대를 지원하고, 대상 모델을 먼저 확정한다(v2.48).** 최신 모델이 나와도 이전 모델을 계속 쓰는 프로젝트가 있어 "1년 이내"보다 세대 기준이 관리하기 쉽다. 계열은 Claude Opus·Sonnet·Fable·Haiku, GPT, Gemini Argon·Flash·Flash-Lite·Pro로 나누고, 공급자가 은퇴시킨 모델은 범위 안이어도 뺀다. Gemma·Qwen은 최신 세대만 둔다. GPT의 세대 묶음(6·5.6·5.5)은 공식 구분이 아니라 이 지원 목록의 관리 규칙이다. 라우팅은 Codex와 토론해 정했다. 패키지 이름으로 공급자를 추정하지 않는데, `openai` 라이브러리로 Gemini를 부를 수 있기 때문이다. 대신 호출 경로의 정확한 모델 ID와 API 방식을 따르고, 목록 밖 모델은 다른 모델로 바꾸지 않고 공식 계약과 공통 기법만 적용한다. 예시 개수 같은 수치는 범용 체크리스트에서 빼고 근거가 있는 모델 문서에만 둔다. Claude 공식 모범 사례(예시 3~5개)와 연구 기반 표(Frontier 0~2개)가 서로 어긋났기 때문이다.
+
+## 6. 은퇴·아카이브
+
+| 항목 | 시점 | 위치 |
+|------|------|------|
+| Gemini CLI 층 | 2026-09-07 — Google이 2026-06-18부로 개인 계정 요청 처리를 중단하고 Antigravity CLI로 통합 | `.archive/2026-09-07_gemini-cli-retirement/` (훅·정책·에이전트 원본, 회귀 케이스 62건) |
+| Claude Bash 자동승인 훅 + ask 81건 | 2026-07-18 | `.archive/2026-07-18_hook-retirement/` |
+| Codex PostToolUse 실패알림 훅 | 2026-07-02 | `.archive/2026-07-02_codex-dead-hook/` |
+| `/start` 커스텀 명령 → 공용 스킬 | 2026-09-07 | `.archive/2026-09-07_start-to-skill/` |
+| 상시 로드 지침 감량 원본(393→250줄) | 2026-08-13 | `.archive/2026-08-13_rules-slimming/` |
+| 지원 범위 밖 모델 자료 (v2.48부터 계열별 최신·직전·전전 세대 밖. v2.20~v2.47은 Claude 5·GPT-5.6 미만) | v2.20, v2.48 | `reference/archive/` |
+
+모델·도구 조사 원문은 `reference/research/`(Opus 5·Fable 5.1·GPT-6 Astra·Opus 5.5·GPT-6 Sol·GPT-6.1 Sol·GPT-6.1 Terra·컨텍스트 엔지니어링·한국어 문체 등).

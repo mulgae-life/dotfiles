@@ -1,0 +1,42 @@
+# 코딩 스타일 규칙
+
+> React/DB/UI 등 상세 기준은 해당 스킬을 "정답"으로 사용.
+
+## 우선순위 (충돌 시)
+
+1) 프로젝트 문서(`CLAUDE.md`, `agent-guide/*`, `README.md`)
+2) 기존 코드베이스 패턴(에러 포맷/네이밍/테스트)
+3) 이 파일
+
+파일 배치·폴더 구조 판단은 `architecture.md`의 우선순위(기존 파일 구조 우선)를 따른다.
+
+## MUST
+
+- **범위 준수**: 요청 범위 밖 리포맷/리네이밍/리팩토링 금지 (필요하면 먼저 합의). 관련 없는 데드 코드 발견 시 삭제하지 말고 언급만. 본인의 변경이 만든 고아(미사용 import/변수/함수)만 정리
+- **최소 Diff**: 불필요한 파일 이동/스타일 변경 금지. 인접 코드의 주석·포맷·네이밍을 "개선"하지 않기. 기존 스타일(따옴표, 들여쓰기, 줄바꿈)과 일치시키기. 소규모 수정에 파일 전체를 다시 쓰지 말고 해당 부분만 외과적으로 수정
+- **경계 검증**: 외부 입력(HTTP/env/파일/DB/LLM 출력)은 초기에 validate/normalize
+  - ✗ `data = req.json(); process(data["key"])` (검증 없이 직접 사용)
+  - ✓ `data = MySchema.model_validate(req.json()); process(data.key)`
+- **에러 처리**: 예외를 삼키지 않기. Fail-fast 원칙
+  - ✗ `except: pass`, `except Exception: return default_value`
+  - ✗ `value = config.get("key") or "fallback"`, `.catch(() => fallback)` (실패를 기본값으로 흡수 — 원인 추적 불가)
+  - ✓ 타입별 catch + 로그 + 사용자 메시지 분리. 폴백은 최상위 에러 경계(global error boundary)에서만 허용
+- **리소스 수명주기**: HTTP client/DB pool/모델/토크나이저는 요청마다 생성 금지, 앱 수명주기로 관리
+- **설정 분리**: 하드코딩 대신 env/설정 파일. 안전한 기본값 + 명확한 실패
+
+## SHOULD
+
+- **명확성 우선**: early return, 의미 있는 네이밍, 단일 책임(SRP)
+- **독립 작업 병렬화**: 불필요한 순차 await/N+1 피하기
+- **단순성**: 1회용 코드·구현체 1개에는 추상화 도입 금지. 절반 분량으로 같은 기능이 가능하면 그 절반이 정답
+
+## AVOID
+
+- **에러 뭉개기**: 검증 실패(400)/권한(401)/외부 장애(502) 구분 없이 "그냥 500" 금지
+- **느슨한 계약**: dict/str 기반 지양. API/LLM 출력은 Pydantic/Zod 등 스키마 사용
+
+## 언어별
+
+- **Python**: public 함수/서비스 경계에 타입 힌트. request/response/LLM 출력은 `pydantic`. async에서 블로킹 I/O 금지
+- **TS/React**: public API/props/return 타입 명확히 (`any`/단언 지양). `Promise.all`+타임아웃/취소/재시도 정책 명시
+- **SQL/DB**: 파라미터 바인딩. 클라이언트는 앱 수명주기로 관리

@@ -1,0 +1,658 @@
+# 공통 패턴 (초기화, 에러, 스트리밍, SSE)
+
+## 목차
+- [1. 클라이언트 초기화](#1-클라이언트-초기화)
+- [2. 에러 핸들링](#2-에러-핸들링)
+- [3. 스트리밍](#3-스트리밍)
+- [4. 출력 검증 (LLM 출력 파싱)](#4-출력-검증-llm-출력-파싱)
+- [5. 비동기 패턴](#5-비동기-패턴)
+- [6. 타임아웃 설정](#6-타임아웃-설정)
+- [7. 환경변수 검증](#7-환경변수-검증)
+- [8. 프롬프트 캐싱](#8-프롬프트-캐싱)
+- [9. 구조화 출력 (Structured Output)](#9-구조화-출력-structured-output)
+- [참고 자료](#참고-자료)
+
+
+OpenAI와 Anthropic API에서 공통으로 적용되는 패턴들입니다.
+
+---
+
+## 1. 클라이언트 초기화
+
+### 핵심 원칙
+
+**앱 수명주기로 관리** - 요청마다 클라이언트 생성 금지.
+
+### FastAPI 예시
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from openai import OpenAI
+from anthropic import Anthropic
+
+# 모듈 레벨 초기화
+openai_client: OpenAI | None = None
+anthropic_client: Anthropic | None = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global openai_client, anthropic_client
+
+    # 앱 시작 시 초기화
+    openai_client = OpenAI(timeout=60.0, max_retries=3)
+    anthropic_client = Anthropic(timeout=60.0, max_retries=3)
+
+    yield
+
+    # 앱 종료 시 정리 (필요한 경우)
+    openai_client = None
+    anthropic_client = None
+
+app = FastAPI(lifespan=lifespan)
+
+@app.post("/chat")
+async def chat(message: str):
+    response = openai_client.responses.create(
+        model="gpt-6-astra",
+        input=message
+    )
+    return {"response": response.output_text}
+```
+
+### 의존성 주입 패턴
+
+```python
+from functools import lru_cache
+from openai import OpenAI
+
+@lru_cache
+def get_openai_client() -> OpenAI:
+    return OpenAI(timeout=60.0, max_retries=3)
+
+@app.post("/chat")
+async def chat(
+    message: str,
+    client: OpenAI = Depends(get_openai_client)
+):
+    response = client.responses.create(...)
+```
+
+---
+
+## 2. 에러 핸들링
+
+### 공통 에러 타입
+
+| 에러 | 원인 | 대응 |
+|------|------|------|
+| `RateLimitError` | 요청 한도 초과 | 지수 백오프 재시도 |
+| `APIConnectionError` | 네트워크 문제 | 재시도 또는 실패 |
+| `AuthenticationError` | API 키 문제 | 즉시 실패 (재시도 무의미) |
+| `APIStatusError` | 그 밖의 4xx·5xx 응답 | `status_code`와 함께 로깅 |
+| `APIError` | 그 밖의 API 오류 (OpenAI 스트리밍 중 오류처럼 `status_code`가 없을 수 있음) | 로깅 후 적절히 처리 |
+
+`status_code`는 모든 API 오류의 부모인 `APIError`에는 없고 `APIStatusError` 같은 하위 클래스에만 있습니다. `APIError`에서 읽으면 타입 검사가 실패하고, OpenAI SDK가 스트리밍 중 오류로 던지는 `APIError`에서는 `AttributeError`가 납니다.
+
+### OpenAI 에러 핸들링
+
+```python
+from openai import (
+    OpenAI,
+    APIError,
+    APIStatusError,
+    RateLimitError,
+    APIConnectionError,
+    AuthenticationError
+)
+import logging
+
+logger = logging.getLogger(__name__)
+
+def call_openai(client: OpenAI, input: str) -> str:
+    try:
+        response = client.responses.create(
+            model="gpt-6-astra",
+            input=input
+        )
+        return response.output_text
+
+    except RateLimitError as e:
+        logger.warning(f"Rate limited: {e}")
+        # 재시도 로직 또는 큐에 넣기
+        raise
+
+    except AuthenticationError as e:
+        logger.error(f"Authentication failed: {e}")
+        # 재시도 무의미
+        raise
+
+    except APIConnectionError as e:
+        logger.error(f"Connection error: {e}")
+        raise
+
+    except APIStatusError as e:
+        logger.error(f"API error {e.status_code}: {e.message}")
+        raise
+
+    except APIError as e:
+        # 그 밖의 API 오류 (스트리밍 중 오류처럼 status_code가 없을 수 있음)
+        logger.error(f"API error: {e.message}")
+        raise
+```
+
+### Anthropic 에러 핸들링
+
+```python
+from anthropic import (
+    Anthropic,
+    APIError,
+    APIStatusError,
+    RateLimitError,
+    APIConnectionError,
+    AuthenticationError
+)
+
+def call_anthropic(client: Anthropic, message: str) -> str:
+    try:
+        response = client.messages.create(
+            model="claude-opus-5-5",
+            messages=[{"role": "user", "content": message}],
+            max_tokens=1024
+        )
+        return "".join(b.text for b in response.content if b.type == "text")
+
+    except RateLimitError as e:
+        logger.warning(f"Rate limited: {e}")
+        raise
+
+    except AuthenticationError as e:
+        logger.error(f"Authentication failed: {e}")
+        raise
+
+    except APIConnectionError as e:
+        logger.error(f"Connection error: {e}")
+        raise
+
+    except APIStatusError as e:
+        logger.error(f"API error {e.status_code}: {e.message}")
+        raise
+
+    except APIError as e:
+        # 그 밖의 API 오류 (status_code가 없을 수 있음)
+        logger.error(f"API error: {e.message}")
+        raise
+```
+
+### 지수 백오프 재시도
+
+```python
+import time
+from functools import wraps
+
+def retry_with_backoff(max_retries: int = 3, base_delay: float = 1.0):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except RateLimitError as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning(f"Rate limited, retrying in {delay}s...")
+                    time.sleep(delay)
+        return wrapper
+    return decorator
+
+@retry_with_backoff(max_retries=3)
+def call_llm(client, input):
+    return client.responses.create(model="gpt-6-astra", input=input)
+```
+
+### tenacity 라이브러리 사용
+
+```python
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type
+)
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=60),
+    retry=retry_if_exception_type(RateLimitError)
+)
+def call_llm(client, input):
+    return client.responses.create(model="gpt-6-astra", input=input)
+```
+
+---
+
+## 3. 스트리밍
+
+### SSE (Server-Sent Events) with FastAPI
+
+```python
+import json
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from openai import AsyncOpenAI
+
+app = FastAPI()
+client = AsyncOpenAI()
+
+async def generate_stream(message: str):
+    stream = await client.responses.create(
+        model="gpt-6-astra",
+        input=message,
+        stream=True
+    )
+
+    async for event in stream:
+        if event.type == "response.output_text.delta":
+            # 델타에 개행이 있으면 raw `data: {delta}`는 SSE 프레이밍이 깨진다.
+            # JSON 인코딩으로 한 줄에 담고, 클라이언트는 JSON.parse로 복원.
+            yield f"data: {json.dumps(event.delta)}\n\n"
+
+    yield "data: [DONE]\n\n"
+
+@app.get("/stream")
+async def stream_chat(message: str):
+    return StreamingResponse(
+        generate_stream(message),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive"
+        }
+    )
+```
+
+### Anthropic 스트리밍 SSE
+
+```python
+import json
+from anthropic import AsyncAnthropic
+
+client = AsyncAnthropic()
+
+async def generate_stream(message: str):
+    async with client.messages.stream(
+        model="claude-opus-5-5",
+        messages=[{"role": "user", "content": message}],
+        max_tokens=1024
+    ) as stream:
+        async for text in stream.text_stream:
+            # 텍스트 청크에 개행이 섞여도 프레이밍이 안 깨지도록 JSON 인코딩
+            yield f"data: {json.dumps(text)}\n\n"
+
+    yield "data: [DONE]\n\n"
+```
+
+### 스트리밍 에러 핸들링
+
+```python
+async def generate_stream_safe(message: str):
+    try:
+        stream = await client.responses.create(
+            model="gpt-6-astra",
+            input=message,
+            stream=True
+        )
+
+        async for event in stream:
+            if event.type == "response.output_text.delta":
+                yield f"data: {json.dumps(event.delta)}\n\n"
+
+        yield "data: [DONE]\n\n"
+
+    except Exception as e:
+        # 스트리밍 중 에러는 전역 예외 핸들러 미적용
+        # 예외 원문(API 키·내부 URL 등 노출 위험)은 서버 로그에만 남기고,
+        # 클라이언트에는 일반화 메시지만 전송
+        logger.error(f"Stream error: {e}")
+        yield "data: [ERROR] stream failed\n\n"
+```
+
+---
+
+## 4. 출력 검증 (LLM 출력 파싱)
+
+### Pydantic을 이용한 검증
+
+```python
+from pydantic import BaseModel, ValidationError
+import json
+
+class ExtractedData(BaseModel):
+    name: str
+    age: int
+    email: str | None = None
+
+def extract_structured_data(client: OpenAI, text: str) -> ExtractedData:
+    response = client.responses.create(
+        model="gpt-6-astra",
+        instructions="Extract structured data as JSON. Return only valid JSON.",
+        input=f"Extract name, age, email from: {text}"
+    )
+
+    try:
+        data = json.loads(response.output_text)
+        return ExtractedData(**data)
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON parse error: {e}")
+        raise ValueError("LLM returned invalid JSON")
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        raise ValueError("LLM output doesn't match schema")
+```
+
+### 재시도 전략
+
+```python
+def extract_with_retry(client, text: str, max_retries: int = 2) -> ExtractedData:
+    last_error = None
+
+    for attempt in range(max_retries):
+        try:
+            return extract_structured_data(client, text)
+        except ValueError as e:
+            last_error = e
+            logger.warning(f"Attempt {attempt + 1} failed: {e}")
+            continue
+
+    raise last_error
+```
+
+---
+
+## 5. 비동기 패턴
+
+### 비동기 클라이언트
+
+```python
+from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic
+
+# OpenAI
+async_openai = AsyncOpenAI()
+
+async def call_openai_async(message: str) -> str:
+    response = await async_openai.responses.create(
+        model="gpt-6-astra",
+        input=message
+    )
+    return response.output_text
+
+# Anthropic
+async_anthropic = AsyncAnthropic()
+
+async def call_anthropic_async(message: str) -> str:
+    response = await async_anthropic.messages.create(
+        model="claude-opus-5-5",
+        messages=[{"role": "user", "content": message}],
+        max_tokens=1024
+    )
+    return "".join(b.text for b in response.content if b.type == "text")
+```
+
+### 병렬 호출
+
+```python
+import asyncio
+
+async def parallel_calls(messages: list[str]) -> list[str]:
+    tasks = [call_openai_async(msg) for msg in messages]
+    return await asyncio.gather(*tasks)
+
+# 사용
+results = await parallel_calls(["질문1", "질문2", "질문3"])
+```
+
+### 세마포어로 동시 요청 제한
+
+```python
+semaphore = asyncio.Semaphore(5)  # 최대 5개 동시 요청
+
+async def call_with_limit(message: str) -> str:
+    async with semaphore:
+        return await call_openai_async(message)
+
+async def parallel_calls_limited(messages: list[str]) -> list[str]:
+    tasks = [call_with_limit(msg) for msg in messages]
+    return await asyncio.gather(*tasks)
+```
+
+---
+
+## 6. 타임아웃 설정
+
+### 클라이언트 레벨
+
+```python
+# OpenAI
+client = OpenAI(
+    timeout=60.0,  # 전체 요청 타임아웃
+    max_retries=3
+)
+
+# Anthropic
+client = Anthropic(
+    timeout=60.0,
+    max_retries=3
+)
+```
+
+### 요청별 타임아웃
+
+```python
+import httpx
+from anthropic import Timeout
+
+# OpenAI
+response = client.responses.create(
+    model="gpt-6-astra",
+    input="...",
+    timeout=httpx.Timeout(30.0, connect=5.0)  # 연결 5초, 전체 30초
+)
+
+# Anthropic — SDK 1.0부터 httpx2 기반이라 SDK가 내보내는 Timeout을 씁니다
+response = client.messages.create(
+    model="claude-opus-5-5",
+    messages=[...],
+    max_tokens=1024,
+    timeout=Timeout(30.0, connect=5.0)
+)
+```
+
+---
+
+## 7. 환경변수 검증
+
+```python
+from pydantic_settings import BaseSettings
+
+class LLMSettings(BaseSettings):
+    openai_api_key: str
+    anthropic_api_key: str | None = None
+    default_model: str = "gpt-6-astra"
+    timeout: float = 60.0
+    max_retries: int = 3
+
+    class Config:
+        env_prefix = ""  # 또는 "LLM_"
+
+# 앱 시작 시 검증
+settings = LLMSettings()  # 환경변수 없으면 ValidationError
+
+# 클라이언트 초기화
+client = OpenAI(
+    api_key=settings.openai_api_key,
+    timeout=settings.timeout,
+    max_retries=settings.max_retries
+)
+```
+
+---
+
+## 8. 프롬프트 캐싱
+
+### 캐싱 친화 프롬프트 레이아웃
+
+**핵심 원칙**: 정적 콘텐츠를 앞(prefix), 동적 콘텐츠를 뒤(suffix)에 배치.
+
+```
+┌──────────────────────────────┐
+│ 정적 prefix (캐시 대상)       │  ← 시스템 프롬프트, few-shot 예시
+│ - system instructions        │
+│ - few-shot examples          │
+│ - tool definitions           │
+├──────────────────────────────┤
+│ 동적 suffix (매 요청 변경)    │  ← 사용자 입력, 컨텍스트
+│ - user message               │
+│ - retrieved documents (RAG)  │
+└──────────────────────────────┘
+```
+
+### Anthropic (수동 캐싱)
+
+```python
+response = client.messages.create(
+    model="claude-opus-5-5",
+    system=[
+        {
+            "type": "text",
+            "text": "You are a helpful assistant...(긴 시스템 프롬프트)",
+            "cache_control": {"type": "ephemeral"}  # 캐시 명시
+        }
+    ],
+    messages=[{"role": "user", "content": "질문"}],
+    max_tokens=1024
+)
+```
+
+- 캐시 히트 시 비용 90% 절감, 레이턴시 85% 절감
+- 캐시 읽기 토큰: 기본 입력의 **0.1배** 가격 (대부분 모델). **Fable 5.1·Mythos 5.1은 0.025배 = $0.25/MTok**으로 절감률이 97.5%, **Opus 5.5는 0.05배 = $0.20/MTok**으로 95%. 이 비율은 캐시 읽기 단가의 인하율이고, 작업 총비용 절감률은 캐시 쓰기·비캐시 입력·출력까지 합쳐 따로 계산합니다
+- 최소 1024 토큰 이상의 prefix에서 효과적 (Opus 5.5·Opus 5·Fable 5.1은 512 토큰)
+
+### OpenAI (자동 캐싱)
+
+```python
+# OpenAI는 자동 캐싱 — 별도 설정 불필요
+# 동일한 prefix를 반복 사용하면 자동으로 캐시 적용
+response = client.responses.create(
+    model="gpt-6.1-sol",
+    instructions="...(긴 시스템 프롬프트, 자동 캐시)",
+    input="질문"
+)
+
+# 캐시 히트 확인
+print(response.usage.input_tokens_details.cached_tokens)
+```
+
+- Cached input: 기본 입력의 **0.1배** 가격 (5.6·GPT-6 대부분 모델 — 캐시/기본 입력 단가는 Astra $1/$10, 6 Sol $0.20/$2, Luna $0.01/$0.10 per MTok). **GPT-6.1 Sol·6.1 Terra는 0.05배 = $0.10/$2, $0.05/$1**
+- Batch + Caching 조합: 최대 75% 비용 절감
+- GPT-5.6 신규: `prompt_cache_options={"mode": "explicit", "ttl": ...}`로 명시 캐싱 가능 (기존 `prompt_cache_retention` 대체) — 단 **캐시 쓰기 총단가는 비캐시 입력의 1.25배(기본 `"30m"`) 또는 2.5배(`"12h"`)**이므로, 반복 읽기로 쓰기 비용을 회수하는지 확인
+
+### 비용 비교
+
+| 제공자 | 캐싱 방식 | 캐시 할인 | 레이턴시 절감 |
+|--------|----------|----------|-------------|
+| Anthropic | 수동 (`cache_control`) | 90% (Fable 5.1·Mythos 5.1은 97.5%, Opus 5.5는 95%) | 85% |
+| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x·GPT-6 대부분, 캐시 read 0.1배; GPT-6.1 Sol·6.1 Terra는 95%; GPT-6은 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율) | 상당 |
+| Google | 토큰 저장 기간 기반 | 상당 | 상당 |
+
+**실제 사례**: PDF 50문서 반복 분석 — 쿼리당 $3 → 캐싱 적용 후 $0.15 (95% 절감)
+
+---
+
+## 9. 구조화 출력 (Structured Output)
+
+### 왜 구조화 출력인가?
+
+| 방식 | 스키마 준수율 | 파싱 실패율 |
+|------|-------------|-----------|
+| 자유형 프롬프트 | ~80% | 15~20% |
+| JSON 스키마 지정 | **99%+** | <1% |
+
+### OpenAI Structured Output
+
+```python
+from pydantic import BaseModel
+
+class WeatherResponse(BaseModel):
+    location: str
+    temperature: float
+    unit: str
+    description: str
+
+response = client.responses.parse(
+    model="gpt-6.1-sol",
+    input="서울 날씨 알려줘",
+    text_format=WeatherResponse
+)
+
+weather = response.output_parsed  # WeatherResponse 인스턴스
+print(weather.temperature)
+```
+
+### Anthropic Structured Output (Tool Use 패턴)
+
+```python
+import json
+
+tools = [
+    {
+        "name": "format_weather",
+        "description": "Format weather data as structured output",
+        "strict": True,     # 스키마 준수 강제
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "location": {"type": "string"},
+                "temperature": {"type": "number"},
+                "unit": {"type": "string"},
+                "description": {"type": "string"}
+            },
+            "required": ["location", "temperature", "unit", "description"]
+        }
+    }
+]
+
+response = client.messages.create(
+    model="claude-fable-5-1",
+    # 쓸 도구를 지시문에 명시 — 강제 tool_choice를 대신하는 유도 수단
+    system="날씨 질문에는 반드시 format_weather 도구로만 답하세요.",
+    messages=[{"role": "user", "content": "서울 날씨 알려줘"}],
+    tools=tools,
+    tool_choice={"type": "auto"},
+    max_tokens=1024
+)
+
+# tool_use 블록에서 구조화된 데이터 추출
+for block in response.content:
+    if block.type == "tool_use":
+        weather = block.input  # dict
+```
+
+> ⚠️ **강제 `tool_choice`(`{"type": "tool", ...}`·`{"type": "any"}`)는 Opus 5.5·Fable 5.1·Mythos 5.1에서 400 `invalid_request_error`입니다.** 위처럼 `auto` + 지시문 + `strict: true`로 대체하세요. `strict`는 호출된 도구의 입력이 스키마를 지키게 할 뿐 도구 호출 자체를 보장하지 않으므로, 응답에 `tool_use` 블록이 없는 경우도 처리합니다. 도구 호출이 아니라 스키마를 지키는 JSON 자체가 목적이면 JSON outputs(`output_config.format`)가 더 직접적입니다. 단 CMEK 조직은 structured outputs를 쓸 수 없어 지시문으로만 유도해야 합니다.
+
+### 포맷별 특성
+
+| 포맷 | 강점 | 약점 | 권장 용도 |
+|------|------|------|----------|
+| JSON | 높은 정확도, 타입 안전 | 중복 키/괄호로 토큰 소모 | 복잡 데이터, API 응답 |
+| YAML | 가독성, 효율 균형 | 들여쓰기 민감 | 설정, 가독성 중시 |
+| CSV/Prefix | 토큰/시간 효율 | 중첩 불가 | 플랫 데이터 |
+
+---
+
+## 참고 자료
+
+- [OpenAI Python SDK](https://github.com/openai/openai-python)
+- [Anthropic Python SDK](https://github.com/anthropics/anthropic-sdk-python)
+- [Tenacity - Retry Library](https://tenacity.readthedocs.io/)

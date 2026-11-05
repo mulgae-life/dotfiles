@@ -1,0 +1,242 @@
+# GPT-6 프롬프트 패턴 (Astra·Sol·Terra·Luna)
+
+대상 모델: `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6.1-terra` · `gpt-6-sol` · `gpt-6-luna`
+
+## 목차
+- [작성 체크리스트](#작성-체크리스트)
+- [개요 (5.6 → 6 핵심 변화)](#개요-56--6-핵심-변화)
+- [0. GPT-6 제품군 (Sol·Terra·Luna 차이)](#0-gpt-6-제품군-solterraluna-차이)
+- [1. 주도성과 완주 (신규)](#1-주도성과-완주-신규)
+- [2. 지시 준수 — 감량이 아니라 일관성 (변경)](#2-지시-준수--감량이-아니라-일관성-변경)
+- [3. 문체 — 문단 기본, 리스트는 조건부 (변경)](#3-문체--문단-기본-리스트는-조건부-변경)
+- [4. 서브에이전트 위임 (신규)](#4-서브에이전트-위임-신규)
+- [5. 테스트·검증 범위 축소 (신규)](#5-테스트검증-범위-축소-신규)
+- [6. Reasoning Effort (변경)](#6-reasoning-effort-변경)
+- [7. 5.6 패턴 호환](#7-56-패턴-호환)
+- [8. 마이그레이션 체크리스트 (5.6 → 6)](#8-마이그레이션-체크리스트-56--6)
+- [주의 (커뮤니티 관찰, 2차)](#주의-커뮤니티-관찰-2차)
+- [참고](#참고)
+
+
+GPT-6는 2026-09-03에 Astra 한 모델로 시작했고 2026-09-22에 Sol·Luna가 더해져 3티어가 됐으며, 2026-09-29에는 Sol의 후속 GPT-6.1 Sol이, 2026-10-26에는 5.6 Terra의 후속 GPT-6.1 Terra가 나와 공식 대표 목록은 Astra·6.1 Sol·6.1 Terra·Luna 네 모델이 됐다. 5.6의 Sol·Terra·Luna는 계속 제공된다. 이 문서의 행동 축과 스니펫은 Astra에서 관찰한 성향을 겨냥한 것이고, 공식 문서는 이를 제품군 전체의 출발점으로 제시한다. 모델별 API 계약 차이는 §0에 모았다. 두 Sol은 "6.1 Sol"·"6 Sol"로 구분하고 그냥 "Sol"은 둘 다를 뜻하며, 이전 세대 모델은 "5.6 Sol", "5.6 Terra", "5.6 Luna"로 적는다. 프롬프트 관점의 변화는 파라미터가 아니라 행동에 있고, 공식 가이드가 조정을 권고하는 축은 주도성, 지시 준수, 문체, 서브에이전트 위임, 테스트·검증 다섯 가지다. 5.6에서 통하던 "지시를 줄여라" 기조가 여기서 뒤집힌다. Astra는 긴 지시를 더 잘 따르는 대신 문맥에 더 민감해서, 분량보다 지시 파일 사이의 모순이 문제를 일으킨다.
+
+---
+
+## 작성 체크리스트
+
+- [ ] **모델 선택**: `gpt-6-astra`(최고 성능)/`gpt-6.1-sol`(Astra에 가까운 성능, 단가는 Astra의 1/5)/`gpt-6.1-terra`(시각 이해·화면 조작·글쓰기, 단가는 6.1 Sol의 절반)/`gpt-6-luna`(반복 대량 작업). `gpt-6-sol`은 폐기 공지 없이 남아 있지만 모델 개요 페이지의 대표 목록에서 빠졌고 API 계약이 6.1 Sol과 다름. 6.1 Terra는 5.6 Terra의 후속이지만 가장 복잡한 코딩에는 6.1 Sol·Astra가 더 맞다고 발표문이 밝힘. Codex 공식 문서는 복잡한 코딩·에이전트 작업에 계정과 클라이언트에서 쓸 수 있으면 6.1 Sol을, 가장 까다로운 작업에는 Astra를 권함
+- [ ] 아래 행동 항목(주도성~문체)은 Astra에서 관찰된 성향이 출처 — 공식 문서도 제품군 공통 출발점으로 제시하되 모델·워크로드별 평가를 요구하므로 6.1 Sol·6.1 Terra·Luna는 측정 후 채택
+- [ ] **주도성 명시**: 질문하고 멈추는 성향이 이전 세대보다 강함 → 자율 실행이 필요하면 "bias towards action, carry the task to completion" 계열 지시 추가. "can you…/help me…"는 실행 요청으로 취급하게
+- [ ] **지시 파일 모순 감사**: 긴 지시는 잘 따르지만 문맥 모순에 민감 → AGENTS.md·스킬·시스템 프롬프트 사이의 상충·낡은 문구 제거가 감량보다 우선. 사용자 지시 > 스킬 지시 우선순위 명시
+- [ ] **테스트 범위 축소**: 스스로 철저히 검증하는 성향 → "가역적·저영향 변경에 구현을 비추는 테스트 금지, 확대는 새 변경·실패가 정당화할 때만"으로 범위를 좁히는 지시(검증 강화 지시 아님)
+- [ ] **위임 명시**: 서브에이전트 병렬 위임을 학습했지만 기대보다 덜 위임 → 갈래·리더 보유 범위·대기 여부·반환 요약 형식을 프롬프트에 지정
+- [ ] **문체**: 문단 기본, 리스트는 병렬·순서·비교일 때만. 피할 표현("Bottom Line:", "delve", "leverage", "it's worth noting", "In short:") 차단
+- [ ] `reasoning.effort`: 기본 `medium`. Astra·6.1 Sol은 `low`~`max` 5단계(`none`/`minimal` 사용처는 `low`부터), 6.1 Terra·6 Sol·Luna는 `none`~`max` 6단계. `ultra`는 Codex·ChatGPT 전용(API 값 아님)
+- [ ] **API 변경**: effort가 `none`이 아니면 `temperature`·`top_p`·`top_logprobs` 제거. 도구 호출은 Responses API(6 Sol·Luna만 Chat Completions에서 `reasoning_effort: "none"`일 때 함수 호출 가능, 6.1 Sol·6.1 Terra는 Astra처럼 불가. Terra는 `none`을 받아도 이 예외에 들지 않음), `prompt_cache_retention` → `prompt_cache_options.ttl`. 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율
+- [ ] 5.6 계약 구조(Goal/Success criteria/Constraints/Tools/Output/Stop rules)·pro mode·`reasoning.context`·PTC는 그대로 유효 → [gpt56-patterns.md](gpt56-patterns.md)
+
+---
+
+## 개요 (5.6 → 6 핵심 변화)
+
+| 항목 | 5.6 | 6 Astra |
+|------|-----|---------|
+| 모델 라인업 | Sol/Terra/Luna 3티어 | **`gpt-6-astra`**로 시작, 9/22부터 Sol·Luna를 더한 3티어, 9/29부터 Sol 자리는 6.1 Sol, 10/26 6.1 Terra 추가(§0). 5.6 3종은 계속 제공 |
+| `reasoning.effort` | none~xhigh + max | **low/medium/high/xhigh/max, 기본 medium**. `none`·`minimal` 폐지 |
+| 제거 파라미터 | — | **`temperature`·`top_p`·`top_logprobs`** (Chat Completions는 `logprobs`도) |
+| 도구 호출 | Responses·Chat Completions | **Responses 전용** |
+| 캐싱 | `prompt_cache_options.mode` + `ttl` | `prompt_cache_retention` 폐기 → **`prompt_cache_options.ttl`**(예 `"30m"`) |
+| 지시 기조 | 지시 감량 → 토큰·비용 절감 | **길이보다 일관성**. 모순된 지시가 작업을 멈춤 |
+| 검증 | 검증 루프를 더 붙이는 방향 | **범위를 좁히는 지시**가 필요 (기본 성향이 과잉 테스트) |
+| 위임 | 명시 요청 시에만 스폰 | **프롬프트로 유도**. 공식 자인 "may delegate less often than desired" |
+| 컨텍스트·요율 | 1.05M | 1.05M. **입력 272K 초과 시 요청 전체가 입력 2배·출력 1.5배** |
+
+오른쪽 열은 Astra 기준이다. 6.1 Sol도 `reasoning.effort` 범위, 제거 파라미터, 도구 호출 경로는 이 열과 같다. 6.1 Terra는 도구 호출 경로만 이 열과 같고 `none` effort를 받는다. 6 Sol·Luna는 `none` effort를 받고 샘플링 파라미터와 Chat Completions 함수 호출의 조건이 다르므로 §0을 본다.
+
+> 상세 가이드: [`reference/openai-prompt-guide/gpt-6-prompt-guide.md`](../../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md)
+
+---
+
+## 0. GPT-6 제품군 (Sol·Terra·Luna 차이)
+
+Astra가 계속 최상위다("GPT‑6 Astra continues to be our best model across the board."). 6.1 Sol은 6 Sol의 후속이며, 발표문은 Astra에 가까운 성능을 Astra 표준 단가의 1/5로 낸다고 소개한다("nearly matches GPT‑6 Astra's intelligence on agentic coding, computer use, and professional work at one-fifth of Astra's standard input and output token prices"). 6.1 Terra(10/26)는 시각 이해·화면 조작·글쓰기용 고효율 모델이다("a fast, efficient model for visual reasoning, precise computer use, and clear, natural writing"). 공식 가이드가 5.6 Terra에서 옮기는 방법을 안내하므로 5.6 Terra의 후속 자리이고, 발표문은 가장 복잡한 코딩에는 6.1 Sol·Astra가 더 맞다고 적는다. Luna는 범위가 분명한 대량 작업용이다. 6 Sol은 폐기 공지 없이 남아 있지만 API 계약이 6.1 Sol과 다르다.
+
+| 항목 | Astra | 6.1 Sol | 6 Sol | Luna | 6.1 Terra |
+|------|-------|---------|-------|------|-----------|
+| 가격 (1M당 in/out) | $10 / $50 | $2 / $10 (캐시 입력은 입력의 5%) | $2 / $10 | $0.10 / $0.50 | $1 / $5 (캐시 입력은 입력의 5%) |
+| 지식 컷오프 | 2026-04-30 | 2026-04-30 | 2026-04-20 | 2026-05-18 | 2026-06-01 |
+| `reasoning.effort`의 `none` | 불가 (HTTP 400) | 불가 | 지원 | 지원 | 지원 |
+| Chat Completions 함수 호출 | 불가 (Responses 필요) | 불가 (Responses 필요) | `reasoning_effort: "none"`일 때만 | 6 Sol과 같음 | 불가 (Responses 필요) |
+| `temperature`·`top_p`·`top_logprobs` | 제거 | 제거 | effort가 `none`이 아니면 제거. `none`에서 허용된다는 명시 문장은 원문에 없음 | 6 Sol과 같음 | 6 Sol과 같음 |
+
+- 6 Sol에서 6.1 Sol로 옮길 때 모델 ID만 바꾸면 `none` 요청과 Chat Completions 함수 호출이 깨진다. 공식 안내도 "If you already use gpt-6-sol, review the migration guidance before switching to GPT-6.1 Sol."이다
+- 6.1 Terra는 `none`을 받지만 Chat Completions에서 도구를 부를 수 없다. 6 Sol·Luna의 `none` 예외를 Terra에 적용하면 도구 요청이 깨진다. 5.6 Terra에서 옮길 때의 공식 안내는 "compare both models on representative images and workflows using the same reasoning effort. If your application calls tools through Chat Completions, migrate those requests to the Responses API."이다
+- 긴 입력 할증은 다섯 모델이 같다. 입력 272K를 넘는 요청은 요청 전체가 입력·캐시 2배, 출력 1.5배다
+- effort 값은 §6에 API와 Codex로 나눠 적었다
+- 확인한 공식 문서 범위에서 Sol 전용 프롬프팅 가이드는 6.1 Sol 출시 뒤에도 없다. "Using GPT-6"는 Astra 가이드를 제품군으로 넓혔다. 원문은 "Use the following prompts as a starting point across the GPT-6 model family. They address behavior observed with GPT-6 Astra; evaluate them with your chosen model and workload."이다
+- 같은 페이지에는 기존 가이드에 없던 문장이 두 개 있다. 모델이 스킬과 `AGENTS.md` 같은 파일 속 지시에 민감하므로 그 파일들의 감사를 "strongly recommend"한다는 문장(§2), 모델이 기본적으로 작업을 멈추지 않은 채 질문("non-blocking questions")을 던진다는 문장(§1)이다
+- Codex가 6 Sol에 주입하는 기본 지시문은 Astra 템플릿과 다르다. 연결된 산문·PR 설명·기술 소통 지시가 없고 "minimize cognitive load"가 들어갔으며, "can you..." 실행 해석 문단이 없다. 대신 사용자가 실수를 지적하면 설명보다 수정을 원한다고 가정하는 규칙과, 테스트를 "only to resolve a concrete remaining risk or satisfy a required gate"일 때만 넓히는 규칙이 있다
+- 6.1 Sol의 기본 지시문은 Astra 템플릿과 거의 같고 두 곳이 더해졌다. 하나는 하지 않을 일에 더해 무엇이 아닌지("what something is not")도 덧붙이지 말라는 문구이고, 다른 하나는 불필요한 사과와 자책을 피하라는 문단이다("Avoid unnecessary apologies and self-blame. ... Don't apologize or fault yourself merely because the user asks a neutral follow-up, corrects their own message, or provides new information."). 6 Sol의 사용자 지적 대응 문단은 빠졌다. 차이표는 상세 가이드 §0.5에 있다
+- 6.1 Terra에 주입하는 `model_messages`는 2026-11-02에 읽은 서버 카탈로그 캐시에서 Astra와 글자 단위로 같다. 지시문이 같다는 뜻일 뿐 행동이 같다는 뜻은 아니므로, Astra에서 나온 행동 축은 Terra에서도 측정 후 채택한다
+
+---
+
+## 1. 주도성과 완주 (신규)
+
+Astra는 이전 세대보다 질문을 더 자주 던지고 그 자리에서 멈춘다. 공식 설명은 협업자로 설계했기 때문이라는 것이다.
+
+> "The model is designed to be a more effective collaborator and is thus more likely to ask the user a question when additional input could materially change the result."
+
+자율 실행이 필요하면 프롬프트에 아래 계열 문장을 직접 넣으라는 것이 공식 권고다(원문 그대로 인용).
+
+```text
+Your job is to bias towards action and carry the user's intended task to completion.
+
+When the user expresses intent to perform new work or fix an existing issue, persist until the user's intended goal is complete. Progress autonomously towards the user's goal unless they are clearly destructive or irreversible.
+
+When the user's prompt indicates a request for action, such as "can you...", "I want to...", "help me..." and similar expressions, treat these as instructions to do the work and take action. Do not stop at acknowledging capability (e.g. "Yes…"), proposing a plan, or offering to continue.
+```
+
+확인을 아예 없애라는 뜻은 아니다. 확인은 받되 되돌리기 어려운 행동 직전에 **구체적이고 검토 가능한 결과물**을 놓고 받으라는 것이 원칙이다. 원문은 "The user should be approving a concrete, reviewable result."이며, 읽기 전용 작업이나 세션 앞부분에서 이미 승인된 범위에는 다시 묻지 않는다.
+
+---
+
+## 2. 지시 준수 — 감량이 아니라 일관성 (변경)
+
+> "GPT-6 Astra is better able to follow longer instructions, but can also be more sensitive to information in context."
+
+5.6 마이그레이션의 핵심이 지시 축소였다면, Astra에서는 모순 제거가 핵심이다. 길이 자체는 문제가 아니다. 우선순위는 문장으로 못 박는다.
+
+```text
+The user's instructions take precedence over guidelines provided in a skill. If explicit user instructions conflict with a skill's instructions, prioritize the user's instructions.
+```
+
+```text
+If a skill causes you to ask for permission or confirmation, pause, leave requested work unfinished, or diverge from the user's intent, name and link to the exact SKILL.md file you read, quote the relevant instruction, and briefly explain how it applies.
+```
+
+두 번째 스니펫은 진단용이다. 모델이 스킬 때문에 멈췄을 때 어떤 파일의 어떤 문장 때문인지 말하게 만들면 감사 대상을 사람이 찾아낼 수 있다. 새 지시를 쓰기 전에 접근 가능한 지시 파일(AGENTS.md·CLAUDE.md·스킬)을 먼저 감사해 어긋나는 문장과 낡은 손잡아주기 지시를 걷어낸다.
+
+---
+
+## 3. 문체 — 문단 기본, 리스트는 조건부 (변경)
+
+기본 성향이 리스트·표·마크다운으로 스캔 가능한 응답을 만드는 쪽이라, 산문을 원하면 명시해야 한다.
+
+```text
+Default to using clear, concise paragraphs, each developing one main idea. Use lists only when the information is genuinely parallel, sequential, or easier to compare, and avoid nested lists unless the hierarchy cannot be expressed clearly in prose. Use plain, simple language: familiar words, concrete examples, and precise verbs. Prefer active voice and direct statements.
+```
+
+**피할 표현** — 아래 블록은 공식 페이지에서 이 세션에 직접 확인한 1차 원문이다.
+
+```text
+Avoid using slop words or phrases like "Bottom Line:" in conclusions, "delve," "foster," "leverage," "it's worth noting," "importantly," "Question? Answer." or "This isn't about X. It's about Y.", "genuinely" or hyphenated compound descriptions and adjectives. Do not use concluding summary statements such as "In short:..", "The simplest mental model is:...". Do not use contrastive framing such as "X, not Y" or "X—not Y". Avoid invented compound labels like "exact-head checks", vague qualifiers, and canned transitions.
+```
+
+2차 출처(the-decoder 요약)에만 있고 위 원문에서 확인되지 않은 항목은 `promote`, `really/truly`, `what's important is`이므로 1차로 표기하지 않는다. 우리 한국어 문체 규칙([`communication.md`](../../../rules/communication.md))의 상투어·번역투 금지 조항과 방향이 같고, 영문 프롬프트에는 번역본 대신 위 원문을 그대로 넣는 편이 정확하다.
+
+---
+
+## 4. 서브에이전트 위임 (신규)
+
+> "GPT-6 Astra is trained to be able to divide and delegate work to subagents that work in parallel." / "The model may delegate less often than desired for your workflow."
+
+```text
+If at any point you can parallelize work by delegating tasks to another agent (no matter if you are the root or subagent), you should do so using collaboration tools if it could save time or improve quality.
+```
+
+프롬프트에는 네 가지를 명시한다. **갈래**(어떤 작업을 서브에이전트로 돌릴지, 편집 충돌이 없는 독립 갈래), **리더 보유 범위**(무엇을 리더가 직접 쥐고 있을지), **대기 여부**(모든 결과를 기다릴지 먼저 온 것부터 진행할지), **반환 형식**(각 워커가 어떤 요약을 어떤 구조로 돌려줄지)이다.
+
+Codex의 effort `ultra`는 자동 위임 모드다. 5.6 문서에 나오던 "Sol Ultra"(병렬 서브에이전트 모드)와 이름이 같지만, 이제는 별도 모드가 아니라 추론 강도 값 하나로 노출되며 API 문서에는 없는 제품 표면 전용 단계다. Astra·6.1 Sol·6.1 Terra·6 Sol에만 있고 Luna는 `max`까지다. Astra·6.1 Sol·6.1 Terra에서 `ultra`를 고르면 그 세션 요청의 추론 강도는 `xhigh`이고 위임 힌트가 더해질 뿐이라, `max`보다 높은 단계가 아니다. 힌트는 추론 강도 변환과 별개의 코드가 고르며, 다중 에이전트 `v2`에서 힌트 재정의가 없을 때만 붙는다. 6.1 Terra는 렌더링이 아니라 소스 대조로만 확인했다(상세 가이드 §1).
+
+---
+
+## 5. 테스트·검증 범위 축소 (신규)
+
+Astra는 완료를 선언하기 전에 스스로 과하게 테스트한다. 검증을 더 시키는 지시가 아니라 범위를 좁히는 지시가 필요하다.
+
+```text
+Do not write tests for reversible, low-impact changes that mirror the implementation. If you do choose to verify your work with tests, make sure that the tests are meaningful and necessary to verify implementation.
+
+Run tests appropriate to the change and complete required checks. Once those pass, broaden or repeat testing only when new changes, failures, or unresolved concerns justify it; otherwise, continue toward completing the task.
+```
+
+5.6 시절에 오버스텝·허위 보고를 막으려고 붙여 둔 검증 루프 지시는 Astra에서 과잉 테스트로 증폭된다. 마이그레이션 시 함께 재평가한다.
+
+---
+
+## 6. Reasoning Effort (변경)
+
+**API `reasoning.effort`**
+
+| 설정 | Astra·6.1 Sol | 6.1 Terra·6 Sol·Luna | 사용처 |
+|------|---------------|------------|--------|
+| `none` | 미지원 (Astra는 HTTP 400) | 지원 | 추론이 필요 없는 지연 민감 작업 |
+| `low` | 지원 | 지원 | Astra·6.1 Sol에서는 5.6의 `none`·`minimal`을 쓰던 자리의 출발점 |
+| `medium` | **기본값** | **기본값** | 품질·비용 균형 |
+| `high` | 지원 | 지원 | 일반 코딩 작업에 무난한 선택 [2차] |
+| `xhigh` | 지원 | 지원 | high보다 유의미한 개선이 확인된 고난도 작업 |
+| `max` | 지원 | 지원 | 가장 어려운 문제만. 전역 기본값으로 쓰지 않음 |
+
+**Codex 선택기 effort** (API 값과 별개이며 `none`이 없다)
+
+| 모델 | 선택 가능한 값 | 공식 시작 권고 | 카탈로그 기본값 (0.166.0 번들, 11/2 서버 캐시) |
+|------|----------------|----------------|---------------------------|
+| Astra | `low`~`max`, `ultra` | Light(설정값 `low`) | 서버 `medium`, 번들 `low` |
+| 6.1 Sol | `low`~`max`, `ultra` | 클라이언트의 기본값에서 시작 | `low` |
+| 6.1 Terra | `low`~`max`, `ultra` | 문서에 없음 | `low` |
+| 6 Sol | `low`~`max`, `ultra` | 현행 문서에 없음 (9/23 문서는 Medium) | `medium` |
+| Luna | `low`~`max` | High | `medium` |
+
+- 시작 권고 원문은 "For GPT-6.1 Sol, start with the reasoning effort available by default in your client and adjust based on the task. Start with High for Luna or Light for Astra."이다. 6.1 Sol·6.1 Terra의 카탈로그 기본값 `low`는 API 기본값 `medium`과 다르다. API 가이드는 Terra를 "Start with `medium`"으로 안내하지만 Codex 문서에는 Terra의 시작 권고가 없다
+- `none` 지원은 모델마다 다르다. 원문은 "GPT-6 Astra and GPT-6.1 Sol do not support the `none` reasoning effort; GPT-6.1 Terra, GPT-6 Sol, and GPT-6 Luna do."이다. Astra·6.1 Sol로 옮길 때는 낡은 설정에 남은 `reasoning_effort = "none"`을 먼저 제거한다. `minimal`은 다섯 모델 모두 받지 않으며 `low`부터 비교한다
+- 비용 격차가 크다. Simon Willison의 펠리컨 비교에서 Astra max effort 한 장이 63센트, 같은 프롬프트가 5.6 Luna에서는 1.6센트로 약 40배 차이였다 [2차]. Codex의 `ultra`는 제품 표면에만 있고 API 파라미터로는 받지 않는다
+
+---
+
+## 7. 5.6 패턴 호환
+
+5.6의 8섹션 프롬프트 계약(Role / Personality / Goal / Success criteria / Constraints / Tools / Output / Stop rules)은 그대로 유효하다. 이 골격에서 시작하고 §1~§5의 행동 축만 얹는다. 계승되는 기능은 `reasoning.mode: "pro"`(오답 비용이 큰 지점에만 선별 적용), `reasoning.context`(auto/current_turn/all_turns), Programmatic Tool Calling, Structured Outputs, compaction, 멀티에이전트 오케스트레이션이다. 프롬프트 캐싱도 이어지며 키 이름만 `prompt_cache_options.ttl`로 바뀌었다. 상세는 [`gpt56-patterns.md`](./gpt56-patterns.md) 참조.
+
+---
+
+## 8. 마이그레이션 체크리스트 (5.6 → 6)
+
+공식 마이그레이션 항목(모델 선택과 점검 7항)에 지시 파일 감사를 더한 것이다. 모델마다 조건이 갈리는 항목은 모델별로 나눠 적는다. 6 Sol에서 6.1 Sol로, 5.6 Terra에서 6.1 Terra로 옮길 때도 이 목록을 쓴다.
+
+1. [ ] `model`을 `gpt-6-astra`·`gpt-6.1-sol`·`gpt-6.1-terra`·`gpt-6-luna` 중 하나로 설정 (공식 체크리스트의 선택지에 6 Sol은 없다)
+2. [ ] effort는 지원 범위에서 현재 값을 유지한다. Astra·6.1 Sol은 `none` 대신 `low`로 옮기고 6.1 Terra·6 Sol·Luna는 `none`을 그대로 둘 수 있다. `minimal`은 "start with `low` and compare results on representative tasks."
+3. [ ] 도구 호출 — Astra·6.1 Sol·6.1 Terra는 Responses로 이전("GPT-6 Astra, GPT-6.1 Sol, and GPT-6.1 Terra support Chat Completions, but tool calling requires Responses."). 6 Sol·Luna의 Chat Completions 함수 호출은 `reasoning_effort: "none"`일 때만 된다
+4. [ ] effort가 `none`이 아니면 `temperature`·`top_p`·`top_logprobs` 제거 (Astra·6.1 Sol은 항상 해당)
+5. [ ] GPT-5.5 이하에서 옮길 때 `prompt_cache_retention` → `prompt_cache_options.ttl = "30m"`
+6. [ ] EU 데이터 레지던시 확인 — Fast 모드는 6.1 Sol·6.1 Terra·Luna에서만 되고 Astra·6 Sol은 안 된다. Ultrafast는 6.1 Sol이 미국·EU 레지던시와 글로벌 처리, Astra는 미국 레지던시와 글로벌 처리에서만 된다
+7. [ ] 응답 사이에 effort를 바꾸면 `configuration_update`를 쓰고 요청 수준 `reasoning.effort`는 유지 (캐시 접두사 보존)
+8. [ ] 승인 대기로 멈추는 증상은 §1의 주도성 스니펫으로 대응
+9. [ ] **지시 파일 감사** — AGENTS.md·CLAUDE.md·스킬에서 모순되거나 낡은 문장을 제거하고 사용자 지시 우선권을 명시 (공식 마이그레이션 항목 밖, 우리 추가 항목. 공식 프롬프팅 절도 감사를 "strongly recommend"한다)
+
+5.6 프롬프트를 그대로 재사용해도 되는지를 명시한 공식 문장은 없다(미확인). 다만 파라미터 변경과 다섯 행동 축 권고를 합치면 사실상 튜닝 패스가 필요하다.
+
+---
+
+## 주의 (커뮤니티 관찰, 2차)
+
+Astra 출시 +3일 시점의 관찰이라 표본이 얇다. 설정 기본값의 근거로 쓰지 않는다.
+
+- **질문 과다로 작업이 멈춘다** — 첫 주 최다 불만이며, 프롬프트를 조정하지 않은 사용자는 확인 질문에 답하며 시간을 보냈다는 보고가 반복됐다
+- **위임 부족** — `ultra` 미만에서는 기대보다 서브에이전트를 덜 쓴다. OpenAI 자인과 커뮤니티 관측이 일치한다
+- **글쓰기 후퇴** — 편집 문체 평가에서 1995 Elo로 11위, 이전 세대 2156보다 낮다. 창작·편집 작업에는 권하지 않는다는 평이 다수다
+- **토큰 효율과 비용** — Artificial Analysis 실측에서 코딩 토큰 효율이 5.6 Sol 대비 70% 개선됐고 Coding Agent Index는 67.0으로 5.6 Sol 65.1보다 높다. 다만 max effort 작업당 비용은 5.6 Sol 대비 약 75% 비싸다
+
+---
+
+## 참고
+
+- [GPT-6 Prompting Guide (full)](../../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) — 전체 가이드, 제품군 절(§0), Codex 기본 지시문 차이표, 외부 관찰
+- [Prompting guidance | OpenAI API (공식)](https://developers.openai.com/api/docs/guides/prompt-guidance)
+- [Using GPT-6 | OpenAI API (공식)](https://developers.openai.com/api/docs/guides/latest-model)
+- 모델 카드 (공식): [gpt-6-astra](https://developers.openai.com/api/docs/models/gpt-6-astra) · [gpt-6.1-sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [gpt-6.1-terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra) · [gpt-6-sol](https://developers.openai.com/api/docs/models/gpt-6-sol) · [gpt-6-luna](https://developers.openai.com/api/docs/models/gpt-6-luna)
+- [Opus 5.5·GPT-6.1 Sol 재조사](../../../../reference/research/research-opus55-sol61.md) — 6.1 Sol의 3자 평가와 후기 [2차 포함]
+- [GPT-6.1 Terra 조사](../../../../reference/research/research-gpt61-terra.md) — Terra의 출시 근거·발표 수치·Codex 카탈로그, 같은 기간 GPT-6 제품군 변경
+- [Simon Willison — GPT-6 Astra (2026-09-03)](https://simonwillison.net/2026/Sep/3/gpt6-astra/) [2차]
+- [Artificial Analysis — Benchmarking GPT-6 Astra](https://artificialanalysis.ai/articles/benchmarking-gpt-6-astra) [2차]
+- [GPT-5.6 패턴 (이전 세대)](./gpt56-patterns.md)

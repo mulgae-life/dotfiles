@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+.mcp.json
+.agents/
+
+.archive/
+.install-state.json
+.claude/scratch/
+.claude/skills/synced/
+.collab-loop/

@@ -1,0 +1,85 @@
+# 변경 이력
+
+공개 레포에는 릴리즈 시점의 파일만 올라가고, [GitHub Releases](https://github.com/mulgae-life/dotfiles/releases)의 릴리즈 노트는 이 표의 같은 버전 행이다. 설계 결정의 근거는 [docs/DECISIONS.md](docs/DECISIONS.md).
+
+| 버전 | 핵심 변경 |
+|------|-----------|
+| **v2.68** | 작업 레포와 공개 레포를 나눔 — 공개 레포는 커밋 메시지와 작성자 이메일까지 드러나는데 GitHub에는 기록만 숨기는 설정이 없어, 커밋 기록은 비공개 작업 레포에 두고 공개 레포에는 `scripts/publish-release.sh`가 릴리즈 시점 파일을 커밋 하나로 올림(부모가 직전 릴리즈라 비공개 기록은 전송되지 않고, 작성자는 GitHub 대리 주소). 공개 주소가 그대로라 설치 명령은 같고, 분리 전에 받아 둔 사본은 다시 클론해야 함 |
+| **v2.67** | 서브에이전트 effort를 `high`로 고정 — Claude Code 2.1.317부터 메인과 다른 모델의 서브에이전트가 세션 effort 대신 그 모델의 저장값이나 기본값을 써서 medium~xhigh로 갈리던 것을, PreToolUse(`Agent`) 훅이 호출 입력에 `effort: "high"`를 넣어 묶음(직접 넘긴 값·fork 제외). Fable medium과 Opus xhigh 메인 양쪽에서 general-purpose·Explore·사용자 정의 에이전트가 Opus 5.5 `high`로 뜨는 것을 실측 |
+| **v2.66** | GPT-6.1 Terra(10/26) 반영 — Codex와 독립 조사·대조로 기존 GPT-6 문서에 Terra를 더하고, `none`은 받지만 Chat Completions 도구 호출은 막힌 계약을 6 Sol·Luna 예외와 나눠 적음. 같은 표에서 낡은 EU 레지던시 고속 모드·6.1 Sol 초고속 모드·12시간 캐싱·Codex 기본 창(6.1 Sol·Terra 500K, 근거 없던 "272K는 과금 티어" 추정 삭제)과 Anthropic 고속 모드(Opus 5.5 정식, 4.8 11/30 제거)를 바로잡음 |
+| **v2.65** | Windows 위험 명령 차단 실측 스크립트 `scripts/windows-live-check.cmd` 추가 — 세 도구를 그 PC의 실제 설정으로 돌리고, 모델의 답변 대신 도구의 구조화된 기록과 시험 폴더의 존재로 판정한다. 데스크톱 앱의 Claude Code(2.1.308)에서 PowerShell·Git Bash 21건이 모두 의도대로 막히거나 통과했고, Codex와 agy는 이 PC에서 쓰지 않아 실측하지 않았다 |
+| **v2.64** | `writing-prompts` 점검표에 프롬프트 파일 자체의 작성 문체 항목을 넣음 — 장황한 산문 대신 개조식으로 쓰고, 모델 행동을 바꾸지 않는 정보와 상투어·번역투·자작 조어를 빼게 했다. 대상 모델이 내놓을 출력의 문체는 지금처럼 모델별 문서가 정한다 |
+| **v2.63** | Windows 설치기를 `install.cmd` 한 파일로 합침 — 앞쪽 ASCII 배치가 PowerShell을 띄워 파일 전체를 UTF-8로 읽어 실행한다. 함께 Git Bash의 `ln -s`가 개발자 모드에서도 사본을 만들어 `init-project`의 루트 `CLAUDE.md`·`AGENTS.md`가 `GUIDE.md`와 어긋날 수 있던 것을, 사용자 환경 변수 `MSYS=winsymlinks:nativestrict`와 개발자 모드일 때만 켜는 `core.symlinks`로 바로잡음 |
+| **v2.62** | Windows 네이티브 설치기 추가 — WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 사용자를 위해 `install.ps1`(진입점 `install.cmd`)이 세 도구를 설치한다. 함께 `.gitattributes`로 줄바꿈을 LF로 고정하고, Claude deny에 PowerShell 38건과 Git Bash `C:/` 경로 3건을, Codex 규칙과 훅, 세 도구 지침의 위험 명령 목록에 Windows용 항목을 더했으며, agy deny가 Windows에서 사실상 동작하지 않음을 문서화했다. Claude 규칙은 실제 엔진으로 44건을 확인했고 Windows 실기기 실측은 아직이다 |
+| **v2.61** | `llm-api-guide` 에러 처리 예제 세 곳이 모든 API 오류의 부모인 `APIError`에서 `status_code`를 읽던 것을 바로잡음 — 이 속성은 `APIStatusError` 같은 하위 클래스에만 있어 타입 검사가 실패하고, OpenAI SDK가 스트리밍 중 오류로 던지는 `APIError`에서는 `AttributeError`가 원래 예외를 덮는다. `status_code`는 `APIStatusError` 분기에서만 읽고, 나머지 API 오류는 마지막 `APIError` 분기에서 `status_code` 없이 기록하도록 고쳐 오류 표와 체크리스트에도 반영 |
+| **v2.60** | agy가 `SKILL.md` 본문의 앞 24,000바이트만 읽어 `writing-prompts` 끝의 참고 자료(Gemma 4·Qwen 3.8 링크 등)가 경고 없이 잘리던 것을 바로잡음 — 링크 목록을 `references/sources.md`로 옮겨 본문을 26,703바이트에서 18,845바이트로 줄이고, `verify-policies.sh`에 본문 크기 검사를 추가(영문 원문을 유지하는 `skill-creator`만 예외, 근거는 `docs/DECISIONS.md` 5절) |
+| **v2.59** | Claude API 버전 `2026-10-21`(10/21) 반영 — Codex와 독립 조사·대조로 `llm-api-guide`에 버전·SDK 절(SDK 메이저별 기본 날짜, Messages 400 세 건, Python 2.0·TypeScript 1.0 변경)을 넣고, 새 버전에서 그대로 따르면 400이 나는 sampling 서술만 `writing-prompts`와 Claude 풀 가이드에서 버전을 구분해 고침. Python SDK 1.0부터 낡아 있던 Anthropic `Timeout` 예제(`httpx2`)와 역할 표의 `system` 행도 바로잡음. 이와 별도로, 대표님 지시에 따라 Codex를 인라인 모드(`tui.alternate_screen = "never"`)로 바꿔 tmux에서 마우스를 잡지 않게 함 |
+| **v2.58** | Gemini 4 Argon(10/13 GA) 반영 — Codex와 독립 조사·대조로 풀 가이드와 `writing-prompts` 패턴 요약을 새로 만들고 라우팅에 넣음. 3.x 처방은 Argon에 자동 승계하지 않음. 같은 주 바뀐 3.x 상태(Gemini API에서 3.7·3.5 Flash 폐기·자동 연결, 3.8 가이드의 일상 대안 3.6 Flash, Cloud 종료 일정)와 3.8 근거 링크를 바로잡고, 3.7은 Cloud 제공 중이라 범위에 남김. 범위표 Haiku 칸에 v2.53에서 빠진 5.5도 추가. agy 상태줄은 Argon 선택 시 Pro 요금제의 별도 주간 버킷(`gemini-argon-*-weekly`)과 Flash의 `gemini` 버킷을 나란히 보이도록 고침(대표님 지적) |
+| **v2.57** | `/brief` 분량·문체 개정 — 같은 사실이 판정 근거·표·인사이트, 지도·⚠️·다음에 겹쳐 나오고 최소 개수 규칙이 빈 칸을 채우게 하던 것을 "한 사실은 한 곳에만"으로 정리. 결정 시점을 바꾸지 않는 일정 변경과 쉬는 참여자는 빼고, 인사이트는 1~3개, 상한은 60줄에서 40줄로 낮춤. 진행 지도 한 줄에는 단계·상태·예상 시점만 두고 ❔ 미확인을 범례에 추가, 넘칠 때는 표 행·인사이트부터 줄이고 용어 풀이는 지킴. 문체는 대표님 선택으로 짧은 합쇼체 대신 음슴체 개조식(불릿 하나에 사실 하나, 40자 안쪽, 판정은 상태어만)으로 바꾸되 명사를 가운뎃점으로 잇는 압축은 계속 금지(CFD 실측으로 조정) |
+| **v2.56** | Codex 스킬 카탈로그(`.codex/AGENTS.md`)에 `office-docs` 추가 — v2.43 이식 때부터 빠져 있었다(Codex에서 쓰지 않는 `stitch-design` 외 유일한 누락) |
+| **v2.55** | `verifier`·`security-reviewer`의 영구 메모리(`memory: project`) 제거 — 호출하는 프로젝트마다 `.claude/agent-memory/`를 만들었으나 반년간 쌓인 메모는 네 곳 몇 건뿐이고, 교훈 기록은 본 대화의 자동 메모리가 맡는다. 기존 폴더는 각 프로젝트에 그대로 둔다 |
+| **v2.54** | 협업 체계 세팅 스킬 `cowork-set` 추가(직접 호출 전용) — 프로젝트 유형별 역할(제품형은 Claude 구현·Codex 검수, 연구형은 Claude 설계·감사·Codex 구현에 문헌·유도·실험 설계는 공동, 본 측정은 실행 전 감사)과 CFD 3자 협업에서 굳은 관행(지시서·회신 형식, 착수 전 의도 재진술, 판 불변과 라운드 로그, 일의 무게에 맞춘 절차)을 GUIDE 협업 절로 기록하고, GPT Pro 합류는 세팅 때 묻는다. 상대 tmux 세션 전송·대기는 `peer.sh`로 모았다. 화면과 Codex 세션 기록으로 상태를 판정하고, 나눠 넣은 메시지가 제출됐는지 확인한다 |
+| **v2.53** | Haiku 5.5(10/7) 반영 — 공식 문서 원문으로 풀 가이드를 새로 만들고 `writing-prompts`에 라우팅과 차이점 절을, `llm-api-guide`에 모델 표와 Haiku 4.5 대비 파괴적 변경 5건을 넣음. 같은 날 인하된 Sonnet 5.5 캐시 읽기 가격($0.10)과 Opus·Sonnet 5.5의 Haiku 5.5 사고 블록 읽기도 맞추고, 검증 버전을 2.1.294·0.161.0·agy 1.3.1로 올림(정책 회귀 36건, agy 실측 6건 통과) |
+| **v2.52** | 도구 버전 현행화 — Claude Code 2.1.286→2.1.290, Codex 0.159.3→0.160.1, agy 1.1.28→1.2.17 변경 이력을 설정·훅·권한 층과 대조해 기능 변경 불요 확인(정책 회귀 36건, agy 실측 6건 통과). agy 1.2.15부터 같은 파일을 가리키는 전역 지침 링크는 한 번만 주입되므로, 이중 주입 서술을 서로 다른 파일일 때로 한정 |
+| **v2.51** | `harness-evolve` 스킬 신설 — RRSI 논문의 정규화 원리(관찰된 문제만, 한 번에 하나, 예측을 다음 회고에서 확인해 유지·되돌림)로 Claude·Codex 세션 기록을 회고해 프로젝트 `agent-guide` 개선점 하나를 제안하고 승인 후 반영한다. 전역 지침은 대상이 아니며, Claude 기록과 Codex 기록 4가지 형식을 읽는 요약 스크립트를 포함하고 README·Codex 스킬 목록·SKILL-SOURCES에 등록 |
+| **v2.50** | `init-project`의 SESSION 템플릿 이력을 `update-docs` 형식(하루 한 행 표, 소제목 없음)으로 맞춤 — 새 프로젝트가 처음부터 반대 형식으로 시작해 이후 직접 편집이 그 형식을 따라 쓰던 문제. `SKILL-SOURCES.md`의 skill-creator 격리 문구를 실제 적용 파일(`improve_description.py`) 기준으로 정정. `update-docs`의 새 작업 우선순위를 P1~P3에서 GUIDE 템플릿·다른 스킬과 같은 P0부터로 통일 |
+| **v2.49** | `settings.json` 허용 목록에서 `SendMessage` 삭제 — schemastore 스키마의 도구 이름 패턴에 없어 편집기 경고가 떴고, `bypassPermissions` 기본이라 허용 목록 항목은 동작에 영향이 없다 |
+| **v2.48** | `writing-prompts` 지원 범위를 계열별 최신·직전·전전 세대로 넓힘 — Gemini 3.x·Sonnet 5.5·5·Claude 4.x(Opus 4.8·Sonnet 4.6·Haiku 4.5)·GPT-5.5 문서를 추가·복원하고, 대상 모델 ID와 API 방식을 먼저 확정해 그 모델 문서의 작성 체크리스트만 적용하는 라우팅을 Codex와 함께 설계해 넣음. 근거가 엇갈리던 예시 개수 수치는 범용 체크리스트에서 빼 모델 문서로 넘김 |
+| **v2.47** | Opus 5.5 재조사·GPT-6.1 Sol(9/29) 반영 — Claude·Codex 공동 조사(`reference/research/research-opus55-sol61.md`)를 근거로 9/24부터 바뀐 출력 전 거절의 범주별 과금, 6.1 Sol API 계약(`none` 미지원, Chat Completions 도구 호출 불가, 캐시 입력 $0.10)과 Codex 카탈로그 기본값(6.1 Sol·`low`, `ultra`→`xhigh`)을 스킬·가이드에 반영하고, Claude Code 2.1.281이 bypass에서도 핵심 경로 `rm`에 확인창을 띄우는 데 맞춰 위험 명령 규칙의 "유일한 통제" 단정을 고침. 사고 유도 지시 처방을 공급자별로 나눠(GPT 추론 모델은 불필요, Claude는 thinking이 켜져 있으면 일반 지시 우선) `writing-prompts`의 CoT 관련 문서에 맞춤(검증 2.1.286·0.159.3) |
+| **v2.46** | v2.45 프롬프트 감사에서 남은 정합성 문제 정리 — `verifier` 본문에 v2.17 자동 위임 폐지 때 빠진 "재실행" 문장, `hw-ppt`가 v2.43 이후 없는 `pptx` 스킬을 가리키던 생성 경로를 `office-docs`로, `work-verify` 설명("빠르게")과 본문("꼼꼼하게")의 반대 서술, `build-resolver`의 "즉시 위임"이 1~2줄 수정 위임 금지와 부딪히던 것. 설치가 settings.json을 덮어써 bypass 진입 확인창이 다시 뜨던 문제로 `skipDangerousModePermissionPrompt`를 레포에 추가. 파일 트리 사전 합의 문턱을 "파일 2개 이상"에서 "새 디렉토리나 모듈 구조를 정할 때"로 올림(세 도구 동기화), 멈춤을 줄이자는 나머지 감사 제안 4건은 유지 |
+| **v2.45** | Opus 5.5·GPT-6 Sol(9/22) 반영 — Claude와 Codex가 6라운드 토론으로 정리한 조사(`reference/research/research-opus55-gpt6-sol.md`)를 근거로, 스킬에 Opus 5.5 API 계약(thinking 끄기 불가, 강제 `tool_choice` 400, 사고 블록 결합, `computer_20251124` 미지원, 기본 effort `medium`, 도구 사이 텍스트의 `thinking` 블록 이동)과 GPT-6 Astra·Sol·Luna 차이(`none` 지원 여부, Chat Completions 함수 호출 조건, 272K 초과 요율)를 반영. 예시 ID를 `claude-opus-5-5`로 바꾸며 필수 인자 `max_tokens`가 빠진 예시 4곳 보완, Opus 5.5 풀 가이드 신설, GPT-6 가이드에 제품군 절 추가와 `ultra` 위임 해제 서술 정정. Codex 0.156.0부터 효과가 없는 `personality` 삭제, 검증 버전 2.1.280·0.156.1. 기존 불일치 2건 정리 — `security-reviewer` 자동 위임을 `rules/agents.md` 범위로 좁히고, `coding-style.md`에 구조 판단은 `architecture.md`를 따른다고 명시(agy·Codex 사본 동기화) |
+| **v2.44** | `install.sh` 시스템 패키지 설치가 `apt-get update` 없이 `install`로 바로 들어가 색인이 없는 새 환경에서 "Unable to locate package"로 실패하던 문제 — install 앞에 update를 붙이되 서드파티 저장소 하나가 깨져도 설치가 막히지 않게 update 실패는 경고로만 넘긴다. 실패 시 수동 안내와 `office-docs`·`visual-check`의 안내 명령에도 update를 붙임 |
+| **v2.43** | claude.ai 계정 스킬 동기화 끔(`syncClaudeAiSkills: false`) — Claude Code 2.1.275부터 기본 켬으로 도입돼 계정에 활성화된 Anthropic 스킬 12개가 `~/.claude/skills/synced/`에 내려왔고, 이 경로가 레포 링크라 untracked로 섞였다. 설명만 8천 자로 매 세션 프롬프트에 얹히는 데 비해 터미널에서 쓸 수 있는 것은 문서 4종뿐이고 스킬은 레포에서 관리한다는 원칙과 어긋나 끔. 재발 대비로 `.gitignore`에 `.claude/skills/synced/` 추가. 그 문서 4종(pdf·docx·pptx·xlsx)은 `office-docs` 한 스킬로 이식 — 얇은 한국어 라우터가 포맷을 판별해 `references/`의 상류 본문 하나만 읽게 하고, 세 스킬에 중복돼 있던 OOXML 검증기 1.2M을 한 벌로 합침(claude.ai는 스킬이 zip 단위라 공유가 불가능해 복제한 것). 이 환경 규칙(uv 가상환경·npm 전역, `rm`·`unzip` 대신 `pack.py`·`unpack.py`, 한글 폰트, 브랜드 스킬 우선, 렌더링 검수)은 라우터에 모으고 참조 본문은 설치 전제 문구만 고침. `install.sh`에 스킬 의존성 단계 추가 — 스킬의 `scripts/setup.sh`를 계약으로 삼아 사용자 권한 설치를 실행하고 `--apt-packages`로 모은 시스템 패키지는 jq와 같은 방식으로 `sudo apt-get`을 시도(`--skip-deps`로 생략). 그동안 `visual-check` 의존성은 스킬 호출 시점에 수동 설치였다 |
+| **v2.42** | autocompact 기준을 `autoCompactWindow` 500000→400000으로 낮춤 — 장문 성능 저하는 창 대비 비율이 아니라 절대 토큰을 따르고, 최신 세대에서 길이별로 측정된 유일한 곡선(Context Arena MRCR v2 8-needle, Opus 5)이 128K 91%→256K 66%→512K 43%로 꺾이며 Anthropic 직원 경험칙도 300~400K다. 300K는 압축 횟수가 약 1.4배로 늘어 요약 손실(`/compact` 1회 후 대화 내 제약 재현율 0.53, arXiv 2608.22752)이 커지는 데 비해 Fable 5.1의 300~400K 구간 저하는 공개 측정이 없어 400K로 절충 |
+| **v2.41** | 도구 버전 현행화 — Claude Code 2.1.258→2.1.278, Codex 0.153.4→0.155.1 체인지로그를 설정·훅·권한 층과 대조해 기능 변경 불요 확인(Codex 정책 회귀 20건 통과, `codex doctor` 설정 파싱 정상). 스킬 frontmatter `model:`·`effort:` 무시 버그가 상류에서 고쳐져 `/init-project`·`/update-docs`·`/work-verify`의 Opus medium 라우팅이 대화형 세션에서 실제 적용되기 시작. Codex 설정·규칙 파일에 남아 있던 은퇴한 Claude 훅 참조와 끊긴 문서 포인터 주석 정정 |
+| **v2.40** | compact 리마인더 개정(Claude·Codex) — "진행 중 작업과 다음 단계를 먼저 파악하라"가 요약의 재개 지시·압축 전 호출 스킬의 재실행 금지 안내와 겹쳐 압축 직후 `/brief` 호출을 이전 작업 재개로 흡수하던 문제. 이전 작업은 배경으로만 파악하고 압축 뒤 사용자 메시지(새 요청·스킬 호출)가 이번 턴의 작업임을 명시, 메시지가 없을 때만 재개. `/brief` 범위에 직전 작업 재개 금지 추가 |
+| **v2.39** | `/brief` 스킬 재구성 — 잣대를 `PROJECT.md` 현재 목표(목적·기대하는 결과)로 옮기고 SESSION의 세부 작업은 하위 단계로 격하(SESSION만 읽어 캠페인 내부 질문을 브리핑 질문으로 올리던 문제). 형식을 목적 → 진행 지도와 기대 대비 판정 → 목표를 흔드는 것 → 인사이트 → 다음으로 바꾸고, 큐 자원·검증 문턱값·예측 번호 등 실무 정보 제외. 연구 전용이던 용어를 연구·개발·스터디 대응표로 일반화. 개조식은 유지하되 명사구 종결 금지·프로젝트 은어 풀어쓰기·조어 금지 추가(전보문과 "다음 손"·"판독량" 류 라벨이 AI 문체의 주원인) |
+| **v2.38** | Codex 교훈 파일 운영 정비 — 경로를 `<프로젝트 루트>/.codex/lessons.md`로 명시(상대 경로 표기 탓에 프로젝트 밖에서 띄운 세션이 홈에 기록한 사례 차단), 세션 시작 시 읽기 지시와 압축 후 재읽기 리마인더 추가(기록만 하고 읽지 않던 구멍). Codex 공식 메모리는 조사 결과 미채택하고 `features.memories = false`로 의도 명시(프로젝트별 lessons와 역할 중복, 백그라운드 모델 호출 비용, 에이전트 읽기 전용) |
+| **v2.37** | `visual-check` 스킬 신설 — Playwright·Chromium으로 UI를 폭별 렌더링해 스크린샷과 진단(가로 넘침·폰트 미로드·깨진 이미지·콘솔 에러·실패 요청)을 남기고, 찍기→보기→판단→고치기 루프와 기준 이미지 대조 기준을 정의. 세 회사 공식 디자인 스킬 조사 결과 레포에 없던 "렌더 결과 검증" 단계를 채운 것(Anthropic·Google 이식본은 상류와 일치 확인, OpenAI는 스킬 카탈로그 폐기 후 플러그인으로 이전해 이식 대상 아님) |
+| **v2.36** | Gemma 4 자료 현행화 — 5월 초판 이후 공식 변경 반영(12B Unified 추가로 5종 체제, chat template 7월 개정의 `preserve_thinking`·인자 객체 검증, audio는 text 뒤로 배치 규칙 변경, 빈 thought 블록은 E2B/E4B 제외 전부, 병렬 tool call 공식 포맷, MTP 드래프터·공식 QAT·DiffusionGemma·기술 보고서). 출처가 사라진 Unsloth 인용 2건 삭제, HF discussion #53에 잘못 연결한 출처와 Cookbook 리포 이전 정정, 초판 인용문 3건을 원문대로 복원, `writing-prompts` 표·체크리스트·참고 갱신 |
+| **v2.35** | Qwen 3.8 대응 — 풀 가이드·패턴 파일을 3.8로 새로 쓰고(`reasoning_effort` 3단계와 template 지시문 주입, `preserve_thinking` 기본 ON, 단일 sampling 프리셋, 출력 예산, 모델별 라이선스 차이, Ollama 공식 등록, Claude Code `high` 예외), `writing-prompts` 표·체크리스트·참고 갱신. 3.6 자료는 `reference/archive/`로 이동하고 보관소 색인·기준 갱신. 3.6 가이드의 tool call JSON 예시가 부정확했음을 정정(template은 3.5부터 XML 스타일) |
+| **v2.34** | 이식 스킬 8개 상류 동기화 — `frontend-design` 재번역, `react-best-practices` 룰 52→70, `web-design-guidelines` 스냅샷 갱신, `code-review`에 오탐 제외 기준, `postgres-best-practices`를 상류 구조(`references/`·규칙 31개)로 이전, `stitch-design`은 상류가 플러그인 3종으로 쪼갠 하위 스킬 16종으로 재구성. v2.9에서 검증한 로컬 보완은 상류보다 우선 유지. 스킬 22개 출처를 이식·자체로 구분해 README 출처 열과 `docs/SKILL-SOURCES.md`에 기록 |
+| **v2.33** | 스킬 전수 점검 — 스킬은 각각 독립이라는 원칙으로 다른 스킬을 가리키는 문구를 15개 파일에서 제거, 폐기된 "3문장 이상 산문" 판정 잔존분 삭제, `hw-ppt`의 pptx 스킬 미설치 시 python-pptx 직접 사용 명시. 한화체 .ttf를 `hw-ppt`에 번들해 `hw-design` 자산 의존 해소, 참고 자료 목록의 날짜·🆕 표기 제거 |
+| **v2.32** | `/brief` 스킬 신설 — 프로젝트 전용이던 브리핑 스킬을 프로젝트 무관하게 이식(정본·진행 로그 경로는 SESSION.md에서). 분량 조항 모순 제거, 실측 대상 위치는 문서에 적힌 것만 쓰고 없으면 미확인 |
+| **v2.31** | agy 전역 지침 이중 주입 수정 — `~/.gemini/config/GEMINI.md`와 `~/.gemini/GEMINI.md`가 둘 다 로드됨을 마커 실측으로 확인, 공식 문서 경로인 후자만 남기고 전자는 재설치 시 정리 |
+| **v2.30** | agy 상태줄 신설 — `statusLine` 페이로드가 Claude Code와 같은 골격임을 실측하고 스크립트를 이식(컨텍스트·5h/7d 쿼터·모델·effort). `stack_with_default`로 내장 줄 유지 |
+| **v2.29** | 신모델(Fable 5.1·Astra·Gemini 3.8) 재점검 — 구조 변경 없음. Codex 추론 수준 고정 해제, agy 병합의 깨진 링크 선행 삭제 제거. README를 사용자용으로 재편하고 설계 근거는 `docs/DECISIONS.md`, 이력은 `CHANGELOG.md`로 분리. `/update-docs` 이력 형식 초압축 |
+| **v2.28** | Codex 점검 5건 반영 — `/init-project` 링크 단계를 `ln` 차단 도구(Codex)에서는 사용자 실행 요청으로 분기, 기존 파일 보존 분기와 완료 조건 정합, GUIDE 갱신 조건·교훈 경로·루트 기준 경로 일반화 |
+| **v2.27** | `/start`가 문서에 더해 핵심 코드를 읽는다 — PROJECT.md 코드 지도(골격=항상·영역=다음 작업 관련) 기준, 없으면 진입점부터 탐색. 예산 3,000줄, 출력에 "코드 파악" 절 |
+| **v2.26** | `/init-project`가 루트 `CLAUDE.md`·`AGENTS.md`를 `GUIDE.md` 링크로 생성 — 세 도구 링크 추종 실측. `/start`는 커스텀 명령에서 공용 스킬로 전환(Codex 층에 없던 세션 시작 절차 보강), `commands/` 설치 종료 |
+| **v2.25** | `merge_agy_settings` 잔여 경로 정리 — 신규 생성도 임시 파일 검증 후 교체(쓰기 실패가 성공으로 보고되던 문제), 링크는 전환 없이 병합·검증 뒤 마지막 교체에서만 일반 파일로(검증 실패 시 링크 소실 문제), 링크는 내용이 같아도 교체. README 차단 범위 문구를 Claude 기준으로 한정. Codex 재점검 3건 반영 |
+| **v2.24** | Antigravity 지침을 `GEMINI.md` 하나로 통합 — 공식 문서가 CLI·IDE 모두 `GEMINI.md`를 전역 규칙으로 명시하고 `AGENTS.md`는 대체 이름일 뿐이라 진입점 파일을 없앰. 우선순위를 사용자 현재 요청 1순위로 Codex 층과 정합. `merge_agy_settings`의 백업·교체 실패를 명시 처리하고 설치 종료 코드에 반영, 링크 대상 병합. Codex 정적 점검 4건 반영 |
+| **v2.23** | Antigravity CLI(`agy` 1.1.27) 관리 층 신설 — 전역 지침을 `~/.gemini/config/`로, `cli/settings.json`(always-proceed + 파국형 deny 66건)을 관리 키만 병합하는 `merge_agy_settings`로 설치. deny 문법(토큰 정확 일치, 글롭·regex 무효)·전역 규칙 경로·훅 로드를 실측. 정적 검사 16건 + 실측 스크립트. Codex와 토론해 확정 |
+| **v2.22** | Gemini CLI 층 은퇴 — Google이 2026-06-18부로 개인 계정 지원을 끊고 Antigravity CLI(`agy`)로 통합. 공유 자산(`GEMINI.md`·`AGENTS.md`·워크플로우)은 `.antigravity/`로 이관, 나머지와 회귀 케이스 62건은 아카이브. 3-tool 체계로 정리 |
+| **v2.21** | 압축 리마인더를 PostCompact → SessionStart(`compact`)로 이전(Claude·Codex 모두 PostCompact 출력이 모델에 안 닿음). Codex 리뷰 8건 판정, `verify-policies.sh` 무검사 통과 경로 차단, 문서 정합 점검으로 Gemini 층 드리프트 정정 |
+| **v2.20** | 구세대 모델 자료 정리 — 컷오프를 Claude 5·GPT-5.6으로 잡고 미만 문서 25개를 `reference/archive/`로 이동, 코드 예시 모델 ID를 `claude-opus-5`·`gpt-6-astra`로 통일하고 temperature 제거 |
+| **v2.19** | GPT-6 Astra·Codex 0.153.4 대응 — 조사 문서 3종 신설, Codex 층 지침을 Claude v2.16·v2.17과 정합, 스킬의 effort 열거에 세대 분기. Codex 층에 없던 코딩·구조·보안 규칙 복원 |
+| **v2.18** | 상용 스킬 6종 감사·반영 — Fable 5.1 미반영으로 오류가 된 API 예시·모델 표·캐시 단가를 고치고, 자기검증 권장 등 v2.17과 충돌하는 지시에 세대 범위를 표기. Fable 5.1 프롬프트 가이드 신설 |
+| **v2.17** | verifier 자동 위임 폐지 — Opus 5 가이드의 과잉 검증 절을 근거로 사용자 요청 시에만 위임하도록 전환. 완료 보고의 입증은 작업 중 도구 출력으로 유지 |
+| **v2.16** | Fable 5.1 대응 — 조사 문서 신설, coding-style에 외과적 수정 조항 추가, planner 트리거에서 파일 수 기준 삭제, 서브에이전트 Opus 강제 |
+| **v2.15** | 도구 버전 현행화 — Claude Code·Codex 체인지로그를 설정 층과 대조해 기능 변경 불요 확인, 낡은 주석 정정 |
+| **v2.14** | autocompact 임계값을 `autoCompactWindow: 500000`으로 레포에 고정 (런타임 명령은 재배포 시 사라짐) |
+| **v2.13** | 스킬 층 전수 감사 — SKILL.md 20개를 rules 감량과 같은 기준으로 판정해 상시 노출되는 description을 압축 |
+| **v2.12** | 상시 로드 지침 감량 393→250줄 — Claude 5 컨텍스트 엔지니어링 처방을 근거로 모델이 스스로 하거나 내장 기능과 겹치는 조항을 걷어냄 (원본은 `.archive/2026-08-13_rules-slimming/`) |
+| **v2.11** | Claude Opus 5 조사·반영 — 조사 문서와 프롬프트 가이드 신설, 스킬의 모델 정보를 실측 기준으로 정정 |
+| **v2.10** | 확인 프롬프트 전면 해제 — 자동승인 훅(504줄) 은퇴 + `ask` 81건 해제. 위험 명령 통제를 지침 + `deny` 49건으로 일원화 (복원 자료는 `.archive/2026-07-18_hook-retirement/`) |
+| **v2.9** | Codex 스킬 재검토 2라운드(쟁점 52건) 전건 재현 판정·선별 수용 — 스킬 격리·병렬 도구 배칭·경로 계약 정합 |
+| **v2.8** | 한국어 문체 심층 조사 + 블라인드 실측 — 간결화 개정 기각, 스몰톡 해요체 허용·압축체 금지·표준 용어 조항 반영 |
+| **v2.7** | 최신 모델 프롬프팅 가이드 기준 지침 감량(에이전트 4종·Codex 설정) + scratch 임시 의미 복원 — 오버트리거 방지 |
+| **v2.6** | 외부 코드 리뷰 9건 검증·선별 수용 — Gemini 정책 전면 소생, hook 혼합 대상 봉쇄, 정책 회귀 테스트 영속화(131케이스) |
+| **v2.5** | `/tmp` 예외 케이스5 — `cd /tmp &&` 체인 위치 무관 일반화, 상대경로 축 완성(의도적 미확장 명문화) |
+| **v2.4** | 문체 규칙 3-tool 정비(AI스러운 표현 차단) + 전역 rules 15% 감량 |
+| **v2.3** | `&&` 끝 줄바꿈 라인 연속 정규화 — 멀티라인 체인 오탐 해소 |
+| **v2.2** | 프로세스 종료 ask 해제(4-tool) + `/tmp` 예외 위치 무관 절대경로 확장(케이스4) |
+| **v2.1** | `/tmp` 예외 선두 `&&` 체인 확장(케이스3) + 케이스2 확장 구멍 봉쇄 |
+| **v2.0** | `gh api` 쓰기 누수 봉쇄(3-tool) + 실패알림 훅 수리·Codex 훅 제거 + Gemini `/tmp` 예외 |
+| **v1.9** | 보안 hook `/tmp` 예외(경로 기반 정책) + CLI 검증버전 정합 |
+| **v1.8** | hw-ppt PowerPoint 실측 좌표 확정 + 시그니처 ink 재페인트 |
+| **v1.7** | 위험 명령 정밀 분류 + 셸 우회 차단 |
+| **v1.6** | Opus 4.8 정합 + install.sh 파일별 정책 분리 + hw-ppt 스킬 신설 |
+| **v1.5** | Antigravity 통합 — 4-tool 12 카테고리 정합, install.sh OS 감지 |
+| **v1.4** | 위험 명령 차단 정합성 강화 — 3-tool 12 카테고리 ask 분기, 174건 검증 |
+| **v1.3** | hw-design 헤더 시스템 + recursive-discussion 정합 + GPT-5.5 가이드 정합화 |
+| **v1.2** | hw-design 스킬 신설 + `/work-plan` 콤팩트화 |
+| **v1.1** | Gemini CLI 지원 추가 |
+| **v1.0** | AI Agent Guidelines System 초기 릴리즈 |

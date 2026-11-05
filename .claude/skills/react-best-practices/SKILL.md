@@ -1,0 +1,138 @@
+---
+name: react-best-practices
+description: Vercel Engineering의 React/Next.js 성능 최적화 가이드.
+when_to_use: "컴포넌트 최적화해줘, 번들 사이즈 줄여줘, 리렌더링 줄여줘, Next.js 성능 개선해줘 요청 시. React/Next.js 코드의 성능 관련 작업 시 명시적 요청 없이도 참조."
+---
+
+# React Best Practices
+
+Vercel Engineering의 React/Next.js 성능 최적화 가이드입니다. 8개 카테고리, 70개 룰을 우선순위별로 정리했습니다.
+
+## 카테고리별 우선순위
+
+| 우선순위 | 카테고리 | 영향도 | 접두사 |
+|----------|----------|--------|--------|
+| 1 | Waterfall 제거 | CRITICAL | `async-` |
+| 2 | 번들 사이즈 최적화 | CRITICAL | `bundle-` |
+| 3 | 서버 사이드 성능 | HIGH | `server-` |
+| 4 | 클라이언트 데이터 페칭 | MEDIUM-HIGH | `client-` |
+| 5 | 리렌더 최적화 | MEDIUM | `rerender-` |
+| 6 | 렌더링 성능 | MEDIUM | `rendering-` |
+| 7 | JavaScript 성능 | LOW-MEDIUM | `js-` |
+| 8 | 고급 패턴 | LOW | `advanced-` |
+
+## 빠른 참조
+
+### 1. Waterfall 제거 (CRITICAL)
+
+- `async-cheap-condition-before-await` - 플래그·원격 값을 await하기 전에 값싼 동기 조건 먼저 확인
+- `async-defer-await` - await를 실제 사용 분기로 이동
+- `async-parallel` - 독립 작업에 Promise.all() 사용
+- `async-dependencies` - 부분 의존성에 better-all 사용
+- `async-api-routes` - API 라우트에서 Promise 일찍 시작, 늦게 await
+- `async-suspense-boundaries` - Suspense로 콘텐츠 스트리밍
+
+### 2. 번들 사이즈 최적화 (CRITICAL)
+
+- `bundle-barrel-imports` - 직접 import, barrel 파일 피하기
+- `bundle-analyzable-paths` - 정적으로 분석 가능한 import·파일 경로 사용 (번들·trace 비대화 방지)
+- `bundle-dynamic-imports` - 무거운 컴포넌트에 next/dynamic 사용
+- `bundle-defer-third-party` - 분석/로깅은 hydration 후 로드
+- `bundle-conditional` - 기능 활성화 시에만 모듈 로드
+- `bundle-preload` - hover/focus 시 preload로 체감 속도 향상
+
+### 3. 서버 사이드 성능 (HIGH)
+
+- `server-auth-actions` - Server Action도 API 라우트처럼 내부에서 인증·인가 검증
+- `server-cache-react` - 요청별 중복 제거에 React.cache() 사용
+- `server-cache-lru` - 요청 간 캐싱에 LRU 캐시 사용
+- `server-dedup-props` - RSC props 중복 직렬화 방지 (변환은 클라이언트에서)
+- `server-hoist-static-io` - 폰트·로고 등 정적 I/O를 모듈 레벨로 끌어올리기
+- `server-no-shared-module-state` - RSC/SSR에서 모듈 레벨 가변 요청 상태 금지
+- `server-serialization` - 클라이언트 컴포넌트로 전달 데이터 최소화
+- `server-parallel-fetching` - 컴포넌트 구조 변경으로 fetch 병렬화
+- `server-parallel-nested-fetching` - 항목별 중첩 fetch를 Promise.all 안에서 체이닝
+- `server-after-nonblocking` - 논블로킹 작업에 after() 사용
+
+### 4. 클라이언트 데이터 페칭 (MEDIUM-HIGH)
+
+- `client-swr-dedup` - 자동 요청 중복 제거에 SWR 사용
+- `client-event-listeners` - 전역 이벤트 리스너 중복 제거
+- `client-passive-event-listeners` - touch/wheel 리스너에 passive 옵션으로 스크롤 지연 제거
+- `client-localstorage-schema` - localStorage 키에 버전 접두사, 필요한 필드만 저장
+
+### 5. 리렌더 최적화 (MEDIUM)
+
+- `rerender-defer-reads` - 콜백에서만 쓰는 상태 구독 금지
+- `rerender-memo` - 비용 큰 작업은 메모이제이션 컴포넌트로 추출
+- `rerender-memo-with-default-value` - memo 컴포넌트의 비원시 기본값을 상수로 추출
+- `rerender-dependencies` - effect에 원시값 의존성 사용
+- `rerender-derived-state` - 원본 값 대신 파생 boolean 구독
+- `rerender-derived-state-no-effect` - 파생 상태는 effect가 아니라 렌더 중에 계산
+- `rerender-functional-setstate` - 안정적 콜백에 함수형 setState 사용
+- `rerender-lazy-state-init` - 비용 큰 초기값에 함수 전달
+- `rerender-simple-expression-in-memo` - 원시 결과의 단순 표현식은 useMemo로 감싸지 않기
+- `rerender-split-combined-hooks` - 의존성이 독립적인 훅은 분리
+- `rerender-move-effect-to-event` - 인터랙션 로직은 effect가 아니라 이벤트 핸들러에
+- `rerender-transitions` - 비긴급 업데이트에 startTransition 사용
+- `rerender-use-deferred-value` - 무거운 렌더는 useDeferredValue로 미뤄 입력 반응성 유지
+- `rerender-use-ref-transient-values` - 자주 바뀌는 일시적 값은 ref에 보관
+- `rerender-no-inline-components` - 컴포넌트 안에서 컴포넌트 정의 금지
+
+### 6. 렌더링 성능 (MEDIUM)
+
+- `rendering-animate-svg-wrapper` - SVG 요소 대신 div 래퍼 애니메이션
+- `rendering-content-visibility` - 긴 리스트에 content-visibility 사용
+- `rendering-hoist-jsx` - 정적 JSX를 컴포넌트 밖으로 추출
+- `rendering-svg-precision` - SVG 좌표 정밀도 줄이기
+- `rendering-hydration-no-flicker` - 클라이언트 전용 데이터에 인라인 스크립트
+- `rendering-hydration-suppress-warning` - 예상된 hydration 불일치만 suppressHydrationWarning으로 억제
+- `rendering-activity` - show/hide에 Activity 컴포넌트 사용
+- `rendering-conditional-render` - && 대신 삼항 연산자 사용
+- `rendering-usetransition-loading` - 수동 로딩 상태 대신 useTransition 사용
+- `rendering-resource-hints` - preload 등 React DOM 리소스 힌트 사용
+- `rendering-script-defer-async` - script 태그에 defer 또는 async
+
+### 7. JavaScript 성능 (LOW-MEDIUM)
+
+- `js-batch-dom-css` - 클래스나 cssText로 CSS 변경 일괄 처리
+- `js-index-maps` - 반복 조회에 Map 빌드
+- `js-cache-property-access` - 루프에서 객체 속성 캐싱
+- `js-cache-function-results` - 모듈 레벨 Map에 함수 결과 캐싱
+- `js-cache-storage` - localStorage/sessionStorage 읽기 캐싱
+- `js-combine-iterations` - 여러 filter/map을 하나의 루프로 결합
+- `js-length-check-first` - 비용 큰 비교 전 배열 길이 먼저 체크
+- `js-early-exit` - 함수에서 조기 반환
+- `js-hoist-regexp` - RegExp 생성을 루프 밖으로
+- `js-min-max-loop` - sort 대신 루프로 min/max 찾기
+- `js-set-map-lookups` - O(1) 조회에 Set/Map 사용
+- `js-tosorted-immutable` - 불변성에 toSorted() 사용
+- `js-flatmap-filter` - map과 filter를 flatMap으로 한 번에
+- `js-request-idle-callback` - 비핵심 작업은 requestIdleCallback으로 유휴 시간에
+
+### 8. 고급 패턴 (LOW)
+
+- `advanced-effect-event-deps` - useEffectEvent 결과를 effect 의존성에 넣지 않기
+- `advanced-event-handler-refs` - 이벤트 핸들러를 ref에 저장
+- `advanced-init-once` - 앱 초기화는 앱 로드당 한 번만
+- `advanced-use-latest` - 안정적 콜백 ref에 useEffectEvent 사용
+
+## 사용 방법
+
+개별 룰 파일에서 상세 설명과 코드 예제를 확인하세요:
+
+```
+rules/async-parallel.md
+rules/bundle-barrel-imports.md
+rules/_sections.md
+```
+
+각 룰 파일 포함 내용:
+- 중요한 이유 설명
+- 잘못된 코드 예제 + 설명
+- 올바른 코드 예제 + 설명
+- 추가 컨텍스트 및 참조
+
+## 전체 문서
+
+모든 룰이 포함된 완전한 가이드: `AGENTS.md`

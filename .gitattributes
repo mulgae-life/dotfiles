@@ -1,0 +1,11 @@
+# Windows 클론에서도 Linux와 같은 바이트로 받는다.
+# Git for Windows 기본값(core.autocrlf=true)은 텍스트를 CRLF로 바꾸는데, 그러면 Git Bash가 .sh 훅을 실행하지 못하고
+# agy의 SKILL.md 24,000바이트 한도 계산도 Linux와 어긋난다.
+* text=auto eol=lf
+
+# CMD 배치 파일은 CRLF여야 레이블·goto가 안정적으로 동작한다
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 원본이 CRLF로 배포된 라이선스 파일은 손대지 않는다
+OFL.txt -text

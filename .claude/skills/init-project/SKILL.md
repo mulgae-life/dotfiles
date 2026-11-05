@@ -1,0 +1,127 @@
+---
+name: init-project
+description: 새 프로젝트의 agent-guide 3종 파일(GUIDE.md, PROJECT.md, SESSION.md)을 자동 생성하고, 루트 CLAUDE.md·AGENTS.md를 GUIDE.md 링크로 만들어 세 도구가 매 세션 GUIDE.md를 읽게 합니다.
+when_to_use: "프로젝트 초기화해줘, agent-guide 만들어줘, 새 프로젝트 세팅해줘, 프로젝트 구조 잡아줘, 가이드 문서 만들어줘 요청 시. 새 프로젝트를 시작하거나 AI 에이전트 가이드 문서가 필요할 때."
+model: opus
+effort: medium
+---
+
+# init-project
+
+새 프로젝트에서 기획 대화(티키타카) 완료 후, **대화 맥락만으로** agent-guide 3종 파일을 자동 생성하고, 프로젝트 루트에 `CLAUDE.md`·`AGENTS.md`를 `agent-guide/GUIDE.md`로 향하는 심볼릭 링크로 만듭니다.
+
+```
+<프로젝트>/
+├── CLAUDE.md  → agent-guide/GUIDE.md   # Claude Code
+├── AGENTS.md  → agent-guide/GUIDE.md   # Codex, Antigravity CLI
+└── agent-guide/
+    ├── GUIDE.md      # 원본 하나 — 매 세션 전역 지침 뒤에 자동 로드
+    ├── PROJECT.md
+    └── SESSION.md
+```
+
+**원칙**:
+- 디렉토리 스캔 안 함 — 대화에서 추출한 정보만 사용
+- 부족한 정보는 `[TODO]` 플레이스홀더로 남김
+- 섹션 제목은 항상 생성 (빈 섹션이라도 자리 확보)
+- 프로젝트 지침 원본은 `GUIDE.md` 하나 — 루트 `CLAUDE.md`·`AGENTS.md`에 본문을 따로 쓰지 않음
+
+---
+
+## 사전 조건
+
+### 필수 정보 확인
+
+아래 **필수 항목**이 대화에 있는지 확인. 누락 시 사용자에게 질문:
+
+| 항목 | 필수 | 대상 파일 |
+|------|:----:|----------|
+| 프로젝트명 | O | PROJECT |
+| 목적 (1-2문장) | O | PROJECT |
+| 기술 스택 (영역별) | O | PROJECT |
+| MVP 기능 목록 | O | PROJECT |
+| 작업 관리 도구 | - | GUIDE, PROJECT, SESSION |
+| 프로젝트 구조 | - | PROJECT |
+| 빠른 시작 명령어 | - | PROJECT |
+| 다음 작업 | - | SESSION |
+| 프로젝트 특수 용어 | - | GUIDE |
+
+### 기존 파일 확인
+
+`agent-guide/` 디렉토리가 이미 존재하면 **덮어쓰기 여부**를 사용자에게 확인.
+
+루트에 `CLAUDE.md`·`AGENTS.md`가 이미 있으면(예: `claude /init`이 만든 파일) 링크로 덮지 않고 파일마다 **링크 / 보존** 중 하나를 사용자에게 확인. 보존이면 `CLAUDE.md`에는 `@agent-guide/GUIDE.md` 임포트 한 줄을 끝에 추가하고, `AGENTS.md`는 임포트 문법이 없으므로 GUIDE.md 본문을 병합. 여기서 정한 방식이 5단계와 완료 조건을 가른다.
+
+---
+
+## 실행 절차
+
+### 1단계: 대화 맥락에서 정보 추출
+
+대화 전체를 훑어 위 테이블의 항목을 추출. 추출 결과를 아래 형식으로 요약하여 **사용자 확인**을 받음:
+
+```
+📋 추출 결과:
+- 프로젝트명: {{project_name}}
+- 목적: {{purpose}}
+- 기술 스택: {{tech_stack}}
+- MVP 기능: {{mvp_features}}
+- 작업 관리: {{task_tool}} (없으면 "[TODO]")
+- 프로젝트 구조: (없으면 "[TODO: 구조 확정 후 업데이트]")
+- 빠른 시작: (없으면 "[TODO: 환경 설정 확정 후 작성]")
+- 다음 작업: {{next_tasks}} (없으면 "프로젝트 초기화 완료, 첫 작업 선택 필요")
+- 특수 용어: {{terms}} (없으면 기본 용어만)
+
+이대로 생성할까요? 수정할 부분이 있으면 알려주세요.
+```
+
+### 2단계: GUIDE.md 생성
+
+`agent-guide/GUIDE.md` — 대부분 **고정** 템플릿, 용어/도구만 맞춤.
+→ `templates/GUIDE.md.template` 읽어서 적용
+
+### 3단계: PROJECT.md 생성
+
+`agent-guide/PROJECT.md` — 대화 맥락 **의존도 가장 높음**.
+→ `templates/PROJECT.md.template` 읽어서 적용
+
+### 4단계: SESSION.md 생성
+
+`agent-guide/SESSION.md` — **최소 템플릿** (초기 기록 1건).
+→ `templates/SESSION.md.template` 읽어서 적용
+
+### 5단계: 루트 진입 링크 생성
+
+링크 방식으로 정한 파일만 프로젝트 루트에서 상대 경로 링크로 만듭니다 (`-f` 없이). 새 프로젝트면 둘 다입니다:
+
+```bash
+ln -s agent-guide/GUIDE.md CLAUDE.md
+ln -s agent-guide/GUIDE.md AGENTS.md
+```
+
+- Claude Code는 `CLAUDE.md`, Codex와 Antigravity CLI는 `AGENTS.md`를 세션 시작 시 전역 지침 뒤에 이어 붙인다. 세 도구 모두 링크를 따라 읽으므로 `GUIDE.md` 하나만 관리하면 된다
+- 상대 경로라 레포를 어디에 클론해도 유효하고, git에 링크로 커밋된다 (Windows는 개발자 모드가 켜져 있어야 링크를 만들고 체크아웃한다)
+- 링크 방식으로 정한 파일에서 `ln -s`가 "File exists"로 실패하면 사전 조건 확인 누락이므로 덮지 말고 사용자에게 알린다. Windows에서 권한 오류로 실패하면 개발자 모드가 꺼진 것이므로 켜도록 안내한다
+- **`ln`이 정책상 차단된 도구에서는**(Codex는 Starlark 규칙이 `ln` 전체를 forbidden으로 막음) 위 명령을 그대로 제시해 사용자에게 직접 실행을 요청한다. 인터프리터나 다른 명령으로 우회하지 않는다. 링크가 확인되기 전에는 전체 완료로 보고하지 않는다
+
+### 생성 후 확인
+
+3개 파일과 루트 진입 파일 2개 처리 완료 후:
+1. 각 파일 요약 (핵심 내용 1-2줄)
+2. 루트 진입 파일을 방식별로 확인 — 링크는 `ls -la`로 `agent-guide/GUIDE.md`를 가리키는지, 보존은 임포트 줄 또는 병합 내용이 들어갔는지. 사용자 실행을 요청한 링크는 확인 후에만 완료 처리
+3. `[TODO]` 항목 목록 안내
+4. 수정 필요 여부 확인
+
+---
+
+## 템플릿
+
+각 템플릿 파일을 읽어서 `{{변수}}`를 대화 맥락으로 치환합니다:
+
+| 파일 | 대상 | 핵심 변수 |
+|------|------|----------|
+| `templates/GUIDE.md.template` | agent-guide/GUIDE.md | terms_table, task_check_step 등 |
+| `templates/PROJECT.md.template` | agent-guide/PROJECT.md | project_name, purpose, tech_stack_table 등 |
+| `templates/SESSION.md.template` | agent-guide/SESSION.md | task_management_table, next_tasks_table, date, date_mmdd(최근 세션 행의 `MM-DD`) 등 |
+
+> 변수 치환 후, 각 템플릿에 포함된 **생성 안내용 인용구**(`> 예시:`, `> 대화에서 …가 언급되었으면`, `> …가 없으면` 등 채우는 방법을 설명하는 blockquote)는 제거합니다. 단 GUIDE의 "시작 예시" 섹션처럼 산출물 본문에 해당하는 인용구는 유지합니다.
