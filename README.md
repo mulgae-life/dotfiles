@@ -187,4 +187,4 @@ dotfiles/
 
 정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건). Windows에서는 `scripts\windows-live-check.cmd`로 실제 차단을 확인한다. 모델을 호출하므로 쿼터를 쓴다. 데스크톱 앱만 쓰는 PC에서는 앱에 들어 있는 `claude.exe`로 처음 한 번 `auth login`을 해야 한다.
 
-이 공개 레포에는 릴리즈 시점의 파일만 올라간다. 릴리즈는 비공개 작업 레포에서 `bash scripts/publish-release.sh <버전>`으로 하며, `public` 원격이 이 레포를 가리켜야 한다. CHANGELOG의 같은 버전 행이 릴리즈 노트가 된다.
+이 공개 레포에는 릴리즈 시점의 파일만 올라간다. 릴리즈는 비공개 작업 레포에서 `bash scripts/publish-release.sh <버전>`으로 하며, `public` 원격이 이 레포를 가리켜야 한다. CHANGELOG의 같은 버전 절이 릴리즈 제목과 노트가 된다.
