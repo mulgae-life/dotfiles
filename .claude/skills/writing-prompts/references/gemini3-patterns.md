@@ -17,7 +17,7 @@
 >
 > 본 문서는 패턴 요약. 풀 가이드: [`reference/google-prompt-guide/gemini-3-prompt-guide.md`](../../../../reference/google-prompt-guide/gemini-3-prompt-guide.md)
 >
-> `gemini-4-argon`은 이 문서가 아니라 [gemini4-argon-patterns.md](gemini4-argon-patterns.md)를 본다. 아래 3.x 처방을 Argon에 자동 적용하지 않는다.
+> `gemini-4-argon`·`gemini-4-carbon`은 [Gemini 4 (Argon·Carbon) 패턴](gemini4-argon-patterns.md)을 본다. 아래 3.x 처방을 두 모델에 자동 적용하지 않는다.
 
 ---
 
@@ -102,7 +102,7 @@
 
 ## 5. 함수 호출·구조화 출력
 
-- 도구 선택 모드: `auto`(기본)·`any`·`none`·`validated`. Claude Opus 5.5·Fable 5.1·Sonnet 5.5의 강제 `tool_choice` 금지를 옮기지 않는다
+- 도구 선택 모드: `auto`(기본)·`any`·`none`·`validated`. Claude Opus 5.5·Fable 5.2·5.1·Sonnet 5.5의 강제 `tool_choice` 금지를 옮기지 않는다
 - 함수 결과: 호출 하나에 결과 하나, 같은 `name`. 식별자 필드는 API마다 다르다. GenerateContent `FunctionResponse`는 대응 호출의 `id`를 넣고, Interactions `function_result`는 호출 단계의 `id` 값을 `call_id`에 넣는다. 3.8 가이드의 GenerateContent용 "`call_id` and `name`" 문장은 자료형과 어긋나므로 두 필드를 섞지 않는다
 - 멀티모달 결과는 함수 결과 안에, 추가 지시는 별도 `Part`가 아니라 결과 텍스트 끝에 `\n\n`으로. 어기면 사고 누출 같은 예기치 않은 동작이 생긴다
 - 도구 호출 직전 구조화 텍스트 강제 → `Malformed_Function_Call`. 공식 권장 우회는 메모용 `update()` 함수:

@@ -255,7 +255,7 @@ response = client.responses.create(
 
 ### Anthropic (Claude)
 
-#### Claude 5 세대 (Opus 5.5·Fable 5.1) — `output_config.effort`
+#### Claude 5 세대 (Opus 5.5·Fable 5.2·Fable 5.1) — `output_config.effort`
 
 ```python
 response = client.messages.create(
@@ -267,9 +267,9 @@ response = client.messages.create(
 ```
 
 **특징**:
-- Opus 5.5·Fable 5.1은 thinking이 상시 adaptive로 켜져 있어 `output_config.effort`로만 깊이 제어 (Opus 5는 effort `high` 이하에서 끌 수 있음)
+- Opus 5.5·Fable 5.1·5.2는 thinking이 상시 adaptive로 켜져 있어 `output_config.effort`로만 깊이 제어 (Opus 5는 effort `high` 이하에서 끌 수 있음)
 - `thinking: {"type": "disabled"}`·`budget_tokens`·sampling 파라미터는 **400 에러** → [claude-5-specifics.md](claude-5-specifics.md)
-- 기본값은 Fable 5.1·Opus 5가 `high`, Opus 5.5가 `medium`. 최고 난도만 `xhigh`/`max`(측정된 품질 이득이 있을 때만), 루틴은 `medium`/`low`
+- API 기본값은 Fable 5.2·5.1·Opus 5가 `high`, Opus 5.5가 `medium`. Claude Code에서는 Fable 5.2도 `medium`이 기본이라 같은 모델이라도 출발점이 다릅니다. 최고 난도만 `xhigh`/`max`(측정된 품질 이득이 있을 때만), 루틴은 `medium`/`low`
 - 모델 기본값에서 시작하되 전 레벨을 자체 eval로 다시 측정 — effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아 다른 모델의 설정을 그대로 옮기면 안 됩니다. Opus 5.5는 같은 레벨에서 Opus 5보다 턴당 사고가 많아 `max_tokens`에 사고 몫을 남깁니다
 - thinking이 켜져 있으면 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선합니다. 수동 CoT는 thinking을 끈 경우의 대안이지만, Opus 5는 낮은 effort로 thinking을 켜 두기를 먼저 권합니다. 사고 대신 내부 추론을 응답 본문에 재현하게 하는 지시는 제거합니다. 이 요구는 `reasoning_extraction` 거절 대상이며, 일반적인 결과의 근거 설명과 구분합니다 → [claude-5-specifics.md](claude-5-specifics.md)
 

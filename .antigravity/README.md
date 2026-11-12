@@ -33,6 +33,8 @@ Claude Code / Codex CLI와 같은 원칙(자율성 우선, 확인 프롬프트 �
 | 훅 | `~/.gemini/config/hooks.json` | 사용 0개. 파일 자체는 로드됨을 실측(PreInvocation `ephemeralMessage` 주입·Stop 발화 확인) |
 | MCP | `~/.gemini/config/mcp_config.json` | 레포 미관리 |
 
+Gemini 4 Carbon은 2026-11-10부터 Google AI Ultra와 적격 Enterprise에 제공되며, Enterprise는 라이선스와 관리자 허용 모델 목록을 확인한다([공식 발표](https://antigravity.google/blog/gemini-4-carbon-in-google-antigravity), [모델 표](https://antigravity.google/docs/models/)). CLI 1.5.5는 ADC(`AGY_ADC_AUTH`) 로그인에 Carbon Low·Medium·High를 추가했으며 프로젝트 접근 권한은 별도 조건이다([변경 기록](https://antigravity.google/docs/changelog/)). Carbon 전용 쿼터 버킷과 실제 상태줄 페이로드는 미확인이므로 현재 일반 Gemini 버킷 처리 코드는 유지한다.
+
 `~/.gemini/config/rules/*.md`도 전역 규칙으로 로드되지만 프론트매터 `trigger: always_on`이 있어야 한다(없으면 `Invalid rule trigger`로 무시). 이 레포는 GEMINI.md 단일 파일을 쓰므로 사용하지 않는다.
 
 ### settings 병합 계약 (`install.sh` `merge_agy_settings`)

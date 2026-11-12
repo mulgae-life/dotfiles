@@ -81,7 +81,7 @@ Haiku 4.5에서 모델 ID만 바꾸면 실패하는 변경입니다.
 2. **sampling 파라미터 불가**: `temperature`·`top_p`·`top_k`를 모두 빼고 프롬프트로 동작을 이끕니다. 분류 경로의 `temperature=0`이 흔한 사례입니다. 지우고 구조화 출력(structured outputs)이나 enum 값을 가진 도구로 출력을 제한합니다. 사고를 쓰든 안 쓰든 모든 요청에 적용됩니다.
 3. **assistant prefill 불가**: 마지막 assistant 턴은 사고를 끈 요청에서도 400입니다. `messages`를 user 턴으로 끝내고 용도별로 바꿉니다. 출력 형식은 구조화 출력이나 enum 필드 도구로(Amazon Bedrock은 구조화 출력을 지원하지 않아 도구로), 서두 생략은 시스템 프롬프트의 "바로 답하라" 지시로, 이어 쓰기는 user 메시지로("Your previous response was interrupted and ended with `[previous_response]`. Continue from where you left off."), 맥락 리마인더는 user 턴으로 옮깁니다.
 4. **`computer_20250124` 거부** (Claude API·Google Cloud): `computer_toolset_20260801` 툴셋만 받습니다. `computer-use-2025-01-24` 베타 헤더를 빼고, 에이전트 루프는 `input.action`이 아니라 멤버 `tool_use` 블록의 `name`과 `toolset_name`으로 분기하며, 결과에 `toolset_name`을 돌려줍니다. 툴셋과 함께 `fine-grained-tool-streaming-2025-05-14` 헤더를 보내면 400이므로 지웁니다. 브라우저 사용 도구(`browser_toolset_20260801`)도 새로 지원합니다.
-5. **이전 턴을 고치면 사고 블록 무효**: 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀐 뒤 그 블록을 다시 보내면 400입니다. Haiku 4.5는 이 검사를 하지 않았습니다. 2026-08-31 00:00 UTC 이후 만든 계정은 기본으로 검사하고, 그 전 계정은 `thinking.block_binding.prefix_mismatch_behavior`를 설정한 요청에서만 검사합니다. 대화를 append-only로 유지하고, 지시 변경은 대화 중 시스템 메시지(mid-conversation system message, 베타 헤더 불필요)로 합니다. `block_binding`은 적응형 사고에서만 받고 `disabled`와 함께 보내면 400입니다.
+5. **이전 턴을 고치면 사고 블록 무효**: 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀐 뒤 그 블록을 다시 보내면 400입니다. Haiku 4.5는 이 검사를 하지 않았습니다. 2026-08-31 00:00 UTC 이후 만든 계정은 기본으로 검사하고, 그 전 계정은 계정마다 다르고, `thinking.block_binding.prefix_mismatch_behavior`를 명시한 요청은 어느 계정에서든 그 설정대로 검사합니다. 대화를 append-only로 유지하고, 지시 변경은 대화 중 시스템 메시지(mid-conversation system message, 베타 헤더 불필요)로 합니다. `block_binding`은 적응형 사고에서만 받고 `disabled`와 함께 보내면 400입니다.
 
 요청은 성공하지만 결과가 달라지는 변경도 있습니다.
 

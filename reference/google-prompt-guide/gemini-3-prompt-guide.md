@@ -3,7 +3,7 @@
 > **대상 모델**: Flash 3.8 · 3.7 · 3.6 / Flash-Lite 3.5 · 3.1 / Pro 3.1 Preview
 >
 > **출처 (공식 1차)**:
-> - [What's new in Gemini 3.8 Flash | Google AI for Developers](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8) · [GenerateContent판](https://ai.google.dev/gemini-api/docs/generate-content/whats-new-gemini-3.8) (`latest-model` 주소는 이제 Gemini 4 Argon 문서라 3.8 근거로 쓰지 않음)
+> - [What's new in Gemini 3.8 Flash | Google AI for Developers](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8) · [GenerateContent판](https://aistudio.google.com/docs/whats-new-gemini-3.8?generate-content=true) (`latest-model`은 최신 모델 개요이므로 3.8 전용 근거로 쓰지 않음)
 > - [Gemini deprecations](https://ai.google.dev/gemini-api/docs/deprecations) · [Cloud 모델 수명주기](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/model-versions) (2026-10-16 확인)
 > - [What's new in Gemini 3.5 Flash | Google AI for Developers](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.5) (Gemini 3.x 공통 파라미터·프롬프팅 절)
 > - [Models | Google AI for Developers](https://ai.google.dev/gemini-api/docs/models) 및 모델별 페이지 ([3.8 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) · [3.7 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash) · [3.6 Flash](https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash) · [3.5 Flash-Lite](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite) · [3.1 Flash-Lite](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite) · [3.1 Pro Preview](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview))
@@ -20,7 +20,7 @@
 >
 > **날짜**: 2026-10-01 (모든 공식 URL을 이날 원문으로 확인)
 > **갱신**: 2026-10-16 (폐기 상태와 Gemini 4 공유 범위 재확인)
-> **자매 가이드**: [Gemini 4 Argon](./gemini-4-argon-prompt-guide.md) (이 가이드의 3.x 처방을 자동 적용하지 않음) · [Gemma 4](./gemma-4-prompt-guide.md) (Gemini와 별개 제품군인 오픈웨이트 모델)
+> **자매 가이드**: [Gemini 4 (Argon·Carbon)](./gemini-4-argon-prompt-guide.md) (이 가이드의 3.x 처방을 자동 적용하지 않음) · [Gemma 4](./gemma-4-prompt-guide.md) (Gemini와 별개 제품군인 오픈웨이트 모델)
 
 Gemini 3.x API 모델용 프롬프팅 가이드입니다. 여섯 모델은 공통 프롬프팅 원칙을 공유하지만, **사고 수준·기본값·일부 도구 지원·API 방식별 이력 처리가 모델마다 다릅니다.** 한 파일로 묶되 모델별 계약은 [§2 모델 개요](#2-모델-개요)와 [§4 사고 수준](#4-사고-수준-thinking_level)의 표를 기준으로 적용합니다.
 

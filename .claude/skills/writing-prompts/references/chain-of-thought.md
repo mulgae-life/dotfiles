@@ -189,7 +189,7 @@ certainty, which is invaluable for such a crucial financial milestone.
 | 비추론 모델 (소형·오픈웨이트, thinking을 끈 Gemma 4·Qwen 3.8 등) | ✅ 복잡한 과제에서 효과, 과제별 평가 필요 | Structured CoT (XML 태그) 사용 |
 | GPT 추론 모델 (GPT-5.6·GPT-6) | ⚠️ 추론 유도 문구는 불필요, 때로 방해 가능 | 추론을 유도하려고 덧붙인 "think step by step"·"explain your reasoning"은 생략. `reasoning.effort`로 내장 추론 제어 |
 | DeepSeek-R1 | 공급자 권고가 다름 | 공식 사용 권고는 수학 문제에 "Please reason step by step, and put your final answer within \boxed{}." 같은 지시를 넣으라고 안내 ([DeepSeek-R1 사용 권고](https://github.com/deepseek-ai/DeepSeek-R1#usage-recommendations)) |
-| Claude 5 (Opus 5.5·Fable 5.1·Opus 5) | ⚠️ thinking이 켜져 있으면 일반 지시 우선, 내부 추론 재현 요구는 거절 대상 | 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선. 수동 CoT는 thinking을 끈 경우의 대안이나, Opus 5는 낮은 effort로 thinking을 켜 두기를 우선 권고. 내부 추론을 답변에 재현하게 하는 지시는 `reasoning_extraction` 거절 대상이라 제거하고 thinking 블록(`display: "summarized"`)을 읽음 → [claude-5-specifics.md](claude-5-specifics.md) |
+| Claude 5 (Opus 5.5·Fable 5.2·Fable 5.1·Opus 5) | ⚠️ thinking이 켜져 있으면 일반 지시 우선, 내부 추론 재현 요구는 거절 대상 | 손으로 쓴 단계별 사고 지시보다 일반 지시를 우선. 수동 CoT는 thinking을 끈 경우의 대안이나, Opus 5는 낮은 effort로 thinking을 켜 두기를 우선 권고. 내부 추론을 답변에 재현하게 하는 지시는 `reasoning_extraction` 거절 대상이라 제거하고 thinking 블록(`display: "summarized"`)을 읽음 → [claude-5-specifics.md](claude-5-specifics.md) |
 
 결과의 근거, 변경 이유, 테스트 결과를 설명하라는 요청은 모델과 관계없이 유지합니다. 위 처방이 겨냥하는 것은 추론을 유도하려고 덧붙인 문구와 내부 추론을 재현하게 하는 요구입니다.
 
@@ -210,7 +210,7 @@ system_prompt: |
 
 ### Claude thinking과의 관계
 
-Claude 5 세대는 adaptive thinking이 기본으로 켜져 있습니다. Opus 5.5·Fable 5·5.1은 끌 수 없고, Opus 5·Haiku 5.5는 effort `high` 이하에서만 `thinking: {"type": "disabled"}`로 끌 수 있습니다. Sonnet 5.5의 가장 낮은 사고 설정은 `between_tools`이며, effort가 `high` 이하일 때 허용됩니다. 켜져 있을 때는:
+Claude 5 세대는 adaptive thinking이 기본으로 켜져 있습니다. Opus 5.5·Fable 5·5.1·5.2는 끌 수 없고, Opus 5·Haiku 5.5는 effort `high` 이하에서만 `thinking: {"type": "disabled"}`로 끌 수 있습니다. Sonnet 5.5의 가장 낮은 사고 설정은 `between_tools`이며, effort가 `high` 이하일 때 허용됩니다. 켜져 있을 때는:
 - 모델이 자동으로 구조적 추론을 수행
 - 수동 CoT 프롬프팅 대신 `output_config.effort`로 깊이 제어
 - 추론 감사(audit)가 필요하면 thinking 블록(`display: "summarized"`)을 읽고, 내부 추론을 답변에 재현하게 하지 않기. 일반적인 결과의 근거 설명은 요청할 수 있음

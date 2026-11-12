@@ -8,6 +8,7 @@
 >
 > **날짜**: 2026-09-02
 > **관련 조사**: [research-fable51.md](../research/research-fable51.md) · **자매 가이드**: [Claude Fable 5](./claude-5-fable-prompt-guide.md) · [Claude Opus 5](./claude-opus-5-prompt-guide.md)
+> **후속 모델**: [Claude Fable 5.2](./claude-fable-5-2-prompt-guide.md) (이 가이드의 처방을 5.2에 자동 적용하지 않음)
 
 Claude Fable 5.1 / Mythos 5.1 특화 프롬프팅 가이드입니다. 프롬프트 스니펫은 공식 문서 원문(영문)을 그대로 수록했습니다 — 시스템 프롬프트에 바로 붙여 쓰는 용도이므로 번역하지 않습니다.
 
@@ -50,7 +51,7 @@ Claude Fable 5.1 / Mythos 5.1 특화 프롬프팅 가이드입니다. 프롬프�
 |------|----------------|
 | **강제 도구 호출 금지** | `tool_choice`가 `{"type": "any"}` 또는 `{"type": "tool", "name": ...}`이면 400 `invalid_request_error`. 토큰 카운트 엔드포인트에도 동일 적용. 사고가 상시 켜져 있어 강제 호출이 사고를 건너뛰고 모델이 도구 인자에 작업 내용을 쓰게 되는 것이 이유. 대안은 `auto` + 프롬프트에 도구 적용 시점 명시 + `strict: true`, 또는 structured outputs |
 | **사고 블록 단방향 호환** | 사고 블록은 생성 모델과 그 이후 모델만 읽습니다. 5.1은 Opus 5·Fable 5·Mythos 5·이전 모델의 블록을 읽지만 역방향은 불가. 읽을 수 없는 블록은 API가 드롭하고 과금하지 않으며, `thinking-binding-controls-2026-08-01` 베타 헤더를 붙이면 `input_transformations`에 보고 |
-| **이전 턴 편집 시 사고 블록 무효화** | 사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾸면 다음 요청이 400(`The block is bound to a different conversation`), 옵트인 시 드롭. 2026-08-31 이후 생성 계정은 기본 강제, 이전 계정은 `thinking.block_binding.prefix_mismatch_behavior` 설정 시에만 동작. Mythos 5.1은 이 검사를 하지 않음 |
+| **이전 턴 편집 시 사고 블록 무효화** | 사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾸면 다음 요청이 400(`The block is bound to a different conversation`), 옵트인 시 드롭. 2026-08-31 이후 생성 계정은 기본 강제, 이전 계정은 계정마다 다름(`thinking.block_binding.prefix_mismatch_behavior`를 명시하면 어느 계정이든 그 설정대로). Claude API의 Mythos 5.1은 계정 생성일과 관계없이 기본 강제. Amazon Bedrock에서는 Mythos 5.1이 허용하던 이력 편집 요청을 Mythos 5.2부터 400으로 거절 |
 
 무효화를 유발하는 패턴: 이전 턴을 편집·재정렬·삭제하고 이후 턴을 남기기, 턴별 리마인더를 이전 턴에 주입했다가 다음 요청에서 제거하기, 세션 중 `system`·`tools` 배열 재구성, 같은 URL이 다른 바이트를 반환하는 이미지·문서.
 
@@ -119,7 +120,7 @@ First privately list what you need next; then request every item that doesn't de
 
 ### 3. 대화 이력은 append-only
 
-각 assistant 턴을 API가 반환한 그대로(사고 블록 포함) 이력에 덧붙이고, 요청 사이에 이전 턴을 편집하지 마세요. 2026-08-31 이후 생성된 계정에서는 5.1의 사고 블록이 그것을 만든 대화에서만 유효합니다. 접두부(시스템 프롬프트·도구 목록·이전 메시지)가 바뀐 뒤 사고 블록을 재전송하면 400이 반환되고, `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`(베타 `thinking-binding-controls-2026-08-01`)을 설정하면 해당 블록이 드롭됩니다. 이후 모델에서는 전 계정으로 확대될 전망이므로 지금 도입하는 편이 낫습니다.
+각 assistant 턴을 API가 반환한 그대로(사고 블록 포함) 이력에 덧붙이고, 요청 사이에 이전 턴을 편집하지 마세요. 2026-08-31 이후 생성된 계정에서는 5.1의 사고 블록이 그것을 만든 대화에서만 유효하고, 그 전 계정은 계정마다 달라 400 없이 넘어가기도 합니다. 접두부(시스템 프롬프트·도구 목록·이전 메시지)가 바뀐 뒤 사고 블록을 재전송하면 400이 반환되고, `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`(베타 `thinking-binding-controls-2026-08-01`)을 설정하면 해당 블록이 드롭됩니다. Fable 5.2부터는 계정 생성일과 관계없이 이 검사가 적용되므로([5.2 가이드](./claude-fable-5-2-prompt-guide.md)) 지금 도입하는 편이 낫습니다.
 
 검사에 걸리는 편집은 프롬프트 캐시를 재시작시키는 편집과 같습니다. 턴별 리마인더를 주입했다 제거하기, 이전 턴을 제자리에서 요약하기, 세션 중 시스템 프롬프트 바꾸기입니다. 대신 턴별 리마인더는 턴 한정 시스템 메시지로 보내고, 지시·도구 변경은 `system`·`tools`를 다시 쓰는 대신 mid-conversation 시스템 메시지로 하고, 이력 정리는 서버측 compaction이나 context editing에 맡기세요.
 

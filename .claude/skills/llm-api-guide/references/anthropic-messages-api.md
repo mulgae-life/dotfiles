@@ -12,6 +12,7 @@
 - [에러 핸들링](#에러-핸들링)
 - [모델 선택](#모델-선택)
 - [Opus 5.5 주의사항](#opus-55-주의사항)
+- [Fable 5.2 주의사항](#fable-52-주의사항)
 - [Fable 5.1 주의사항](#fable-51-주의사항)
 - [Opus 5 주의사항](#opus-5-주의사항)
 - [Haiku 5.5 주의사항](#haiku-55-주의사항)
@@ -75,7 +76,7 @@ response = client.messages.create(
 )
 
 # text 블록만 추출 — content[0]을 직접 읽지 않기: thinking이 켜진 모델
-# (Opus 5·Sonnet 5는 기본 on, Opus 5.5·Fable 5·5.1은 상시 on)은 첫 블록이 thinking입니다
+# (Opus 5·Sonnet 5는 기본 on, Opus 5.5·Fable 5·5.1·5.2는 상시 on)은 첫 블록이 thinking입니다
 print("".join(b.text for b in response.content if b.type == "text"))
 ```
 
@@ -134,7 +135,7 @@ messages = [
 
 Claude의 추론 기능 (OpenAI의 reasoning과 유사). **모델 세대에 따라 설정 방법이 다릅니다.**
 
-### 현행 모델 (Opus 5.5, Sonnet 5.5, Haiku 5.5, Fable 5·5.1, Opus 5, Sonnet 5): Adaptive Thinking
+### 현행 모델 (Opus 5.5, Sonnet 5.5, Haiku 5.5, Fable 5·5.1·5.2, Opus 5, Sonnet 5): Adaptive Thinking
 
 ```python
 response = client.messages.create(
@@ -157,8 +158,8 @@ for block in response.content:
 ```
 
 - 추론 깊이는 `budget_tokens`가 아니라 **`output_config.effort`** 로 제어
-- **Opus 5.5·Fable 5·5.1**: thinking이 항상 켜져 있음 — `thinking` 파라미터를 **생략**하거나 `{"type": "adaptive"}`로 보냄 (`enabled`·`disabled`·`budget_tokens` 모두 400). thinking 텍스트가 필요하면 `thinking={"type": "adaptive", "display": "summarized"}` (기본 `"omitted"`은 빈 문자열). Opus 5.5·Fable 5.1은 `disabled`가 **어떤 effort에서도** 400이므로, Opus 5에서 옮겨올 때 이 필드를 제거하고 effort를 낮춰 토큰을 제어합니다
-- **Opus 5.5·Fable 5.1의 도구 사이 텍스트**: 도구 호출 사이에 모델이 쓰는 짧은 진행 문구가 `text`가 아니라 진행 업데이트 `thinking` 블록으로 옵니다(도구 호출 하나 앞에 최대 하나). 기본 `omitted`에서는 비어 있어 이를 사용자에게 스트리밍하던 앱이 조용해집니다. `display: "updates"`(beta `thinking-display-updates-2026-08-18`)는 추론은 숨기고 진행 업데이트만, `"summarized"`는 둘을 섞어 돌려줍니다. 비어 있지 않은 블록을 뒤따르는 `tool_use` 앞에 표시하고, 블록은 수정 없이 되돌려 보냅니다
+- **Opus 5.5·Fable 5·5.1·5.2**: thinking이 항상 켜져 있음 — `thinking` 파라미터를 **생략**하거나 `{"type": "adaptive"}`로 보냄 (`enabled`·`disabled`·`budget_tokens` 모두 400). thinking 텍스트가 필요하면 `thinking={"type": "adaptive", "display": "summarized"}` (기본 `"omitted"`은 빈 문자열). Opus 5.5·Fable 5.1·5.2는 `disabled`가 **어떤 effort에서도** 400이므로, Opus 5에서 옮겨올 때 이 필드를 제거하고 effort를 낮춰 토큰을 제어합니다
+- **Opus 5.5·Fable 5.1·5.2의 도구 사이 텍스트**: 도구 호출 사이에 모델이 쓰는 짧은 진행 문구가 `text`가 아니라 진행 업데이트 `thinking` 블록으로 옵니다(도구 호출 하나 앞에 최대 하나). 기본 `omitted`에서는 비어 있어 이를 사용자에게 스트리밍하던 앱이 조용해집니다. `display: "updates"`(beta `thinking-display-updates-2026-08-18`)는 추론은 숨기고 진행 업데이트만, `"summarized"`는 둘을 섞어 돌려줍니다. 비어 있지 않은 블록을 뒤따르는 `tool_use` 앞에 표시하고, 블록은 수정 없이 되돌려 보냅니다
 - **Opus 5**: thinking **기본 켜짐** — 생략 시 adaptive로 실행 (사고 없이 실행되던 Opus 4.8과 다름, `max_tokens`는 사고+응답 합산 리밋이라 재검토 필요). `disabled`는 effort `high` 이하에서만 허용 — `xhigh`/`max` 조합은 400
 - **Opus 5·Sonnet 5**: `budget_tokens`는 400 에러
 - **Sonnet 5.5**: `disabled`·`budget_tokens`는 400. 사전 사고(up-front thinking)를 끄려면 `{"type": "between_tools"}`를 보냅니다. effort `high` 이하에서만 받고 `xhigh`·`max`에서는 400이며, Sonnet 5.5 전용 값이라 Opus 5.5·Fable·Haiku 5.5에 보내도 400입니다
@@ -169,13 +170,15 @@ for block in response.content:
 | effort | 용도 |
 |--------|------|
 | `low` / `medium` | 루틴·저지연 작업, 서브에이전트. Opus 5.5·Haiku 5.5는 `medium`이 기본값 |
-| `high` | Opus 5·Fable 5.1의 기본값 — 대부분 작업의 균형점 |
+| `high` | Opus 5·Fable 5.1·5.2의 기본값 — 대부분 작업의 균형점 (Claude Code의 Fable 5.2 기본값은 `medium`) |
 | `xhigh` | 코딩·에이전트 고난도 작업 |
 | `max` | 비용보다 정확성이 중요할 때 |
 
 > **Opus 5.5는 기본값 `medium`에서 시작**하되 `effort`를 명시하고 스윕을 다시 돌립니다. 생략하면 `medium`으로 실행되므로(Opus 5는 `high`) 옮겨온 코드의 사고량이 줄어듭니다. 같은 effort에서도 Opus 5보다 턴당 사고가 많고(`xhigh`·`max`에서 특히) `max_tokens`에 사고 몫을 남겨야 합니다. 공식 권고는 "Reserve `xhigh` and `max` for work where you've measured a quality gain."입니다.
 >
 > **Opus 5는 `high`에서 시작**해 `low`/`medium`을 비용·지연 제어의 1차 수단으로 적극 활용합니다. 다른 모델에서 가져온 effort 설정은 재사용하지 말고 스윕을 다시 돌립니다.
+>
+> **Fable 5.2는 `high`에서 시작해 `medium`·`xhigh`도 측정합니다.** 5.1이나 Opus 5.5에서 맞춘 값을 옮기지 않습니다. Opus 5.5에서 옮기면 effort를 생략한 요청이 `medium`이 아니라 `high`로 돌고, `medium` 이상에서는 덜 생각하라는 지시가 듣지 않아 작은 `max_tokens`가 텍스트 없이 끝날 수 있습니다.
 >
 > **Fable 5.1도 `high`에서 시작하되 전 레벨을 다시 측정합니다.** effort 이름이 모델 간 같은 사고량을 뜻하지 않기 때문이며, 5.1의 `medium`이 Fable 5 성능에 근접합니다. 시스템 카드의 FrontierCode 평가에서는 `medium`이 정점이고 `high` 이상은 요청 범위 밖 파일까지 고치면서 점수가 떨어졌습니다. `xhigh`/`max`는 긴 산출물을 사고 안에서 먼저 초안 작성해 지연·토큰이 늘어나므로, 측정된 이득이 있을 때만 씁니다.
 
@@ -210,7 +213,7 @@ response2 = client.messages.create(
 
 ### 대화 이력 클래스
 
-이력은 **append-only**로 다룹니다. Opus 5.5·Fable 5.1은 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀌면 다음 요청을 400으로 거절합니다([Opus 5.5 주의사항](#opus-55-주의사항) 3번, [Fable 5.1 주의사항](#fable-51-주의사항) 3번). 지시나 도구를 바꿔야 하면 이력을 고치지 말고 대화 중 시스템 메시지로 보냅니다.
+이력은 **append-only**로 다룹니다. Opus 5.5·Fable 5.1·5.2는 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀌면 다음 요청을 400으로 거절합니다([Opus 5.5 주의사항](#opus-55-주의사항) 3번, [Fable 5.1 주의사항](#fable-51-주의사항) 3번, Fable 5.2는 계정 나이와 무관하게 → [Fable 5.2 주의사항](#fable-52-주의사항) 1번). 지시나 도구를 바꿔야 하면 이력을 고치지 말고 대화 중 시스템 메시지로 보냅니다.
 
 ```python
 class ConversationManager:
@@ -314,10 +317,10 @@ response2 = client.messages.create(
 
 ### Tool Choice
 
-> ⚠️ **강제 `tool_choice`(`any`·`tool`)는 Opus 5.5·Fable 5.1·Mythos 5.1에서 400 `invalid_request_error`입니다.** Messages·Batches·토큰 카운트 엔드포인트 모두 해당합니다. 대안은 `auto` + 프롬프트에 쓸 도구를 명시 + 도구 정의에 `strict: true`이고, 스키마 준수 JSON만 필요하면 JSON outputs(`output_config.format`)를 씁니다. `strict: true`는 호출할 때 인자가 스키마를 따르게 할 뿐 호출 자체를 보장하지 않으므로, 도구를 써야 하는 조건은 지시문에 적습니다. CMEK 조직은 structured outputs를 못 쓰므로 지시문만 사용합니다. 특정 턴에만 도구 호출이 필수라면 최신 user 턴 뒤에 턴 한정 시스템 메시지로 요구하세요. `{"type": "none"}`은 이 모델들에서도 유효합니다.
+> ⚠️ **강제 `tool_choice`(`any`·`tool`)는 Opus 5.5·Fable 5.1·5.2·Mythos 5.1·5.2에서 400 `invalid_request_error`입니다.** Messages·Batches·토큰 카운트 엔드포인트 모두 해당합니다. 대안은 `auto` + 프롬프트에 쓸 도구를 명시 + 도구 정의에 `strict: true`이고, 스키마 준수 JSON만 필요하면 JSON outputs(`output_config.format`)를 씁니다. `strict: true`는 호출할 때 인자가 스키마를 따르게 할 뿐 호출 자체를 보장하지 않으므로, 도구를 써야 하는 조건은 지시문에 적습니다. CMEK 조직에서 Fable·Mythos 5.1·5.2는 structured outputs를 지원하지 않으므로 `strict`와 `output_config.format`을 빼고 지시문과 코드 검증으로 대신합니다. Opus 5.5는 CMEK 조직에서도 structured outputs를 지원합니다. 특정 턴에만 도구 호출이 필수라면 최신 user 턴 뒤에 턴 한정 시스템 메시지로 요구하세요. `{"type": "none"}`은 이 모델들에서도 유효합니다.
 
 ```python
-# 특정 도구 강제 — Opus 5.5·Fable 5.1·Mythos 5.1은 400, Opus 5 이하 전용
+# 특정 도구 강제 — Opus 5.5·Fable 5.1·5.2·Mythos 5.1·5.2는 400, Opus 5 이하 전용
 response = client.messages.create(
     model="claude-opus-5",
     messages=[...],
@@ -326,7 +329,7 @@ response = client.messages.create(
     max_tokens=1024
 )
 
-# 도구 사용 필수 — Opus 5.5·Fable 5.1·Mythos 5.1은 400, Opus 5 이하 전용
+# 도구 사용 필수 — Opus 5.5·Fable 5.1·5.2·Mythos 5.1·5.2는 400, Opus 5 이하 전용
 response = client.messages.create(
     model="claude-opus-5",
     messages=[...],
@@ -345,7 +348,7 @@ response = client.messages.create(
     max_tokens=1024
 )
 
-# 도구 사용 금지 — Opus 5.5·Fable 5.1에서도 유효
+# 도구 사용 금지 — Opus 5.5·Fable 5.1·5.2에서도 유효
 response = client.messages.create(
     model="claude-fable-5-1",
     messages=[...],
@@ -505,8 +508,9 @@ except APIError as e:
 
 | 모델 | 가격 (입력/출력, MTok) | 용도 |
 |------|----------------------|------|
-| `claude-fable-5-1` | $10 / $50 | 최상위 — 최고 난도 추론·장기 자율 작업. 캐시 읽기 $0.25, 컨텍스트 1M / 출력 128K, 컷오프 2026-06, 은퇴 하한 2027-09-01 ([주의사항](#fable-51-주의사항) 필독) |
-| `claude-fable-5` | $10 / $50 | 레거시 — 5.1로 대체됨. 캐시 읽기는 $1로 4배 |
+| `claude-fable-5-2` | $8 / $40 | 최상위 — 최고 난도 추론·장기 자율 작업. 공식 권고는 "Opus 5.5의 높은 effort로도 평가 기준에 못 미칠 때". 캐시 읽기 $0.20(0.025배), 컨텍스트 1M / 출력 128K, API 기본 effort `high`(Claude Code는 `medium`), 컷오프 2026-06, 은퇴 하한 2027-11-09 ([주의사항](#fable-52-주의사항) 필독) |
+| `claude-fable-5-1` | $10 / $50 | 이전 최상위(Active) — 캐시 읽기 $0.25, 컨텍스트 1M / 출력 128K, 컷오프 2026-06, 은퇴 하한 2027-09-01 ([주의사항](#fable-51-주의사항)) |
+| `claude-fable-5` | $10 / $50 | 이전 버전(Active) — 캐시 읽기는 $1로 4배, 은퇴 하한 2027-06-09 |
 | `claude-opus-5-5` | $4 / $20 | 기본 선택 — 장기 에이전틱 코딩·지식 작업. 공식 권고는 "대부분 워크로드는 Opus 5.5로 시작". 캐시 읽기 $0.20(0.05배), 컨텍스트 1M / 출력 128K, 기본 effort `medium`, 컷오프 2026-06, 은퇴 하한 2027-09-22 ([주의사항](#opus-55-주의사항) 필독) |
 | `claude-opus-5` | $5 / $25 | 이전 기본 선택 — thinking을 끌 수 있고 강제 `tool_choice`가 되는 마지막 Opus ([주의사항](#opus-5-주의사항) 참조) |
 | `claude-sonnet-5-5` | $2 / $10 | 균형 — 캐시 읽기 $0.10(2026-10-07 인하, 0.05배), 컨텍스트 1M / 출력 128K, API 기본 effort `high`(Claude Code는 `medium`), 컷오프 2026-06, 은퇴 하한 2027-09-28. thinking `disabled`는 400이고 사전 사고를 끄려면 `between_tools`([Thinking](#thinking-추론-제어) 참조) |
@@ -514,7 +518,7 @@ except APIError as e:
 | `claude-haiku-5-5` | $0.10 / $0.50 (프롬프트 10만 토큰 초과 시 $0.50 / $2.50) | 대량·저지연 — 분류·추출·라우팅·서브에이전트. 캐시 읽기 0.1배, 컨텍스트 1M / 출력 128K, 기본 effort `medium`, 컷오프 2026-06, 은퇴 하한 2027-10-07. Haiku 4.5와 요청 계약이 크게 다름([주의사항](#haiku-55-주의사항) 필독) |
 | `claude-haiku-4-5` | $1 / $5 | 레거시 — 은퇴 하한 2026-10-15. 컨텍스트 200K / 출력 64K, effort 미지원 |
 
-> 신규 코드는 위 표 기준. Opus 5.5와 Opus 5는 각각 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다.
+> 신규 코드는 위 표 기준. Opus 5.5와 Opus 5는 각각 Opus 4.x와 **별도 레이트리밋 버킷**을 씁니다. Fable 5.2도 Fable 5.1·5가 함께 쓰는 한도와 별도입니다.
 
 ---
 
@@ -532,7 +536,7 @@ Opus 5는 effort `high` 이하에서 `thinking: {"type": "disabled"}`를 받았�
 
 ### 3. 사고 블록의 모델·대화 결합
 
-- **읽을 수 있는 블록**: Opus 5.5는 Opus 5와 그 이전 Opus·Sonnet·Haiku의 블록, 그리고 Claude API·Google Cloud에서는 Sonnet 5.5·Haiku 5.5의 블록을 읽지만 Fable·Mythos 블록은 못 읽습니다. Claude API에서 Opus 5.5 블록을 읽는 것은 Fable 5.1·Mythos 5.1뿐입니다. 못 읽는 블록은 API가 드롭하고 과금하지 않으며, beta `thinking-binding-controls-2026-08-01`을 보내면 드롭 내역이 `input_transformations`로 보고됩니다.
+- **읽을 수 있는 블록**: Opus 5.5는 Opus 5와 그 이전 Opus·Sonnet·Haiku의 블록, 그리고 Claude API·Google Cloud에서는 Sonnet 5.5·Haiku 5.5의 블록을 읽지만 Fable·Mythos 블록은 못 읽습니다. Claude API에서 Opus 5.5 블록을 읽는 것은 Fable 5.1·5.2와 Mythos 5.1·5.2입니다. 못 읽는 블록은 API가 드롭하고 과금하지 않으며, beta `thinking-binding-controls-2026-08-01`을 보내면 드롭 내역이 `input_transformations`로 보고됩니다.
 - **이력 편집 금지**: 사고 블록 앞의 `system`·`tools`·이전 메시지가 바뀐 뒤 그 블록을 다시 보내면 400입니다. Fable 5.1과 같이 2026-08-31 00:00 UTC 이후 생성 계정은 기본 강제이고, 드롭으로 바꾸려면 같은 beta 헤더와 `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`을 씁니다.
 - 실무 요건은 [대화 이력 관리](#대화-이력-관리)의 append-only 원칙이고, 지시·도구 변경은 대화 중 시스템 메시지로 합니다.
 
@@ -555,6 +559,37 @@ Claude API와 Google Cloud에서는 `computer_toolset_20260801` 툴셋만 받고
 - Fast mode는 2026-10-15부터 정식 제공: `speed: "fast"`만 보내고 beta 헤더는 불필요(보내도 동작). Messages API는 Claude API·Claude Models on Google Cloud(Anthropic managed)·Microsoft Foundry(Azure 호스팅), Managed Agents는 Claude API에서만. $8 / $40, Batch·Priority Tier와 병용 불가
 - 메시지별 effort(beta), 대화 중 시스템 메시지, 작업 예산(task budgets), 요청 시 압축(beta `compact-2026-09-04`)을 지원합니다. 요청 시 압축은 남긴 턴의 사고 블록을 조건부로 유효하게 유지해 대화 결합 제약과 함께 쓰기 좋습니다
 - 프롬프트 작성 요령은 [Opus 5.5 풀 가이드](../../../../reference/claude-prompt-guide/claude-opus-5-5-prompt-guide.md) 참조
+
+---
+
+## Fable 5.2 주의사항
+
+`claude-fable-5-2`(2026-11-09 출시)는 [Fable 5.1 주의사항](#fable-51-주의사항)의 계약(thinking 상시 켜짐, 강제 `tool_choice` 400, refusal과 폴백, 30일 보존, prefill 400)을 그대로 따르고, 5.1에서 모델 ID만 바꾸면 깨지는 변경이 네 가지 더 있습니다.
+
+### 1. 이력 편집 400이 모든 계정에 적용
+
+5.1은 2026-08-31 이후 생성 계정만 기본 400이 확정이고 이전 계정은 계정마다 달랐지만, 5.2는 계정 나이와 관계없이 사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾼 뒤 블록을 다시 보내면 400 `The block is bound to a different conversation`입니다. 5.1에서 오류가 없었던 코드도 [대화 이력 관리](#대화-이력-관리)의 append-only 원칙으로 시험합니다. 고치는 동안의 임시방편은 beta `thinking-binding-controls-2026-08-01` + `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`이고, 버려진 사고를 다시 하느라 출력 토큰이 늘어납니다.
+
+### 2. 사고 블록은 5.2끼리만
+
+5.2는 5.1·Opus 5.5·Sonnet 5.5·Haiku 5.5와 그 이전 모델의 블록을 읽지만(Claude API·Google Cloud Google managed), 5.2 블록을 읽는 것은 Fable 5.2·Mythos 5.2뿐입니다. 라우터나 폴백(Opus 4.8·Opus 5 포함)이 대화를 다른 모델로 옮기면 그 블록은 버려집니다. 요청은 성공하고 버려진 블록은 과금되지 않습니다. 5.2 블록은 만든 계정이나 연결된 계정에서만 쓰이고, 다른 계정이 보내면 같은 방식으로 버려집니다(Claude API·Google Cloud Google managed에서 위 beta 헤더를 쓰면 `input_transformations`에 `organization_binding_mismatch`).
+
+### 3. `computer_20251124` 400 (Amazon Bedrock 제외)
+
+`computer_toolset_20260801`로 옮깁니다. 바꾸는 방법은 [Opus 5.5 주의사항](#4-computer_20251124-미지원-claude-apigoogle-cloud)과 같습니다.
+
+### 4. advisor 도구(beta)
+
+실행자가 5.2·Mythos 5.2이면 조언자도 둘 중 하나여야 하고 그 밖은 400입니다. 조언은 암호화된 `advisor_redacted_result` 블록으로 오므로 조언 평문을 읽던 코드는 고칩니다. 도구 정의가 바뀌므로 새 대화에서 적용합니다.
+
+### 기타
+
+- 가격 $8 / $40, 5분 캐시 쓰기 $10·1시간 $16, 캐시 읽기 $0.20(0.025배), 배치 $4 / $20, 캐시 최소 512 토큰. Anthropic 운영 서비스에서 `inference_geo: "us"`는 1.1배
+- effort 기본값 `high`(Opus 5.5는 `medium`) → [effort 가이드](#effort-가이드)
+- Fast mode 정식 제공: `speed: "fast"`, $16 / $80, beta 헤더 불필요. Claude API·Google Cloud(Anthropic managed·Google managed)·Microsoft Foundry(Anthropic 호스팅, 모델 ID `claude-fable-5-2-fast`로 배포하고 `speed`는 생략). Bedrock에는 없고 Batch·Priority Tier와 병용 불가
+- Priority Tier 미지원. 요청 한도는 Fable 5.1·5와 별도
+- CMEK 조직은 structured outputs(`strict`·`output_config.format`)를 못 씁니다
+- 프롬프트 작성 요령은 [Fable 5.2 풀 가이드](../../../../reference/claude-prompt-guide/claude-fable-5-2-prompt-guide.md) 참조
 
 ---
 
@@ -587,7 +622,7 @@ response = client.messages.create(
 ### 3. 사고 블록 바인딩 (Fable 5 → 5.1 파괴적 변경)
 
 - **하위 호환 없음**: 사고 블록은 그것을 생성한 모델 또는 그 이후 모델만 읽습니다. 5.1은 Opus 5·Fable 5·Mythos 5와 그 이전 모델의 블록을 읽지만, 구모델에 5.1 블록을 넘기는 역방향은 안 됩니다. 못 읽는 블록은 API가 조용히 드롭하고 과금하지 않습니다.
-- **이력 편집 금지**: 사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾸면 다음 요청이 400 `The block is bound to a different conversation`입니다. 2026-08-31 이후 생성된 계정은 기본으로 강제되고, 그 이전 계정은 `thinking.block_binding.prefix_mismatch_behavior`를 설정했을 때만 적용됩니다.
+- **이력 편집 금지**: 사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾸면 다음 요청이 400 `The block is bound to a different conversation`입니다. 2026-08-31 이후 생성된 계정은 기본으로 강제되고, 그 이전 계정은 계정마다 달라 400 없이 블록이 모델에 들어가기도 합니다. beta `thinking-binding-controls-2026-08-01`과 `thinking.block_binding.prefix_mismatch_behavior`를 명시하면 어느 계정에서든 그 설정대로 검사합니다.
 - 허용되는 조작은 선두 사고 블록 연속 제거, 서버측 compaction·context editing, `cache_control` 이동, effort 변경입니다.
 - 실무 요건은 [대화 이력 관리](#대화-이력-관리)의 append-only 원칙입니다. 사고 블록은 받은 그대로(빈 블록 포함) 되돌려 보내세요.
 
@@ -619,7 +654,7 @@ else:
 ### 6. 미지원 기능
 
 - **Priority Tier 미지원** (Fable 5는 지원)
-- **Fast mode 미지원** — Opus 5.5는 정식 제공, Opus 5·4.8은 연구 프리뷰(beta `fast-mode-2026-02-01`, 4.8은 2026-11-30 제거 예정)
+- **Fast mode 미지원** — Fable 5.2·Opus 5.5는 정식 제공, Opus 5는 연구 프리뷰, Opus 4.8은 폐기 예고 상태로 2026-11-30 제거 예정(두 모델 모두 beta `fast-mode-2026-02-01` 필요)
 - **300K 출력 배치 베타 미지원** — `output-300k-2026-03-24` 헤더의 지원 모델 목록에 없음
 
 ### 7. 신규 베타
@@ -711,7 +746,7 @@ answer = next(b.text for b in response.content if b.type == "text")  # 첫 블�
 
 ### 5. 이력 편집 시 사고 블록 무효
 
-사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾼 뒤 그 블록을 다시 보내면 400입니다. 2026-08-31 00:00 UTC 이후 생성 계정은 기본 강제이고, 그 전 계정은 `thinking.block_binding.prefix_mismatch_behavior`를 설정한 요청에서만 검사합니다. [대화 이력 관리](#대화-이력-관리)의 append-only 원칙을 지키고 지시 변경은 대화 중 시스템 메시지(베타 헤더 불필요)로 합니다.
+사고 블록 앞의 `system`·`tools`·이전 메시지를 바꾼 뒤 그 블록을 다시 보내면 400입니다. 2026-08-31 00:00 UTC 이후 생성 계정은 기본 강제이고, 그 전 계정은 계정마다 다릅니다. `thinking.block_binding.prefix_mismatch_behavior`를 명시한 요청은 어느 계정에서든 그 설정대로 검사합니다. [대화 이력 관리](#대화-이력-관리)의 append-only 원칙을 지키고 지시 변경은 대화 중 시스템 메시지(베타 헤더 불필요)로 합니다.
 
 ### 요청은 성공하지만 결과가 바뀌는 것
 
@@ -751,6 +786,8 @@ print(f"Output tokens: {usage.output_tokens}")
 - [Effort Parameter](https://platform.claude.com/docs/en/build-with-claude/effort)
 - [What's new in Claude Opus 5.5](https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5)
 - [Opus 5.5 Migration Guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide)
+- [What's new in Claude Fable 5.2](https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2)
+- [Fable 5.2 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-2/migration-guide)
 - [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1)
 - [Fable 5.1 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide)
 - [Introducing Claude Fable 5](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5)

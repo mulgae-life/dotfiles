@@ -26,6 +26,7 @@
 
 ### 모델별 가이드
 - **[claude-opus-5-5-prompt-guide.md](claude-opus-5-5-prompt-guide.md)** ⭐ 최신 - Claude Opus 5.5 특화 (API 파괴적 변경 4건, effort `medium` 시작, 무인 루프·대화형 하네스·채팅 앱별 증상과 처방, 붙여넣은 텍스트 표시)
+- **[claude-fable-5-2-prompt-guide.md](claude-fable-5-2-prompt-guide.md)** ⭐ 최신 Fable - Claude Fable 5.2 / Mythos 5.2 특화 (5.1 대비 API 파괴적 변경 4건, API `high`·Claude Code `medium` 기본 effort, 생각 줄이기 지시 무효, 코드 소유권·위임·쌓인 경고·문체 규칙 처방)
 - **[claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md)** ⭐ - Claude Fable 5.1 / Mythos 5.1 특화 (effort 재측정, 행동 변화 7건, append-only 이력, 작업 완주·범위 제한)
 - **[claude-sonnet-5-5-prompt-guide.md](claude-sonnet-5-5-prompt-guide.md)** ⭐ - Claude Sonnet 5.5 특화 (API 파괴적 변경 5건, effort 재보정, `between_tools`, 작업 범위 스니펫 3종, JSON 추론 작업)
 - **[claude-haiku-5-5-prompt-guide.md](claude-haiku-5-5-prompt-guide.md)** ⭐ - Claude Haiku 5.5 특화 (Haiku 4.5 대비 API 파괴적 변경 5건, 첫 Haiku effort와 `medium` 기본값, 검색·조기 종료·검증·챗봇 스니펫, 두 요율 가격)
@@ -81,6 +82,7 @@
 
 ### 모델별 가이드 선택
 - **Claude Opus 5.5**: [claude-opus-5-5-prompt-guide.md](claude-opus-5-5-prompt-guide.md) 먼저 읽기 — Opus 5 가이드와 달라진 항목(effort `medium` 시작, thinking 끄기 불가, 도구 사이 텍스트의 `thinking` 블록 이동)에 주의하고, 처방은 실행 환경과 관찰된 증상에 맞는 것만 적용
+- **Claude Fable 5.2 / Mythos 5.2**: [claude-fable-5-2-prompt-guide.md](claude-fable-5-2-prompt-guide.md) 먼저 읽기 — 5.1 가이드의 처방(반서식 규칙 제거, 산문 밀도 등)은 5.2 공식 가이드에 다시 나오지 않으므로 증상이 보일 때만 시험하고, 이력 편집 400이 모든 계정에 적용되는 점에 주의
 - **Claude Fable 5.1 / Mythos 5.1**: [claude-fable-5-1-prompt-guide.md](claude-fable-5-1-prompt-guide.md) 먼저 읽기 — Fable 5 가이드와 방향이 다른 항목(반서식 규칙 제거, 서식 규칙 반전, 강제 tool_choice 금지)에 주의
 - **Claude Fable 5 / Claude 5 세대**: [claude-5-fable-prompt-guide.md](claude-5-fable-prompt-guide.md) 먼저 읽기 — 4.x와 방향이 다른 항목(De-prescribe, prefill 불가, thinking 상시 on)에 주의
 - **Claude Sonnet 5.5 / Sonnet 5**: [claude-sonnet-5-5-prompt-guide.md](claude-sonnet-5-5-prompt-guide.md) · [claude-sonnet-5-prompt-guide.md](claude-sonnet-5-prompt-guide.md) — 두 모델은 사고 끄기 방식(Sonnet 5.5는 응답 전 사고만 끄는 `between_tools`, Sonnet 5는 `disabled`)과 강제 `tool_choice` 허용 여부가 다르므로 모델 ID를 먼저 확인
@@ -97,8 +99,8 @@
 ## 업데이트
 
 - **최초 수집**: 2025-02-01
-- **최근 갱신**: 2026-10-08 — Claude Haiku 5.5 가이드 추가
-- **수집 범위**: 9개 핵심 기법 + 모델별 가이드 8종 (Opus 5.5·Fable 5.1·Sonnet 5.5·Haiku 5.5·Opus 5·Fable 5·Sonnet 5·Opus 4.8)
+- **최근 갱신**: 2026-11-12 — Claude Fable 5.2 가이드 추가
+- **수집 범위**: 9개 핵심 기법 + 모델별 가이드 9종 (Opus 5.5·Fable 5.2·Fable 5.1·Sonnet 5.5·Haiku 5.5·Opus 5·Fable 5·Sonnet 5·Opus 4.8)
 
 ## 관련 문서
 

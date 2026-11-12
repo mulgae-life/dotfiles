@@ -1,4 +1,4 @@
-# Claude 5 세대 (Opus 5.5 · Fable 5.1 · Sonnet 5.5 · Haiku 5.5 · Opus 5 · Fable 5 · Sonnet 5) 특화 기법
+# Claude 5 세대 (Opus 5.5 · Fable 5.2 · Fable 5.1 · Sonnet 5.5 · Haiku 5.5 · Opus 5 · Fable 5 · Sonnet 5) 특화 기법
 
 ## 목차
 - [작성 체크리스트](#작성-체크리스트)
@@ -12,12 +12,13 @@
 - [Haiku 5.5 차이점](#haiku-55-차이점)
 - [4.x 프롬프트 마이그레이션 체크리스트](#4x-프롬프트-마이그레이션-체크리스트)
 - [Fable 5 → 5.1 델타 체크리스트](#fable-5--51-델타-체크리스트)
+- [Fable 5.1 → 5.2 델타 체크리스트](#fable-51--52-델타-체크리스트)
 - [Opus 5 → 5.5 델타 체크리스트](#opus-5--55-델타-체크리스트)
 - [요약](#요약)
 
 
-Claude 5 세대(Fable 5.1 `claude-fable-5-1`, Mythos 5.1 `claude-mythos-5-1`, Fable 5 `claude-fable-5`, Mythos 5 `claude-mythos-5`, Opus 5.5 `claude-opus-5-5`, Opus 5 `claude-opus-5`, Sonnet 5.5 `claude-sonnet-5-5`, Sonnet 5 `claude-sonnet-5`, Haiku 5.5 `claude-haiku-5-5`) 특화 베스트 프랙티스입니다. 본문은 Fable 5.1 기준이고, Fable 5에도 그대로 적용됩니다(5.1 전용 항목은 그때마다 표기). Opus 5만 다른 지점은 [Opus 5 차이점](#opus-5-차이점)에, Opus 5에서 5.5로 옮길 때 확인할 지점은 [Opus 5 → 5.5 델타 체크리스트](#opus-5--55-델타-체크리스트)에, Sonnet 두 모델은 [Sonnet 5.5 · Sonnet 5 차이점](#sonnet-55--sonnet-5-차이점)에, Haiku 5.5는 [Haiku 5.5 차이점](#haiku-55-차이점)에 정리했습니다. Opus 5.5는 Fable 기준 본문 대신 Opus 5 차이점에서 출발해 델타를 덧씌웁니다. Mythos 5.1·5는 SKILL.md 라우팅 표 밖이므로 [목록 밖 모델 규칙](../SKILL.md#대상-모델-확정)을 따릅니다. Opus 4.8·Sonnet 4.6·Haiku 4.5는 [claude-4-specifics.md](claude-4-specifics.md)를 씁니다.
-전체 가이드: [Opus 5.5](../../../../reference/claude-prompt-guide/claude-opus-5-5-prompt-guide.md) · [Fable 5.1](../../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) · [Sonnet 5.5](../../../../reference/claude-prompt-guide/claude-sonnet-5-5-prompt-guide.md) · [Haiku 5.5](../../../../reference/claude-prompt-guide/claude-haiku-5-5-prompt-guide.md) · [Fable 5](../../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) · [Opus 5](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) · [Sonnet 5](../../../../reference/claude-prompt-guide/claude-sonnet-5-prompt-guide.md)
+Claude 5 세대(Fable 5.2 `claude-fable-5-2`, Mythos 5.2 `claude-mythos-5-2`, Fable 5.1 `claude-fable-5-1`, Mythos 5.1 `claude-mythos-5-1`, Fable 5 `claude-fable-5`, Mythos 5 `claude-mythos-5`, Opus 5.5 `claude-opus-5-5`, Opus 5 `claude-opus-5`, Sonnet 5.5 `claude-sonnet-5-5`, Sonnet 5 `claude-sonnet-5`, Haiku 5.5 `claude-haiku-5-5`) 특화 베스트 프랙티스입니다. 본문은 Fable 5.1 기준이고, Fable 5에도 그대로 적용됩니다(5.1 전용 항목은 그때마다 표기). Fable 5.2는 본문에서 출발해 [Fable 5.1 → 5.2 델타](#fable-51--52-델타-체크리스트)를 덧씌웁니다. 본문의 5.1 전용 처방은 5.2 공식 가이드에 다시 나오지 않으므로 증상이 보일 때만 시험합니다. Opus 5만 다른 지점은 [Opus 5 차이점](#opus-5-차이점)에, Opus 5에서 5.5로 옮길 때 확인할 지점은 [Opus 5 → 5.5 델타 체크리스트](#opus-5--55-델타-체크리스트)에, Sonnet 두 모델은 [Sonnet 5.5 · Sonnet 5 차이점](#sonnet-55--sonnet-5-차이점)에, Haiku 5.5는 [Haiku 5.5 차이점](#haiku-55-차이점)에 정리했습니다. Opus 5.5는 Fable 기준 본문 대신 Opus 5 차이점에서 출발해 델타를 덧씌웁니다. Mythos 5.1·5는 SKILL.md 라우팅 표 밖이므로 [목록 밖 모델 규칙](../SKILL.md#대상-모델-확정)을 따릅니다. Opus 4.8·Sonnet 4.6·Haiku 4.5는 [claude-4-specifics.md](claude-4-specifics.md)를 씁니다.
+전체 가이드: [Opus 5.5](../../../../reference/claude-prompt-guide/claude-opus-5-5-prompt-guide.md) · [Fable 5.2](../../../../reference/claude-prompt-guide/claude-fable-5-2-prompt-guide.md) · [Fable 5.1](../../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md) · [Sonnet 5.5](../../../../reference/claude-prompt-guide/claude-sonnet-5-5-prompt-guide.md) · [Haiku 5.5](../../../../reference/claude-prompt-guide/claude-haiku-5-5-prompt-guide.md) · [Fable 5](../../../../reference/claude-prompt-guide/claude-5-fable-prompt-guide.md) · [Opus 5](../../../../reference/claude-prompt-guide/claude-opus-5-prompt-guide.md) · [Sonnet 5](../../../../reference/claude-prompt-guide/claude-sonnet-5-prompt-guide.md)
 
 ## 작성 체크리스트
 
@@ -26,14 +27,15 @@ Claude 5 세대(Fable 5.1 `claude-fable-5-1`, Mythos 5.1 `claude-mythos-5-1`, Fa
 - [ ] **Prefill 금지**: 400 에러 → Structured Outputs(`output_config.format`)로 대체
 - [ ] **`budget_tokens`·sampling 제거**: `thinking: {type: "enabled"}`와 기본값이 아닌 `temperature`·`top_p`·`top_k`는 400(API `2026-10-21`은 기본값도 400)
 - [ ] **"사고 과정 서술" 지시 제거**: `reasoning_extraction` refusal 유발(출력 전 거절도 과금, Haiku 5.5에는 이 거절 범주가 없음) → 추론은 `display: "summarized"` thinking 블록에서 읽기
-- [ ] `output_config.effort`: 모델별 기본값(Opus 5.5·Haiku 5.5는 `medium`, 나머지는 `high`)에서 시작해 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님). `xhigh`·`max`는 측정된 품질 이득이 있을 때만. 모델별 단서는 [Effort 상호작용](#effort-상호작용)
+- [ ] `output_config.effort`: 모델별 API 기본값(Opus 5.5·Haiku 5.5는 `medium`, 나머지는 `high`. Claude Code에서는 Fable 5.2·Opus 5.5·Sonnet 5.5·Haiku 5.5가 `medium`)에서 시작해 전 레벨 재측정 (레벨 이름이 모델 간 같은 사고량이 아님). `xhigh`·`max`는 측정된 품질 이득이 있을 때만. 모델별 단서는 [Effort 상호작용](#effort-상호작용)
 - [ ] 장기 자율 런: 진행 보고 근거화 + 메모리 파일 → [권장 스니펫](#권장-스니펫)
 - [ ] Long context 문서 배치 (맨 위)
 
 **모델별** (대상 모델 행만 적용)
-- [ ] **thinking 끄기**: Opus 5.5·Fable 5.1·Fable 5는 끌 수 없음 → "생각하지 말고 바로 답하라"류 규칙 삭제, 사고량은 effort로. Opus 5·Haiku 5.5는 effort `high` 이하에서만 `disabled`. Sonnet 5는 `disabled` 허용. Sonnet 5.5는 `disabled` 400 → 응답 전 사고만 끄는 `between_tools`(effort `high` 이하, 도구 사이 진행 업데이트는 계속 옴)
-- [ ] **강제 `tool_choice` 금지** (Opus 5.5·Fable 5.1·Sonnet 5.5): `any`/`tool`은 400 → `auto` + 지시문 + `strict: true` (`strict`는 호출 자체를 보장하지 않음)
-- [ ] **대화 이력 append-only** (Opus 5.5·Fable 5.1·Sonnet 5.5·Haiku 5.5): 턴별 리마인더는 턴 한정 시스템 메시지로, 이력·system·tools 사후 편집 금지
+- [ ] **thinking 끄기**: Opus 5.5·Fable 5.2·Fable 5.1·Fable 5는 끌 수 없음 → "생각하지 말고 바로 답하라"류 규칙 삭제, 사고량은 effort로. Opus 5·Haiku 5.5는 effort `high` 이하에서만 `disabled`. Sonnet 5는 `disabled` 허용. Sonnet 5.5는 `disabled` 400 → 응답 전 사고만 끄는 `between_tools`(effort `high` 이하, 도구 사이 진행 업데이트는 계속 옴)
+- [ ] **강제 `tool_choice` 금지** (Opus 5.5·Fable 5.2·Fable 5.1·Sonnet 5.5): `any`/`tool`은 400 → `auto` + 지시문 + `strict: true` (`strict`는 호출 자체를 보장하지 않음)
+- [ ] **대화 이력 append-only** (Opus 5.5·Fable 5.2·Fable 5.1·Sonnet 5.5·Haiku 5.5): 턴별 리마인더는 턴 한정 시스템 메시지로, 이력·system·tools 사후 편집 금지 (Fable 5.2는 계정 생성일과 관계없이 400)
+- [ ] **코드 소유권·위임·쌓인 경고·문체 규칙** (Fable 5.2): 증상별 처방과 구모델용 지시 재검토 → [Fable 5.1 → 5.2 델타](#fable-51--52-델타-체크리스트)
 - [ ] **산문 밀도·범위·서식** (Fable 5.1): 문장이 길고 단락이 적으면 "mannered prose" 정의문, 요청 밖 수정·과다 테스트 커밋을 막는 지시문, 구모델용 반서식 규칙은 언제 서식이 적절한지로 교체
 - [ ] **작업 범위** (Sonnet 5.5): 낮은 effort의 중간 확인, 높은 effort의 요청 밖 추가물·과잉 점검은 공식 스니펫으로 → [Sonnet 차이점](#sonnet-55--sonnet-5-차이점)
 - [ ] **범위 명시** (Sonnet 5): 지시를 문자 그대로 적용하므로 넓게 적용할 지시는 범위를 명시
@@ -61,7 +63,7 @@ Fable 5·5.1은 **지시 따르기가 매우 강해**, 4.x에서 필요했던 �
 | `temperature`/`top_p`/`top_k` | 400 에러 | 프롬프트로 변주 유도 (예: 4개 방향 제안 후 선택) |
 | "think" 단어 회피 (Opus 4.5 팁) | 불필요 | thinking 상시 on이라 무의미 |
 | **"사고 과정을 답변에 옮겨 써라"** | `reasoning_extraction` refusal 유발 | `thinking` 블록(`display: "summarized"`) 읽기 |
-| 강제 `tool_choice` (`any`/`tool`) | Opus 5.5·Fable 5.1·Mythos 5.1·Sonnet 5.5에서 400 (`{"type":"none"}`은 유효). Haiku 5.5는 받지만 사고 없이 도구 호출로 시작 | `auto` + 지시문에 도구 명시 + 도구 정의 `strict: true`, 또는 JSON outputs(`output_config.format`) |
+| 강제 `tool_choice` (`any`/`tool`) | Opus 5.5·Fable 5.2·Mythos 5.2·Fable 5.1·Mythos 5.1·Sonnet 5.5에서 400 (`{"type":"none"}`은 유효). Haiku 5.5는 받지만 사고 없이 도구 호출로 시작 | `auto` + 지시문에 도구 명시 + 도구 정의 `strict: true`, 또는 JSON outputs(`output_config.format`) |
 
 > ⚠️ 특히 마지막 항목: 기존 프롬프트의 reflection/show-your-thinking 지시("추론 과정을 먼저 서술한 후...")는 Fable 5에서 refusal → fallback 증가로 이어집니다. 마이그레이션 시 반드시 감사(audit)하세요.
 
@@ -142,6 +144,8 @@ Store one lesson per file with a one-line summary at the top. Record corrections
 
 **Fable 5.1 단서**: 기본값 `high`에서 시작하되 `low`~`max` 전 레벨을 자체 eval로 다시 측정하세요. effort 레벨 이름이 모델 간 같은 사고량을 뜻하지 않아, Fable 5에서 정한 값을 그대로 옮기면 안 됩니다(5.1의 `medium`이 Fable 5 성능에 근접).
 `xhigh`/`max`는 긴 산출물을 사고 안에서 먼저 초안 작성한 뒤 답변으로 다시 쓰는 경향이 있어 지연과 출력 토큰이 늘어납니다. 측정된 품질 이득이 있을 때만 쓰고, 쓸 때는 `max_tokens`를 사고 몫까지 잡으세요.
+
+**Fable 5.2 단서**: API 기본값은 `high`, Claude Code 기본값은 `medium`입니다. 공식 가이드는 `high`에서 시작하고 `medium`·`xhigh`도 측정하라고 하며, 5.1이나 Opus 5.5에서 맞춘 값을 옮기지 말고 다시 측정하라고 합니다(5.1의 "`medium`이 정점" 측정은 5.2 근거로 쓰지 않음). 대화형 코딩·채팅은 `medium`, 어려운 무인 작업은 `high`, `xhigh`는 이득을 측정한 가장 어려운 작업에만 씁니다. `low`는 코딩에서 5.1의 더 높은 레벨에 가깝습니다. `high` 이상은 인사에도 생각하고, `medium` 이상에서는 덜 생각하라는 지시가 듣지 않습니다.
 
 **Sonnet 5.5 단서**: 기본값은 `high`지만 레벨이 재보정돼 Sonnet 5의 같은 이름 레벨과 사고량이 다릅니다. 일반 작업 `high`, 명세가 분명한 에이전트 코딩·다단계 도구 사용 `medium`(어렵거나 길면 `high`), 채팅 등 지연 민감 작업 `medium`·`low`에서 시작합니다. `medium` 이상에서는 덜 생각하라는 지시가 안정적으로 듣지 않으므로 effort를 낮추고, 에이전트 코딩의 `max_tokens`는 128K로 잡고 스트리밍합니다.
 
@@ -236,6 +240,30 @@ Fable 5 프롬프트는 그대로 동작하지만, 아래 4건은 5.1에서 새�
 - [ ] **진행 업데이트 수신 설정**: 5.1은 도구 호출 사이 사용자 대상 텍스트를 덜 씁니다. 짧은 메모는 진행 업데이트 `thinking` 블록으로 오므로 `thinking.display`를 `"updates"`(또는 `"summarized"`)로 두고, "결과는 최종 응답에 모아라" 같은 억제 지시를 먼저 제거하세요
 
 5.1 전용 대응 스니펫(산문 밀도, 채팅 서식, 인용 표시, 작업 완주, 범위·테스트 제한, 파일 전체 재작성 억제)의 영문 원문은 [Fable 5.1 풀 가이드](../../../../reference/claude-prompt-guide/claude-fable-5-1-prompt-guide.md)를 참조하세요.
+
+## Fable 5.1 → 5.2 델타 체크리스트
+
+공식 전제는 "옮기기는 대부분 그대로 된다"입니다. API 계약 네 가지는 해당하는 통합이면 반드시 확인하고, 행동 처방은 관찰된 증상에만 하나씩 넣어 효과와 토큰 비용을 측정합니다.
+
+**API 계약 (해당하면 필수)**
+- [ ] **대화 이력 append-only가 모든 계정에 적용**: 5.1은 2026-08-31 이후 생성 계정만 기본 400이 확정이고 이전 계정은 계정마다 달랐지만, 5.2는 계정 나이와 무관하게 400입니다. 5.1에서 오류가 없었어도 `messages`를 직접 만드는 코드는 시험합니다
+- [ ] **사고 블록 단방향**: 5.2 블록은 5.2·Mythos 5.2만 읽습니다. 라우터·폴백이 Opus 5.5·Fable 5.1·Opus 4.8·Opus 5로 옮기면 블록이 버려집니다(요청은 성공, 미과금). 만든 계정이나 연결된 계정이 아닌 계정이 보낸 블록도 버려집니다
+- [ ] **`computer_20251124` → `computer_toolset_20260801`** (Bedrock 제외 400)
+- [ ] **advisor 조언자**: 5.2 실행자는 5.2·Mythos 5.2 조언자만 받습니다. 조언은 `advisor_redacted_result`로 암호화되어 옵니다
+- [ ] **effort 재측정**: `high` 시작 → [Effort 상호작용](#effort-상호작용)의 Fable 5.2 단서. 작은 `max_tokens`는 사고만 쓰고 텍스트 없이 끝날 수 있으니 올립니다
+
+**행동 처방 (증상이 보일 때)**
+- [ ] **생각 줄이기 지시 삭제**: `medium` 이상에서 무효 → 지우고 effort를 낮춤
+- [ ] **조기 종료** (`low`·`medium`에서 잦음): 공식 "Finishing work" 블록. 승인 요청에는 "continue" 대신 할 일을 정확히 답합니다
+- [ ] **코드 소유권**: 소유를 밝히지 않으면 기존 구조에 덧붙이기만 합니다. 구조 개선을 원할 때만 소유권 문장을 넣고, 사용자가 소유해 최소 변경을 원하는 코드에는 넣지 않습니다(범위 제한 규칙이 상쇄하지 못하고 출력 토큰이 70~80% 늘어남)
+- [ ] **긴 침묵**: `display: "updates"` 수신 확인 → 하네스의 턴 한정 리마인더 → 시스템 프롬프트 한 줄 순으로
+- [ ] **서브에이전트 과다**: `xhigh`·`max`에서 자기 작업 검토용 서브에이전트를 띄웁니다. 서브에이전트 기본 모델을 확인하고, 위임을 권하는 상시 지시부터 점검합니다
+- [ ] **쌓인 신중함**: 낡은 노트·메모리의 경고를 그대로 따릅니다. "never"가 든 지시는 절대 규칙으로 취급하므로 예외와 이유를 붙여 다시 쓰고, 승인 없이 해도 되는 단계를 이름으로 나열합니다
+- [ ] **문체 규칙 경직**: "20단어 이하" 같은 상한은 글을 끊기게 하므로 지우고, 최종 보고서에는 공식 "Communicating clearly" 블록을 씁니다
+- [ ] **Opus 5.5용 "이전 답을 끝난 것으로 취급" 두 문장**: 5.2에서는 이전 답의 실수를 지적하는 일이 크게 줄어드니 옮기지 않습니다
+- [ ] **모델에게 보이는 토큰 예산**: 큰 예산이 지출을 늘리므로 예산 없이 시험합니다
+
+영문 원문 스니펫은 [Fable 5.2 풀 가이드](../../../../reference/claude-prompt-guide/claude-fable-5-2-prompt-guide.md)를 참조하세요.
 
 ## Opus 5 → 5.5 델타 체크리스트
 

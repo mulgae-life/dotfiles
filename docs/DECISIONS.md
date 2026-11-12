@@ -32,7 +32,7 @@
 - 세 도구 모두 기본값을 따른다. 세대가 바뀌어도 설정이 낡지 않게 하기 위해서다.
 - 런타임에 고른 값(`/model`·`/effort`)은 재설치하면 레포 값으로 돌아간다.
 - 예외는 Claude 서브에이전트의 두 설정이다.
-  - 모델은 Opus로 강제한다(`CLAUDE_CODE_SUBAGENT_MODEL=opus` + `_FORCE=1`). Fable 서브에이전트가 구독 한도를 가장 빨리 쓰기 때문이다.
+  - 모델은 Opus로 강제한다(`CLAUDE_CODE_SUBAGENT_MODEL=opus` + `_FORCE=1`). Fable 계열은 구독 한도를 다른 Claude 모델보다 빨리 쓰고 주간 사용 상한도 따로 있어, 서브에이전트가 Fable을 상속하며 사용량이 늘어나는 것을 막기 위해서다.
   - effort는 `high`로 고정한다(§4의 훅). Claude Code 2.1.317부터 메인과 모델이 다른 서브에이전트는 세션 effort를 이어받지 않아 medium에서 xhigh까지 갈렸기 때문이다.
 
 ### Claude 층이 정본이다
@@ -163,7 +163,7 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 
 ### `writing-prompts`는 계열별 최근 세 세대를 지원한다 (v2.48)
 
-- 계열은 Claude(Opus, Sonnet, Fable, Haiku), GPT, Gemini(Argon, Flash, Flash-Lite, Pro)로 나눈다. 공급자가 은퇴시킨 모델은 뺀다. Gemma와 Qwen은 최신 세대만 둔다.
+- 계열은 Claude(Opus, Sonnet, Fable, Haiku), GPT, Gemini(Argon·Carbon, Flash, Flash-Lite, Pro)로 나눈다. 공급자가 은퇴시킨 모델은 뺀다. Gemma와 Qwen은 최신 세대만 둔다.
 - 대상 모델 ID와 API 방식을 먼저 확정한다. 패키지 이름으로 공급자를 추정하지 않는다. `openai` 라이브러리로 Gemini를 부를 수도 있기 때문이다.
 - 목록 밖 모델은 다른 모델로 바꾸지 않고, 공식 계약과 공통 기법만 적용한다.
 - 예시 개수 같은 수치는 범용 체크리스트에 두지 않고, 근거가 있는 모델 문서에만 둔다.

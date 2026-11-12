@@ -151,7 +151,7 @@ Messages API를 직접 호출하는 코드에 해당하는 절입니다.
 |------|------|------|
 | **thinking 끄기 불가** | `thinking: {"type": "disabled"}`와 `{"type": "enabled", "budget_tokens": N}` 모두 400. Opus 5는 `high` 이하에서 `disabled`를 받았음. 베타 헤더와 무관 | `thinking`을 생략하거나 같은 뜻인 `{"type": "adaptive"}`를 보내고, thinking을 끄던 자리에는 낮은 effort를 씀. 응답이 `thinking` 블록으로 시작할 수 있으므로 블록은 위치가 아니라 `type`으로 고르고, 도구 루프에서는 `thinking` 블록을 수정 없이 되돌려 보냄 |
 | **강제 도구 호출 불가** | `tool_choice`가 `{"type": "any"}` 또는 `{"type": "tool", "name": "..."}`이면 400이고 토큰 카운트 엔드포인트도 같음. `auto`(기본)와 `none`만 지원 | 스키마에 맞는 JSON이 필요하면 `auto`에 `strict: true`(strict tool use)를 쓰거나 structured outputs로 옮김. 텍스트 답 대신 도구를 부르게 하려면 프롬프트에 도구를 쓰는 조건을 적음 |
-| **사고 블록의 모델 결합과 대화 결합** | 5.5는 Opus 5와 이전 Opus, Sonnet, Haiku의 사고 블록과 Claude API의 Sonnet 5.5 사고 블록을 읽지만 Fable과 Mythos의 블록은 못 읽음. Claude API에서 5.5 블록을 읽는 모델은 Fable 5.1과 Mythos 5.1뿐. 읽을 수 없는 블록은 API가 드롭(요청 성공, 과금 없음). 블록 앞의 `system`, `tools`, 이전 메시지가 바뀌면 2026-08-31 00:00 UTC 이후 생성 계정은 기본 400 | 이력을 덧붙이기만 하는(append-only) 방식으로 유지하고, 지시나 도구 변경은 대화 중 시스템 메시지(mid-conversation system message)로 함. 400 대신 드롭하려면 `thinking-binding-controls-2026-08-01` 헤더와 `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`. 이전 계정은 이 필드를 설정해야 검사가 적용됨 |
+| **사고 블록의 모델 결합과 대화 결합** | 5.5는 Opus 5와 이전 Opus, Sonnet, Haiku의 사고 블록과 Claude API의 Sonnet 5.5 사고 블록을 읽지만 Fable과 Mythos의 블록은 못 읽음. Claude API에서 5.5 블록을 읽는 모델은 Fable 5.1·Mythos 5.1과 이후 나온 Fable 5.2·Mythos 5.2. 읽을 수 없는 블록은 API가 드롭(요청 성공, 과금 없음). 블록 앞의 `system`, `tools`, 이전 메시지가 바뀌면 2026-08-31 00:00 UTC 이후 생성 계정은 기본 400 | 이력을 덧붙이기만 하는(append-only) 방식으로 유지하고, 지시나 도구 변경은 대화 중 시스템 메시지(mid-conversation system message)로 함. 400 대신 드롭하려면 `thinking-binding-controls-2026-08-01` 헤더와 `thinking.block_binding.prefix_mismatch_behavior: "drop_block"`. 이전 계정은 계정마다 다르고, 이 필드를 명시하면 어느 계정이든 그 설정대로 검사함 |
 | **`computer_20251124` 미지원** | Claude API와 Google Cloud에서 400. Amazon Bedrock에서는 계속 동작 | `computer_toolset_20260801`로 전환. 베타 헤더를 빼고 `name`과 화면 크기 없이 선언하며, 에이전트 루프는 멤버 `tool_use` 블록(동작은 `input.action`이 아니라 블록의 `name`)을 턴당 여러 개 처리하고 결과마다 `toolset_name`을 되돌려 보냄 |
 
 오류 메시지 원문은 아래와 같습니다. `enabled`를 보냈을 때도 같은 형식으로 `"thinking.type.enabled"`가 찍힙니다.
@@ -160,7 +160,7 @@ Messages API를 직접 호출하는 코드에 해당하는 절입니다.
 - `tool_choice: type "tool" and "any" are not supported for this model.`
 - `'claude-opus-5-5' does not support tool types: computer_20251124.` 뒤에 `Did you mean one of`와 허용되는 도구 목록이 붙습니다.
 
-사고 블록 결합은 append-only 통합이라면 코드 변경이 없습니다. 마이그레이션 가이드는 Claude Code, claude.ai, Claude Managed Agents, Claude Agent SDK가 이미 그렇게 동작한다고 적습니다. 라우터나 폴백이 대화를 5.5에서 다른 모델로 옮길 수 있다면, 옮겨 간 모델은 5.5의 사고 블록 없이 이후 턴을 돈다고 예상합니다(Claude API의 Fable 5.1과 Mythos 5.1은 예외).
+사고 블록 결합은 append-only 통합이라면 코드 변경이 없습니다. 마이그레이션 가이드는 Claude Code, claude.ai, Claude Managed Agents, Claude Agent SDK가 이미 그렇게 동작한다고 적습니다. 라우터나 폴백이 대화를 5.5에서 다른 모델로 옮길 수 있다면, 옮겨 간 모델은 5.5의 사고 블록 없이 이후 턴을 돈다고 예상합니다(Claude API의 Fable 5.1·5.2와 Mythos 5.1·5.2는 예외).
 
 ### 응답 모양 변경
 
@@ -396,7 +396,7 @@ Opus 5 → 5.5 공식 체크리스트입니다.
 3. `effort`를 명시적으로 설정합니다. 기본값은 `medium`이고 Opus 5는 `high`였습니다.
 4. `tool_choice`의 `any`와 `tool`을 `auto`로 바꾸고 strict tool use나 structured outputs를 씁니다.
 5. Claude API나 Google Cloud에서 컴퓨터 사용을 한다면 `computer_20251124` 대신 `computer_toolset_20260801`(베타 헤더 없음)을 선언하고 에이전트 루프를 도구 세트에 맞게 고칩니다. Amazon Bedrock에서는 `computer_20251124`를 유지하고, 다른 플랫폼은 컴퓨터 사용 도구 문서의 Compatibility 절을 확인합니다.
-6. 라우터나 폴백이 대화를 5.5에서 다른 모델로 옮길 수 있다면, 그 모델은 5.5의 사고 블록 없이 돈다고 예상합니다. Claude API의 Fable 5.1과 Mythos 5.1은 예외로 블록을 유지합니다. 5.5 자신은 Opus 5와 이전 Opus, Sonnet, Haiku의 사고 블록과 Claude API의 Sonnet 5.5 사고 블록을 읽고, Fable과 Mythos의 블록은 읽지 못합니다.
+6. 라우터나 폴백이 대화를 5.5에서 다른 모델로 옮길 수 있다면, 그 모델은 5.5의 사고 블록 없이 돈다고 예상합니다. Claude API의 Fable 5.1·5.2와 Mythos 5.1·5.2는 예외로 블록을 유지합니다. 5.5 자신은 Opus 5와 이전 Opus, Sonnet, Haiku의 사고 블록과 Claude API의 Sonnet 5.5 사고 블록을 읽고, Fable과 Mythos의 블록은 읽지 못합니다.
 7. 콘텐츠 블록을 `type`으로 읽고, 도구 루프에서 `thinking` 블록을 수정 없이 되돌려 보냅니다.
 8. 도구 사이 텍스트를 렌더링하는 인터페이스라면 `display: "updates"`(베타)나 `"summarized"`를 설정하고 비어 있지 않은 `thinking` 블록을 렌더링합니다.
 9. 대화 도중에 이전 턴이나 `system` 프롬프트, `tools`를 고치는 코드라면 Preserved thinking 문서를 따릅니다.

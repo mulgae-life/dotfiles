@@ -32,9 +32,9 @@ Anthropic
 | **엔드포인트** | `/v1/responses` | `/v1/messages` |
 | **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
 | **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
-| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. Astra·6.1 Sol은 `none`·`minimal` 미지원이고 도구 호출은 Responses 전용 → 5.6에서 none 쓰던 곳은 `low`부터, 6.1 Terra는 `none`~`max` 지원이지만 도구 호출은 Responses 전용, 6 Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·Opus 5.5는 항상 켜짐, Opus 5.5·Haiku 5.5 기본 effort `medium`, `budget_tokens`는 Haiku 4.5 등 구모델 전용) |
+| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. Astra·6.1 Sol은 `none`·`minimal` 미지원이고 도구 호출은 Responses 전용 → 5.6에서 none 쓰던 곳은 `low`부터, 6.1 Terra는 `none`~`max` 지원이지만 도구 호출은 Responses 전용, 6 Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·5.2·Opus 5.5는 항상 켜짐, Opus 5.5·Haiku 5.5 기본 effort `medium`이고 Fable 5.2는 `high`, `budget_tokens`는 Haiku 4.5 등 구모델 전용) |
 | **스트리밍** | `stream: true` | `stream: True` |
-| **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 |
+| **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 (선택: 메시지 스레드 beta `message-threads-2026-08-12`는 서버가 이력을 잠시 보관해 새 메시지만 보내게 하지만, 5분 동안 요청이 없으면 만료되므로 원본 이력은 클라이언트가 계속 유지) |
 
 ---
 
@@ -106,6 +106,10 @@ Anthropic
 - [Opus 5.5 Migration Guide](https://platform.claude.com/docs/en/models/opus-5-5/migration-guide) — Opus 5에서 옮길 때 깨지는 변경 4건(thinking 끄기·강제 `tool_choice`·사고 블록 결합·`computer_20251124`)
 - [What's new in Claude Haiku 5.5](https://platform.claude.com/docs/en/models/haiku-5-5/whats-new-haiku-5-5) — 첫 Haiku effort, 프롬프트 길이별 두 요율
 - [Haiku 5.5 Migration Guide](https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide) — Haiku 4.5에서 옮길 때 깨지는 변경 5건(`budget_tokens`·sampling·prefill·`computer_20250124`·이력 편집)
+- [What's new in Claude Fable 5.2](https://platform.claude.com/docs/en/models/fable-5-2/whats-new-fable-5-2) ⭐ 최신 Fable — 5.1에서 깨지는 변경 4건(이력 편집 400 전 계정·사고 블록 단방향·`computer_20251124`·advisor)
+- [Fable 5.2 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-2/migration-guide) — 기본 effort `high`, 별도 요청 한도, 30일 보존
+- [Prompting Claude Fable 5.2](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-2) — 생각 줄이기 지시 무효·코드 소유권·위임·쌓인 경고 대응
+- [Message threads](https://platform.claude.com/docs/en/build-with-claude/message-threads) — 서버 측 대화 보관 beta, 5분 만료라 클라이언트 원본 유지
 - [What's new in Claude Fable 5.1](https://platform.claude.com/docs/en/models/fable-5-1/whats-new-fable-5-1) — 사고 블록 바인딩·신규 베타 3종
 - [Fable 5.1 Migration Guide](https://platform.claude.com/docs/en/models/fable-5-1/migration-guide) — 강제 `tool_choice` 400 등 파괴적 변경 3건과 체크리스트
 - [Prompting Claude Fable 5.1](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-1) — effort 재측정·행동 변화 대응 지시문

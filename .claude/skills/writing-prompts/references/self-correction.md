@@ -385,7 +385,7 @@ confidence_based: |
   </final>
   ```
 - **Extended thinking**: 내부 추론으로 자연스러운 자기 검토
-- **Claude 5 세대 (Opus 5.5·Fable 5.1·Opus 5)**: Opus 5에는 구모델용 자기 검토 지시 제거를 권하는 공식 예외가 있습니다("On Claude Opus 5, remove these instructions rather than rewriting them."). Opus 5.5·Fable 5.1까지 모든 검증 지시 삭제로 일반화하지 않습니다. 반복을 강제하는 지시와 내부 추론 재현 요구를 구분하고, 과제에 필요한 결과 검증은 유지합니다. 구체적으로는 세 가지를 나눕니다.
+- **Claude 5 세대 (Opus 5.5·Fable 5.2·Fable 5.1·Opus 5)**: Opus 5에는 구모델용 자기 검토 지시 제거를 권하는 공식 예외가 있습니다("On Claude Opus 5, remove these instructions rather than rewriting them."). Opus 5.5·Fable 5.1·5.2까지 모든 검증 지시 삭제로 일반화하지 않습니다. 반대 방향의 주의도 있습니다. Opus 5.5 가이드의 "이전 답을 끝난 것으로 취급하라"는 두 문장을 Fable 5.2에 넣으면 이전 답의 실수를 지적하는 일이 크게 줄어들므로, 이전 답을 다시 따져 보길 원하는 곳에는 옮기지 않습니다. 반복을 강제하는 지시와 내부 추론 재현 요구를 구분하고, 과제에 필요한 결과 검증은 유지합니다. 구체적으로는 세 가지를 나눕니다.
   - 테스트나 근거로 결과를 확인하라는 요구는 유지합니다. 결과물의 오류 목록, 근거, 테스트 결과를 요청하는 것은 추론 추출이 아닙니다
   - 조건 없이 검토를 되풀이시키는 의식적 지시(두 번 검증하라는 규칙, 모든 작업에 거는 필수 다단계 절차)는 구모델용 지시로 보고 다시 평가합니다. Opus 5.5 비용 블로그의 감사 사례가 지운 것이 이 유형입니다
   - 내부 추론을 응답에 재현하라는 요구는 `reasoning_extraction` 거절을 부를 수 있으므로 지우고, 추론은 `display: "summarized"` thinking 블록에서 읽습니다 → [claude-5-specifics.md](claude-5-specifics.md)
