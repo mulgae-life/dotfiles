@@ -2,6 +2,11 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.71 — 협업 회신을 직접 신호로 알린다
+- `cowork-set`의 `peer.sh`에 `signal`과 `listen`을 더했다. 파트너가 회신을 쓰고 신호를 남기면 중심의 수신기가 그 줄을 받는다. 중심이 Claude면 백그라운드 수신기가 끝나면서 Claude가 깨어난다.
+- 신호는 대표님이 주로 대화하는 중심 쪽 대화창에 넣지 않고 신호 파일에 남긴다. 중심이 파트너에 알릴 때는 전처럼 입력창에 넣는다.
+- 협업 절의 역할을 중심과 파트너로 적어 어느 도구든 중심이 될 수 있게 했다. 중심은 상대 화면을 지켜보며 기다리지 않고, 보낸 요청의 회신을 신호로 받는다.
+
 ## v2.70 — Claude Fable 5.2와 Gemini 4 Carbon 반영
 - Fable 5.2 가이드를 새로 쓰고, 5.1에서 넘어올 때 깨지는 API 계약 네 가지와 행동 변화를 스킬에 반영했다. 기존 Claude 가이드의 이력 검사와 CMEK 서술도 현재 공식 문서에 맞췄다.
 - Gemini 4 Carbon을 Argon 문서에 더하고, Cloud 캐시 최소 길이와 장문 출력 등 Argon의 낡은 서술을 고쳤다.
