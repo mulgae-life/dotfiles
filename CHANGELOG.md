@@ -2,6 +2,9 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.72 — Codex의 폐기 예정 `multi_agent` 설정 제거
+- Codex 0.167.2가 `[features]`의 `multi_agent`를 폐기 예정이라고 경고해 `.codex/config.toml`에서 뺐다. 멀티 에이전트는 기본으로 켜져 있어 동작은 그대로다.
+
 ## v2.71 — 협업 회신을 직접 신호로 알린다
 - `cowork-set`의 `peer.sh`에 `signal`과 `listen`을 더했다. 파트너가 회신을 쓰고 신호를 남기면 중심의 수신기가 그 줄을 받는다. 중심이 Claude면 백그라운드 수신기가 끝나면서 Claude가 깨어난다.
 - 신호는 대표님이 주로 대화하는 중심 쪽 대화창에 넣지 않고 신호 파일에 남긴다. 중심이 파트너에 알릴 때는 전처럼 입력창에 넣는다.
