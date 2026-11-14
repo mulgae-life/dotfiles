@@ -168,7 +168,7 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 | 스킬 | `.claude/skills/` | `~/.agents/skills` 링크 | `~/.gemini/config/skills` 링크 |
 | 모델·effort | 기본값 추종(서브에이전트만 Opus·`high` 강제) | 기본값 추종 | 기본값 추종 |
 | 상태줄 | `statusline-command.sh` | `[tui].status_line` 내장 항목 | `cli/statusline-command.sh` |
-| 검증 버전 | 2.1.322 | 0.167.2 | `agy` 1.5.6 (IDE 층 미검증) |
+| 검증 버전 | 2.1.325 | 0.169.0 | `agy` 1.5.9 (IDE 층 미검증) |
 
 ## 📁 디렉토리 구조
 
@@ -184,6 +184,6 @@ dotfiles/
 └── install.cmd       Windows 네이티브 설치기 (CMD·PowerShell·더블클릭 공용)
 ```
 
-정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 67건 + agy 정적 18건). Windows에서는 `scripts\windows-live-check.cmd`로 실제 차단을 확인한다. 모델을 호출하므로 쿼터를 쓴다. 데스크톱 앱만 쓰는 PC에서는 앱에 들어 있는 `claude.exe`로 처음 한 번 `auth login`을 해야 한다.
+정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 69건 + agy 정적 18건). Windows에서는 `scripts\windows-live-check.cmd`로 실제 차단을 확인한다. 모델을 호출하므로 쿼터를 쓴다. 데스크톱 앱만 쓰는 PC에서는 앱에 들어 있는 `claude.exe`로 처음 한 번 `auth login`을 해야 한다.
 
 이 공개 레포에는 릴리즈 시점의 파일만 올라간다. 릴리즈는 비공개 작업 레포에서 `bash scripts/publish-release.sh <버전>`으로 하며, `public` 원격이 이 레포를 가리켜야 한다. CHANGELOG의 같은 버전 절이 릴리즈 제목과 노트가 된다.

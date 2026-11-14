@@ -183,8 +183,6 @@
   GEMINI.md는 3-tool 페르소나 동기 관례에 따라 확장)
 - 액션 5(Codex 교차 판정)·6(Claude 시그니처 자체 계측)은 유효한 후속 과제로 유지
 
-실험 기록: `.archive/2026-07-17_style-experiment/` (results.md·answer-key.md·초안 2종·21응답 — 로컬 전용, gitignored)
-
 ## 전체 출처 (21건 확보, 주요만)
 
 | 출처 | 품질 | 역할 |

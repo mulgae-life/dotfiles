@@ -3,8 +3,7 @@
 # 사용: bash scripts/verify-policies.sh [codex|agy]  (인자 없으면 전체)
 # 케이스: scripts/policy-cases.tsv — 정책 파일 수정 시 케이스 추가 후 이 스크립트로 검증
 # 배경: 매 수정마다 배터리를 재작성하던 것을 영속화 (2026-07-10 코드 리뷰 P2-2 수용)
-# Claude 훅(auto-approve-readonly.sh)은 은퇴 — 러너와 케이스는 .archive/2026-07-18_hook-retirement/ 참조
-# Gemini CLI 층도 은퇴 — 러너와 케이스는 .archive/2026-09-07_gemini-cli-retirement/ 참조
+# Claude 훅(auto-approve-readonly.sh)과 Gemini CLI 층은 은퇴해 러너와 케이스를 뺐다
 # agy 실제 판정(모델 호출)은 scripts/agy-live-check.sh 로 분리
 set -uo pipefail
 

@@ -66,7 +66,7 @@
 
 ## 5. 출처
 
-수집은 2026-10-22 00:40~01:35 UTC입니다. 릴리스 노트와 이전 안내서 사본은 `.collab-loop/20261022-claude-api-20261021/sources/`, Haiku 5.5 이전 안내서와 대화 중 시스템 메시지 문서 사본은 로컬 `.archive/2026-10-22_claude-api-20261021/raw/`에 있습니다. 두 조사 보고서(`research_v1_claude.md`·`research_v1_codex.md`)와 토론 메모도 같은 `.collab-loop` 폴더에 있습니다(두 경로 모두 git 추적 대상이 아닙니다).
+수집은 2026-10-22 00:40~01:35 UTC입니다.
 
 - Claude API: [이전 안내서](https://platform.claude.com/docs/en/api/migration-2026-10-21) · [API versions](https://platform.claude.com/docs/en/api/versioning) · [릴리스 노트](https://platform.claude.com/docs/en/release-notes/api) · [SDK 소개](https://platform.claude.com/docs/en/cli-sdks-libraries/overview) · [대화 중 시스템 메시지](https://platform.claude.com/docs/en/build-with-claude/mid-conversation-system-messages) · [Haiku 5.5 이전 안내서](https://platform.claude.com/docs/en/models/haiku-5-5/migration-guide) · [Google Cloud](https://platform.claude.com/docs/en/build-with-claude/claude-on-vertex-ai) · [Amazon Bedrock](https://platform.claude.com/docs/en/build-with-claude/claude-in-amazon-bedrock)
 - SDK: [Python v2.0.0](https://github.com/anthropics/anthropic-sdk-python/releases/tag/v2.0.0) · [Python v1.0.0](https://github.com/anthropics/anthropic-sdk-python/releases/tag/v1.0.0) · [Python `MIGRATION.md`](https://github.com/anthropics/anthropic-sdk-python/blob/v2.0.0/MIGRATION.md) · [Python `_exceptions.py`](https://github.com/anthropics/anthropic-sdk-python/blob/v2.0.0/src/anthropic/_exceptions.py) · [TypeScript sdk-v1.0.0](https://github.com/anthropics/anthropic-sdk-typescript/releases/tag/sdk-v1.0.0) · [TypeScript README 실행 환경](https://github.com/anthropics/anthropic-sdk-typescript/blob/sdk-v1.0.0/README.md#requirements)

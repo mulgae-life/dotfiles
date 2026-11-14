@@ -659,7 +659,7 @@ Claude Code 2.1.286: 레포 설정과 `modelSettings` 외 일치, bypass 세션�
 
 ## 8. 출처
 
-본문에 채택한 출처입니다. 수집은 2026-10-01 00:40~02:25 UTC이고, 일부 수치와 원문은 토론 중에 다시 확인했습니다. 원 조사 보고서 네 개, 원자료 사본(`raw/`, `community/`, `evals/`, `hn/`), Codex 템플릿 추출본과 diff, 카탈로그 사본, 언어 측정 스크립트는 로컬 `.archive/2026-10-01_opus55-sol61-research/`에 보관했습니다. 토론 기록은 `.collab-loop/20261001-opus55-sol61/`에 있습니다(두 경로 모두 git 추적 대상이 아닙니다).
+본문에 채택한 출처입니다. 수집은 2026-10-01 00:40~02:25 UTC이고, 일부 수치와 원문은 토론 중에 다시 확인했습니다.
 
 **OpenAI 공식**
 - 발표문 https://openai.com/index/introducing-gpt-6-1-sol/ (직접 접속 403, 렌더러로 열람) · DevDay 요약 https://openai.com/index/devday-2026-recap/ · 개발자 커뮤니티 게시글 https://community.openai.com/t/gpt-6-1-sol-in-the-api-a-meaningful-step-up-in-cost-performance/1402388 (커뮤니티 리더 게시글)

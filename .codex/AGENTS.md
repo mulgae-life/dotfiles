@@ -55,7 +55,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 ### 행동 원칙
 
 - **위험 명령은 사용자 요청 시에만**: `approval_policy = "never"`라 아래 명령도 **확인 없이 그대로 실행됩니다**. 파국형 명령만 `.codex/rules/default.rules`가 기계적으로 차단하고, 나머지 위험 명령의 통제는 이 지침뿐입니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`)로 돌려 쓰는 것도 동일하게 금지:
-  - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, `git rm`, Windows PowerShell의 `Remove-Item`(`ri`·`del`·`erase`·`rd` 포함)·`Clear-Content` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
+  - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, `git rm`, Windows PowerShell의 `Remove-Item`(`ri`·`del`·`erase`·`rd` 포함)·`Clear-Content` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸). 요청받은 삭제에 `-f`를 쓸 때는 `rm -rf build`처럼 경로를 그대로 적는다(변수·`~`·글롭·리다이렉션이 들면 Codex 내장 검사가 거부한다)
   - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f` (조회와 `git add`·`checkout`·`switch`·`stash`는 자유)
   - **GitHub CLI 쓰기**: `gh pr/issue/release/repo create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
   - **시스템/권한**: `sudo`, `dd`, `fdisk`, `parted`, `chmod`, `chown`

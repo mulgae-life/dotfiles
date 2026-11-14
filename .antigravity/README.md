@@ -116,4 +116,4 @@ Claude deny의 Bash 규칙과의 차이: 글롭이 없어 `rm -rf /home*`·`dd o
 | SHELL_BYPASS | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
 | SCRIPT_INJECTION | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
 
-세 도구는 같은 방식으로 통제한다. 파국형 명령만 기계로 막고, 나머지 위험 명령은 지침에 맡겨 사용자가 요청할 때만 실행한다. 기계로 막는 범위는 도구의 규칙 문법에 따라 조금씩 다르다(`docs/DECISIONS.md` §3). Gemini CLI 열은 2026-09-07 은퇴로 제거했고 정책 원본과 회귀 케이스 62건은 `.archive/2026-09-07_gemini-cli-retirement/`에 있다.
+세 도구는 같은 방식으로 통제한다. 파국형 명령만 기계로 막고, 나머지 위험 명령은 지침에 맡겨 사용자가 요청할 때만 실행한다. 기계로 막는 범위는 도구의 규칙 문법에 따라 조금씩 다르다(`docs/DECISIONS.md` §3). Gemini CLI 열은 2026-09-07 은퇴로 제거했다.

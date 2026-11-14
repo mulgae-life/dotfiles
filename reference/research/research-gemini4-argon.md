@@ -59,7 +59,7 @@
 
 ## 5. 출처
 
-수집은 2026-10-16 04:50~06:30 UTC입니다. 원문 텍스트 사본은 로컬 `.archive/2026-10-16_gemini4-argon-research/raw/`에 있습니다. 두 조사 보고서는 `.collab-loop/20261016-gemini4-argon/research_v1_claude.md`·`research_v1_codex.md`이고, 토론 메모도 같은 폴더에 있습니다(두 경로 모두 git 추적 대상이 아닙니다).
+수집은 2026-10-16 04:50~06:30 UTC입니다.
 
 - Gemini API: [latest-model](https://ai.google.dev/gemini-api/docs/latest-model) · [GenerateContent판](https://ai.google.dev/gemini-api/docs/generate-content/latest-model) · [모델 페이지](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon) · [Thinking](https://ai.google.dev/gemini-api/docs/thinking) · [Long decode](https://ai.google.dev/gemini-api/docs/long-decode) · [Long decode (GenerateContent)](https://ai.google.dev/gemini-api/docs/generate-content/long-decode) · [Pricing](https://ai.google.dev/gemini-api/docs/pricing) · [Changelog](https://ai.google.dev/gemini-api/docs/changelog) · [Deprecations](https://ai.google.dev/gemini-api/docs/deprecations) · [Media resolution](https://ai.google.dev/gemini-api/docs/media-resolution) · [Structured outputs (GenerateContent)](https://ai.google.dev/gemini-api/docs/generate-content/structured-output) · [Prompt design strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies) · [What's new in 3.8](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8)
 - AI Studio: [Gemini 4 Argon: Developer Guide](https://aistudio.google.com/learn/gemini-4-argon-developer-guide)

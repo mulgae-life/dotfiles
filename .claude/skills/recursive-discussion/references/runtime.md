@@ -23,7 +23,7 @@
 |------|----------|:--------:|
 | **프롬프트** | packet header `instruction: respond-only, do-not-call-back` | ✅ 필수 |
 | **호출 모드** | 비대화형 단발 응답 (요건 #1) | ✅ 필수 |
-| **샌드박스** | 읽기 전용 모드 (`-s read-only` 등) | ⭕ best-effort |
+| **샌드박스** | 읽기 전용 모드 (Codex `-s read-only --ignore-rules` 등) | ⭕ best-effort |
 
 읽기 전용 샌드박스는 **있으면 적용, 없으면 진행**합니다. 미적용 시 `decision_log.md` §7 메타에 "샌드박스 미적용"을 기록하면 됩니다. 재귀 방어의 본질은 packet header + 단발 호출 두 축입니다.
 
@@ -143,7 +143,7 @@ mkdir -p "$SESSION_DIR"
 
 | 항목 | 충족 수단 (현재 시점 예시) |
 |------|----------------------------|
-| 비파괴 실행 (샌드박스) | `-s read-only` |
+| 비파괴 실행 (샌드박스) | `-s read-only --ignore-rules` — 사용자 규칙의 `allow`에 맞는 명령은 샌드박스를 거치지 않으므로 규칙 파일을 읽지 않게 한다 |
 
 ```bash
 # 현재 시점 매핑 — Preflight에서 갱신
@@ -151,7 +151,7 @@ PACKET="$SESSION_DIR/packet_round1.md"
 OUT="$SESSION_DIR/reply_round1_codex.md"
 
 codex exec \
-  -s read-only \
+  -s read-only --ignore-rules \
   -o "$OUT" \
   - < "$PACKET"
 ```
@@ -204,7 +204,7 @@ timeout 240s claude -p \
 
 ```bash
 # Claude 호스트 → Codex 호출 시 대형 문서 동봉 (현재 시점 매핑 — Preflight에서 갱신)
-cat "$PACKET" "$DOCUMENT" | codex exec -s read-only -o "$OUT" -
+cat "$PACKET" "$DOCUMENT" | codex exec -s read-only --ignore-rules -o "$OUT" -
 ```
 
 > 대형 문서 분할 전략은 `session-management.md` 참조.

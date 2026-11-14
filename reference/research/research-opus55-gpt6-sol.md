@@ -378,7 +378,7 @@ LMArena, tbench.ai, Scale SEAL, Snorkel에는 조사 시점에 두 모델 모두
 
 ## 9. 출처
 
-본문에 채택한 출처입니다. 초기 수집은 2026-09-23 04:40~05:30 UTC이고, 일부 수치와 원문은 이후 토론 중에 다시 확인했습니다. 원 조사 보고서 네 개, 프롬프트 감사 보고서, 원자료 사본(`raw/`), Codex 템플릿 추출본(`mm/`), 번들 카탈로그는 로컬 `.archive/2026-09-23_opus55-sol-research/`에 보관했습니다. 토론 기록은 `.collab-loop/20260923-opus55-sol/`에 있습니다(두 경로 모두 git 추적 대상이 아닙니다).
+본문에 채택한 출처입니다. 초기 수집은 2026-09-23 04:40~05:30 UTC이고, 일부 수치와 원문은 이후 토론 중에 다시 확인했습니다.
 
 **Anthropic 공식**
 - 발표문 https://www.anthropic.com/claude-opus-5-5 · 시스템 카드 https://anthropic.com/claude-opus-5-5-system-card (230쪽, 부분 열람)

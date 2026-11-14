@@ -232,7 +232,7 @@ command = "$HOME/.codex/hooks/notify.sh"
 command_windows = "Write-Output '{}'"
 timeout = 5
 
-# PostToolUse 실패알림 훅은 제거 — payload에 exit code가 없어 실패 감지 불가(docs/DECISIONS.md §4 참조). 복원본은 .archive/2026-07-02_codex-dead-hook/
+# PostToolUse 실패알림 훅은 제거 — payload에 exit code가 없어 실패 감지 불가(docs/DECISIONS.md §4 참조)
 
 # SessionStart(compact): 압축 직후 요약 불신·파일 재확인 리마인더를 additionalContext로 모델 컨텍스트에 주입
 # PostCompact는 systemMessage를 UI 경고로만 표시하고 모델에 전달하지 않음(compact.rs) → SessionStart 사용

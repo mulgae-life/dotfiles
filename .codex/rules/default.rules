@@ -5,6 +5,10 @@
 # 그 밖의 위험 명령(삭제, sudo, 권한 변경, 링크 강제, in-place 수정, Docker 삭제, Git·GitHub 쓰기)은
 # Claude·Antigravity와 같이 AGENTS.md 지침으로 통제한다 — 사용자가 요청할 때만 실행한다.
 # 규칙으로 막으면 사용자가 요청해도 실행하지 못하므로 파국형에만 쓴다.
+# 한계: Codex는 셸 스크립트 전체가 단순 명령일 때만 명령별로 규칙을 대조한다. 단순 명령은 확장이 없는 단어와 리터럴 문자열로 된 명령이고,
+# `&&`·`||`·`;`·`|`로 이어도 된다. 변수·`~`·글롭·명령 치환 같은 확장이나 리다이렉션·제어 구문이 하나라도 있으면 스크립트 전체를
+# 원래 셸 호출(`bash -lc <스크립트>`)로 대조하므로 이 파일의 규칙이 맞지 않고 Codex 내장 검사만 적용된다.
+# 내장 검사는 `-f`가 든 rm을 거부하지만 전원·디스크 명령의 차단은 보장하지 않는다
 # 카테고리 분류는 3-tool 공통 분류를 따름 (.antigravity/README.md "3-tool 정합성" 표)
 # justification은 차단 시점에 사용자/에이전트에게 노출됨 → 대체 방법까지 안내
 # ─────────────────────────────────────────────
@@ -15,7 +19,8 @@ _MSG_SYSTEM      = "전원 조작·디스크 파괴 명령은 차단됩니다. �
 
 # ── 넓은 재귀 삭제 (루트·홈·현재 폴더) ──
 # prefix_rule은 토큰이 정확히 같을 때만 맞는다. `/home/user`처럼 더 깊은 경로는 맞추지 못하고,
-# 변수의 확장 결과도 계산하지 않는다(`$HOME`이라는 문자열 자체만 맞춘다)
+# 변수의 확장 결과도 계산하지 않는다(`$HOME`이라는 문자열 자체만 맞춘다).
+# `~`·`/*`·`$HOME`처럼 확장이 든 대상은 리터럴로 전달될 때만 이 규칙에 맞고, 보통의 셸 호출에서는 내장 검사가 거부한다
 _RM_RF = ["-rf", "-fr", "-Rf", "-fR"]
 _RM_R  = ["-r", "-R"]
 _ROOTS = ["/", "/*", "/bin", "/boot", "/etc", "/home", "/lib", "/root", "/sbin", "/usr", "/var",
@@ -24,10 +29,12 @@ prefix_rule(pattern = ["rm", _RM_RF, _ROOTS],                           decision
 prefix_rule(pattern = ["rm", _RM_R, "-f", _ROOTS],                      decision = "forbidden", justification = _MSG_WIDE_DELETE)
 prefix_rule(pattern = ["rm", "-f", _RM_R, _ROOTS],                      decision = "forbidden", justification = _MSG_WIDE_DELETE)
 prefix_rule(pattern = ["rm", "--recursive", "--force", _ROOTS],         decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["rm", "--force", "--recursive", _ROOTS],         decision = "forbidden", justification = _MSG_WIDE_DELETE)
 prefix_rule(pattern = ["sudo", "rm", _RM_RF, _ROOTS],                   decision = "forbidden", justification = _MSG_WIDE_DELETE)
 prefix_rule(pattern = ["sudo", "rm", _RM_R, "-f", _ROOTS],              decision = "forbidden", justification = _MSG_WIDE_DELETE)
 prefix_rule(pattern = ["sudo", "rm", "-f", _RM_R, _ROOTS],              decision = "forbidden", justification = _MSG_WIDE_DELETE)
 prefix_rule(pattern = ["sudo", "rm", "--recursive", "--force", _ROOTS], decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["sudo", "rm", "--force", "--recursive", _ROOTS], decision = "forbidden", justification = _MSG_WIDE_DELETE)
 
 # Windows PowerShell — Codex가 PowerShell 스크립트를 명령 단위로 쪼개 대조한다
 # 첫 토큰은 철자 그대로 대조한다(소문자·.exe 정규화는 절대경로 실행만). PowerShell은 대소문자를 가리지 않으므로
@@ -83,6 +90,13 @@ prefix_rule(
     decision = "forbidden",
     justification = _MSG_SYSTEM
 )
+
+# ── 삭제(rm): allow ──
+# 규칙에 맞지 않는 명령은 Codex 내장 검사를 거치는데, 이 검사가 `-f`가 든 rm(`rm -f`, `rm -rf`)을 거부한다
+# (approval_policy = "never"라 승인을 물을 수 없어서다). 요청받은 삭제가 실행되도록 allow로 둔다.
+# 위의 forbidden 규칙에 정확히 맞는 형태는 계속 막힌다. 그 밖의 경로와 옵션 조합은 실행되므로 지침이 통제한다.
+# allow에 맞는 명령은 샌드박스를 거치지 않는다. `-s read-only` 세션에서도 rm이 실행되므로 읽기 전용이어야 하는 호출은 `--ignore-rules`로 띄운다
+prefix_rule(pattern = ["rm"], decision = "allow")
 
 # ── 프로세스 종료: allow ──
 # 재시작 가능한 조작이라 파일 삭제와 위험 등급이 다름 (v2.2에서 ask 해제)

@@ -2,6 +2,11 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.74 — Codex가 요청받은 `rm -rf`를 실행하게 하고 검증 버전을 올림
+- Codex 규칙에 `rm` 허용을 더했다. Codex 내장 검사가 `-f`가 든 `rm`을 거부해 요청받은 `rm -rf build`가 실행되지 않았다. 루트·홈·현재 폴더를 지우는 차단 형태는 계속 막힌다.
+- 허용 규칙에 맞는 명령은 샌드박스를 거치지 않아, `recursive-discussion`의 읽기 전용 Codex 호출은 규칙을 읽지 않게 했다. 확장이나 리다이렉션이 든 명령에는 Codex 규칙이 맞지 않는다는 한계를 결정 기록에 적었고, 이 틈은 훅을 더하지 않고 지침으로 통제한다.
+- 검증 버전을 Claude Code 2.1.325, Codex 0.169.0, agy 1.5.9로 올렸다. Git이 추적하지 않는 로컬 보관 폴더의 경로를 문서와 주석에서 뺐다.
+
 ## v2.73 — 세 도구의 동작을 같게 맞추고 겹치는 지침을 정리
 - Codex가 삭제, `sudo`, 권한 변경, 링크, in-place 수정, Docker 삭제, Git·GitHub 쓰기를 규칙으로 막던 것을 풀었다. 막아 두면 사용자가 맡겨도 실행하지 못했다. 이제 세 도구 모두 지침으로 통제해 요청받을 때만 실행하고, Codex 규칙은 파국형만 막는다. 루트·홈·현재 폴더를 통째로 지우는 `rm -rf`, 전원 조작, `mkfs`, 디스크 장치를 대상으로 한 `dd`·`fdisk`·`parted`·`shred`가 대상이다. Antigravity 지침만 묶어 두던 `add`·`checkout`·`switch`·`stash`도 세 도구 모두 자유다.
 - 스킬 호출 조건을 `description` 한 필드로 합쳤다. `when_to_use`는 Claude Code만 읽어 Codex와 Antigravity는 호출 문구를 보지 못했다. 같은 내용이 된 Codex의 수동 스킬 표는 뺐고, 기존 테스트가 실패할 때 통과시키려고 테스트를 고치지 않는다는 조항을 세 도구에 같은 문장으로 넣었다.

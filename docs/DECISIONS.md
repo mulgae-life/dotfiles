@@ -17,6 +17,7 @@
 - Claude Code의 auto 모드는 차단이 3회 연속 또는 20회 누적되면 승인 대기로 바뀌고, 이 기준은 조정할 수 없다.
 - 무중단 원칙과 맞지 않아 `bypassPermissions`를 유지한다.
 - Codex의 Guardian auto-review도 `approval_policy = "never"`에서는 검토할 요청이 생기지 않아 쓰지 않는다.
+- Antigravity CLI는 1.5.7부터 실행 모드 기본값이 Auto다. `toolPermission: always-proceed`에서는 대화형과 헤드리스 모두 요청받은 명령이 확인 없이 실행돼 `agentMode`를 고정하지 않는다.
 
 ### 메모리 기능을 쓰지 않는다
 
@@ -95,8 +96,8 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 |---|---|---|---|
 | 모드 | `defaultMode: bypassPermissions` | `approval_policy = "never"` + `sandbox_mode = "danger-full-access"` | `toolPermission`·`artifactReviewPolicy`: `always-proceed` |
 | 기계 차단 | `permissions.deny` 90건 (Bash 52 · PowerShell 38) | Starlark `rules/default.rules` (`forbidden`) | `permissions.deny` 66건 |
-| 차단 범위 | 파국형 + 넓은 재귀 삭제 | 파국형(루트·홈·현재 폴더 삭제와 디스크 장치 대상 명령은 정확한 형태만, 전원·`mkfs`는 명령째) | 파국형만 |
-| 회귀 검증 | 실제 엔진 44건 + Windows 실기기 21건 | `scripts/verify-policies.sh codex` 67건 | `scripts/verify-policies.sh agy` 18건 + `scripts/agy-live-check.sh` 6건 |
+| 차단 범위 | 파국형 + 넓은 재귀 삭제 | 파국형(루트·홈·현재 폴더 삭제와 디스크 장치 대상 명령은 정확한 형태만, 전원·`mkfs`는 명령째). 확장·리다이렉션이 든 스크립트에는 맞지 않는다 | 파국형만 |
+| 회귀 검증 | 실제 엔진 44건 + Windows 실기기 21건 | `scripts/verify-policies.sh codex` 69건 | `scripts/verify-policies.sh agy` 18건 + `scripts/agy-live-check.sh` 6건 |
 
 ### Claude Code
 
@@ -112,8 +113,13 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 ### Codex
 
 - 차단 규칙은 명령 앞부분의 토큰이 정확히 같을 때만 맞는 `prefix_rule`이라, 인자값의 일부나 임의 위치는 맞추지 못한다.
+- Codex는 셸 스크립트 전체가 단순 명령일 때만 명령별로 규칙을 대조한다. 변수·`~`·글롭·명령 치환 같은 확장이나 리다이렉션·제어 구문이 하나라도 있으면 스크립트 전체를 원래 셸 호출로 대조해 규칙이 맞지 않는다. `&&`·`||`·`;`·`|`로 이은 명령은 모든 구간이 단순할 때만 나뉜다.
+  - 이때는 Codex 내장 검사만 적용된다. `-f`가 든 `rm`은 거부하지만 전원·디스크 명령의 차단은 보장하지 않는다. `mkfs.ext4 probe.img > out.txt`는 실행되고 `rm -rf $PWD/d1`은 거부된다(0.169.0 실측).
+  - 그래서 `rm -rf ~`나 `rm -rf /*`처럼 확장이 든 삭제는 규칙이 아니라 내장 검사가 막는다.
 - 규칙은 파국형만 막는다(v2.73). 삭제, `sudo`, 권한 변경, 링크 강제, in-place 수정, Docker 삭제, Git·GitHub 쓰기는 Claude·Antigravity처럼 지침으로 통제한다. 규칙으로 막아 두면 사용자가 맡겨도 실행하지 못했고, Codex만 다르게 둘 이유가 없었다.
   - 삭제는 `rm -rf`의 대상이 `/`, `~`, `.`, `..` 같은 토큰과 정확히 같을 때만 막는다. `/home/user`처럼 더 깊은 경로는 막지 못하고, 변수의 확장 결과도 계산하지 않는다. Claude의 `rm -rf /*` 규칙이 절대경로 전부를 막는 것과 다르다.
+  - `rm`은 `allow` 규칙으로 둔다(v2.74). 규칙에 맞지 않는 명령은 Codex 내장 검사를 거치는데, 이 검사가 `-f`가 든 `rm`을 거부해 요청받은 `rm -rf build`가 실행되지 않았다. `forbidden` 규칙에 정확히 맞는 형태는 계속 막히고, 그 밖의 경로와 옵션 조합은 지침으로 통제한다.
+  - `allow`에 맞는 명령은 샌드박스를 거치지 않는다. `-s read-only` 세션에서도 `rm`이 실행되므로, 읽기 전용이어야 하는 호출은 `--ignore-rules`로 띄운다. `recursive-discussion`의 Codex 호출이 그렇게 한다.
   - 전원 조작과 `mkfs`는 명령째 막는다. `dd`·`fdisk`·`parted`·`shred`는 디스크 장치가 대상일 때만 막는다. 일반 파일 복사와 `fdisk -l`, `parted image.img print`는 막지 않고, 열거한 장치가 첫 인자인 호출은 조회 여부와 무관하게 막는다. 글롭이 없어 흔한 장치 이름을 열거했고, 열거하지 않은 장치와 장치가 첫 인자가 아닌 형태는 막지 못한다.
   - 막는 명령은 `sudo`를 앞에 붙인 형태도 함께 막는다. `sudo -n`처럼 옵션이 끼거나 `rm -rf -- /`처럼 배열이 달라지면 맞지 않는다. 이런 변형을 끝없이 열거하지 않고 지침에 맡긴다.
 - Windows에서는 PowerShell 스크립트를 명령 단위로 나눠 대조하므로 `Remove-Item` 계열의 루트·홈·현재 폴더 재귀 삭제와 전원·디스크 cmdlet을 막는다. 재귀 삭제 형태는 Linux 엔진의 토큰 판정으로만 확인했고 Windows 실기기에서는 확인하지 않았다. 첫 토큰은 철자 그대로 대조해 정식 표기, 소문자, `.exe` 표기를 함께 둔다. 그 밖의 대소문자 조합은 막지 못한다.
@@ -136,7 +142,7 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 | Claude·Codex | compact 리마인더를 SessionStart(`compact`)에 둠 (v2.21) | PostCompact 출력은 모델에 전달되지 않는다 |
 | Claude·Codex | 리마인더가 이전 작업 재개를 재촉하지 않음 (v2.40) | 압축 직후의 새 요청이 이전 작업 재개로 흡수된 사례가 있었다. 새 메시지가 있으면 그것이 이번 턴의 작업임을 못 박는다 |
 | Codex | 실패알림 훅(PostToolUse) 제거 (v2.0) | payload에 exit code가 없고 실패 전용 이벤트도 없어 실패를 판정할 수 없다 |
-| Codex | PreToolUse 의도적 미설정 | `approval_policy = "never"`와 Starlark 규칙이 이미 통제한다 |
+| Codex | PreToolUse 의도적 미설정 | `approval_policy = "never"`와 Starlark 규칙이 통제한다. 확장이나 리다이렉션이 든 전원·디스크 명령은 규칙을 지나지만(§3), 요청 없이 그런 명령을 쓰는 일이 드물어 지침으로 통제하고 훅을 더하지 않는다 (v2.74) |
 | Antigravity | 훅 미사용 | 알림은 내장 기능(`notifications: true`)을 쓴다. 압축 후 이벤트가 없고, 모델 호출마다 도는 이벤트는 리마인더 용도로 과하다 |
 
 ## 5. 도구별 세부 사항
@@ -192,16 +198,12 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 
 ## 7. 은퇴·아카이브
 
-`.archive/`는 레포에 올리지 않는 로컬 보관소다.
+| 항목 | 시점 |
+|------|------|
+| Gemini CLI 층 (개인 계정 지원 종료) | 2026-09-07 |
+| Claude Bash 자동승인 훅과 ask 규칙 81건 | 2026-07-18 |
+| Codex PostToolUse 실패알림 훅 | 2026-07-02 |
+| `/start` 커스텀 명령 (공용 스킬로 전환) | 2026-09-07 |
+| Claude 실패 조언 훅, Codex `AGENTS.references.md` | 2026-11-14 |
 
-| 항목 | 시점 | 위치 |
-|------|------|------|
-| Gemini CLI 층 (개인 계정 지원 종료) | 2026-09-07 | `.archive/2026-09-07_gemini-cli-retirement/` |
-| Claude Bash 자동승인 훅과 ask 규칙 81건 | 2026-07-18 | `.archive/2026-07-18_hook-retirement/` |
-| Codex PostToolUse 실패알림 훅 | 2026-07-02 | `.archive/2026-07-02_codex-dead-hook/` |
-| `/start` 커스텀 명령 (공용 스킬로 전환) | 2026-09-07 | `.archive/2026-09-07_start-to-skill/` |
-| 상시 로드 지침 감량 전 원본 (393→250줄) | 2026-08-13 | `.archive/2026-08-13_rules-slimming/` |
-| Claude 실패 조언 훅, Codex `AGENTS.references.md` | 2026-11-14 | `.archive/2026-11-14_harness-slim/` |
-| 지원 범위 밖 모델 자료 | v2.20, v2.48 | `reference/archive/` |
-
-모델·도구 조사 원문은 `reference/research/`에 있다.
+지원 범위 밖 모델 자료는 `reference/archive/`에 있고(v2.20, v2.48), 모델·도구 조사 원문은 `reference/research/`에 있다.
