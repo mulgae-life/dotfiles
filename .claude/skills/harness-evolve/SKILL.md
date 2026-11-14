@@ -1,7 +1,6 @@
 ---
 name: harness-evolve
-description: 세션 기록(Claude·Codex jsonl)과 현재 대화를 회고해 프로젝트 지침 문서(agent-guide의 GUIDE·PROJECT·SESSION)에서 고칠 곳 하나를 근거와 함께 제안하고, 승인받으면 반영한 뒤 다음 회고 때 효과를 확인합니다. 전역 지침·스킬은 고치지 않습니다.
-when_to_use: "회고해줘, 세션 돌아보고 개선점 찾아줘, GUIDE 개선할 거 있어?, 지침 문서 손볼 데 있나, 에이전트가 자꾸 헤매는데 문서 고칠까, 지난 세션 기록 분석해줘 요청 시. 작업 내역을 SESSION에 기록하는 일은 update-docs가 맡는다."
+description: 세션 기록(Claude·Codex jsonl)과 현재 대화를 회고해 프로젝트 지침 문서(agent-guide의 GUIDE·PROJECT·SESSION)에서 고칠 곳 하나를 근거와 함께 제안하고, 승인받으면 반영한 뒤 다음 회고 때 효과를 확인합니다. 전역 지침·스킬은 고치지 않습니다. 회고해줘, 세션 돌아보고 개선점 찾아줘, GUIDE 개선할 거 있어?, 지침 문서 손볼 데 있나, 에이전트가 자꾸 헤매는데 문서 고칠까, 지난 세션 기록 분석해줘 요청 시. 작업 내역을 SESSION에 기록하는 일은 update-docs가 맡는다.
 model: opus
 effort: high
 ---

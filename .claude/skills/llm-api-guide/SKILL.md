@@ -1,7 +1,6 @@
 ---
 name: llm-api-guide
-description: LLM API(OpenAI, Anthropic) 연동 코드 구현 가이드. 프롬프트 내용 작성은 범위 밖입니다.
-when_to_use: "OpenAI API 연동해줘, Claude API 사용해줘, LLM 호출 코드 작성해줘 요청 시. SDK 초기화, 스트리밍, tool calling, 에러 핸들링 등 LLM API 코드 구현 시 반드시 참조."
+description: LLM API(OpenAI, Anthropic) 연동 코드 구현 가이드. 프롬프트 내용 작성은 범위 밖입니다. OpenAI API 연동해줘, Claude API 사용해줘, LLM 호출 코드 작성해줘 요청 시. SDK 초기화, 스트리밍, tool calling, 에러 핸들링 등 LLM API 코드 구현 시 반드시 참조.
 ---
 
 # LLM API 개발 가이드

@@ -353,18 +353,6 @@
           }
         ]
       }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.claude/hooks/on-tool-failure.sh\"",
-            "timeout": 10
-          }
-        ]
-      }
     ]
   },
   "autoDreamEnabled": true,

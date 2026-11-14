@@ -54,27 +54,16 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 
 ### 행동 원칙
 
-- **Starlark `forbidden` 명령은 시도 자체 금지**: 아래 명령은 `.codex/rules/default.rules`에서 `forbidden`으로 설정되어 **사용자 명시 요청 여부와 무관하게 차단**됩니다 (Starlark에 `prompt` 판정은 있으나 `approval_policy = "never"` 정책상 쓰지 않음 — 승인 경로 없음). 자율 작업 중에는 절대 시도하지 말고, 사용자가 요청한 경우에는 **사용자에게 직접 실행을 부탁드린다고 안내**:
-  - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, Windows PowerShell의 `Remove-Item`(`ri`·`del`·`erase`·`rd` 포함)·`Clear-Content`
-  - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git rm`, `git branch -d/-D`, `git tag -d/-f`
-  - **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash` (전체), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
-  - **GitHub CLI 쓰기**: `gh pr/issue/release create/close/delete/merge/edit/comment`, `gh api` (전체), `gh auth login/logout`
-  - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `sudo`, `dd`, `mkfs`, `fdisk`, `parted`, Windows의 `Stop-Computer`·`Restart-Computer`·`Format-Volume`·`Clear-Disk`·`Remove-Partition`·`diskpart`
-  - **파일 수정/링크 강제/권한**: `ln` (전체 차단, -f/-sf 위험), `chmod`, `chown`, `sed -i` / `awk -i inplace` / `gawk -i inplace` (표준 옵션 위치만 매칭) — Edit 도구 우회·보안 상태 변경
-  - **Docker 삭제**: `docker rm/rmi`, `docker compose down/rm`
-  - (참고: `cp`/`mv`/`>`/`>>`/`tee`는 경로 변경·복사·명령 결과 저장으로 일상 패턴이라 allow)
-
-> **Codex Starlark 한계 (갭 인정)**: `prefix_rule`은 단어 prefix 매칭만 지원하므로 다음 패턴은 정책으로 차단 불가 → 사용자 명시 요청 시에도 시도 자체 금지:
-> - `sed -i` / `awk -i inplace` 옵션 순서가 바뀐 케이스 (예: `sed -e 'pattern' -i file`, `awk -f prog.awk -i inplace file`) — 표준 위치(`sed -i ...`, `awk/gawk -i inplace ...`)는 룰로 차단됨. `sed --in-place=.bak`(값 결합 토큰)도 미매칭
-> - **git 전역옵션 경유**: `git -C <경로> push`, `git -c <키=값> commit`, `git --git-dir=<경로> push` 등 — prefix_rule은 `["git", "push"]` 토큰 순서만 매칭하므로 전역옵션이 끼면 미차단. 읽기(`git -C <경로> status`)까지 막지 않기 위해 룰 추가 안 함 → 쓰기 하위명령은 전역옵션 형태로도 시도 금지
-> - `xargs rm` / `ls | xargs rm` (rm이 첫 토큰이 아니어서 미매칭)
-> - Windows PowerShell cmdlet의 다른 대소문자 표기 (예: `REMOVE-ITEM`) — 규칙은 정식 표기와 소문자만 매칭
-> - `echo "..." | bash` / `curl ... | bash` (파이프로 셸에 전달 — 따옴표 stripping 우회)
-> - `bash <(...)` (process substitution — 셸 명령 우회)
-> - `find ... -delete` (rm 없이 동일 효과)
-> - **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴
->
-> 위 패턴이 필요한 경우 사용자에게 직접 실행을 부탁드린다고 안내
+- **위험 명령은 사용자 요청 시에만**: `approval_policy = "never"`라 아래 명령도 **확인 없이 그대로 실행됩니다**. 파국형 명령만 `.codex/rules/default.rules`가 기계적으로 차단하고, 나머지 위험 명령의 통제는 이 지침뿐입니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`)로 돌려 쓰는 것도 동일하게 금지:
+  - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, `git rm`, Windows PowerShell의 `Remove-Item`(`ri`·`del`·`erase`·`rd` 포함)·`Clear-Content` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
+  - **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f` (조회와 `git add`·`checkout`·`switch`·`stash`는 자유)
+  - **GitHub CLI 쓰기**: `gh pr/issue/release/repo create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
+  - **시스템/권한**: `sudo`, `dd`, `fdisk`, `parted`, `chmod`, `chown`
+  - **파일 in-place 수정/링크 강제**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite) — 파일 수정은 apply_patch 사용
+  - **Docker 삭제**: `docker rm/rmi`, `docker-compose down/rm`
+  - **셸 우회**: `echo "..." | bash` / `curl ... | bash` (파이프로 셸 전달 — 따옴표 stripping 우회), `bash <(...)` (process substitution), `xargs rm`, `find ... -delete` (rm 없이 동일 효과) — 위험 명령을 직접 호출하지 않고 우회 실행하는 패턴
+  - **인라인 스크립트 우회**: `python -c "import os; os.system('rm ...')"`, `python -c "import shutil; shutil.rmtree(...)"`, `node -e "require('fs').rmSync(...)"`, `node -e "require('child_process').execSync('rm ...')"`, `ruby -e "system('rm ...')"`, `bash -c "rm ..."` — 인터프리터를 거쳐 위험 명령을 실행하는 패턴
+- **규칙이 막는 파국형 명령은 요청을 받아도 실행되지 않는다**: 루트·홈·현재 폴더를 통째로 지우는 `rm -rf`(`/`, `~`, `.`, `..` 등), 전원 조작(`reboot`·`shutdown`·`poweroff`·`halt`), `mkfs`, 디스크 장치(`/dev/sda` 등)를 대상으로 한 `dd`·`fdisk`·`parted`·`shred`, `crontab -r`, Windows의 `Stop-Computer`·`Restart-Computer`·`Format-Volume`·`Clear-Disk`·`Remove-Partition`·`diskpart`. 규칙은 토큰이 정확히 같을 때만 맞으므로 걸리지 않는 형태로 바꿔 시도하지 않는다. 꼭 필요하면 사용자에게 직접 실행을 부탁드린다고 안내
 - **버그 수정 자율성**: 로그·에러·테스트를 직접 추적해 수정. 범위 확대(파일 3개+) 시 합의
 - **교훈 기록**: 세션 첫 작업 전에 `<프로젝트 루트>/.codex/lessons.md`가 있으면 읽어 반영. 사용자 피드백 수신 시 같은 파일에 기록(작업 디렉토리 기준 상대 경로가 아님). 동일 에러 2회+ 발생 시 필수
 - **계획 대비 확인**: 계획을 세운 경우 구현 완료 후 누락 없는지 최종 확인
@@ -85,38 +74,10 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 
 ## 스킬 활용
 
-`~/.agents/skills/` (또는 `~/.codex/skills/`) 디렉토리에 작업별 전문 가이드. 해당 분야 작업 시 `SKILL.md` 먼저 읽고 절차·품질 기준 준수.
+`~/.agents/skills/` (또는 `~/.codex/skills/`) 디렉토리에 작업별 전문 가이드. 해당 분야 작업 시 `SKILL.md` 먼저 읽고 절차·품질 기준 준수. 스킬별 용도와 호출 조건은 세션에 주입되는 스킬 목록의 설명을 따른다.
 
-### 스킬 카탈로그
-
-| 스킬 | 용도 | 트리거 예시 |
-|------|------|------------|
-| `code-review` | 심각도 등급 포함 심층 리뷰 리포트 | PR 리뷰, 코드 품질 분석 |
-| `work-verify` | 작업 완료 후 빠른 체크리스트 점검 | "점검해줘", "빠뜨린 거 없는지" |
-| `work-plan` | Phase별 코드 예시 포함 심층 계획서 | "계획서 작성해줘" |
-| `code-simplifier` | 기능 유지하며 명확성·유지보수성 개선 | "코드 정리해줘", "리팩토링" |
-| `frontend-design` | 프로덕션 수준 UI 제작 | "페이지 만들어줘" |
-| `web-design-guidelines` | UI/UX 디자인 패턴 검토 | "UI 리뷰해줘", "접근성 체크" |
-| `visual-check` | Chromium 렌더링 스크린샷·진단으로 UI 결과 검증 | "화면 확인해줘", "모바일에서 깨지는지 봐줘" |
-| `hw-design` | 한화 브랜드 디자인 표준(DESIGN.md·토큰·폰트) 프로젝트 배포 | "한화 톤으로 UI", "hw 적용해줘" |
-| `hw-ppt` | 한화손해보험 톤 16:9 슬라이드 덱 생성 | "한화손보 PPT", "한화 제안서" |
-| `office-docs` | PDF·Word·PowerPoint·Excel 파일 생성·읽기·편집 — OOXML 검증, 수식 재계산, 렌더링 검수 | "PDF 합쳐줘", "보고서 docx로", "엑셀 수식 고쳐줘" |
-| `react-best-practices` | React/Next.js 성능 최적화 | "컴포넌트 최적화" |
-| `postgres-best-practices` | Postgres 스키마·마이그레이션·RLS·쿼리 | "쿼리 최적화", "RLS 정책", "마이그레이션 작성" |
-| `writing-prompts` | GPT/Claude/Gemini/Gemma/Qwen 프롬프트 작성 | "프롬프트 작성해줘" |
-| `llm-api-guide` | LLM API 연동 코드 | "API 연동해줘" |
-| `langchain-guide` | LangChain/LangGraph 에이전트 | "에이전트 만들어줘" |
-| `feedback-analysis` | 피드백 분석·우선순위 정리 | "피드백 분석해줘" |
-| `recursive-discussion` | Claude와 대등 토론으로 결과물 개선 | "코덱스랑 토론해서", "재귀 토론" |
-| `cowork-set` | 프로젝트에 Claude–Codex 협업 체계 세팅 — 대표님 직접 호출 전용 | `$cowork-set` |
-| `reference-verification` | 논문 인용·수식↔코드·benchmark 원문 검증 절차 | "논문 인용", "수식 구현 대조" |
-| `start` | 세션 시작 — agent-guide와 핵심 코드 읽고 현재 상태·실행 흐름 요약 | "시작" |
-| `brief` | 프로젝트 목적·기대 대비 진행 현황과 인사이트 브리핑 — 과정·실무 정보 제외 | "지금 어디까지 왔어", "브리핑해줘" |
-| `update-docs` | agent-guide 문서 업데이트 | "문서 업데이트" |
-| `harness-evolve` | 세션 기록 회고로 프로젝트 지침(agent-guide) 개선점 하나 제안·반영·효과 확인 | "회고해줘", "GUIDE 개선할 거 있어?" |
-| `init-project` | agent-guide 3종 파일 자동 생성 + 루트 `CLAUDE.md`·`AGENTS.md`를 `GUIDE.md` 링크로 | "프로젝트 초기화" |
-| `skill-creator` | 스킬 생성·수정·eval 테스트 | "스킬 만들어줘" |
-
+> `cowork-set`(프로젝트에 Claude–Codex 협업 체계 세팅)은 자동으로 주입되는 스킬 목록에 나오지 않는다. 대표님이 `$cowork-set`으로 직접 호출할 때만 쓴다.
+>
 > `stitch-design`은 공유 스킬이지만 Google Stitch MCP가 Claude 쪽에만 붙어 있어 Codex에서는 쓰지 않는다.
 
 ---
@@ -129,7 +90,7 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 
 ## 레퍼런스 검증
 
-학술 논문·연구 보고서·기술 사양서를 인용·구현·수치 비교할 때의 상세 규칙은 `~/.codex/AGENTS.references.md` 참조.
+학술 논문·연구 보고서·기술 사양서를 인용·구현·수치 비교할 때는 `reference-verification` 스킬(`~/.agents/skills/reference-verification/SKILL.md`)을 먼저 읽고 따른다.
 
 **핵심**: Abstract만으로 답변 금지 / 수식·코드 항 단위 대조 / 기억 기반 인용 금지 / 출처 섹션 명시 / 디버깅 사고(내 코드는 "틀렸다" 전제로 시작, 반증 먼저 설계).
 
@@ -140,5 +101,5 @@ Codex는 서브에이전트를 지원하지만, 이 레포는 역할 트리거�
 - `~/.claude` 디렉토리는 삭제/수정하지 않는다
 - Codex 설정은 `~/.codex` 내에서만 관리한다
 - 기존 uncommitted 변경을 revert하지 않는다 (사용자가 명시적으로 요청한 경우만 가능)
-- 기존 테스트가 실패하면 테스트를 수정하지 않는다 — 어떤 테스트가 실패했는지, 원인이 무엇인지 보고한다
+- 기존 테스트가 실패하면 통과시키려고 테스트를 고치지 않는다 — 어떤 테스트가 왜 실패했는지 보고한다. 요청으로 동작이 바뀌어 기대값이 달라진 경우에만 그 사실을 밝히고 고친다
 - **산출물 정리**: 테스트·실험·디버그 과정에서 본인이 만든 파일(임시 스크립트, 데모, 로그, 실험 결과, 체크포인트 등)은 작업 완료 시 `.archive/<YYYY-MM-DD>_<태그>/`로 이동하여 작업 경로 루트를 깨끗하게 유지. 보존이 목적이므로 `rm` 금지 (이동만). 사용자가 명시적으로 삭제를 요청한 경우만 예외. 관련 없는 기존 파일은 대상 아님 (언급만)

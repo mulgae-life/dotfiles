@@ -13,7 +13,7 @@
 
 | 스킬 | 상류 저장소 · 경로 | 이식 방식 | 갱신 때 보존할 로컬 변경 |
 |------|-------------------|-----------|--------------------------|
-| `frontend-design` | `anthropics/skills` · `skills/frontend-design/SKILL.md` | 본문 전문 번역. 프론트매터는 dotfiles 규격(`description`·`when_to_use`) | 없음. 번역만 다시 하면 된다 |
+| `frontend-design` | `anthropics/skills` · `skills/frontend-design/SKILL.md` | 본문 전문 번역. 프론트매터는 dotfiles 규격(호출 조건까지 `description` 한 필드) | 없음. 번역만 다시 하면 된다 |
 | `skill-creator` | `anthropics/skills` · `skills/skill-creator/` | 본문·`scripts/`·`references/` 영문 원문 유지, 프론트매터만 번역 | `scripts/` 4개: `improve_description.py`의 하위 `claude` 호출 격리(`--tools ""` + `--safe-mode`. 발동 평가 `run_eval.py`는 원문 그대로라 격리하지 않음), zip 패키징의 심링크 유출 차단, `quick_validate` 필드·`name` 규격 정합. 코드 예시 모델 ID는 `claude-opus-5`. `SKILL.md` 본문의 뷰어 실행은 `nohup … &`·`kill` 대신 `run_in_background` 배경 작업으로, 브라우저 열기는 `open` 대신 환경별(`xdg-open`·헤드리스는 경로 안내)로 바꿔 둔 것 |
 | `react-best-practices` | `vercel-labs/agent-skills` · `skills/react-best-practices/` | `rules/`·`AGENTS.md`·`metadata.json` 원문 그대로, `SKILL.md`만 번역 | `rules/rendering-hydration-no-flicker.md`와 `AGENTS.md` 같은 절의 `suppressHydrationWarning` 보완 2곳. 상류의 옛 서술로 덮지 않는다 |
 | `web-design-guidelines` | 규칙: `vercel-labs/web-interface-guidelines` · `command.md` / 래퍼: `vercel-labs/agent-skills` · `skills/web-design-guidelines/` | `command.md` 본문을 `references/` 스냅샷으로 원문 보관, `SKILL.md`는 자체 작성(카테고리 표, 심각도 3단계) | 출력은 로컬 심각도 형식이 상류 형식보다 우선. 스냅샷을 바꾸면 `SKILL.md` 카테고리 표도 함께 보강 |
@@ -32,6 +32,6 @@
 1. 상류 최신본을 스크래치 디렉토리에 내려받는다. 파일은 `https://raw.githubusercontent.com/<저장소>/main/<경로>`, 디렉토리 목록은 `https://api.github.com/repos/<저장소>/contents/<경로>`.
 2. 로컬과 대조한다. 원문 유지 파일은 `diff`로 통째로, 번역 파일은 절·문단 구조와 고유명사·수치로 대조한다.
 3. 2절 표의 "보존할 로컬 변경"은 상류로 덮지 않고 다시 적용한다. 표에 없는 로컬 차이가 나오면 `git log -p`로 의도를 확인하고, 의도된 것이면 표에 추가한다.
-4. 번역 대상은 다시 번역한다. 프론트매터는 dotfiles 규격(`name`·`description`·`when_to_use`)을 유지하고, 다른 스킬을 가리키는 문구는 넣지 않는다.
+4. 번역 대상은 다시 번역한다. 프론트매터는 dotfiles 규격(`name`·`description`, 호출 조건은 `description` 뒤에 이어 적고 `when_to_use`는 쓰지 않는다)을 유지하고, 다른 스킬을 가리키는 문구는 넣지 않는다.
 5. 룰 수와 `SKILL.md` 목록의 일치, 상대 링크, 프론트매터 파싱을 확인하고 `bash scripts/verify-policies.sh`를 돌린다.
 6. `CHANGELOG.md`에 행을 추가하고, 보존 항목이 늘었으면 2절 표를 고친다.

@@ -5,27 +5,67 @@
 # expected: allow|forbidden|none(무매칭=실행)
 #
 # ── Codex execpolicy (default.rules) — none = 무매칭(기본 실행) ──
-codex	forbidden	rm x.txt
-codex	forbidden	git push
-codex	forbidden	git commit -m msg
-codex	forbidden	git checkout main
-codex	forbidden	git add .
-codex	forbidden	git stash
-codex	forbidden	git stash list
-codex	forbidden	git stash pop
-codex	forbidden	sudo ls
-codex	forbidden	gh api repos/x
-codex	forbidden	chmod 755 f
-codex	forbidden	ln -sf a b
-codex	forbidden	sed -i s/a/b/ f
-codex	forbidden	Remove-Item -Recurse -Force x
-codex	forbidden	remove-item x
-codex	forbidden	del x
-codex	forbidden	Clear-Content f
+# 지침으로 통제하는 위험 명령: 규칙은 막지 않는다(요청받으면 실행돼야 한다)
+codex	none	rm x.txt
+codex	none	rm -rf build
+codex	none	rm -rf /tmp/x
+codex	none	rmdir d
+codex	none	git push
+codex	none	git commit -m msg
+codex	none	git checkout main
+codex	none	git add .
+codex	none	git stash
+codex	none	git reset --hard
+codex	none	git rm x.txt
+codex	none	sudo ls
+codex	none	gh api repos/x
+codex	none	gh pr create
+codex	none	chmod 755 f
+codex	none	ln -sf a b
+codex	none	sed -i s/a/b/ f
+codex	none	docker rm c
+codex	none	dd if=a of=b
+codex	none	fdisk -l
+codex	none	parted image.img print
+codex	none	shred f
+codex	none	Remove-Item -Recurse -Force x
+codex	none	remove-item x
+codex	none	del x
+codex	none	Clear-Content f
+# 파국형: 규칙이 막는다
+codex	forbidden	rm -rf /
+codex	forbidden	rm -fr /
+codex	forbidden	rm --recursive --force /
+codex	forbidden	rm -r -f /
+codex	forbidden	rm -f -r /
+codex	forbidden	rm -rf ~
+codex	forbidden	rm -rf .
+codex	forbidden	rm -rf ..
+codex	forbidden	rm -rf /home
+codex	forbidden	sudo rm -rf /
+codex	forbidden	Remove-Item -Recurse -Force C:\
+codex	forbidden	Remove-Item C:\ -Recurse
+codex	forbidden	Remove-Item -Path C:\ -Recurse -Force
+codex	forbidden	remove-item -r .
+codex	forbidden	reboot
+codex	forbidden	sudo reboot
+codex	forbidden	rm -rf $HOME
+codex	forbidden	dd of=/dev/sda
+codex	forbidden	sudo dd of=/dev/nvme0n1p6
+codex	forbidden	fdisk /dev/sda
+codex	forbidden	parted /dev/sdb print
+codex	forbidden	shred /dev/sda1
+codex	forbidden	mkfs.ext4 /dev/sda1
+codex	forbidden	systemctl reboot
+codex	forbidden	sudo systemctl reboot
+codex	forbidden	sudo loginctl poweroff
+codex	forbidden	crontab -r
+codex	forbidden	sudo crontab -r
 codex	forbidden	Stop-Computer
 codex	forbidden	Format-Volume -DriveLetter D
 codex	forbidden	shutdown.exe /s
 codex	forbidden	diskpart.exe
+# 허용·무매칭
 codex	none	Remove-ItemProperty x
 codex	none	Get-ChildItem
 codex	allow	git status

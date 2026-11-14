@@ -1,7 +1,6 @@
 ---
 name: office-docs
-description: PDF·Word(.docx)·PowerPoint(.pptx)·Excel(.xlsx/.csv) 파일을 만들고, 읽고, 고칩니다. 새 파일은 docx-js·pptxgenjs·openpyxl·reportlab로 생성하고 기존 파일은 OOXML을 직접 편집하며, 스키마 검증·수식 재계산·렌더링 검수 스크립트를 포함합니다. 산출물이나 입력이 이 파일 형식일 때 쓰고, HTML 리포트·슬라이드 아티팩트·마크다운 문서에는 쓰지 않습니다.
-when_to_use: "PPT 만들어줘, 엑셀로 정리해줘, 워드 문서로 뽑아줘, PDF 합쳐줘, 이 pptx 내용 읽어줘, 템플릿 채워줘, PDF 폼 채워줘 요청 시. .pdf·.docx·.pptx·.xlsx·.csv 파일이 입력이나 산출물로 얽히면 명시적 요청이 없어도 참조한다. 브랜드 디자인 스킬(hw-ppt·hw-design)이 적용된 프로젝트에서는 디자인은 그 스킬이 정하고 파일 생성만 이 스킬이 맡는다."
+description: PDF·Word(.docx)·PowerPoint(.pptx)·Excel(.xlsx/.csv) 파일을 만들고, 읽고, 고칩니다. 새 파일은 docx-js·pptxgenjs·openpyxl·reportlab로 생성하고 기존 파일은 OOXML을 직접 편집하며, 스키마 검증·수식 재계산·렌더링 검수 스크립트를 포함합니다. 산출물이나 입력이 이 파일 형식일 때 쓰고, HTML 리포트·슬라이드 아티팩트·마크다운 문서에는 쓰지 않습니다. PPT 만들어줘, 엑셀로 정리해줘, 워드 문서로 뽑아줘, PDF 합쳐줘, 이 pptx 내용 읽어줘, 템플릿 채워줘, PDF 폼 채워줘 요청 시. .pdf·.docx·.pptx·.xlsx·.csv 파일이 입력이나 산출물로 얽히면 명시적 요청이 없어도 참조한다. 브랜드 디자인 스킬(hw-ppt·hw-design)이 적용된 프로젝트에서는 디자인은 그 스킬이 정하고 파일 생성만 이 스킬이 맡는다.
 allowed-tools:
   - "Bash"
   - "Read"

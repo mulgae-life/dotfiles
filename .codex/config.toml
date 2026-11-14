@@ -168,7 +168,7 @@ developer_instructions = """
 """
 
 # ── 승인 정책 ──────────────────────────────
-# never: 승인 프롬프트 생략. 공식 권고인 permission profiles 대신 sandbox_mode + rules/default.rules(Starlark)로 위험 명령을 직접 차단
+# never: 승인 프롬프트 생략. 공식 권고인 permission profiles 대신 sandbox_mode + rules/default.rules(Starlark)로 파국형 명령만 직접 차단하고, 나머지 위험 명령은 AGENTS.md 지침으로 통제
 approval_policy = "never"
 
 # ── AGENTS.md 한도 ─────────────────────────
@@ -182,7 +182,8 @@ suppress_unstable_features_warning = true
 # 이유: Codex exec 샌드박스는 /dev를 tmpfs nodev로 덮어 GPU 장치(/dev/nvidia*)를
 #       노출하지 않는다. workspace-write로는 mount namespace를 풀 수 없으므로
 #       GPU 연산·CUDA 도구를 쓰려면 샌드박스 자체를 비활성화해야 한다.
-# 유일한 방어선: rules/default.rules (Starlark DSL)가 rm/reboot/gh api 등 차단
+# 방어선: rules/default.rules (Starlark DSL)가 파국형 명령(루트·홈 삭제, 전원 조작, 디스크 파괴)을 차단하고,
+#         그 밖의 위험 명령은 AGENTS.md 지침이 통제한다(사용자 요청 시에만 실행)
 # 병행 방어선: shell_environment_policy(아래)가 시크릿 env var 유출 차단
 sandbox_mode = "danger-full-access"
 
@@ -205,7 +206,6 @@ memories = false    # 공식 메모리(세션 요약을 백그라운드로 생�
 [agents]
 max_threads = 12            # max_concurrent_threads_per_session의 별칭. 동시 열린 스레드 상한(공식 기본 6). 토큰·지연 비용도 늘므로 실제 스폰 수는 필요한 최소로 제한
 max_depth = 1               # V1 백엔드 전용 중첩 깊이 — V2 백엔드에서는 무시됨(config_toml.rs 소스 주석). 삭제는 보류
-job_max_runtime_seconds = 1800  # 호환용 no-op(config_toml.rs 소스 주석) — 워커 타임아웃으로 동작하지 않음. 삭제는 보류
 
 # ── TUI 설정 (상태줄·화면 모드) ─────────────────
 [tui]

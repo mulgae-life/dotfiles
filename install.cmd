@@ -407,7 +407,6 @@ function Main {
   Link-Dir    (PathOf $R '.claude' 'agents')    (PathOf $H '.claude' 'agents')
   Link-Dir    (PathOf $R '.claude' 'rules')     (PathOf $H '.claude' 'rules')
   Link-Dir    (PathOf $R '.claude' 'skills')    (PathOf $H '.claude' 'skills')
-  Link-Dir    (PathOf $R '.claude' 'hooks')     (PathOf $H '.claude' 'hooks')
   # settings.json은 레포 버전으로 덮어쓰기 (레포가 진실의 원천)
   Copy-Over   (PathOf $R '.claude' 'settings.json') (PathOf $H '.claude' 'settings.json')
   Copy-Linked (PathOf $R '.claude' 'statusline-command.sh') (PathOf $H '.claude' 'statusline-command.sh')
@@ -415,7 +414,6 @@ function Main {
   # 2. Codex
   Ensure-Dir (PathOf $H '.codex')
   Copy-Linked (PathOf $R '.codex' 'AGENTS.md') (PathOf $H '.codex' 'AGENTS.md')
-  Copy-Linked (PathOf $R '.codex' 'AGENTS.references.md') (PathOf $H '.codex' 'AGENTS.references.md')
   Link-Dir    (PathOf $R '.codex' 'rules') (PathOf $H '.codex' 'rules')
   Link-Dir    (PathOf $R '.codex' 'hooks') (PathOf $H '.codex' 'hooks')
   # config.toml은 레포 버전으로 덮어쓰기 (Codex가 실행 중 trust 등 런타임 필드를 되씀)
@@ -452,7 +450,6 @@ function Main {
     @((PathOf $H '.claude' 'agents'),            (PathOf $R '.claude' 'agents')),
     @((PathOf $H '.claude' 'rules'),             (PathOf $R '.claude' 'rules')),
     @((PathOf $H '.claude' 'skills'),            (PathOf $R '.claude' 'skills')),
-    @((PathOf $H '.claude' 'hooks'),             (PathOf $R '.claude' 'hooks')),
     @((PathOf $H '.codex' 'rules'),              (PathOf $R '.codex' 'rules')),
     @((PathOf $H '.codex' 'hooks'),              (PathOf $R '.codex' 'hooks')),
     @((PathOf $H '.agents' 'skills'),            (PathOf $H '.claude' 'skills')),
@@ -463,7 +460,6 @@ function Main {
     @((PathOf $H '.claude' 'statusline-command.sh'), (PathOf $R '.claude' 'statusline-command.sh')),
     @((PathOf $H '.claude' 'settings.json'),         (PathOf $R '.claude' 'settings.json')),
     @((PathOf $H '.codex' 'AGENTS.md'),              (PathOf $R '.codex' 'AGENTS.md')),
-    @((PathOf $H '.codex' 'AGENTS.references.md'),   (PathOf $R '.codex' 'AGENTS.references.md')),
     @((PathOf $H '.codex' 'config.toml'),            (PathOf $R '.codex' 'config.toml')),
     @((PathOf $H '.gemini' 'GEMINI.md'),             (PathOf $R '.antigravity' 'GEMINI.md'))
   )

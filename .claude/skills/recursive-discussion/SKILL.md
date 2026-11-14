@@ -1,7 +1,6 @@
 ---
 name: recursive-discussion
-description: Claude와 Codex(GPT)가 대등한 지적 파트너로 왕복 토론하며 결과물을 끌어올리는 재귀 협업 루프.
-when_to_use: "토론하면서, 비판적 피드백, 재귀 개선, loop로 다듬어, reviewer 관점, 티키타카 맥락에서 적극 트리거. 논문·리포트·설계 문서·아이데이션 등 발산과 수렴이 모두 필요한 작업에 사용."
+description: Claude와 Codex(GPT)가 대등한 지적 파트너로 왕복 토론하며 결과물을 끌어올리는 재귀 협업 루프. 토론하면서, 비판적 피드백, 재귀 개선, loop로 다듬어, reviewer 관점, 티키타카 맥락에서 적극 트리거. 논문·리포트·설계 문서·아이데이션 등 발산과 수렴이 모두 필요한 작업에 사용.
 allowed-tools:
   - "Bash"
   - "Read"

@@ -8,7 +8,8 @@
 
 - 모든 작업을 확인 프롬프트 없이 실행한다. 장기 작업이 중간에 멈추지 않게 하기 위해서다(Claude Code는 ask 규칙을 모두 해제).
 - 위험 명령(`rm`·`git push`·`sudo` 등)은 지침이 통제한다. 자율 작업 중에는 쓰지 않고, 사용자가 요청할 때만 쓴다.
-- 기계 차단(`permissions.deny`)은 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작)과 넓은 재귀 삭제만 막는다. 범위는 도구마다 다르다(§3).
+  - 위험 명령을 기계로 막지 않는 이유는, 막으면 사용자가 요청해도 실행하지 못하기 때문이다. Codex가 이런 명령을 규칙으로 막던 것도 풀어 세 도구를 같게 했다(v2.73, §3).
+- 기계 차단(Claude·Antigravity `permissions.deny`, Codex `default.rules`)은 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작)만 막는다. Claude는 절대경로 아래의 넓은 재귀 삭제도 막는다. 범위는 도구마다 다르다(§3).
 - Claude Code는 bypass 모드에서도 핵심 경로의 `rm`에 확인창을 띄우고, 2분간 응답이 없으면 거부한다. 거부 뒤에도 작업이 이어지므로 이 기본값을 그대로 둔다. 지침은 이 확인창에 기대지 말라고만 적는다.
 
 ### auto 모드를 쓰지 않는다
@@ -66,6 +67,7 @@
   - Codex는 `~/.agents/skills → ~/.claude/skills`로 받는다.
   - Antigravity는 CLI용 `~/.gemini/config/skills`와 IDE용 `~/.gemini/antigravity/skills`로 따로 연결한다. `~/.gemini/antigravity-cli/skills`는 `agy`가 스스로 만드는 링크라 관리하지 않는다.
   - 은퇴한 Gemini CLI가 `~/.gemini` 바로 아래 남긴 링크는 설치 때 정리한다.
+- 레포에서 없앤 항목의 링크(`~/.claude/hooks`, `~/.codex/AGENTS.references.md`)도 설치 때 정리한다.
 
 ### Windows 네이티브 설치 (`install.cmd`)
 
@@ -79,7 +81,7 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 - **Codex 훅**: Windows에서는 훅이 PowerShell로 돌아 `command_windows`에 대체 명령을 둔다. 한글이 깨지지 않게 비ASCII 문자는 `\uXXXX`로 내보낸다.
 - **상태줄 `jq`**: Git Bash의 `jq.exe`는 줄 끝을 CRLF로 내므로 `-b`를 붙인다.
 - **agy**: Windows에서는 상태줄을 `cmd /c`로 돌려 레포 `statusLine`을 빼고 병합한다. `~/.antigravity`는 Windows에서 구버전 Antigravity의 확장 폴더라 연결하지 않는다.
-- **하지 않는 것**: 스킬 의존성 설치(Linux 가상환경 경로를 전제), Antigravity IDE 층, Gemini CLI 잔여 링크 정리.
+- **하지 않는 것**: 스킬 의존성 설치(Linux 가상환경 경로를 전제), Antigravity IDE 층, 이전 설치가 남긴 링크·사본 정리.
 
 ### 레포 안에서 작업할 때
 
@@ -93,8 +95,8 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 |---|---|---|---|
 | 모드 | `defaultMode: bypassPermissions` | `approval_policy = "never"` + `sandbox_mode = "danger-full-access"` | `toolPermission`·`artifactReviewPolicy`: `always-proceed` |
 | 기계 차단 | `permissions.deny` 90건 (Bash 52 · PowerShell 38) | Starlark `rules/default.rules` (`forbidden`) | `permissions.deny` 66건 |
-| 차단 범위 | 파국형 + 넓은 재귀 삭제 | 위험 명령 전반(삭제, Git 쓰기, `sudo`, `chmod` 등) | 파국형만 |
-| 회귀 검증 | 실제 엔진 44건 + Windows 실기기 21건 | `scripts/verify-policies.sh codex` 30건 | `scripts/verify-policies.sh agy` 17건 + `scripts/agy-live-check.sh` 6건 |
+| 차단 범위 | 파국형 + 넓은 재귀 삭제 | 파국형(루트·홈·현재 폴더 삭제와 디스크 장치 대상 명령은 정확한 형태만, 전원·`mkfs`는 명령째) | 파국형만 |
+| 회귀 검증 | 실제 엔진 44건 + Windows 실기기 21건 | `scripts/verify-policies.sh codex` 67건 | `scripts/verify-policies.sh agy` 18건 + `scripts/agy-live-check.sh` 6건 |
 
 ### Claude Code
 
@@ -109,8 +111,12 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 
 ### Codex
 
-- 차단 규칙은 명령 앞부분만 맞추는 `prefix_rule`이라, 인자값이나 임의 위치는 맞추지 못한다.
-- Windows에서는 PowerShell 스크립트를 명령 단위로 나눠 대조하므로 `Remove-Item` 계열과 전원·디스크 cmdlet을 더했다. 첫 토큰은 철자 그대로 대조해 정식 표기, 소문자, `.exe` 표기를 함께 둔다. 그 밖의 대소문자 조합은 막지 못한다.
+- 차단 규칙은 명령 앞부분의 토큰이 정확히 같을 때만 맞는 `prefix_rule`이라, 인자값의 일부나 임의 위치는 맞추지 못한다.
+- 규칙은 파국형만 막는다(v2.73). 삭제, `sudo`, 권한 변경, 링크 강제, in-place 수정, Docker 삭제, Git·GitHub 쓰기는 Claude·Antigravity처럼 지침으로 통제한다. 규칙으로 막아 두면 사용자가 맡겨도 실행하지 못했고, Codex만 다르게 둘 이유가 없었다.
+  - 삭제는 `rm -rf`의 대상이 `/`, `~`, `.`, `..` 같은 토큰과 정확히 같을 때만 막는다. `/home/user`처럼 더 깊은 경로는 막지 못하고, 변수의 확장 결과도 계산하지 않는다. Claude의 `rm -rf /*` 규칙이 절대경로 전부를 막는 것과 다르다.
+  - 전원 조작과 `mkfs`는 명령째 막는다. `dd`·`fdisk`·`parted`·`shred`는 디스크 장치가 대상일 때만 막는다. 일반 파일 복사와 `fdisk -l`, `parted image.img print`는 막지 않고, 열거한 장치가 첫 인자인 호출은 조회 여부와 무관하게 막는다. 글롭이 없어 흔한 장치 이름을 열거했고, 열거하지 않은 장치와 장치가 첫 인자가 아닌 형태는 막지 못한다.
+  - 막는 명령은 `sudo`를 앞에 붙인 형태도 함께 막는다. `sudo -n`처럼 옵션이 끼거나 `rm -rf -- /`처럼 배열이 달라지면 맞지 않는다. 이런 변형을 끝없이 열거하지 않고 지침에 맡긴다.
+- Windows에서는 PowerShell 스크립트를 명령 단위로 나눠 대조하므로 `Remove-Item` 계열의 루트·홈·현재 폴더 재귀 삭제와 전원·디스크 cmdlet을 막는다. 재귀 삭제 형태는 Linux 엔진의 토큰 판정으로만 확인했고 Windows 실기기에서는 확인하지 않았다. 첫 토큰은 철자 그대로 대조해 정식 표기, 소문자, `.exe` 표기를 함께 둔다. 그 밖의 대소문자 조합은 막지 못한다.
 - 샌드박스를 끈 이유는 exec 샌드박스가 `/dev`를 덮어 GPU 장치가 보이지 않기 때문이다. 대신 `shell_environment_policy`로 시크릿 환경 변수 유출을 막는다.
 - 훅 신뢰는 정의의 해시로 기록된다. 새로 만들거나 바꾼 훅은 `/hooks`에서 신뢰할 때까지 건너뛴다.
 
@@ -126,6 +132,7 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 | Claude | Bash 자동승인 훅 은퇴, `permissions.ask` 전면 해제 (v2.10) | 텍스트 매칭이 따옴표 속 문구를 명령으로 오인하는 오탐이 쌓였고, ask 규칙은 bypass 모드에서도 떠서 작업 흐름을 끊었다 |
 | Claude | MCP 자동승인 훅(PreToolUse `mcp__.*`) 유지 | 의도된 정책이다. 보안 리뷰에서 취약점으로 다루지 않는다 |
 | Claude | 서브에이전트 effort 훅(PreToolUse `Agent`) 추가 (v2.67) | 서브에이전트에만 적용되는 effort 설정이 없다. 세션 effort 설정은 메인 대화까지 묶고, 에이전트 정의의 `effort`는 내장 에이전트에 닿지 않는다. effort를 직접 넘긴 호출과 fork는 건드리지 않는다. 워크플로 에이전트와 에이전트 팀은 실측하지 않았다 |
+| Claude | 실패 조언 훅(PostToolUseFailure) 은퇴 (v2.73) | 명령 문자열만 보고 분류해, 검색 명령에 `tsc`·`pytest` 같은 글자만 있어도 빌드·테스트 실패 조언을 넣었다. 조언도 강제가 아닌 일반 권고였다 |
 | Claude·Codex | compact 리마인더를 SessionStart(`compact`)에 둠 (v2.21) | PostCompact 출력은 모델에 전달되지 않는다 |
 | Claude·Codex | 리마인더가 이전 작업 재개를 재촉하지 않음 (v2.40) | 압축 직후의 새 요청이 이전 작업 재개로 흡수된 사례가 있었다. 새 메시지가 있으면 그것이 이번 턴의 작업임을 못 박는다 |
 | Codex | 실패알림 훅(PostToolUse) 제거 (v2.0) | payload에 exit code가 없고 실패 전용 이벤트도 없어 실패를 판정할 수 없다 |
@@ -142,7 +149,7 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 | IDE 층 | — | — | `.antigravity/settings.json`·`hooks/` 추정치, 미검증 |
 
 - **agy 스킬 본문 한도**: `SKILL.md` 본문의 앞 24,000바이트만 읽는다. `verify-policies.sh`가 정적 검사로 막고, 영문 원문을 유지하는 이식 스킬 `skill-creator`만 예외로 둔다. 이 스킬에서 잘리는 뒷부분은 Claude 전용 기능 설명과, 앞에서 이미 언급한 참고 파일 목록이다.
-- **agy 지시 파일**: `~/.gemini/config/GEMINI.md`는 비공식 경로라 쓰지 않는다. 다른 파일을 두면 두 번 주입된다.
+- **agy 지시 파일**: `~/.gemini/GEMINI.md` 하나만 쓴다. `~/.gemini/config/GEMINI.md`도 전역 경로로 읽혀, 두 곳에 다른 파일을 두면 두 번 주입된다. 규칙 파일 하나가 24,000바이트를 넘으면 잘리므로 `verify-policies.sh`가 `GEMINI.md` 크기도 검사한다.
 - **약관**: Antigravity 로그인 자격 증명을 타사 클라이언트에서 재사용하는 것은 공식 FAQ의 제한 대상이다. 공식 `agy`를 다른 에이전트가 호출하는 구성에 적용되는지는 확인하지 못했다.
 
 ## 6. 지침·스킬 결정
@@ -150,6 +157,7 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 ### 레퍼런스 검증은 필요할 때 부르는 스킬로 둔다 (v2.12)
 
 - 상시 로드 규칙에서 `/reference-verification` 스킬로 옮기고, `work-principles`에는 호출 조건 한 줄만 남겼다.
+- Codex `AGENTS.md`와 Antigravity `GEMINI.md`의 레퍼런스 절도 같은 스킬을 가리킨다(v2.73). 두 층이 따로 두던 사본(Codex `AGENTS.references.md`, `GEMINI.md` 본문)을 없애고 적용 조건과 핵심 한 줄만 남겨, 기준을 고칠 곳이 스킬 하나다.
 
 ### 규칙끼리 기준이 겹치면 담당을 나눈다 (v2.45)
 
@@ -167,6 +175,12 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 - 대상 모델 ID와 API 방식을 먼저 확정한다. 패키지 이름으로 공급자를 추정하지 않는다. `openai` 라이브러리로 Gemini를 부를 수도 있기 때문이다.
 - 목록 밖 모델은 다른 모델로 바꾸지 않고, 공식 계약과 공통 기법만 적용한다.
 - 예시 개수 같은 수치는 범용 체크리스트에 두지 않고, 근거가 있는 모델 문서에만 둔다.
+
+### 스킬 호출 조건은 `description` 한 필드에 적는다 (v2.73)
+
+- `when_to_use`는 Claude Code만 읽는다. Codex와 Antigravity는 `description`만 받아 호출 문구를 보지 못했다.
+- 그래서 `when_to_use`를 `description` 뒤에 이어 붙였다. Claude Code는 원래 두 필드를 이어 붙여 같은 상한으로 다루므로 Claude 쪽 목록은 달라지지 않는다.
+- Codex `AGENTS.md`의 수동 스킬 표는 주입되는 스킬 목록과 같은 내용이 되어 뺐다. 목록에 나오지 않는 `cowork-set`만 따로 적는다.
 
 ### 협업 회신은 직접 신호로 알린다 (v2.71)
 
@@ -187,6 +201,7 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 | Codex PostToolUse 실패알림 훅 | 2026-07-02 | `.archive/2026-07-02_codex-dead-hook/` |
 | `/start` 커스텀 명령 (공용 스킬로 전환) | 2026-09-07 | `.archive/2026-09-07_start-to-skill/` |
 | 상시 로드 지침 감량 전 원본 (393→250줄) | 2026-08-13 | `.archive/2026-08-13_rules-slimming/` |
+| Claude 실패 조언 훅, Codex `AGENTS.references.md` | 2026-11-14 | `.archive/2026-11-14_harness-slim/` |
 | 지원 범위 밖 모델 자료 | v2.20, v2.48 | `reference/archive/` |
 
 모델·도구 조사 원문은 `reference/research/`에 있다.

@@ -1,7 +1,6 @@
 ---
 name: stitch-design
-description: Stitch MCP를 사용하여 AI로 UI 디자인을 생성·편집하고, 기존 코드를 Stitch로 올리거나 Stitch 디자인을 React·React Native·Remotion 코드로 변환합니다.
-when_to_use: "Stitch로 디자인해줘, Stitch 스크린 만들어줘, 디자인 시스템 만들어줘, DESIGN.md 생성해줘, Stitch 프롬프트 다듬어줘, 이 앱을 Stitch에 올려줘, Stitch 디자인을 React로 변환해줘 요청 시."
+description: Stitch MCP를 사용하여 AI로 UI 디자인을 생성·편집하고, 기존 코드를 Stitch로 올리거나 Stitch 디자인을 React·React Native·Remotion 코드로 변환합니다. Stitch로 디자인해줘, Stitch 스크린 만들어줘, 디자인 시스템 만들어줘, DESIGN.md 생성해줘, Stitch 프롬프트 다듬어줘, 이 앱을 Stitch에 올려줘, Stitch 디자인을 React로 변환해줘 요청 시.
 allowed-tools:
   - "mcp__stitch__*"
   - "chrome*:*"

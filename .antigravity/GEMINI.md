@@ -142,8 +142,8 @@ NEVER:
   - ✓ `data = MySchema.model_validate(req.json()); process(data.key)`
 - **에러 처리**: 예외를 삼키지 않기. Fail-fast 원칙
   - ✗ `except: pass`, `except Exception: return default_value`
-  - ✗ `value = config.get("key") or "fallback"` (에러를 기본값으로 흡수)
-  - ✓ 타입별 catch + 로그 + 사용자 메시지 분리. 폴백은 최상위 에러 경계에서만 허용
+  - ✗ `value = config.get("key") or "fallback"`, `.catch(() => fallback)` (실패를 기본값으로 흡수 — 원인 추적 불가)
+  - ✓ 타입별 catch + 로그 + 사용자 메시지 분리. 폴백은 최상위 에러 경계(global error boundary)에서만 허용
 - **리소스 수명주기**: HTTP client/DB pool/모델/토크나이저는 요청마다 생성 금지, 앱 수명주기로 관리
 - **설정 분리**: 하드코딩 대신 env/설정 파일. 안전한 기본값 + 명확한 실패
 
@@ -151,15 +151,10 @@ NEVER:
 
 - **명확성 우선**: early return, 의미 있는 네이밍, 단일 책임(SRP)
 - **독립 작업 병렬화**: 불필요한 순차 await/N+1 피하기
-- **접근법 검토**: 비사소한 로직 변경 시 코딩 전 더 단순한 접근법 검토. 여러 해석이 가능한 요청은 선택지를 나열하고 확인 후 진행
 
 ### AVOID
 
 - **에러 뭉개기**: 검증 실패(400)/권한(401)/외부 장애(502) 구분 없이 "그냥 500" 금지
-- **과도한 방어적 코딩**: 실패를 숨기는 패턴 금지
-  - ✗ `result = api_call() ?? default_value` (실패가 버그인데 기본값으로 숨김)
-  - ✗ `.catch(() => fallback)` (에러 원인 추적 불가)
-  - ✓ 에러를 내서 원인을 추적하고 제대로 고치기. 폴백은 global error boundary에서만
 - **느슨한 계약**: dict/str 기반 지양. API/LLM 출력은 Pydantic/Zod 등 스키마 사용
 
 ### 언어별
@@ -233,8 +228,7 @@ NEVER:
 Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인 프롬프트 없이 그대로 실행됩니다**. 워크스페이스 밖 파일 접근을 샌드박스가 막아 준다고 가정하지 않습니다. 파국형 명령만 `permissions.deny`가 기계적으로 차단하고, 나머지 위험 명령의 통제는 이 지침뿐입니다 — 자율 작업 중 시도 자체 금지, 사용자가 직접 요청한 경우에만 실행. 서브에이전트도 같은 지침을 따릅니다. 복합·래퍼 형태(`cd x && rm y`, `bash -c "rm ..."`)로 돌려 쓰는 것도 동일하게 금지:
 
 - **파일 삭제**: `rm`, `rmdir`, `unlink`, `shred`, `truncate`, Windows PowerShell의 `Remove-Item`(`ri`·`del`·`erase`·`rd` 포함)·`Clear-Content` — 보존이 원칙이므로 `.archive/`로 옮기는 것이 기본. `/tmp` 스크래치는 지우지 말고 둔다(재부팅 시 소멸)
-- **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f`
-- **Git 상태 변경**: `git checkout`, `git switch`, `git restore`, `git stash`(단, `stash list`/`stash show` 조회는 자유), `git add` — 작업 컨텍스트/working tree/staging 상태 변경 위험
+- **Git 쓰기**: `git push`, `git commit`, `git reset`, `git clean`, `git rebase`, `git merge`, `git cherry-pick`, `git revert`, `git am`, `git apply`, `git branch -d/-D`, `git tag -d/-f` (조회와 `git add`·`checkout`·`switch`·`stash`는 자유)
 - **GitHub CLI 쓰기**: `gh pr/issue/release/repo create/close/delete/merge/edit/comment`, `gh api` 쓰기 플래그(`-X`/`--method`/`-f`/`--field`/`-F`/`--raw-field`/`--input` — 결합형·위치무관 포함), `gh auth login/logout`
 - **시스템**: `reboot`, `shutdown`, `poweroff`, `halt`, `dd`, `mkfs`, `fdisk`, `parted`, `sudo`, Windows의 `Stop-Computer`·`Restart-Computer`·`Format-Volume`·`Clear-Disk`·`Remove-Partition`·`diskpart`
 - **파일 in-place 수정/링크 강제/권한**: `sed -i`, `awk -i inplace`, `ln -sf` (force overwrite), `chmod`, `chown` — Edit 도구 우회·보안 상태 변경
@@ -250,43 +244,9 @@ Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인
 
 ## 레퍼런스 검증
 
-> 학술 논문·연구 보고서·기술 사양서를 인용하거나, 논문 수식을 코드로 구현하거나, benchmark 수치를 비교할 때 적용.
-> 라이브러리/프레임워크 공식 문서는 대상이 아니다.
+학술 논문·연구 보고서·기술 사양서를 인용하거나, 논문 수식을 코드로 구현하거나, benchmark 수치를 비교할 때는 `reference-verification` 스킬(`~/.gemini/config/skills/reference-verification/SKILL.md`)을 먼저 읽고 따른다. 라이브러리/프레임워크 공식 문서는 대상이 아니다.
 
-### MUST — 논문 인용
-
-- **원문 확인 없이 구체적 내용 언급 금지**. "아마 ~일 것이다" 식의 추측 답변 금지
-- **Abstract만으로 답변 금지**. 구체적 내용은 해당 섹션 본문까지 읽어야 한다
-- **전문 확보 순서**: 사용자 제공 자료 → ar5iv (HTML) → 웹 검색 → Semantic Scholar API → PubMed Central → 저자 홈페이지
-- **접근 실패 시 솔직하게 고백**. 읽지 못한 부분을 추측으로 채우지 않는다
-
-### MUST — 수식↔코드 대조
-
-- **코드가 "Eq.(X) 구현"이라고 주장하면, 항 단위 대조표를 만들어 검증**
-  - ✗ "added mass를 effective mass로 치환했으니 Eq.(21)과 같다" (개념 수준 판단)
-  - ✓ 논문 수식의 각 항과 코드 변수를 1:1 대조하여 차이 확인
-- **코드 내부에 "heuristic", "exploratory" 라벨이 있으면 faithful로 전제하지 않기**
-
-### MUST — benchmark 수치 비교
-
-- **비교 전에 논문 원문에서 해당 무차원수의 정의 수식을 직접 확인**
-- **정의가 다르면 환산식을 명시적으로 쓰고 나서 비교**
-
-### MUST — 디버깅 사고
-
-- **내가 구현한 코드는 "틀렸다"를 기본 전제로 시작. 맞다는 증거를 찾기**
-- **가설은 확증이 아니라 반증을 먼저 설계**
-- **수식 오류, 정의 오독 같은 단순 원인을 전부 배제한 뒤에만 "구조적 한계" 결론 허용**
-- **새 실험 설계보다 기존 코드/수식 검증이 먼저**
-- **같은 축에서 반복 실패하면 실험 멈추고 전제 목록 작성**
-
-### AVOID
-
-- 기억 기반 인용 (원문 확인 없이 "이 논문에서는~")
-- 숫자/수치 날조
-- 존재하지 않는 논문 인용
-
-예외: 일반 상식 수준의 언급은 검증 불필요 ("LBM은 Boltzmann 방정식 기반이다")
+**핵심**: Abstract만으로 답변 금지 / 수식·코드 항 단위 대조 / 기억 기반 인용 금지 / 출처 섹션 명시 / 디버깅 사고(내 코드는 "틀렸다" 전제로 시작, 반증 먼저 설계).
 
 ---
 
@@ -363,6 +323,7 @@ Antigravity CLI는 `toolPermission: always-proceed`라 아래 명령도 **확인
 - `~/.claude` 디렉토리는 삭제/수정하지 않는다
 - Antigravity 설정은 `~/.gemini`(CLI가 물려받은 설정 트리)와 `~/.antigravity` 내에서만 관리한다
 - 기존 uncommitted 변경을 revert하지 않는다 (사용자가 명시적으로 요청한 경우만)
+- 기존 테스트가 실패하면 통과시키려고 테스트를 고치지 않는다 — 어떤 테스트가 왜 실패했는지 보고한다. 요청으로 동작이 바뀌어 기대값이 달라진 경우에만 그 사실을 밝히고 고친다
 
 ---
 

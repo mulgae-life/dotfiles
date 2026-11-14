@@ -1,7 +1,6 @@
 ---
 name: postgres-best-practices
-description: Supabase가 관리하는 Postgres 모범 사례. 성능만이 아니라 스키마·마이그레이션·RLS·SQL 작성 전반에 적용하며, 어디서 돌아가는 Postgres든 해당.
-when_to_use: "쿼리 최적화해줘, 인덱스 추가해줘, RLS 정책 작성해줘, DB 성능 개선해줘, 테이블 만들어줘, 마이그레이션 작성해줘 요청 시. 테이블·컬럼·타입, 마이그레이션, RLS, 인덱스, 트리거, DB 함수, pg_cron·pgmq, pgvector, pg_restore 등 Postgres에 남는 것을 만들거나 바꾸는 작업이면 컬럼 하나여도 명시적 요청 없이 참조. 느린 쿼리·타임아웃·EXPLAIN·연결 고갈·잠금·블로트·다른 테넌트 행 노출 진단에도 참조."
+description: Supabase가 관리하는 Postgres 모범 사례. 성능만이 아니라 스키마·마이그레이션·RLS·SQL 작성 전반에 적용하며, 어디서 돌아가는 Postgres든 해당. 쿼리 최적화해줘, 인덱스 추가해줘, RLS 정책 작성해줘, DB 성능 개선해줘, 테이블 만들어줘, 마이그레이션 작성해줘 요청 시. 테이블·컬럼·타입, 마이그레이션, RLS, 인덱스, 트리거, DB 함수, pg_cron·pgmq, pgvector, pg_restore 등 Postgres에 남는 것을 만들거나 바꾸는 작업이면 컬럼 하나여도 명시적 요청 없이 참조. 느린 쿼리·타임아웃·EXPLAIN·연결 고갈·잠금·블로트·다른 테넌트 행 노출 진단에도 참조.
 ---
 
 # Supabase Postgres 모범 사례

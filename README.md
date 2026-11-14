@@ -152,7 +152,6 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 |------|--------|------|
 | Claude Code | PreToolUse(`mcp__.*`) | MCP 자동 승인 |
 | | PreToolUse(`Agent`) | 서브에이전트 effort `high` 지정 |
-| | PostToolUseFailure(Bash) | 실패 대응 가이던스 |
 | | Notification | 알림 |
 | | SessionStart(compact) | 리마인더 |
 | Codex | Stop | 알림 |
@@ -175,7 +174,7 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 
 ```
 dotfiles/
-├── .claude/          CLAUDE.md · rules/ · agents/ · hooks/ · skills/ · settings.json · statusline-command.sh
+├── .claude/          CLAUDE.md · rules/ · agents/ · skills/ · settings.json · statusline-command.sh
 ├── .codex/           AGENTS.md · config.toml · rules/ (Starlark 차단 규칙) · hooks/ · skills → ../.claude/skills
 ├── .antigravity/     GEMINI.md · cli/settings.json · cli/statusline-command.sh · README.md (실측·병합 계약) · IDE용 settings·hooks (미검증)
 ├── scripts/          verify-policies.sh (정책 회귀) · agy-live-check.sh (agy 실측) · windows-live-check.cmd (Windows 차단 실측) · publish-release.sh (공개 릴리즈) · policy-cases.tsv · setup-apparmor.sh
@@ -185,6 +184,6 @@ dotfiles/
 └── install.cmd       Windows 네이티브 설치기 (CMD·PowerShell·더블클릭 공용)
 ```
 
-정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 30건 + agy 정적 17건). Windows에서는 `scripts\windows-live-check.cmd`로 실제 차단을 확인한다. 모델을 호출하므로 쿼터를 쓴다. 데스크톱 앱만 쓰는 PC에서는 앱에 들어 있는 `claude.exe`로 처음 한 번 `auth login`을 해야 한다.
+정책을 고쳤으면 `bash scripts/verify-policies.sh`로 회귀를 확인한다(Codex 실제 엔진 67건 + agy 정적 18건). Windows에서는 `scripts\windows-live-check.cmd`로 실제 차단을 확인한다. 모델을 호출하므로 쿼터를 쓴다. 데스크톱 앱만 쓰는 PC에서는 앱에 들어 있는 `claude.exe`로 처음 한 번 `auth login`을 해야 한다.
 
 이 공개 레포에는 릴리즈 시점의 파일만 올라간다. 릴리즈는 비공개 작업 레포에서 `bash scripts/publish-release.sh <버전>`으로 하며, `public` 원격이 이 레포를 가리켜야 한다. CHANGELOG의 같은 버전 절이 릴리즈 제목과 노트가 된다.

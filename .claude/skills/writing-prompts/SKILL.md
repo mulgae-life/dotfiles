@@ -1,7 +1,6 @@
 ---
 name: writing-prompts
-description: GPT/Claude/Gemini/Gemma/Qwen 프롬프트 파일 생성 및 개선. 대상 모델 ID와 API 방식을 먼저 확정해 그 모델의 문서만 적용합니다. OpenAI + Anthropic + Google + Alibaba 공식 가이드 기반. API 연동 코드는 범위 밖입니다.
-when_to_use: "프롬프트 작성해줘, 톤 가이드 적용해줘, 시스템 프롬프트 만들어줘, AI 응답 품질 개선해줘 요청 시. LLM 프롬프트 작성, 챗봇 성격 설정, AI 응답 품질 개선이 필요한 모든 상황에서 사용."
+description: GPT/Claude/Gemini/Gemma/Qwen 프롬프트 파일 생성 및 개선. 대상 모델 ID와 API 방식을 먼저 확정해 그 모델의 문서만 적용합니다. OpenAI + Anthropic + Google + Alibaba 공식 가이드 기반. API 연동 코드는 범위 밖입니다. 프롬프트 작성해줘, 톤 가이드 적용해줘, 시스템 프롬프트 만들어줘, AI 응답 품질 개선해줘 요청 시. LLM 프롬프트 작성, 챗봇 성격 설정, AI 응답 품질 개선이 필요한 모든 상황에서 사용.
 ---
 
 # 프롬프트 작성 가이드 (OpenAI + Anthropic + Google + 오픈웨이트 통합)

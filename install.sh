@@ -378,11 +378,6 @@ main() {
   safe_link "$DOTFILES_DIR/.claude/agents"    "$HOME/.claude/agents"
   safe_link "$DOTFILES_DIR/.claude/rules"     "$HOME/.claude/rules"
   safe_link "$DOTFILES_DIR/.claude/skills"    "$HOME/.claude/skills"
-  safe_link "$DOTFILES_DIR/.claude/hooks"    "$HOME/.claude/hooks"
-  # 훅 스크립트 실행 권한 보장 (git pull 시 fileMode 설정에 따라 누락 가능)
-  if [ -d "$DOTFILES_DIR/.claude/hooks" ] && ! $DRY_RUN; then
-    chmod +x "$DOTFILES_DIR/.claude/hooks"/*.sh 2>/dev/null || true
-  fi
   # settings.json은 레포 버전으로 덮어쓰기 (레포가 진실의 원천 — 인증은 .credentials.json에 별도 관리)
   safe_copy "$DOTFILES_DIR/.claude/settings.json" "$HOME/.claude/settings.json"
   # statusline-command.sh: 런타임에 수정되지 않으므로 심볼릭 링크로 관리
@@ -391,7 +386,6 @@ main() {
   # 2. .codex 설정 링크 (런타임 데이터 보존)
   safe_mkdir "$HOME/.codex"
   safe_link "$DOTFILES_DIR/.codex/AGENTS.md" "$HOME/.codex/AGENTS.md"
-  safe_link "$DOTFILES_DIR/.codex/AGENTS.references.md" "$HOME/.codex/AGENTS.references.md"
   safe_link "$DOTFILES_DIR/.codex/rules" "$HOME/.codex/rules"
   safe_link "$DOTFILES_DIR/.codex/hooks" "$HOME/.codex/hooks"
   # 훅 스크립트 실행 권한 보장 (git pull 시 fileMode 설정에 따라 누락 가능)
@@ -414,15 +408,17 @@ main() {
   # 서로 다른 파일을 두면 같은 지침이 두 번 주입된다 (1.1.28 마커 실측. 1.2.15부터 같은 파일 링크는 한 번만 주입)
   safe_link "$DOTFILES_DIR/.antigravity/GEMINI.md" "$HOME/.gemini/GEMINI.md"
   # 이전 설치가 남긴 링크 정리 — Gemini CLI 층 은퇴(2026-06-18 개인 계정 지원 종료)로 ~/.gemini 바로 아래 남은 것,
-  # GEMINI.md 로 통합된 AGENTS.md, 이중 로드 원인이던 config/GEMINI.md
+  # GEMINI.md 로 통합된 AGENTS.md, 이중 로드 원인이던 config/GEMINI.md,
+  # 은퇴한 Claude 실패 조언 훅 폴더, 공유 스킬로 대체된 Codex 레퍼런스 문서
   local stale
-  for stale in agents commands policies hooks skills AGENTS.md config/AGENTS.md config/GEMINI.md; do
-    if [ -L "$HOME/.gemini/$stale" ]; then
+  for stale in .gemini/agents .gemini/commands .gemini/policies .gemini/hooks .gemini/skills .gemini/AGENTS.md \
+               .gemini/config/AGENTS.md .gemini/config/GEMINI.md .claude/hooks .codex/AGENTS.references.md; do
+    if [ -L "$HOME/$stale" ]; then
       if $DRY_RUN; then
-        warn "[CLEAN]  $HOME/.gemini/$stale (레포 관리 종료) (dry-run)"
+        warn "[CLEAN]  $HOME/$stale (레포 관리 종료) (dry-run)"
       else
-        rm "$HOME/.gemini/$stale"
-        warn "[CLEAN]  $HOME/.gemini/$stale (레포 관리 종료)"
+        rm "$HOME/$stale"
+        warn "[CLEAN]  $HOME/$stale (레포 관리 종료)"
       fi
     fi
   done
@@ -489,10 +485,8 @@ main() {
     "$HOME/.claude/agents"
     "$HOME/.claude/rules"
     "$HOME/.claude/skills"
-    "$HOME/.claude/hooks"
     "$HOME/.claude/statusline-command.sh"
     "$HOME/.codex/AGENTS.md"
-    "$HOME/.codex/AGENTS.references.md"
     "$HOME/.codex/rules"
     "$HOME/.codex/hooks"
     "$HOME/.agents/skills"

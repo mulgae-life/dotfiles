@@ -80,6 +80,14 @@ run_agy() {
     if (( bytes > 24000 )); then over+=" ${skill#"$REPO"/}(${bytes})"; fi
   done
   chk "SKILL.md 본문 24,000바이트 이하${over:+ — 초과:$over}" "[[ -z '$over' ]]"
+  # GEMINI.md: agy는 규칙 파일 하나가 24,000바이트를 넘으면 잘라 읽는다(Antigravity 규칙 문서 기준)
+  # 크기를 읽는 명령이 실패하면(파일 없음 등) 통과시키지 않고 실패로 센다
+  local rule_bytes
+  if rule_bytes=$(wc -c < "$REPO/.antigravity/GEMINI.md"); then
+    chk "GEMINI.md 24,000바이트 이하 — 현재 ${rule_bytes}" "(( rule_bytes <= 24000 ))"
+  else
+    chk "GEMINI.md 크기 읽기" "false"
+  fi
   echo "agy 소계: $pass PASS / $fail FAIL"
   TOTAL_PASS=$((TOTAL_PASS+pass)); TOTAL_FAIL=$((TOTAL_FAIL+fail))
 }

@@ -104,16 +104,16 @@ Claude deny의 Bash 규칙과의 차이: 글롭이 없어 `rm -rf /home*`·`dd o
 
 | 카테고리 | Claude Code | Codex CLI | Antigravity CLI |
 |----------|:----:|:----:|:----:|
-| FILE_DELETE | 지침 (+deny 파국형) | Starlark forbidden | 지침 (+deny 파국형) |
-| SYSTEM | 지침 (+deny 파국형) | Starlark forbidden | 지침 (+deny mkfs·전원) |
-| GIT_WRITE | 지침 (rules) | Starlark forbidden | 지침 |
-| GIT_STATE | allow | Starlark forbidden | 지침 |
-| GH_CLI | 지침 (rules) | Starlark forbidden | 지침 |
-| DOCKER_DELETE | 지침 (rules) | Starlark forbidden | 지침 |
-| INPLACE | 지침 (rules) | Starlark forbidden | 지침 |
-| LINK_FORCE | 지침 (rules) | Starlark forbidden | 지침 |
-| PERMISSION | 지침 (rules) | Starlark forbidden | 지침 |
-| SHELL_BYPASS | 지침 (rules) | (단일토큰 한계) | 지침 |
-| SCRIPT_INJECTION | 지침 (rules) | (단일토큰 한계) | 지침 |
+| FILE_DELETE | 지침 (+deny 파국형) | 지침 (+forbidden 파국형) | 지침 (+deny 파국형) |
+| SYSTEM | 지침 (+deny 파국형) | 지침 (+forbidden 전원·디스크) | 지침 (+deny mkfs·전원) |
+| GIT_WRITE | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
+| GIT_STATE | allow | allow | allow |
+| GH_CLI | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
+| DOCKER_DELETE | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
+| INPLACE | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
+| LINK_FORCE | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
+| PERMISSION | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
+| SHELL_BYPASS | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
+| SCRIPT_INJECTION | 지침 (rules) | 지침 (AGENTS.md) | 지침 |
 
-세 도구가 공유하는 것은 "확인 프롬프트 없는 자율 실행" 원칙이지 차단 강도가 아니다. Codex는 위험 명령 전반을 forbidden으로 막고, Claude와 Antigravity CLI는 파국형만 deny하고 나머지는 지침에 맡긴다. Gemini CLI 열은 2026-09-07 은퇴로 제거했고 정책 원본과 회귀 케이스 62건은 `.archive/2026-09-07_gemini-cli-retirement/`에 있다.
+세 도구는 같은 방식으로 통제한다. 파국형 명령만 기계로 막고, 나머지 위험 명령은 지침에 맡겨 사용자가 요청할 때만 실행한다. 기계로 막는 범위는 도구의 규칙 문법에 따라 조금씩 다르다(`docs/DECISIONS.md` §3). Gemini CLI 열은 2026-09-07 은퇴로 제거했고 정책 원본과 회귀 케이스 62건은 `.archive/2026-09-07_gemini-cli-retirement/`에 있다.

@@ -1,47 +1,80 @@
 # ─────────────────────────────────────────────
 # Codex 실행 정책 (Execution Policy)
-# approval_policy = "never" + sandbox_mode = "danger-full-access" 조합에서 위험 명령어만 차단
+# approval_policy = "never" + sandbox_mode = "danger-full-access" 조합에서 파국형 명령만 차단
 # (--full-auto는 0.147.0에서 제거됨. 우리는 permission profiles 대신 본 Starlark DSL로 직접 통제)
-# 카테고리별 사유 분기는 3-tool 공통 분류를 따름 (.antigravity/README.md "3-tool 정합성" 표)
+# 그 밖의 위험 명령(삭제, sudo, 권한 변경, 링크 강제, in-place 수정, Docker 삭제, Git·GitHub 쓰기)은
+# Claude·Antigravity와 같이 AGENTS.md 지침으로 통제한다 — 사용자가 요청할 때만 실행한다.
+# 규칙으로 막으면 사용자가 요청해도 실행하지 못하므로 파국형에만 쓴다.
+# 카테고리 분류는 3-tool 공통 분류를 따름 (.antigravity/README.md "3-tool 정합성" 표)
 # justification은 차단 시점에 사용자/에이전트에게 노출됨 → 대체 방법까지 안내
 # ─────────────────────────────────────────────
 
-# ── 카테고리별 차단 사유 ──
-# 모듈-레벨 변수로 일원화하여 메시지 유지보수성 확보
 # forbidden은 승인 경로가 없는 즉시 차단 → "승인 후 실행"이 아니라 "사용자가 직접 실행"으로 안내
-_MSG_FILE_DELETE   = "파일 삭제는 비가역적이라 차단됩니다. 보존이 목적이면 .archive/<YYYY-MM-DD>_<태그>/로 mv하세요. 삭제가 꼭 필요하면 사용자에게 직접 실행을 요청하세요."
-_MSG_SYSTEM        = "시스템 레벨 명령(sudo/reboot/dd/mkfs 등)은 차단됩니다. 환경 전체에 영향을 주므로 필요하면 사용자에게 직접 실행을 요청하세요."
-_MSG_GIT_WRITE     = "Git 쓰기(push/commit/reset/rebase/merge 등)는 차단됩니다. 이력·리모트가 바뀌므로 사용자에게 직접 실행을 요청하세요."
-_MSG_GIT_STATE     = "Git 상태 변경(checkout/switch/restore/stash/add)은 차단됩니다. working tree·staging이 바뀌므로 필요하면 사용자에게 직접 실행을 요청하세요."
-_MSG_GH_CLI        = "GitHub CLI 쓰기 작업은 차단됩니다. 외부 시스템(PR/이슈/릴리즈)에 영향이 있으므로 사용자에게 직접 실행을 요청하세요."
-_MSG_DOCKER_DELETE = "Docker 리소스 삭제(rm/rmi/down)는 차단됩니다. 컨테이너·이미지·볼륨이 손실될 수 있으므로 사용자에게 직접 실행을 요청하세요."
-_MSG_INPLACE       = "파일 in-place 수정(sed -i)은 차단됩니다. 파일 수정은 apply_patch(또는 Edit 류) 도구를 사용하세요. Bash 우회는 변경 추적이 어렵습니다."
-_MSG_LINK_FORCE    = "ln(-f/-sf 포함)은 강제 덮어쓰기 위험으로 통째 차단 (Starlark prefix_rule 옵션 매칭 한계). cp/mv로 대체하거나 사용자에게 직접 실행을 요청하세요."
-_MSG_PERMISSION    = "권한/소유자 변경(chmod/chown)은 차단됩니다. 보안 상태가 바뀌므로 필요하면 사용자에게 직접 실행을 요청하세요."
+_MSG_WIDE_DELETE = "루트·홈·현재 폴더를 통째로 지우는 명령은 차단됩니다. 지울 대상을 구체적인 경로로 좁히세요. 꼭 필요하면 사용자에게 직접 실행을 요청하세요."
+_MSG_SYSTEM      = "전원 조작·디스크 파괴 명령은 차단됩니다. 환경 전체에 영향을 주므로 필요하면 사용자에게 직접 실행을 요청하세요."
 
-# ── 파일 삭제/파괴 (비가역적) ──
-prefix_rule(pattern = ["rm"],        decision = "forbidden", justification = _MSG_FILE_DELETE)
-prefix_rule(pattern = ["rmdir"],     decision = "forbidden", justification = _MSG_FILE_DELETE)
-prefix_rule(pattern = ["unlink"],    decision = "forbidden", justification = _MSG_FILE_DELETE)
-prefix_rule(pattern = ["shred"],     decision = "forbidden", justification = _MSG_FILE_DELETE)
-prefix_rule(pattern = ["truncate"],  decision = "forbidden", justification = _MSG_FILE_DELETE)
-prefix_rule(pattern = ["git", "rm"], decision = "forbidden", justification = _MSG_FILE_DELETE)
-# Windows PowerShell — Codex가 PowerShell 스크립트를 명령 단위로 쪼개 대조한다 (rm·rmdir 별칭은 위 규칙이 잡음)
+# ── 넓은 재귀 삭제 (루트·홈·현재 폴더) ──
+# prefix_rule은 토큰이 정확히 같을 때만 맞는다. `/home/user`처럼 더 깊은 경로는 맞추지 못하고,
+# 변수의 확장 결과도 계산하지 않는다(`$HOME`이라는 문자열 자체만 맞춘다)
+_RM_RF = ["-rf", "-fr", "-Rf", "-fR"]
+_RM_R  = ["-r", "-R"]
+_ROOTS = ["/", "/*", "/bin", "/boot", "/etc", "/home", "/lib", "/root", "/sbin", "/usr", "/var",
+          "~", "~/", "~/*", "$HOME", ".", "./", "./*", "..", "../", "../*", "../.."]
+prefix_rule(pattern = ["rm", _RM_RF, _ROOTS],                           decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["rm", _RM_R, "-f", _ROOTS],                      decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["rm", "-f", _RM_R, _ROOTS],                      decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["rm", "--recursive", "--force", _ROOTS],         decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["sudo", "rm", _RM_RF, _ROOTS],                   decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["sudo", "rm", _RM_R, "-f", _ROOTS],              decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["sudo", "rm", "-f", _RM_R, _ROOTS],              decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = ["sudo", "rm", "--recursive", "--force", _ROOTS], decision = "forbidden", justification = _MSG_WIDE_DELETE)
+
+# Windows PowerShell — Codex가 PowerShell 스크립트를 명령 단위로 쪼개 대조한다
 # 첫 토큰은 철자 그대로 대조한다(소문자·.exe 정규화는 절대경로 실행만). PowerShell은 대소문자를 가리지 않으므로
 # 흔한 두 표기(정식·소문자)만 두며, 그 밖의 대소문자 조합은 막지 못한다
-prefix_rule(pattern = [["Remove-Item", "remove-item", "ri", "del", "erase", "rd"]], decision = "forbidden", justification = _MSG_FILE_DELETE)
-prefix_rule(pattern = [["Clear-Content", "clear-content", "clc"]],                  decision = "forbidden", justification = _MSG_FILE_DELETE)
+_PS_RM    = ["Remove-Item", "remove-item", "ri", "rm", "rmdir", "del", "erase", "rd"]
+_PS_REC   = ["-Recurse", "-recurse", "-rec", "-r"]
+_PS_FORCE = ["-Force", "-force", "-fo", "-f"]
+_PS_PATH  = ["-Path", "-path", "-LiteralPath", "-literalpath"]
+_PS_ROOTS = ["C:\\", "C:\\*", "C:/", "C:/*", "D:\\", "D:\\*", "D:/", "D:/*",
+             "~", "~\\", "~\\*", "~/", "~/*", "$HOME", "$env:USERPROFILE",
+             ".", ".\\", ".\\*", "./", "./*", "..", "..\\", "..\\*", "../", "../*"]
+prefix_rule(pattern = [_PS_RM, _PS_REC, _PS_ROOTS],                      decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_REC, _PS_FORCE, _PS_ROOTS],           decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_FORCE, _PS_REC, _PS_ROOTS],           decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_ROOTS, _PS_REC],                      decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_ROOTS, _PS_FORCE, _PS_REC],           decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_PATH, _PS_ROOTS, _PS_REC],            decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_PATH, _PS_ROOTS, _PS_FORCE, _PS_REC], decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_REC, _PS_PATH, _PS_ROOTS],            decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_REC, _PS_FORCE, _PS_PATH, _PS_ROOTS], decision = "forbidden", justification = _MSG_WIDE_DELETE)
+prefix_rule(pattern = [_PS_RM, _PS_FORCE, _PS_REC, _PS_PATH, _PS_ROOTS], decision = "forbidden", justification = _MSG_WIDE_DELETE)
 
-# ── 시스템 (sudo/재부팅/디스크) ──
-prefix_rule(pattern = ["reboot"],   decision = "forbidden", justification = _MSG_SYSTEM)
-prefix_rule(pattern = ["shutdown"], decision = "forbidden", justification = _MSG_SYSTEM)
-prefix_rule(pattern = ["poweroff"], decision = "forbidden", justification = _MSG_SYSTEM)
-prefix_rule(pattern = ["halt"],     decision = "forbidden", justification = _MSG_SYSTEM)
-prefix_rule(pattern = ["sudo"],     decision = "forbidden", justification = _MSG_SYSTEM)
-prefix_rule(pattern = ["dd"],       decision = "forbidden", justification = _MSG_SYSTEM)
-prefix_rule(pattern = ["mkfs"],     decision = "forbidden", justification = _MSG_SYSTEM)
-prefix_rule(pattern = ["fdisk"],    decision = "forbidden", justification = _MSG_SYSTEM)
-prefix_rule(pattern = ["parted"],   decision = "forbidden", justification = _MSG_SYSTEM)
+# ── 전원 조작·디스크 파괴 ──
+_POWER_MKFS = ["reboot", "shutdown", "poweroff", "halt", "mkfs",
+               "mkfs.ext2", "mkfs.ext3", "mkfs.ext4", "mkfs.xfs", "mkfs.btrfs", "mkfs.vfat", "mkfs.fat", "mkfs.ntfs", "mkfs.exfat"]
+prefix_rule(pattern = [_POWER_MKFS],         decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["sudo", _POWER_MKFS], decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["systemctl", ["reboot", "poweroff", "halt"]],         decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["sudo", "systemctl", ["reboot", "poweroff", "halt"]], decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["loginctl", ["reboot", "poweroff"]],                  decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["sudo", "loginctl", ["reboot", "poweroff"]],          decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["crontab", "-r"],                                     decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["sudo", "crontab", "-r"],                             decision = "forbidden", justification = _MSG_SYSTEM)
+
+# 디스크 장치를 대상으로 한 dd·fdisk·parted·shred만 막는다. 일반 파일 복사(dd if=a of=b)나 조회(fdisk -l)는 막지 않는다.
+# 글롭이 없어 흔한 장치 이름을 열거한다. 열거하지 않은 장치와, 장치가 첫 인자가 아닌 형태(dd if=x of=/dev/sda)는 맞추지 못한다
+_SD_DISKS = ["/dev/sda", "/dev/sdb", "/dev/sdc", "/dev/sdd", "/dev/vda", "/dev/vdb", "/dev/hda"]
+_NV_DISKS = ["/dev/nvme0n1", "/dev/nvme1n1", "/dev/mmcblk0"]
+_PART_NO  = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+_DEVICES  = (_SD_DISKS + _NV_DISKS
+             + [d + n for d in _SD_DISKS for n in _PART_NO]
+             + [d + "p" + n for d in _NV_DISKS for n in _PART_NO])
+_DD_OF    = ["of=" + d for d in _DEVICES]
+prefix_rule(pattern = [["fdisk", "parted", "shred"], _DEVICES],         decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["sudo", ["fdisk", "parted", "shred"], _DEVICES], decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["dd", _DD_OF],                                   decision = "forbidden", justification = _MSG_SYSTEM)
+prefix_rule(pattern = ["sudo", "dd", _DD_OF],                           decision = "forbidden", justification = _MSG_SYSTEM)
 # Windows PowerShell — 전원 조작·디스크 파괴. 확장자를 붙인 호출은 이름이 달라 따로 둔다
 prefix_rule(
     pattern = [["Stop-Computer", "stop-computer", "Restart-Computer", "restart-computer",
@@ -52,79 +85,19 @@ prefix_rule(
 )
 
 # ── 프로세스 종료: allow ──
-# 재시작 가능한 조작이라 파일 삭제·git 쓰기와 위험 등급이 다름 (v2.2에서 ask 해제)
+# 재시작 가능한 조작이라 파일 삭제와 위험 등급이 다름 (v2.2에서 ask 해제)
 prefix_rule(pattern = ["kill"],    decision = "allow")
 prefix_rule(pattern = ["pkill"],   decision = "allow")
 prefix_rule(pattern = ["killall"], decision = "allow")
 
-# ── Git 쓰기 (비가역적/공유 영향) ──
-prefix_rule(pattern = ["git", "push"],        decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "commit"],      decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "reset"],       decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "clean"],       decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "rebase"],      decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "merge"],       decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "cherry-pick"], decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "revert"],      decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "am"],          decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "apply"],       decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "branch", ["-d", "-D", "--delete"]], decision = "forbidden", justification = _MSG_GIT_WRITE)
-prefix_rule(pattern = ["git", "tag", ["-d", "-f", "--delete"]],    decision = "forbidden", justification = _MSG_GIT_WRITE)
-
-# ── Git 상태 변경 (working tree/staging/HEAD 이동) ──
-# AGENTS.md 정합: stash·add도 "Git 상태 변경" 카테고리로 통일
-# checkout/switch: 브랜치 전환 시 작업 컨텍스트 손실 + detached HEAD 위험
-# restore: working tree 변경 폐기 위험
-# stash: list/show 포함 전체 차단 — 조회만 allow로 분리하는 것이 Codex에서는 불가하다
-#   (0.144.1 실측): forbidden이 더 긴 prefix의 allow보다 항상 우선하고,
-#   서브커맨드 열거 forbidden 방식은 미열거 형태(단독 stash·--all 등)가 기본 통과(무규칙=실행)로
-#   새는 구조라 fail-safe 위반. 도구 간 의도적 차이로 문서화 (조회 필요 시 git log 등으로 대체)
-# add: staging 상태 변경
-prefix_rule(pattern = ["git", "checkout"], decision = "forbidden", justification = _MSG_GIT_STATE)
-prefix_rule(pattern = ["git", "switch"],   decision = "forbidden", justification = _MSG_GIT_STATE)
-prefix_rule(pattern = ["git", "restore"],  decision = "forbidden", justification = _MSG_GIT_STATE)
-prefix_rule(pattern = ["git", "stash"],    decision = "forbidden", justification = _MSG_GIT_STATE)
-prefix_rule(pattern = ["git", "add"],      decision = "forbidden", justification = _MSG_GIT_STATE)
-
 # ── Git 읽기 명령은 허용 ──
-# stash는 위 forbidden 우선 적용됨 (working tree 변경 위험)
 prefix_rule(
     pattern = ["git", ["status", "diff", "log", "show", "blame", "fetch", "remote", "branch", "tag"]],
     decision = "allow"
 )
-
-# ── GitHub CLI 쓰기 ──
-prefix_rule(
-    pattern = ["gh", ["pr", "issue", "release", "repo"], ["create", "close", "delete", "merge", "edit", "comment"]],
-    decision = "forbidden",
-    justification = _MSG_GH_CLI
-)
-
-prefix_rule(pattern = ["gh", "auth", ["login", "logout"]], decision = "forbidden", justification = _MSG_GH_CLI)
-prefix_rule(pattern = ["gh", "api"],                       decision = "forbidden", justification = _MSG_GH_CLI)
 
 # ── GitHub CLI 읽기는 허용 ──
 prefix_rule(
     pattern = ["gh", ["pr", "issue", "release", "repo"], ["list", "view", "status", "checks", "diff"]],
     decision = "allow"
 )
-
-# ── Docker 삭제 ──
-prefix_rule(pattern = ["docker", ["rm", "rmi"]],             decision = "forbidden", justification = _MSG_DOCKER_DELETE)
-prefix_rule(pattern = ["docker-compose", ["down", "rm"]],    decision = "forbidden", justification = _MSG_DOCKER_DELETE)
-prefix_rule(pattern = ["docker", "compose", ["down", "rm"]], decision = "forbidden", justification = _MSG_DOCKER_DELETE)
-
-# ── A 그룹: 링크 강제 / 권한 / in-place 수정 ──
-# 영향도가 적은 read-only 명령만 자동 허용 원칙
-# 갭 인정: 표준 위치만 매칭 (sed -i / awk -i inplace 등 옵션 순서 바뀌면 누락),
-#          리다이렉트(>/>>)는 prefix_rule로 처리 불가 → AGENTS.md 안내
-# cp/mv: 경로 변경·복사로 되돌리기 쉬워 allow
-# (Starlark prefix_rule은 옵션 매칭 어려워 ln도 통째로 차단 유지)
-prefix_rule(pattern = ["ln"],        decision = "forbidden", justification = _MSG_LINK_FORCE)
-prefix_rule(pattern = ["chmod"],     decision = "forbidden", justification = _MSG_PERMISSION)
-prefix_rule(pattern = ["chown"],     decision = "forbidden", justification = _MSG_PERMISSION)
-prefix_rule(pattern = ["sed", "-i"],         decision = "forbidden", justification = _MSG_INPLACE)
-prefix_rule(pattern = ["sed", "--in-place"], decision = "forbidden", justification = _MSG_INPLACE)
-# awk/gawk -i inplace (INPLACE 카테고리 — sed -i와 같은 in-place 수정 차단)
-prefix_rule(pattern = ["gawk", "-i", "inplace"], decision = "forbidden", justification = _MSG_INPLACE)
-prefix_rule(pattern = ["awk", "-i", "inplace"],  decision = "forbidden", justification = _MSG_INPLACE)

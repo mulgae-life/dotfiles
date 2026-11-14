@@ -1,7 +1,6 @@
 ---
 name: langchain-guide
-description: LangChain 1.x 및 LangGraph v1.0 기반 에이전트, 체인, 워크플로우 구현 가이드.
-when_to_use: "LangChain 에이전트 만들어줘, LangGraph 워크플로우 구현해줘, RAG 파이프라인 만들어줘, 멀티에이전트 시스템 설계해줘 요청 시. LangChain/LangGraph 관련 코드를 작성하거나 리뷰할 때 반드시 참조."
+description: LangChain 1.x 및 LangGraph v1.0 기반 에이전트, 체인, 워크플로우 구현 가이드. LangChain 에이전트 만들어줘, LangGraph 워크플로우 구현해줘, RAG 파이프라인 만들어줘, 멀티에이전트 시스템 설계해줘 요청 시. LangChain/LangGraph 관련 코드를 작성하거나 리뷰할 때 반드시 참조.
 ---
 
 # LangChain & LangGraph 가이드

@@ -2,6 +2,11 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.73 — 세 도구의 동작을 같게 맞추고 겹치는 지침을 정리
+- Codex가 삭제, `sudo`, 권한 변경, 링크, in-place 수정, Docker 삭제, Git·GitHub 쓰기를 규칙으로 막던 것을 풀었다. 막아 두면 사용자가 맡겨도 실행하지 못했다. 이제 세 도구 모두 지침으로 통제해 요청받을 때만 실행하고, Codex 규칙은 파국형만 막는다. 루트·홈·현재 폴더를 통째로 지우는 `rm -rf`, 전원 조작, `mkfs`, 디스크 장치를 대상으로 한 `dd`·`fdisk`·`parted`·`shred`가 대상이다. Antigravity 지침만 묶어 두던 `add`·`checkout`·`switch`·`stash`도 세 도구 모두 자유다.
+- 스킬 호출 조건을 `description` 한 필드로 합쳤다. `when_to_use`는 Claude Code만 읽어 Codex와 Antigravity는 호출 문구를 보지 못했다. 같은 내용이 된 Codex의 수동 스킬 표는 뺐고, 기존 테스트가 실패할 때 통과시키려고 테스트를 고치지 않는다는 조항을 세 도구에 같은 문장으로 넣었다.
+- 레퍼런스 검증 기준을 공유 스킬 `reference-verification` 하나로 모았다. 검색 명령까지 빌드·테스트 실패로 잘못 분류하던 Claude의 실패 조언 훅과 작동하지 않는 Codex `job_max_runtime_seconds`를 뺐고, `GEMINI.md`가 24,000바이트를 넘지 않는지 검사한다.
+
 ## v2.72 — Codex의 폐기 예정 `multi_agent` 설정 제거
 - Codex 0.167.2가 `[features]`의 `multi_agent`를 폐기 예정이라고 경고해 `.codex/config.toml`에서 뺐다. 멀티 에이전트는 기본으로 켜져 있어 동작은 그대로다.
 

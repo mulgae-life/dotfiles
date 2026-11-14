@@ -1,7 +1,6 @@
 ---
 name: react-best-practices
-description: Vercel Engineering의 React/Next.js 성능 최적화 가이드.
-when_to_use: "컴포넌트 최적화해줘, 번들 사이즈 줄여줘, 리렌더링 줄여줘, Next.js 성능 개선해줘 요청 시. React/Next.js 코드의 성능 관련 작업 시 명시적 요청 없이도 참조."
+description: Vercel Engineering의 React/Next.js 성능 최적화 가이드. 컴포넌트 최적화해줘, 번들 사이즈 줄여줘, 리렌더링 줄여줘, Next.js 성능 개선해줘 요청 시. React/Next.js 코드의 성능 관련 작업 시 명시적 요청 없이도 참조.
 ---
 
 # React Best Practices
