@@ -4,6 +4,7 @@
 # 도구는 세션의 실행 파일로 가리고, 상태는 화면으로 추정한다. 1초 사이에 화면이 바뀌면 작업 중이고, 그 밖에는 도구별로 본다.
 # 두 도구 모두 입력창이 안 보이면(질문·승인 창 등) 작업 중으로 본다. 그 창에 키를 넣으면 선택지가 대신 골라진다.
 #   Codex: 들여쓰지 않은 마지막 줄이 입력창(› )이고 그 바로 위 내용 줄이 턴 종료 줄("  Worked for …")이면 유휴.
+#          그 사이의 경고 안내(⚠ 줄, 주간 한도 안내 등)는 턴이 끝난 뒤에도 찍히므로 건너뛴다.
 #          지난 사용자 메시지도 "› "로 시작하므로 마지막 줄만 입력창으로 인정한다.
 #          작업 중 표시줄은 폭이 좁으면 잘려 "esc to interrupt"가 사라지므로 판정에 쓰지 않는다.
 #          세션 기록(rollout)의 마지막 턴 사건이 시작이면 화면과 관계없이 작업 중이다. "resume <id>"로 찾은 기록이
@@ -18,7 +19,7 @@
 # 명령이 끝나면 Claude Code가 Claude를 깨운다. 중심이 Codex면 요청을 보낸 턴 안에서 끝나기를 기다린다(유휴 상태의 Codex는
 # 깨어나지 않는다). 수신기가 꺼져 있는 동안 온 신호는 파일에 남아 다음 listen이 바로 읽는다.
 # signal은 수신기가 그 줄을 읽었는지(읽은 줄 수 파일)까지 확인한다. 중심이 파트너에 알릴 때는 send로 입력창에 넣는다.
-# 검증 버전: Codex 0.167.2, Claude Code 2.1.323 — 화면 형식이 바뀌면 codex_idle·claude_idle·input_box를 확인한다.
+# 검증 버전: Codex 0.169.0, Claude Code 2.1.325 — 화면 형식이 바뀌면 codex_idle·claude_idle·input_box를 확인한다.
 set -euo pipefail
 
 BUSY_RE='… \([0-9]+[hms] '
@@ -129,9 +130,15 @@ codex_idle() {
     END {
       if (!last || line[last] !~ /^› /) exit 1
       if (trust) exit 0
-      # 입력창 위의 빈 줄과 백그라운드 터미널 안내줄은 건너뛴다
-      for (i = last - 1; i > 0 && (line[i] !~ /[^ ]/ || line[i] ~ /^ +[0-9]+ background terminals? running/); i--) {}
-      if (line[i] ~ /^ *Worked for [0-9]|^■ /) exit 0
+      # 입력창 위의 빈 줄, 백그라운드 터미널 안내줄, 경고 안내(⚠ 줄과 그 아래 들여 쓴 줄)는 건너뛴다.
+      # 경고 안내는 턴이 끝난 뒤에도 찍혀 턴 종료 줄과 입력창 사이에 끼어든다
+      for (i = last - 1; i > 0; i = h - 1) {
+        h = i
+        if (line[i] !~ /[^ ]/ || line[i] ~ /^ +[0-9]+ background terminals? running/) continue
+        if (line[i] ~ /^ *Worked for [0-9]|^■ /) exit 0
+        while (h > 0 && line[h] ~ /^ +[^ ]/) h--
+        if (line[h] !~ /^⚠/) break
+      }
       # 대화 전 화면: 머리말이 보이고, 입력창 말고는 사용자 메시지(› 줄)가 없다
       for (j = 1; j < last; j++) {
         if (line[j] ~ /^› /) asked = 1

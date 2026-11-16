@@ -2,6 +2,11 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.75 — 협업 유휴 판정과 agy 상태줄의 오판을 고치고 Gemini 4 Hydrogen을 더함
+- `cowork-set`의 `peer.sh`가 Codex 화면의 경고 안내(주간 한도 안내 등) 때문에 유휴인 창을 작업 중으로 판정하던 것을 고쳤다. agy 상태줄은 `Orchestrator (Argon)` 모델에서 Claude·GPT 한도를 보이고 Argon 한도를 빠뜨리던 것을 고쳤고, Hydrogen이 함께 쓰는 묶음의 이름을 `Flash`에서 `Gemini`로 바꿨다.
+- agy 지침에 교훈 파일 위치(`<프로젝트 루트>/.antigravity/lessons.md`)를 정했다. `update-docs`는 `GUIDE.md`에 매번 지킬 원칙만 남기고 24,000바이트를 넘기지 않게 한다.
+- `writing-prompts`의 Gemini 4 문서에 Hydrogen을 더했다. Hydrogen을 Flash 계열의 최신 세대로 세어 3.6 Flash를 보관소로 옮겼고, agy에서 잰 창 크기와 자동 압축 한도를 Gemini 4 가이드에 적었다.
+
 ## v2.74 — Codex가 요청받은 `rm -rf`를 실행하게 하고 검증 버전을 올림
 - Codex 규칙에 `rm` 허용을 더했다. Codex 내장 검사가 `-f`가 든 `rm`을 거부해 요청받은 `rm -rf build`가 실행되지 않았다. 루트·홈·현재 폴더를 지우는 차단 형태는 계속 막힌다.
 - 허용 규칙에 맞는 명령은 샌드박스를 거치지 않아, `recursive-discussion`의 읽기 전용 Codex 호출은 규칙을 읽지 않게 했다. 확장이나 리다이렉션이 든 명령에는 Codex 규칙이 맞지 않는다는 한계를 결정 기록에 적었고, 이 틈은 훅을 더하지 않고 지침으로 통제한다.

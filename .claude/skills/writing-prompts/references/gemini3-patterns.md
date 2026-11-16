@@ -1,6 +1,6 @@
 # Gemini 3.x 프롬프트 패턴
 
-대상 모델: `gemini-3.8-flash` · `gemini-3.7-flash` · `gemini-3.6-flash` · `gemini-3.5-flash-lite` · `gemini-3.1-flash-lite` · `gemini-3.1-pro-preview`
+대상 모델: `gemini-3.8-flash` · `gemini-3.7-flash` · `gemini-3.5-flash-lite` · `gemini-3.1-flash-lite` · `gemini-3.1-pro-preview`
 
 ## 목차
 - [작성 체크리스트](#작성-체크리스트)
@@ -13,11 +13,11 @@
 - [7. 주의](#7-주의)
 - [참고](#참고)
 
-> 여섯 모델은 공통 프롬프팅 원칙을 공유하지만 사고 수준·기본값·일부 도구 지원이 모델마다 다르고, 같은 모델도 API 방식(Interactions·GenerateContent·OpenAI 호환)에 따라 필드 경로와 이력 처리가 다르다. 공통 절과 대상 모델의 행만 적용한다. Gemma(오픈웨이트)는 별개 제품군이므로 [gemma4-patterns.md](gemma4-patterns.md)를 쓴다.
+> 다섯 모델은 공통 프롬프팅 원칙을 공유하지만 사고 수준·기본값·일부 도구 지원이 모델마다 다르고, 같은 모델도 API 방식(Interactions·GenerateContent·OpenAI 호환)에 따라 필드 경로와 이력 처리가 다르다. 공통 절과 대상 모델의 행만 적용한다. Gemma(오픈웨이트)는 별개 제품군이므로 [gemma4-patterns.md](gemma4-patterns.md)를 쓴다.
 >
 > 본 문서는 패턴 요약. 풀 가이드: [`reference/google-prompt-guide/gemini-3-prompt-guide.md`](../../../../reference/google-prompt-guide/gemini-3-prompt-guide.md)
 >
-> `gemini-4-argon`·`gemini-4-carbon`은 [Gemini 4 (Argon·Carbon) 패턴](gemini4-argon-patterns.md)을 본다. 아래 3.x 처방을 두 모델에 자동 적용하지 않는다.
+> `gemini-4-argon`·`gemini-4-carbon`·`gemini-4-hydrogen`은 [Gemini 4 (Argon·Carbon·Hydrogen) 패턴](gemini4-argon-patterns.md)을 본다. 아래 3.x 처방을 세 모델에 자동 적용하지 않는다.
 
 ---
 
@@ -28,7 +28,7 @@
 - [ ] **구조 표기 하나로 일관**: XML식 태그나 Markdown 헤더 중 하나만 쓴다. 핵심 제약·역할·출력 형식은 시스템 지시나 프롬프트 맨 앞에 둔다
 - [ ] **긴 자료는 앞, 질문은 끝**: 자료 뒤에 "Based on the preceding information..." 같은 전환 문구로 질문을 잇는다
 - [ ] **출력 길이 명시**: 기본이 간결하므로 대화체·상세 답이 필요하면 명시적으로 요청한다
-- [ ] **사고 수준은 모델이 받는 값만**: `minimal`은 3.6 Flash·두 Flash-Lite만 받는다. `minimal`을 사고 끄기로 설명하지 않는다(Gemini 3는 사고를 끌 수 없음)
+- [ ] **사고 수준은 모델이 받는 값만**: `minimal`은 두 Flash-Lite만 받는다. `minimal`을 사고 끄기로 설명하지 않는다(Gemini 3는 사고를 끌 수 없음)
 - [ ] **sampling 제거**: `temperature`·`top_p`·`top_k`를 넣지 않는다. 결정성이 필요하면 시스템 지시에 명시적 규칙을 쓴다
 - [ ] **미리 채운 model 턴을 쓰지 않음**: 형식 강제는 구조화 출력으로 한다. 기존 프롬프트에서 지우라는 명시적 권고는 3.8 체크리스트와 Cloud 3.7 가이드에 있다
 - [ ] **도구 직전 구조화 텍스트 강제 금지**: `<UPDATE>` 같은 XML·JSON을 도구 호출 바로 앞에 내게 하지 않는다 → 메모는 `update()` 함수나 Markdown 헤더로
@@ -44,14 +44,13 @@
 
 | 모델 ID | 상태 | 사고 수준 (기본값) | 특이사항 |
 |------|------|------|------|
-| `gemini-3.8-flash` | Stable | `low`·`medium`·`high` (`medium`) | 길고 복잡한 작업에서 설계상 토큰을 더 씀(작은 추론 단계·반복 도구 호출·중간 검증). 일상 작업은 사고 수준을 낮추거나 3.6 Flash가 공식 대안. 컴퓨터 사용 Preview |
+| `gemini-3.8-flash` | Stable | `low`·`medium`·`high` (`medium`) | 길고 복잡한 작업에서 설계상 토큰을 더 씀(작은 추론 단계·반복 도구 호출·중간 검증). 일상 작업은 사고 수준을 낮춘다. 컴퓨터 사용 Preview |
 | `gemini-3.7-flash` | Gemini API: 폐기(2026-10-08), 요청은 3.8로 자동 연결 / Cloud: 2027-01-28 종료 예정 | `low`·`medium`·`high` (`medium`) | `minimal`은 오류. 일반 API에서는 독립 모델로 고를 수 없으므로 새 대상으로 권하지 않는다 |
-| `gemini-3.6-flash` | Stable (Cloud: 2026-11-19 종료 예정) | `minimal`·`low`·`medium`·`high` (`medium`) | 3.7·3.8로 옮길 때 `minimal`은 `low`로 |
 | `gemini-3.5-flash-lite` | Stable | `minimal`·`low`·`medium`·`high` (`minimal`) | 서브에이전트·문서 파싱·단순 추출 등 대량 저지연 작업. 컴퓨터 사용 Preview |
-| `gemini-3.1-flash-lite` | Stable | `minimal`·`low`·`medium`·`high` (`minimal`) | 고급 추론이 필요 없는 저비용 대량 작업. 컴퓨터 사용 미지원 |
+| `gemini-3.1-flash-lite` | Stable (Gemini API: 2027-05-07 종료 예정) | `minimal`·`low`·`medium`·`high` (`minimal`) | 고급 추론이 필요 없는 저비용 대량 작업. 컴퓨터 사용 미지원 |
 | `gemini-3.1-pro-preview` | Preview | `low`·`medium`·`high` (`high`) | 기본 사고 수준이 Flash와 다름. 파일 검색은 AI Studio 전용. `-customtools` 변형은 별도 ID |
 
-이 범위 밖의 `gemini-3.5-flash`는 Gemini API에서 2026-10-08에 폐기됐고 요청은 3.6 Flash로 자동 연결된다. 범위 안의 `gemini-3.5-flash-lite`(Flash-Lite)와 혼동하지 않는다. 폐기·종료 일정은 Gemini API와 Cloud가 따로 정하므로 서비스를 밝혀 쓴다.
+이 범위 밖의 `gemini-3.6-flash`는 Gemini API에서 계속 제공되고 Cloud에서는 2026-11-19에 종료될 예정이다. `gemini-3.5-flash`는 Gemini API에서 2026-10-08에 폐기됐고 요청은 3.6 Flash로 자동 연결된다. 범위 안의 `gemini-3.5-flash-lite`(Flash-Lite)와 혼동하지 않는다. 폐기·종료 일정은 Gemini API와 Cloud가 따로 정하므로 서비스를 밝혀 쓴다.
 
 ---
 
@@ -96,7 +95,7 @@
 | 구조화 출력 | `response_format` | `response_mime_type` + `response_json_schema` |
 
 - 3.8 체크리스트는 멀티턴을 서버 측 `previous_interaction_id`로 표준화하고 미리 채운 model 턴을 지우라고 요구한다
-- OpenAI 호환 계층: `reasoning_effort` 대응표는 3.1 Pro·3.1 Flash-Lite·3 Flash 열만 공식 문서에 있다(3.1 Pro는 `minimal`도 `low`로 대응). 3.6~3.8의 대응은 추측하지 않고, `extra_body`의 `google.thinking_config.thinking_level`로 보낸다. `reasoning_effort`와 함께 쓰지 않는다
+- OpenAI 호환 계층: `reasoning_effort` 대응표는 3.1 Pro·3.1 Flash-Lite·3 Flash 열만 공식 문서에 있다(3.1 Pro는 `minimal`도 `low`로 대응). 3.7·3.8 Flash의 대응은 추측하지 않고, `extra_body`의 `google.thinking_config.thinking_level`로 보낸다. `reasoning_effort`와 함께 쓰지 않는다
 
 ---
 

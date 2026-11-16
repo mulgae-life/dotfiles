@@ -152,10 +152,11 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 | 커스텀 명령 | 스킬(`/이름`) | 스킬(`$이름`·`/skills`) | 스킬(`/이름`, 헤드리스 `-p "/이름 …"`도 가능) |
 | 에이전트 | `agents/*.md` 4개 | 없음(`AGENTS.md`의 역할 트리거로 대응) | 정의 없음 |
 | 지시 파일 경로 | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | `~/.gemini/GEMINI.md` |
+| 교훈 파일 | 자동 메모리 `lessons_*.md` | `<프로젝트 루트>/.codex/lessons.md` | `<프로젝트 루트>/.antigravity/lessons.md` |
 | IDE 층 | — | — | `.antigravity/settings.json`·`hooks/` 추정치, 미검증 |
 
 - **agy 스킬 본문 한도**: `SKILL.md` 본문의 앞 24,000바이트만 읽는다. `verify-policies.sh`가 정적 검사로 막고, 영문 원문을 유지하는 이식 스킬 `skill-creator`만 예외로 둔다. 이 스킬에서 잘리는 뒷부분은 Claude 전용 기능 설명과, 앞에서 이미 언급한 참고 파일 목록이다.
-- **agy 지시 파일**: `~/.gemini/GEMINI.md` 하나만 쓴다. `~/.gemini/config/GEMINI.md`도 전역 경로로 읽혀, 두 곳에 다른 파일을 두면 두 번 주입된다. 규칙 파일 하나가 24,000바이트를 넘으면 잘리므로 `verify-policies.sh`가 `GEMINI.md` 크기도 검사한다.
+- **agy 지시 파일**: `~/.gemini/GEMINI.md` 하나만 쓴다. `~/.gemini/config/GEMINI.md`도 전역 경로로 읽혀, 두 곳에 다른 파일을 두면 두 번 주입된다. 규칙 파일 하나가 24,000바이트를 넘으면 잘리므로 `verify-policies.sh`가 `GEMINI.md` 크기도 검사한다. 프로젝트의 `GUIDE.md`도 같은 자리에서 잘리므로 `update-docs`가 24,000바이트를 넘기지 않게 한다.
 - **약관**: Antigravity 로그인 자격 증명을 타사 클라이언트에서 재사용하는 것은 공식 FAQ의 제한 대상이다. 공식 `agy`를 다른 에이전트가 호출하는 구성에 적용되는지는 확인하지 못했다.
 
 ## 6. 지침·스킬 결정
@@ -178,6 +179,7 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 ### `writing-prompts`는 계열별 최근 세 세대를 지원한다 (v2.48)
 
 - 계열은 Claude(Opus, Sonnet, Fable, Haiku), GPT, Gemini(Argon·Carbon, Flash, Flash-Lite, Pro)로 나눈다. 공급자가 은퇴시킨 모델은 뺀다. Gemma와 Qwen은 최신 세대만 둔다.
+- Gemini 4 Hydrogen은 Flash 계열의 최신 세대로 센다. 공식 문서가 3.8 Flash의 권장 업그레이드로 소개하기 때문이다. 문서는 요청 스키마가 같은 Gemini 4 가이드에 둔다.
 - 대상 모델 ID와 API 방식을 먼저 확정한다. 패키지 이름으로 공급자를 추정하지 않는다. `openai` 라이브러리로 Gemini를 부를 수도 있기 때문이다.
 - 목록 밖 모델은 다른 모델로 바꾸지 않고, 공식 계약과 공통 기법만 적용한다.
 - 예시 개수 같은 수치는 범용 체크리스트에 두지 않고, 근거가 있는 모델 문서에만 둔다.

@@ -209,15 +209,16 @@ npx promptfoo@latest eval  # https://github.com/promptfoo/promptfoo
 | 짧고 직접적 | **권장** | Claude/GPT보다 더 짧은 프롬프트 선호 |
 | 질문 배치 | **중요** | 데이터 컨텍스트 **뒤에** 구체적 질문 배치 |
 
-### Gemini 4 Argon · Carbon (Google)
+### Gemini 4 Argon · Carbon · Hydrogen (Google)
 
-위 3.x 처방을 승계하지 않습니다. 두 모델의 공식 개발 가이드가 따로 강조하는 것만 적습니다 → [gemini4-argon-patterns.md](gemini4-argon-patterns.md)
+위 3.x 처방을 승계하지 않습니다. 공식 문서가 따로 강조하는 것만 적습니다 → [gemini4-argon-patterns.md](gemini4-argon-patterns.md)
 
 | 기법 | 상태 | 비고 |
 |------|------|------|
 | Argon과 Carbon 고르기 | **과제별** | 대부분의 개발·지식 작업과 빠른 반복은 Argon, 깊은 탐색과 검증이 필요한 작업은 Carbon. 토큰 단가가 같아도 Carbon은 턴당 사고를 더 써 작업 비용이 같지 않음 |
-| 착수 전 목표·성공 조건 합의 | **권장** | 장시간 자율 작업 전제. 질문과 도구 접근 확인을 먼저 |
-| 검증 수단 제공 | **권장** | 테스트·로그·스크린샷·검증 스크립트와 기준 점수 |
+| Hydrogen에 실행 맡기기 | **선택지** | 일상 코딩과 도구 사용, 병렬 서브에이전트 실행용. 기본 사고 수준이 `high`이고 `xhigh`는 `high`로 부족할 때만. 도구는 함수 호출로 선언 |
+| 착수 전 목표·성공 조건 합의 | **권장** | Argon·Carbon 대상. 장시간 자율 작업 전제. 질문과 도구 접근 확인을 먼저 |
+| 검증 수단 제공 | **권장** | Argon·Carbon 대상. 테스트·로그·스크린샷·검증 스크립트와 기준 점수 |
 | 길이 목표 지시 | **효과 없음** | "The model does not follow length targets." 깊이는 `thinking_level`로 |
 | 명시 캐싱 | **미지원** | 암시 캐싱만. 고정 내용을 프롬프트 앞에 |
 

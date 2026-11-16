@@ -19,7 +19,7 @@ description: 새 세션 시작 시 agent-guide 문서와 핵심 코드를 읽어
 1. `agent-guide/GUIDE.md` → 작업 원칙·용어·협업 규칙
 2. `agent-guide/PROJECT.md` → 구조, 기술 스택, 코드 지도
 3. `agent-guide/SESSION.md` → 현재 상태와 **다음 작업** (2단계에서 읽을 영역을 정하는 기준). 길면 "다음 작업"과 최근 상태 절을 읽고 이력 절은 제목만 훑습니다
-4. 도구·프로젝트 지침이 정한 교훈 파일(auto memory `lessons_*.md`, `.codex/lessons.md` 등)이 있으면 읽고 반영. 알려진 경로가 없으면 생략
+4. 도구·프로젝트 지침이 정한 교훈 파일(auto memory `lessons_*.md`, `.codex/lessons.md`, `.antigravity/lessons.md` 등)이 있으면 읽고 반영. 알려진 경로가 없으면 생략
 
 `agent-guide/`가 없으면 `README.md`와 프로젝트 경로의 참조할 만한 문서를 읽고 같은 절차를 따릅니다.
 

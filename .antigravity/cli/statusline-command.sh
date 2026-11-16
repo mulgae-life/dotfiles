@@ -11,11 +11,15 @@ prj_dir=$(echo "$input" | jq -r '.workspace.project_dir // .cwd // empty')
 [ -z "$prj_dir" ] && prj_dir=$(pwd)
 prj_dir="${prj_dir/#$HOME/\~}"
 
-# 모델 표시명 (괄호 접미사 제거: "Gemini 3.8 Flash (High)" → "Gemini 3.8 Flash")
-model=$(echo "$input" | jq -r '.model.display_name // empty' | sed 's/ *(.*//')
+# 모델 표시명
+model=$(echo "$input" | jq -r '.model.display_name // empty')
 
 # 노력 수준(effort)
 effort=$(echo "$input" | jq -r '.model.effort // empty')
+
+# effort가 따로 오면 표시명의 괄호 접미사를 뗀다: "Gemini 3.8 Flash (High)" → "Gemini 3.8 Flash".
+# Orchestrator는 effort가 없고 괄호가 계획 모델 이름이라 그대로 둔다: "Orchestrator (Argon)"
+[ -n "$effort" ] && model=$(printf '%s' "$model" | sed 's/ *(.*//')
 
 # 컨텍스트 사용률
 used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // empty')
@@ -57,9 +61,9 @@ rate_color() {
   fi
 }
 
-# 버킷 선택: Gemini 모델은 gemini-*, Claude·GPT 모델은 3p-*
+# 버킷 선택: Gemini 모델과 Orchestrator(Argon·Carbon이 계획하고 Hydrogen이 실행)는 gemini-*, Claude·GPT 모델은 3p-*
 case "$model" in
-  Gemini*) bucket="gemini" ;;
+  Gemini*|Orchestrator*) bucket="gemini" ;;
   *)       bucket="3p" ;;
 esac
 
@@ -93,16 +97,16 @@ sep="\033[1;90m│\033[00m"
 limit_parts=$(quota_segment "" "$bucket-5h" "$bucket-weekly")
 
 # Argon: Pro 요금제는 별도 주간 버킷(gemini-argon-*-weekly, 5시간 한도 없음)을 쓴다.
-# 하위 에이전트·모델 전환으로 Flash도 함께 쓰므로 Gemini 그룹(Flash·Pro) 버킷을 옆에 같이 보인다.
+# Orchestrator의 실행 모델과 하위 에이전트는 Gemini 그룹(Hydrogen·Flash) 버킷을 쓰므로 그 버킷을 옆에 같이 보인다.
 # Ultra는 Argon이 gemini 버킷에 포함돼 별도 버킷이 없으므로 위 gemini 묶음만 보인다
 case "$model" in
   *Argon*)
     argon_key=$(echo "$input" | jq -r '.quota // {} | keys[] | select(startswith("gemini-argon") and endswith("-weekly"))' | head -n1)
     if [ -n "$argon_key" ]; then
       argon_part=$(quota_segment "Argon" "" "$argon_key")
-      flash_part=$(quota_segment "Flash" "gemini-5h" "gemini-weekly")
+      gemini_part=$(quota_segment "Gemini" "gemini-5h" "gemini-weekly")
       limit_parts="$argon_part"
-      [ -n "$flash_part" ] && limit_parts="${limit_parts:+$limit_parts $sep }$flash_part"
+      [ -n "$gemini_part" ] && limit_parts="${limit_parts:+$limit_parts $sep }$gemini_part"
     fi
     ;;
 esac
