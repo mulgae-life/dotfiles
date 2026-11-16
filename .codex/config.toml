@@ -217,6 +217,12 @@ status_line = [
 ]
 alternate_screen = "never"  # 인라인 모드(= --no-alt-screen). 대체 화면에 들어가지 않으면 마우스를 잡지 않아 tmux 드래그 복사와 스크롤백이 그대로 동작
 
+# ── 안내 창 숨김 ────────────────────────────
+# 한도가 가까워질 때 뜨는 "더 저렴한 모델로 바꿀까요" 선택 창을 끈다
+# 창에서 "다시 보지 않기"를 고르면 Codex가 런타임 config.toml에 같은 값을 쓰지만, install이 덮어쓰면 지워지므로 레포에 둔다
+[notice]
+hide_rate_limit_model_nudge = true
+
 # ── 훅 (Codex Hooks, v0.129+) ────────────────
 # Claude Code settings.json의 알림·compact 리마인더 훅에 대응. 모두 작업 중단 없는 알림/리마인더 전용
 # PreToolUse 자동 승인은 의도적 미설정 — approval_policy="never" + rules/default.rules가 이미 통제

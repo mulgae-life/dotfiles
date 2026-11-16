@@ -366,7 +366,7 @@ main() {
     elif command -v apk &>/dev/null; then
       sudo apk add --quiet jq && ok "jq 설치 완료 (apk)"
     else
-      warn "jq 자동 설치 실패. 훅 스크립트가 python3 폴백을 사용합니다."
+      warn "jq 자동 설치 실패. 상태줄, Claude 훅, agy 설정 병합에 jq가 필요합니다. 직접 설치한 뒤 다시 실행하세요."
     fi
   else
     ok "jq 이미 설치됨"

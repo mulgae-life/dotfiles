@@ -2,6 +2,10 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.76 — Codex의 모델 전환 안내 창을 끄고 jq 설치 실패 안내를 바로잡음
+- `.codex/config.toml`에 `[notice]`의 `hide_rate_limit_model_nudge`를 더해, 한도가 가까워질 때 Codex가 띄우는 모델 전환 안내 창을 껐다. 창에서 다시 보지 않기를 골라도 그 값은 런타임 설정 파일에만 남아, 설치가 레포 버전으로 덮어쓰면 지워졌다.
+- `install.sh`가 jq를 자동으로 설치하지 못할 때 내는 안내를 고쳤다. 훅이 python3 폴백을 쓴다고 알렸지만 그 폴백은 이미 없다. 이제 상태줄과 Claude 훅, agy 설정 병합에 jq가 필요하니 직접 설치한 뒤 다시 실행하라고 알린다.
+
 ## v2.75 — 협업 유휴 판정과 agy 상태줄의 오판을 고치고 Gemini 4 Hydrogen을 더함
 - `cowork-set`의 `peer.sh`가 Codex 화면의 경고 안내(주간 한도 안내 등) 때문에 유휴인 창을 작업 중으로 판정하던 것을 고쳤다. agy 상태줄은 `Orchestrator (Argon)` 모델에서 Claude·GPT 한도를 보이고 Argon 한도를 빠뜨리던 것을 고쳤고, Hydrogen이 함께 쓰는 묶음의 이름을 `Flash`에서 `Gemini`로 바꿨다.
 - agy 지침에 교훈 파일 위치(`<프로젝트 루트>/.antigravity/lessons.md`)를 정했다. `update-docs`는 `GUIDE.md`에 매번 지킬 원칙만 남기고 24,000바이트를 넘기지 않게 한다.
