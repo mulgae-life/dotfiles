@@ -59,7 +59,7 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 
 | 기능 | 설명 |
 |------|------|
-| 규칙 자동 적용 | 코딩 스타일·보안·한국어 응답 등 7개 규칙이 매 세션 적용 |
+| 규칙 자동 적용 | 코딩 스타일·보안·한국어 응답 등 8개 규칙이 매 세션 적용 |
 | 무프롬프트 실행 | 확인 없이 실행. 파국형 명령(루트·홈 삭제, 디스크 파괴, 전원 조작 등)만 차단 |
 | 에이전트 자동 위임 | 빌드 실패 → `build-resolver`, 보안 민감 코드 → `security-reviewer` |
 | 데스크톱 알림 | 입력 대기·턴 완료 시 `notify-send` |
@@ -125,7 +125,7 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 
 ## 🧩 규칙 · 에이전트 · 훅
 
-**규칙 7개** (`.claude/rules/`, 매 세션 자동 적용)
+**규칙 8개** (`.claude/rules/`, 매 세션 자동 적용)
 
 | 파일 | 역할 |
 |------|------|
@@ -133,6 +133,7 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 | `security.md` | 시크릿 관리, 입력 검증, 취약점 방지 |
 | `architecture.md` | 파일 구조, 단일 역할, 의존성 방향 |
 | `communication.md` | 페르소나, 한국어 응답, 변경 이유 설명, 용어 병기 |
+| `writing.md` | 파일에 남기는 글의 형식(개조식·개괄식), 군더더기 금지 |
 | `context-management.md` | 계획 영속화, 부에이전트 공유 |
 | `work-principles.md` | 정확성 우선, 위험 명령 통제, 산출물 정리 |
 | `agents.md` | 에이전트 자동 위임 조건 |
@@ -168,7 +169,7 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 | 스킬 | `.claude/skills/` | `~/.agents/skills` 링크 | `~/.gemini/config/skills` 링크 |
 | 모델·effort | 기본값 추종(서브에이전트만 Opus·`high` 강제) | 기본값 추종 | 기본값 추종 |
 | 상태줄 | `statusline-command.sh` | `[tui].status_line` 내장 항목 | `cli/statusline-command.sh` |
-| 검증 버전 | 2.1.327 | 0.169.1 | `agy` 1.5.10 (IDE 층 미검증) |
+| 검증 버전 | 2.1.327 | 0.170.0 | `agy` 1.5.11 (IDE 층 미검증) |
 
 ## 📁 디렉토리 구조
 

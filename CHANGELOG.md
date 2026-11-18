@@ -2,6 +2,11 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.78 — 파일에 남기는 글의 글쓰기 규칙을 더하고 검증 버전을 올림
+- 글쓰기 규칙 `rules/writing.md` 추가. 코드 주석, 문서, 스킬·규칙 문장은 개조식·개괄식으로 군더더기 없이 작성. 대화 응답은 `communication.md` 그대로
+- Codex와 Antigravity 지침, `work-verify` 점검표에 같은 기준 반영
+- `cowork-set`의 `peer.sh` 주석을 개조식으로 정리. 검증 버전을 Codex 0.170.0, agy 1.5.11로 갱신
+
 ## v2.77 — GPT-6.2 Astra·Sol을 반영하고 화면 점검에 AI 템플릿 판단을 더함
 - GPT-6.2 가이드를 새로 쓰고 `writing-prompts`, `llm-api-guide`, `langchain-guide`에 반영했다. 6.2는 대화 중간에 앞선 입력이나 `safety_identifier`를 바꾸면 추론 항목을 입력에서 빼므로, 이력을 고치지 않고 덧붙이는 방법을 적었다. GPT를 6.2, 6·6.1, 5.6 세 세대로 세어 5.5 자료를 보관소로 옮겼고, Codex 지침은 코드 수정 보고에 검증 결과와 끝내지 못한 일을 적게 했다.
 - `visual-check`에 화면이 AI가 만든 템플릿처럼 읽히는지 확인하는 판단 절을 더했다. 이번 작업에서 정한 디자인만 고치고, 점검만 맡은 요청에서는 결과만 보고한다.
