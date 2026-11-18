@@ -66,6 +66,7 @@ Frontier 모델에서 few-shot 예시는 **포맷 정렬**에만 유효합니다
 모델 내장 추론 깊이를 API 파라미터로 직접 제어합니다:
 - GPT-5.6: `none` / `low` / `medium` / `high` / `xhigh` / `max`
 - GPT-6: Astra·6.1 Sol은 `low` / `medium` / `high` / `xhigh` / `max` (`none` 미지원), 6.1 Terra·6 Sol·Luna는 `none`~`max`. 기본은 모두 `medium`
+- GPT-6.2: Astra·Sol 모두 `none` 미지원, `low`~`max`. 공식 문서에 기본값이 없고 새 통합은 `medium`에서 시작하라고 권한다
 - Claude 5 세대: `output_config.effort` (`low`~`max`)가 주 제어축. Opus 5.5·Fable 5·5.1·5.2는 thinking을 끌 수 없고, Opus 5만 effort `high` 이하에서 끌 수 있음
 - → [reasoning-params.md](reasoning-params.md) 참조
 
@@ -90,7 +91,7 @@ Frontier 모델에서 few-shot 예시는 **포맷 정렬**에만 유효합니다
 1. **버전 관리**: 프롬프트를 프로덕션 코드처럼 Git으로 관리
 2. **회귀 테스트**: 골든 테스트 세트를 유지하고 변경 시 자동 검증
 3. **캐싱 최적화**: 정적 콘텐츠 앞, 동적 콘텐츠 뒤 배치
-4. **스냅샷 고정**: 프로덕션 앱은 특정 모델 버전에 고정 (출력 드리프트 방지)
+4. **스냅샷 고정**: 프로덕션 앱은 날짜 스냅샷이 공개된 모델이면 특정 버전에 고정 (출력 드리프트 방지)
 5. **A/B 테스트**: 프롬프트를 반복적으로 개선
 6. **배치 최적화**: 핵심 지침은 프롬프트 시작 또는 끝에 배치 (중간 매몰 방지)
 7. **긍정 프레이밍**: "~하지 마라" 대신 "~만 사용하라"
@@ -176,9 +177,9 @@ npx promptfoo@latest eval  # https://github.com/promptfoo/promptfoo
 |------|------|------|
 | "Think step by step" | **비권장** | GPT 추론 모델의 추가 추론 유도 문구는 불필요하다는 OpenAI 권고 |
 | `reasoning_effort` 파라미터 | **권장** | none/low/medium/high/xhigh로 추론 깊이 제어 |
-| `reasoning_effort` (GPT-6) | **권장** | Astra·6.1 Sol은 `none` 미지원·`low`~`max` 5단계, 6.1 Terra·6 Sol·Luna는 `none`~`max` 6단계 |
+| `reasoning_effort` (GPT-6·6.2) | **권장** | 6.2 Astra·6.2 Sol·6 Astra·6.1 Sol은 `none` 미지원·`low`~`max` 5단계, 6.1 Terra·6 Sol·Luna는 `none`~`max` 6단계 |
 | 대화형 톤 | **권장** | 자연스러운 대화체가 최적 |
-| 모델 스냅샷 고정 | **필수** | 프로덕션에서 라우터 동작이 버전 간 변동 |
+| 모델 스냅샷 고정 | **필수** | 프로덕션에서 라우터 동작이 버전 간 변동. GPT-6.2 Astra·Sol은 공개된 날짜 스냅샷 ID가 없어 배포 전 기준 과제로 결과를 비교 |
 | Few-shot | **선택적** | 포맷 정렬 용도로만 유효 |
 
 ### Claude 5 세대 (Anthropic)

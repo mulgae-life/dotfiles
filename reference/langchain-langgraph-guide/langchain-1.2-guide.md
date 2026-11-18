@@ -41,19 +41,19 @@ langgraph              # 그래프 기반 런타임/오케스트레이션
 from langchain.chat_models import init_chat_model
 
 # 단축 문법 (provider:model)
-model = init_chat_model("openai:gpt-6-astra", use_responses_api=True)  # GPT-6은 temperature 미지원, 도구 호출은 Responses 전용
+model = init_chat_model("openai:gpt-6.2-astra", use_responses_api=True)  # GPT-6.2는 temperature 미지원, 도구 호출은 Responses 전용
 model = init_chat_model("anthropic:claude-opus-5")  # Claude 5 세대는 temperature·top_p 미지원(400)
 model = init_chat_model("google_vertexai:gemini-2.5-flash", temperature=0)
 
 # 명시적 지정
-model = init_chat_model("gpt-6-astra", model_provider="openai", use_responses_api=True)
+model = init_chat_model("gpt-6.2-astra", model_provider="openai", use_responses_api=True)
 ```
 
 ### 직접 클래스 초기화
 
 ```python
 from langchain_openai import ChatOpenAI
-model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000, timeout=30)
+model = ChatOpenAI(model="gpt-6.2-astra", use_responses_api=True, max_tokens=1000, timeout=30)
 
 from langchain_anthropic import ChatAnthropic
 model = ChatAnthropic(model="claude-opus-5", max_tokens=1024)
@@ -84,7 +84,7 @@ def search(query: str) -> str:
     return search_engine.search(query)
 
 agent = create_agent(
-    model,  # ChatOpenAI(model="gpt-6-astra", use_responses_api=True) — 문자열 지정은 use_responses_api를 못 넘김
+    model,  # ChatOpenAI(model="gpt-6.2-astra", use_responses_api=True) — 문자열 지정은 use_responses_api를 못 넘김
     tools=[search],
     system_prompt="You are a research assistant.",
 )
@@ -265,6 +265,31 @@ def dynamic_model(request, handler):
         return handler(request.override(model=advanced_model))
     return handler(request)
 ```
+
+### GPT-6.2에서 이력을 고치는 미들웨어
+
+`ChatOpenAI`는 Responses API에서 이전 AI 메시지의 추론 블록을 다음 요청에 다시 보냅니다(`store=False`면 `encrypted_content`가 있는 블록만). GPT-6.2는 추론 항목 앞의 이력에 내용을 끼워 넣거나 고치면 그 추론 항목을 입력에서 뺍니다. 추론을 이어 가야 하는 다중 턴·도구 작업에서는 아래를 구분합니다.
+
+아래 표는 고친 이력을 다음 요청에 직접 다시 보낼 때 적용합니다. `use_previous_response_id=True`로 이전 응답 ID가 잡히면 그 응답 뒤의 메시지만 보내므로, 앞쪽에 넣은 요약도 서버에 전달되지 않습니다.
+
+| 동작 | 추론 항목 |
+|------|-----------|
+| `SummarizationMiddleware` (요약 메시지를 남긴 메시지 앞에 넣음) | 남긴 메시지의 추론 항목이 빠짐 |
+| `trim_messages(allow_partial=True)`, 지난 도구 결과를 줄여 다시 보내기 | 고친 자리 뒤의 추론 항목이 빠짐 |
+| `trim_messages()` 기본 동작, `RemoveMessage` (메시지를 통째로 뺌) | 이것만으로는 빠지지 않음 |
+| 대화 도중 다른 계열이나 같은 계열의 낮은 모델로 전환 (동적 모델 선택, `ModelFallbackMiddleware`) | 앞선 추론 항목이 빠짐. 같은 계열의 높은 모델로 올리면 다른 제외 조건을 통과한 호환 추론 항목은 유지 |
+
+긴 대화를 줄이면서 추론을 이어 가려면 OpenAI 서버 압축을 씁니다(`langchain-openai` 1.1.10+).
+
+```python
+model = ChatOpenAI(
+    model="gpt-6.2-astra",
+    use_responses_api=True,
+    context_management=[{"type": "compaction", "compact_threshold": 200000}],
+)
+```
+
+제외 조건 전체와 덧붙이기 방식은 [GPT-6.2 가이드 §0.4](../openai-prompt-guide/gpt-6.2-prompt-guide.md#04-추론-항목-제외와-접두사-유지-신규)에 있습니다. 요약 미들웨어가 요약 메시지를 넣는 위치는 `langchain` 1.5.0, 추론 블록을 다시 보내는 조건은 `langchain-openai` 1.8.1 소스에서 확인했습니다.
 
 ---
 

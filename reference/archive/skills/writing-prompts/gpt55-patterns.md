@@ -55,7 +55,7 @@ effort를 올리기 전에 관찰된 실패(조기 종료, 누락, 검증 부재
 | 이미지 `detail` 미지정·`auto` | `high` 동작 | **`original` 동작** (computer use 향상) |
 | 마이그레이션 | 단순 교체 | **검증 없는 단순 교체를 가정하지 않음**, 최소 프롬프트로 새 기준선 |
 
-> 상세 가이드: [`reference/openai-prompt-guide/gpt-5.5-prompt-guide.md`](../../../../reference/openai-prompt-guide/gpt-5.5-prompt-guide.md)
+> 상세 가이드: [`reference/archive/openai-prompt-guide/gpt-5.5-prompt-guide.md`](../../openai-prompt-guide/gpt-5.5-prompt-guide.md)
 
 ---
 
@@ -128,7 +128,7 @@ You are a capable collaborator: approachable, steady, and direct. Assume the use
 Stay concise without becoming curt. Give enough context for the user to understand and trust the answer, then stop. Use examples, comparisons, or simple analogies when they make the point easier to grasp. When correcting the user or disagreeing, be candid but constructive. When an error is pointed out, acknowledge it plainly and focus on fixing it.
 ```
 
-공식 예시의 2문단(되묻기보다 진행)과 4문단(어조 맞추기, 이모지 자제)은 [풀 가이드 §4.2](../../../../reference/openai-prompt-guide/gpt-5.5-prompt-guide.md#42-personality-블록-예시-steady-task-focused)에 있다. 공식 문서에는 표현력 있는 협업형 예시도 있다.
+공식 예시의 2문단(되묻기보다 진행)과 4문단(어조 맞추기, 이모지 자제)은 [풀 가이드 §4.2](../../openai-prompt-guide/gpt-5.5-prompt-guide.md#42-personality-블록-예시-steady-task-focused)에 있다. 공식 문서에는 표현력 있는 협업형 예시도 있다.
 
 ### 예시 — Collaboration Style (레포 적용 예시)
 
@@ -295,7 +295,7 @@ Before any tool calls for a multi-step task, send a short user-visible update th
 - `<citation_rules>` / `<grounding_rules>` / `<research_mode>`
 - `<autonomy_and_persistence>` / `<terminal_tool_hygiene>`
 
-블록 원문은 [GPT-5.5 풀 가이드 §6~§12](../../../../reference/openai-prompt-guide/gpt-5.5-prompt-guide.md#6-core-prompt-patterns-54에서-유지-outcome-first-프레임-안에-배치) 참조.
+블록 원문은 [GPT-5.5 풀 가이드 §6~§12](../../openai-prompt-guide/gpt-5.5-prompt-guide.md#6-core-prompt-patterns-54에서-유지-outcome-first-프레임-안에-배치) 참조.
 
 5.5에서 새로 추가/강조된 것: §1~§8.
 
@@ -343,7 +343,7 @@ OpenAI Docs Skill이 프로젝트 프롬프트 스택을 5.5 권장에 맞게 �
 
 ## 참고
 
-- [GPT-5.5 Prompting Guide (full)](../../../../reference/openai-prompt-guide/gpt-5.5-prompt-guide.md) — 전체 가이드 + 외부 노하우
+- [GPT-5.5 Prompting Guide (full)](../../openai-prompt-guide/gpt-5.5-prompt-guide.md) — 전체 가이드 + 외부 노하우
 - [Using GPT-5.5 (공식, 5.5 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-5.5.md) — 버전 없는 `latest-model`·`prompt-guidance` 주소는 최신 모델 문서로 바뀌므로 이 주소를 쓴다
 - [GPT-5.5 모델 페이지 (공식)](https://developers.openai.com/api/docs/models/gpt-5.5)
 - [Structured Outputs (공식)](https://developers.openai.com/api/docs/guides/structured-outputs)

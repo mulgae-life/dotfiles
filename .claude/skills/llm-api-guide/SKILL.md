@@ -31,9 +31,9 @@ Anthropic
 | **엔드포인트** | `/v1/responses` | `/v1/messages` |
 | **Instructions** | `instructions` 파라미터 또는 `developer` role | `system` 파라미터 |
 | **입력** | `input` (문자열 또는 메시지 배열) | `messages` 배열 |
-| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. Astra·6.1 Sol은 `none`·`minimal` 미지원이고 도구 호출은 Responses 전용 → 5.6에서 none 쓰던 곳은 `low`부터, 6.1 Terra는 `none`~`max` 지원이지만 도구 호출은 Responses 전용, 6 Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·5.2·Opus 5.5는 항상 켜짐, Opus 5.5·Haiku 5.5 기본 effort `medium`이고 Fable 5.2는 `high`, `budget_tokens`는 Haiku 4.5 등 구모델 전용) |
+| **Reasoning** | `reasoning: {effort}` (GPT-6 기본 `medium`. GPT-6.2 Astra·6.2 Sol·6 Astra·6.1 Sol은 `none`·`minimal` 미지원이고 도구 호출은 Responses 전용 → 5.6에서 none 쓰던 곳은 `low`부터, 6.1 Terra는 `none`~`max` 지원이지만 도구 호출은 Responses 전용, 6 Sol·Luna는 `none`~`max` 지원이고 Chat Completions 함수 호출은 `none`에서만; 5.6 신규 `reasoning.mode: "pro"`·`reasoning.context`는 6에서도 유효) | adaptive thinking + `output_config.effort` (4.6+ / Fable 5·5.1·5.2·Opus 5.5는 항상 켜짐, Opus 5.5·Haiku 5.5 기본 effort `medium`이고 Fable 5.2는 `high`, `budget_tokens`는 Haiku 4.5 등 구모델 전용) |
 | **스트리밍** | `stream: true` | `stream: True` |
-| **대화 유지** | `previous_response_id` | 직접 메시지 이력 관리 (선택: 메시지 스레드 beta `message-threads-2026-08-12`는 서버가 이력을 잠시 보관해 새 메시지만 보내게 하지만, 5분 동안 요청이 없으면 만료되므로 원본 이력은 클라이언트가 계속 유지) |
+| **대화 유지** | `previous_response_id` (HTTP에서 응답을 저장하지 않는 `store: false`·ZDR 구성은 이전 `output` 항목을 순서대로 다시 보냄. GPT-6.2는 대화 중간에 앞선 입력이나 `safety_identifier`를 바꾸면 추론 항목이 입력에서 빠짐) | 직접 메시지 이력 관리 (선택: 메시지 스레드 beta `message-threads-2026-08-12`는 서버가 이력을 잠시 보관해 새 메시지만 보내게 하지만, 5분 동안 요청이 없으면 만료되므로 원본 이력은 클라이언트가 계속 유지) |
 
 ---
 
@@ -46,7 +46,7 @@ Anthropic
 | Reasoning | OpenAI: `reasoning.effort`, Anthropic: adaptive thinking + `output_config.effort` | 각 API references |
 | 스트리밍 | SSE 기반, 청크 조립 + 에러 핸들링 | `references/common-patterns.md` |
 | 에러 핸들링 | 타입별 분기 + 지수 백오프 재시도 | `references/common-patterns.md` |
-| 대화 이력 | OpenAI: `previous_response_id`, Anthropic: 수동 메시지 배열 관리 | 각 API references |
+| 대화 이력 | OpenAI: `previous_response_id`(HTTP에서 응답을 저장하지 않는 구성은 이전 `output` 항목 재전송), Anthropic: 수동 메시지 배열 관리 | 각 API references |
 | Tool Calling | 함수 스키마 정의 + 호출 결과 전달 루프 | 각 API references |
 | 출력 검증 | Pydantic/구조화 출력으로 LLM 응답 파싱 | `references/common-patterns.md` |
 | 프롬프트 캐싱 | 정적 prefix + 동적 suffix 배치 | `references/common-patterns.md` |
@@ -67,7 +67,7 @@ Anthropic
 
 - [ ] 스트리밍: 긴 응답은 스트리밍 사용
 - [ ] Reasoning effort: 작업 복잡도에 맞게 설정
-- [ ] 대화 이력: `previous_response_id` (OpenAI) 또는 수동 관리 (Anthropic)
+- [ ] 대화 이력: `previous_response_id` (OpenAI. HTTP에서 `store: false`·ZDR이면 이전 `output` 항목을 암호화된 추론 항목까지 순서대로 재전송) 또는 수동 관리 (Anthropic)
 
 ---
 
@@ -86,7 +86,9 @@ Anthropic
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
 - [Function Calling Guide](https://platform.openai.com/docs/guides/function-calling)
-- [GPT-6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — Astra·6.1 Sol·6.1 Terra·6 Sol·Luna 제품군, effort 단계·제거 파라미터·272K 요율·Codex 기본 모델
+- [GPT-6.2 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6.2-prompt-guide.md) ⭐ 최신 — 6.2 Astra·6.2 Sol의 API 계약, 추론 항목 제외와 접두사 유지, Codex 카탈로그
+- [GPT-6.2 Astra 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6.2-astra) · [GPT-6.2 Sol 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6.2-sol) · [Keep the prefix unchanged](https://developers.openai.com/api/docs/guides/keep-prefix-unchanged)
+- [GPT-6 풀 가이드 (한국어)](../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) — 6 Astra·6.1 Sol·6.1 Terra·6 Sol·Luna 제품군, effort 단계·제거 파라미터·272K 요율
 - [GPT-6 Astra 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-astra) · [GPT-6.1 Sol 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [GPT-6.1 Terra 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6.1-terra) · [GPT-6 Sol 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-sol) · [GPT-6 Luna 모델 페이지](https://developers.openai.com/api/docs/models/gpt-6-luna)
 - [Using the latest model](https://developers.openai.com/api/docs/guides/latest-model)
 - [Prompt guidance](https://developers.openai.com/api/docs/guides/prompt-guidance)

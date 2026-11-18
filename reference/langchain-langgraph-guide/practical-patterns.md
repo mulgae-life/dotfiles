@@ -11,7 +11,7 @@
 ```python
 from langchain.chat_models import init_chat_model
 
-gpt = init_chat_model("openai:gpt-6-astra", use_responses_api=True)  # GPT-6은 temperature 미지원, 도구 호출은 Responses 전용
+gpt = init_chat_model("openai:gpt-6.2-astra", use_responses_api=True)  # GPT-6.2는 temperature 미지원, 도구 호출은 Responses 전용
 claude = init_chat_model("anthropic:claude-opus-5")  # Claude 5 세대는 temperature·top_p 미지원(400)
 gemini = init_chat_model("google_vertexai:gemini-2.5-flash", temperature=0)
 ```
@@ -22,7 +22,7 @@ gemini = init_chat_model("google_vertexai:gemini-2.5-flash", temperature=0)
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
 
-model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000, timeout=30)
+model = ChatOpenAI(model="gpt-6.2-astra", use_responses_api=True, max_tokens=1000, timeout=30)
 model = ChatAnthropic(model="claude-opus-5", max_tokens=1024)
 ```
 
@@ -93,7 +93,7 @@ def search(query: str) -> str:
     return search_engine.search(query)
 
 agent = create_agent(
-    model,  # ChatOpenAI(model="gpt-6-astra", use_responses_api=True) — 문자열 지정은 use_responses_api를 못 넘김
+    model,  # ChatOpenAI(model="gpt-6.2-astra", use_responses_api=True) — 문자열 지정은 use_responses_api를 못 넘김
     tools=[search],
     system_prompt="You are a research assistant.",
     checkpointer=PostgresSaver(conn_string="..."),
@@ -308,7 +308,7 @@ builder.add_node(
 from langchain.middleware import ModelRetryMiddleware, ModelFallbackMiddleware
 
 agent = create_agent(
-    model,  # ChatOpenAI(model="gpt-6-astra", use_responses_api=True) — 문자열 지정은 use_responses_api를 못 넘김
+    model,  # ChatOpenAI(model="gpt-6.2-astra", use_responses_api=True) — 문자열 지정은 use_responses_api를 못 넘김
     tools=tools,
     middleware=[
         ModelRetryMiddleware(max_retries=3, backoff_factor=2.0),
@@ -341,10 +341,10 @@ def safe_tools(request, handler):
 - [ ] LangSmith 트레이싱 활성화
 - [ ] 도구 에러 미들웨어 적용
 - [ ] 재시도 미들웨어 (ModelRetryMiddleware)
-- [ ] 메시지 트리밍 (`trim_messages()`)
+- [ ] 메시지 트리밍 (`trim_messages()`). GPT-6.2에서 요약 삽입·부분 자르기·모델 하향 전환은 추론 항목을 입력에서 빠지게 함 → [LangChain 가이드 §8](./langchain-1.2-guide.md#gpt-62에서-이력을-고치는-미들웨어)
 - [ ] 비동기 패턴 (고트래픽 시)
 - [ ] 환경변수로 시크릿 관리
-- [ ] 모델 스냅샷 고정 (출력 드리프트 방지)
+- [ ] 모델 스냅샷 고정 (출력 드리프트 방지). GPT-6.2 Astra·Sol은 공개된 날짜 스냅샷 ID가 없으므로 배포 전 기준 과제로 결과 비교
 - [ ] 모니터링 + 알림 설정
 
 ---

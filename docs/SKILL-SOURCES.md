@@ -27,6 +27,8 @@
 
 `start`, `brief`, `init-project`, `update-docs`, `harness-evolve`, `work-verify`, `work-plan`, `feedback-analysis`, `reference-verification`, `recursive-discussion`, `cowork-set`, `llm-api-guide`, `writing-prompts`, `langchain-guide`, `hw-design`, `hw-ppt`, `visual-check`
 
+`visual-check`의 「디자인을 직접 정했을 때」 표는 `frontend-design`이 꼽는 기본값 목록과 `pbakaus/impeccable` 탐지기의 규칙 목록(`npx impeccable detect --list-rules`)을 참고해 직접 썼다. 요청받았을 때 부르는 탐지기는 `impeccable@4.9.2`로 고정했다. Node 18.19 이상이 필요하고, 처음 실행할 때 npm 캐시에 패키지를 내려받는다. 버전을 올릴 때는 규칙 목록, 종료 코드, `IMPECCABLE_BROWSER`와 `--viewport` 동작이 그대로인지 확인한다.
+
 ## 4. 이식 스킬 갱신 절차
 
 1. 상류 최신본을 스크래치 디렉토리에 내려받는다. 파일은 `https://raw.githubusercontent.com/<저장소>/main/<경로>`, 디렉토리 목록은 `https://api.github.com/repos/<저장소>/contents/<경로>`.

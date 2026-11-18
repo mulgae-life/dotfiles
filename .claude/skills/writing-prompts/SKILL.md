@@ -34,9 +34,9 @@ OpenAI GPT, Anthropic Claude, Google Gemini 4(Argon·Carbon·Hydrogen)·3.x·Gem
 | `claude-opus-5` | claude-5-specifics.md | 작성 체크리스트 + Opus 5 차이점 |
 | `claude-fable-5` | claude-5-specifics.md | 본문 (5.1 전용 항목 제외) |
 | `claude-opus-4-8` · `claude-sonnet-4-6` · `claude-haiku-4-5` (`-20251001`) | [claude-4-specifics.md](references/claude-4-specifics.md) | 작성 체크리스트 + 공통 원칙 + 해당 모델 절 |
+| `gpt-6.2-astra` · `gpt-6.2-sol` | [gpt62-patterns.md](references/gpt62-patterns.md) | 작성 체크리스트 + §0 두 모델과 API 계약 |
 | `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6.1-terra` · `gpt-6-sol` · `gpt-6-luna` | [gpt6-patterns.md](references/gpt6-patterns.md) | 작성 체크리스트 + §0 모델별 계약 |
 | `gpt-5.6-sol` · `gpt-5.6-terra` · `gpt-5.6-luna` · `gpt-5.6` | [gpt56-patterns.md](references/gpt56-patterns.md) | 작성 체크리스트 |
-| `gpt-5.5` (`-2026-04-23`) | [gpt55-patterns.md](references/gpt55-patterns.md) | 작성 체크리스트 |
 | `gemini-4-argon` · `gemini-4-carbon` · `gemini-4-hydrogen` (agy의 `-low`·`-medium`·`-high`·`-xhigh` 변형도 같은 모델. Cloud `-cyber-permissive`는 기본 사고 수준이 다른 별도 ID) | [gemini4-argon-patterns.md](references/gemini4-argon-patterns.md) | 작성 체크리스트 + §1 모델 계약 (Carbon은 §1.1, Hydrogen은 §1.2 차이 체크리스트까지) |
 | `gemini-3.8-flash` · `gemini-3.7-flash` · `gemini-3.5-flash-lite` · `gemini-3.1-flash-lite` · `gemini-3.1-pro-preview` | [gemini3-patterns.md](references/gemini3-patterns.md) | 작성 체크리스트 + §1 모델별 계약 |
 | `google/gemma-4-{E2B\|E4B\|12B\|26B-A4B\|31B}-it` | [gemma4-patterns.md](references/gemma4-patterns.md) | §8 체크리스트 |
@@ -64,7 +64,7 @@ OpenAI GPT, Anthropic Claude, Google Gemini 4(Argon·Carbon·Hydrogen)·3.x·Gem
 | **어조** | 제품 용도별 분기 (공식=격식체, 캐주얼=해요체) | ✅ | ✅ | ✅ |
 | **Message Roles** | - | `developer` (최고) / `user` | `system` 파라미터 / `user` | `system_instruction` / `user`·`model` |
 | **Examples** | 쓸지와 개수는 대상 모델 문서와 과제별 평가로 | 행동을 바꾸지 않는 예시는 줄임 | 공식 모범 사례는 다양한 예시 3~5개 | 공식 문서는 예시 포함 권장 |
-| **특화 파라미터** | - | `reasoning.effort` (GPT-6 Astra·6.1 Sol: `none` 미지원, low~max / 6.1 Terra·6 Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, 이미지 항목별 `detail` | `output_config.effort` (Haiku 5.5부터 지원, Haiku 4.5는 `budget_tokens`) | `thinking_level` (sampling 제거) |
+| **특화 파라미터** | - | `reasoning.effort` (GPT-6.2 Astra·6.2 Sol·6 Astra·6.1 Sol: `none` 미지원, low~max / 6.1 Terra·6 Sol·Luna: none~max), `reasoning.mode`/`context` (5.6+), `verbosity`, 이미지 항목별 `detail` | `output_config.effort` (Haiku 5.5부터 지원, Haiku 4.5는 `budget_tokens`) | `thinking_level` (sampling 제거) |
 | **Prefilling** | - | ❌ | ❌ (4.6 이후 400 → Structured Outputs, Haiku 4.5만 예외) | ❌ 새 프롬프트에서 쓰지 않음 (제거 권고는 3.8·Cloud 3.7 문서) |
 | **Long Context** | - | - | ✅ (문서 맨 위 → 30%↑) | 긴 자료 앞, 질문 끝 |
 | **제약** | "~하지 마세요" 명시 | ✅ | ✅ | ✅ |
@@ -125,7 +125,7 @@ Gemini 열은 3.x 기준이다. Gemini 4(Argon·Carbon·Hydrogen)는 이 열을 
 
 | 플랫폼 | 핵심 기능 | 상세 가이드 |
 |--------|----------|------------|
-| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 주도성·테스트 범위·위임 명시·모델 선택(GPT-6), 티어 선택(5.6), 최소 프롬프트 기준선(5.5) | `references/gpt6-patterns.md` ⭐ (GPT-6 Astra·Sol·Luna), `references/gpt56-patterns.md` (5.6), `references/gpt55-patterns.md` (5.5) |
+| OpenAI | Outcome-first, 구조화 출력, Personality 분리, 간결화 지시 재검토·막힌 일 공개·접두사 유지(GPT-6.2), 주도성·테스트 범위·위임 명시·모델 선택(GPT-6), 티어 선택(5.6) | `references/gpt62-patterns.md` ⭐ (GPT-6.2 Astra·Sol), `references/gpt6-patterns.md` (GPT-6 Astra·6.1 Sol·6.1 Terra·6 Sol·Luna), `references/gpt56-patterns.md` (5.6) |
 | Anthropic | De-prescribe(Claude 5 세대), 검증 지시 삭제·위임 상한(Opus 5), effort `medium` 시작(Opus 5.5·Haiku 5.5), 코드 소유권·쌓인 경고·문체 규칙 경직(Fable 5.2), `between_tools`·작업 범위(Sonnet 5.5), 검색 날짜·조기 종료(Haiku 5.5), 모델별 사고 방식(4.x), 긴 컨텍스트 최적화 | `references/claude-5-specifics.md` ⭐ (Opus 5.5·Fable 5.2·Fable 5.1·Sonnet 5.5·Haiku 5.5·Opus 5·Fable 5·Sonnet 5), `references/claude-4-specifics.md` (Opus 4.8·Sonnet 4.6·Haiku 4.5), `references/long-context.md` |
 | Google Gemini 4 (Argon·Carbon·Hydrogen) | Argon·Carbon의 장시간 작업 운용 팁 5가지(의도 선합의·검증 수단·멀티모달 참조·조율자·회고), 세 모델의 선택 기준, Hydrogen의 기본 `high`·`xhigh`와 도구 선언, 통합 1M 창과 API별 장문 출력, 명시 캐싱 없음, 서비스별 `thinking_budget` 처리 | `references/gemini4-argon-patterns.md` |
 | Google Gemini 3.x | 모델별 `thinking_level` 허용 값, sampling 제거, 사고 서명 보존, 함수 결과 짝 맞추기, 미디어 해상도 | `references/gemini3-patterns.md` |
@@ -238,10 +238,10 @@ system_prompt: |
 ### OpenAI (GPT) 특화
 
 - **[message-roles.md](references/message-roles.md)** - developer/user 역할 상세
-- **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드 (패턴 출처는 OpenAI 가이드 — Claude 5 세대에는 그대로 적용 금지)
-- **[gpt6-patterns.md](references/gpt6-patterns.md)** ⭐ GPT-6 프롬프트 패턴 (Astra 기준 주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, 모델별 effort 범위(Astra·6.1 Sol `none` 미지원, 6.1 Terra·6 Sol·Luna 지원), 제거 파라미터, Sol·Terra·Luna 차이, 5.6 → 6 마이그레이션)
+- **[tool-calling.md](references/tool-calling.md)** - Agentic Tool Calling 가이드 (패턴 출처는 GPT-5·GPT-4.1 가이드 — GPT 추론 모델(5.6·6·6.2)과 Claude 5 세대에는 그대로 적용 금지)
+- **[gpt62-patterns.md](references/gpt62-patterns.md)** ⭐ GPT-6.2 프롬프트 패턴 (기본이 간결한 문체와 간결화 지시 재검토, 작업 완주, 코딩 스타일, 프런트엔드, 막힌 일과 가정 공개, 접두사 유지, effort 시작점, 6 → 6.2 마이그레이션)
+- **[gpt6-patterns.md](references/gpt6-patterns.md)** GPT-6 프롬프트 패턴 (6 Astra 기준 주도성, 지시 파일 모순 감사, 테스트 범위 축소, 위임 명시, 모델별 effort 범위(6 Astra·6.1 Sol `none` 미지원, 6.1 Terra·6 Sol·Luna 지원), 제거 파라미터, Sol·Terra·Luna 차이, 5.6 → 6 마이그레이션) — 6.1 Terra·6 Luna는 이 문서가 현행
 - **[gpt56-patterns.md](references/gpt56-patterns.md)** GPT-5.6 프롬프트 패턴 (티어 선택, 우선순위 지시, effort 재튜닝, pro mode·reasoning.context·PTC) — 계약 구조·신규 API 기능은 GPT-6에서도 유효
-- **[gpt55-patterns.md](references/gpt55-patterns.md)** GPT-5.5 프롬프트 패턴 (outcome-first, 최소 프롬프트 기준선, personality·collaboration 분리, 검색 예산, `text.format` 구조화 출력, 이미지 `detail`, `phase`)
 - **[optimization.md](references/optimization.md)** - GPT 프롬프트 최적화 팁 (모순 제거, 지시 계층, 출력 형식, 캐싱)
 
 ### Anthropic (Claude) 특화

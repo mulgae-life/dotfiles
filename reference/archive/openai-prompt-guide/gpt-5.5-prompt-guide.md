@@ -7,7 +7,7 @@
 > - [GPT-5.5 prompting guide | Simon Willison (2026-04-25)](https://simonwillison.net/2026/Apr/25/gpt-5-5-prompting-guide/)
 >
 > **날짜**: 2026-04-26 (2026-10-01 공식 원문 대조로 API 예시·날짜 예외·과도한 의무 표현 정정)
-> **이전 버전**: [GPT-5.4 Prompting Guide](../archive/openai-prompt-guide/gpt-5.4-prompt-guide.md)
+> **이전 버전**: [GPT-5.4 Prompting Guide](./gpt-5.4-prompt-guide.md)
 
 ---
 
@@ -794,4 +794,4 @@ response = client.responses.create(
 - [Images and vision | OpenAI API](https://developers.openai.com/api/docs/guides/images-vision)
 - [Prompt Personalities | OpenAI Cookbook](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 - [GPT-5.5 prompting guide | Simon Willison (2026-04-25)](https://simonwillison.net/2026/Apr/25/gpt-5-5-prompting-guide/)
-- [GPT-5.4 Prompting Guide (이전 버전 비교)](../archive/openai-prompt-guide/gpt-5.4-prompt-guide.md)
+- [GPT-5.4 Prompting Guide (이전 버전 비교)](./gpt-5.4-prompt-guide.md)

@@ -152,6 +152,8 @@ system_prompt: |
 
 ## 4. 코딩 에이전트
 
+> GPT-5·GPT-4.1 가이드에서 온 예시입니다. GPT 추론 모델(5.6·6·6.2)과 Claude 5 세대에는 `<planning>`과 `<workflow>`를 그대로 옮기지 않습니다 → [tool-calling.md](tool-calling.md)의 범위.
+
 ```yaml
 system_prompt: |
   # Identity

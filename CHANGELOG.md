@@ -2,6 +2,11 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.77 — GPT-6.2 Astra·Sol을 반영하고 화면 점검에 AI 템플릿 판단을 더함
+- GPT-6.2 가이드를 새로 쓰고 `writing-prompts`, `llm-api-guide`, `langchain-guide`에 반영했다. 6.2는 대화 중간에 앞선 입력이나 `safety_identifier`를 바꾸면 추론 항목을 입력에서 빼므로, 이력을 고치지 않고 덧붙이는 방법을 적었다. GPT를 6.2, 6·6.1, 5.6 세 세대로 세어 5.5 자료를 보관소로 옮겼고, Codex 지침은 코드 수정 보고에 검증 결과와 끝내지 못한 일을 적게 했다.
+- `visual-check`에 화면이 AI가 만든 템플릿처럼 읽히는지 확인하는 판단 절을 더했다. 이번 작업에서 정한 디자인만 고치고, 점검만 맡은 요청에서는 결과만 보고한다.
+- `cowork-set`의 `peer.sh`가 Codex의 모델·서비스 등급 변경 안내 때문에 유휴인 창을 작업 중으로 판정하던 것을 고쳤다. 검증 버전을 Claude Code 2.1.327, Codex 0.169.1, agy 1.5.10으로 올렸다.
+
 ## v2.76 — Codex의 모델 전환 안내 창을 끄고 jq 설치 실패 안내를 바로잡음
 - `.codex/config.toml`에 `[notice]`의 `hide_rate_limit_model_nudge`를 더해, 한도가 가까워질 때 Codex가 띄우는 모델 전환 안내 창을 껐다. 창에서 다시 보지 않기를 골라도 그 값은 런타임 설정 파일에만 남아, 설치가 레포 버전으로 덮어쓰면 지워졌다.
 - `install.sh`가 jq를 자동으로 설치하지 못할 때 내는 안내를 고쳤다. 훅이 python3 폴백을 쓴다고 알렸지만 그 폴백은 이미 없다. 이제 상태줄과 Claude 훅, agy 설정 병합에 jq가 필요하니 직접 설치한 뒤 다시 실행하라고 알린다.

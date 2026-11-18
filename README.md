@@ -113,7 +113,7 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 | | `/hw-ppt` | 한화손해보험 톤 16:9 슬라이드 덱 | 자체 |
 | | `/react-best-practices` | React/Next.js 성능 최적화 | Vercel 이식 |
 | | `/web-design-guidelines` | 웹 인터페이스 가이드라인 리뷰 | Vercel 이식 |
-| | `/visual-check` | Chromium 렌더링 스크린샷·진단으로 UI 결과를 눈으로 검증 | 자체 |
+| | `/visual-check` | Chromium 렌더링 스크린샷·진단으로 UI 결과를 눈으로 검증하고 AI가 만든 티를 확인 | 자체 |
 | 백엔드·데이터 | `/postgres-best-practices` | Postgres 스키마·마이그레이션·RLS·쿼리 모범 사례 | Supabase 이식 |
 | | `/llm-api-guide` | OpenAI/Anthropic API 연동 | 자체 |
 | | `/langchain-guide` | LangChain/LangGraph 에이전트·워크플로우 | 자체 |
@@ -168,7 +168,7 @@ Linux와 다르게 설치하는 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)
 | 스킬 | `.claude/skills/` | `~/.agents/skills` 링크 | `~/.gemini/config/skills` 링크 |
 | 모델·effort | 기본값 추종(서브에이전트만 Opus·`high` 강제) | 기본값 추종 | 기본값 추종 |
 | 상태줄 | `statusline-command.sh` | `[tui].status_line` 내장 항목 | `cli/statusline-command.sh` |
-| 검증 버전 | 2.1.325 | 0.169.0 | `agy` 1.5.9 (IDE 층 미검증) |
+| 검증 버전 | 2.1.327 | 0.169.1 | `agy` 1.5.10 (IDE 층 미검증) |
 
 ## 📁 디렉토리 구조
 

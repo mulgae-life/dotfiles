@@ -204,8 +204,8 @@ system_prompt: |
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
-    reasoning={"effort": "high"},  # GPT-6 Astra·6.1 Sol: low, medium, high, xhigh, max (none·minimal 미지원) / GPT-6.1 Terra·6 Sol·Luna·GPT-5.x: none, low, medium, high, xhigh, max
+    model="gpt-6.2-astra",
+    reasoning={"effort": "high"},  # GPT-6.2 Astra·6.2 Sol·6 Astra·6.1 Sol: low, medium, high, xhigh, max (none·minimal 미지원) / GPT-6.1 Terra·6 Sol·Luna·GPT-5.6: none, low, medium, high, xhigh, max
     text={"verbosity": "low"},      # low, medium, high
     instructions="...",
     input="..."
@@ -214,14 +214,16 @@ response = client.responses.create(
 
 **파라미터 설명**:
 - `reasoning.effort`: 추론 깊이
-  - `none`: 추론 없이 실행 중심. 5.6까지와 GPT-6.1 Terra·GPT-6 Sol·Luna는 지원, GPT-6 Astra·6.1 Sol은 미지원이라 `low`부터. 6 Sol·Luna의 Chat Completions 함수 호출은 `none`에서만 가능(6.1 Terra는 `none`에서도 Chat Completions 도구 호출 불가, Responses 필요)
+  - `none`: 추론 없이 실행 중심. GPT-5.6과 GPT-6.1 Terra·GPT-6 Sol·Luna는 지원, GPT-6.2 Astra·6.2 Sol·6 Astra·6.1 Sol은 미지원이라 `low`부터. 6 Sol·Luna의 Chat Completions 함수 호출은 `none`에서만 가능(6.1 Terra는 `none`에서도 Chat Completions 도구 호출 불가, Responses 필요)
   - `low`: 빠른 응답
-  - `medium`: 기본값 (5.6·GPT-6 기본값)
+  - `medium`: 기본값 (5.6·GPT-6 기본값). GPT-6.2 문서에는 기본값이 적혀 있지 않고 새 통합의 시작점으로 `medium`을 권하므로 값을 명시해서 보낸다
   - `high`: 깊은 추론 (코딩, Agentic에 적합)
-  - `xhigh`: 최대 추론 (명확한 eval 이점이 있을 때만)
+  - `xhigh`: 길게 도는 조사·에이전트 작업 (명확한 eval 이점이 있을 때만)
+  - `max`: 최대 추론. 가장 어려운 작업에만 쓰고 전역 기본값으로 두지 않는다 (GPT-5.6부터)
   - `ultra`: Codex·ChatGPT 제품 전용 자동 위임 모드 — API 값 아님
   - 5.5/5.4 → 5.6 마이그레이션: **기존 값을 baseline으로 두고 한 단계 낮춰 비교** (공식 지침)
   - 5.6 → 6 마이그레이션: 기존 값을 지원하는 모델에서는 유지 후 비교. Astra·6.1 Sol로 옮기면 `none` 사용처는 `low`로(6.1 Terra·6 Sol·Luna는 `none` 유지 가능), `minimal`은 모델과 관계없이 `low`부터 비교
+  - 6 → 6.2 마이그레이션: 새 통합은 `medium`에서 시작하고 `none`·`minimal` 사용처는 `low`로 옮긴다. 6.2는 같은 값에서 추론 토큰을 덜 쓰므로 이전 모델에서 맞춘 값을 그대로 옮기지 말고 다시 잰다(`low`의 결과가 이전 세대와 다를 수 있다)
 - `reasoning.mode`: `"pro"` (5.6 신규) — 오답 비용이 큰 지점만 선별 적용
 - `text.verbosity`: 응답 길이
   - `low`: 간결
@@ -236,9 +238,9 @@ reasoning effort를 올리기 전에 먼저 프롬프트 패턴을 추가:
 3. `<verification_loop>` (검증 루프)
 4. 이후에도 부족하면 effort 증가
 
-→ 상세: [gpt6-patterns.md](gpt6-patterns.md), [gpt56-patterns.md](gpt56-patterns.md)
+→ 상세: [gpt62-patterns.md](gpt62-patterns.md), [gpt6-patterns.md](gpt6-patterns.md), [gpt56-patterns.md](gpt56-patterns.md)
 
-**자연어 오버라이드**: 전역 설정을 프롬프트에서 컨텍스트별로 재정의 가능
+**자연어 오버라이드**: 전역 설정을 프롬프트에서 컨텍스트별로 재정의 가능. GPT-6.2는 기본 문체가 간결하므로 전역 `verbosity: low`와 간결화 문장을 겹쳐 쓰지 않고, 길이 요구가 따로 있을 때만 적용
 
 ```python
 response = client.responses.create(

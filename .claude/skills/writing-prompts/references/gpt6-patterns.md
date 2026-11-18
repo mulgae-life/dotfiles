@@ -2,6 +2,8 @@
 
 대상 모델: `gpt-6-astra` · `gpt-6.1-sol` · `gpt-6.1-terra` · `gpt-6-sol` · `gpt-6-luna`
 
+> GPT-6.2(2026-11)가 최신입니다. 이 문서는 6·6.1 세대용이며, 6.2 대응 모델이 없는 6.1 Terra·6 Luna에는 계속 현행입니다. 6.2 Astra·6.2 Sol은 [gpt62-patterns.md](./gpt62-patterns.md) 참조.
+
 ## 목차
 - [작성 체크리스트](#작성-체크리스트)
 - [개요 (5.6 → 6 핵심 변화)](#개요-56--6-핵심-변화)
@@ -18,13 +20,13 @@
 - [참고](#참고)
 
 
-GPT-6는 2026-09-03에 Astra 한 모델로 시작했고 2026-09-22에 Sol·Luna가 더해져 3티어가 됐으며, 2026-09-29에는 Sol의 후속 GPT-6.1 Sol이, 2026-10-26에는 5.6 Terra의 후속 GPT-6.1 Terra가 나와 공식 대표 목록은 Astra·6.1 Sol·6.1 Terra·Luna 네 모델이 됐다. 5.6의 Sol·Terra·Luna는 계속 제공된다. 이 문서의 행동 축과 스니펫은 Astra에서 관찰한 성향을 겨냥한 것이고, 공식 문서는 이를 제품군 전체의 출발점으로 제시한다. 모델별 API 계약 차이는 §0에 모았다. 두 Sol은 "6.1 Sol"·"6 Sol"로 구분하고 그냥 "Sol"은 둘 다를 뜻하며, 이전 세대 모델은 "5.6 Sol", "5.6 Terra", "5.6 Luna"로 적는다. 프롬프트 관점의 변화는 파라미터가 아니라 행동에 있고, 공식 가이드가 조정을 권고하는 축은 주도성, 지시 준수, 문체, 서브에이전트 위임, 테스트·검증 다섯 가지다. 5.6에서 통하던 "지시를 줄여라" 기조가 여기서 뒤집힌다. Astra는 긴 지시를 더 잘 따르는 대신 문맥에 더 민감해서, 분량보다 지시 파일 사이의 모순이 문제를 일으킨다.
+GPT-6는 2026-09-03에 Astra 한 모델로 시작했고 2026-09-22에 Sol·Luna가 더해져 3티어가 됐으며, 2026-09-29에는 Sol의 후속 GPT-6.1 Sol이, 2026-10-26에는 5.6 Terra의 후속 GPT-6.1 Terra가 나와 공식 대표 목록은 Astra·6.1 Sol·6.1 Terra·Luna 네 모델이 됐다. 2026-11-17에 GPT-6.2 Astra·6.2 Sol이 나오면서 대표 목록의 Astra·Sol 자리는 6.2로 바뀌었고, 이 문서의 Astra와 6.1 Sol은 이전 세대가 됐다. 5.6의 Sol·Terra·Luna는 계속 제공된다. 이 문서의 행동 축과 스니펫은 Astra에서 관찰한 성향을 겨냥한 것이고, 공식 문서는 이를 제품군 전체의 출발점으로 제시한다. 모델별 API 계약 차이는 §0에 모았다. 두 Sol은 "6.1 Sol"·"6 Sol"로 구분하고 그냥 "Sol"은 둘 다를 뜻하며, 이전 세대 모델은 "5.6 Sol", "5.6 Terra", "5.6 Luna"로 적는다. 프롬프트 관점의 변화는 파라미터가 아니라 행동에 있고, 공식 가이드가 조정을 권고하는 축은 주도성, 지시 준수, 문체, 서브에이전트 위임, 테스트·검증 다섯 가지다. 5.6에서 통하던 "지시를 줄여라" 기조가 여기서 뒤집힌다. Astra는 긴 지시를 더 잘 따르는 대신 문맥에 더 민감해서, 분량보다 지시 파일 사이의 모순이 문제를 일으킨다.
 
 ---
 
 ## 작성 체크리스트
 
-- [ ] **모델 선택**: `gpt-6-astra`(최고 성능)/`gpt-6.1-sol`(Astra에 가까운 성능, 단가는 Astra의 1/5)/`gpt-6.1-terra`(시각 이해·화면 조작·글쓰기, 단가는 6.1 Sol의 절반)/`gpt-6-luna`(반복 대량 작업). `gpt-6-sol`은 폐기 공지 없이 남아 있지만 모델 개요 페이지의 대표 목록에서 빠졌고 API 계약이 6.1 Sol과 다름. 6.1 Terra는 5.6 Terra의 후속이지만 가장 복잡한 코딩에는 6.1 Sol·Astra가 더 맞다고 발표문이 밝힘. Codex 공식 문서는 복잡한 코딩·에이전트 작업에 계정과 클라이언트에서 쓸 수 있으면 6.1 Sol을, 가장 까다로운 작업에는 Astra를 권함
+- [ ] **모델 선택**: 새 통합의 Astra·Sol 자리는 `gpt-6.2-astra`·`gpt-6.2-sol`이 현행이므로 [gpt62-patterns.md](gpt62-patterns.md)를 먼저 본다. 이 문서의 모델은 `gpt-6-astra`(6.2 이전의 최고 성능)/`gpt-6.1-sol`(6 Astra에 가까운 성능, 단가는 6 Astra의 1/5)/`gpt-6.1-terra`(시각 이해·화면 조작·글쓰기, 단가는 6.1 Sol의 절반)/`gpt-6-luna`(반복 대량 작업). `gpt-6-sol`은 폐기 공지 없이 남아 있지만 모델 개요 페이지의 대표 목록에서 빠졌고 API 계약이 6.1 Sol과 다름. 6.1 Terra는 5.6 Terra의 후속이지만 가장 복잡한 코딩에는 Sol·Astra 계열이 더 맞다고 발표문이 밝힘. Codex 공식 문서의 권장 모델은 6.2 Sol·6.2 Astra로 바뀜
 - [ ] 아래 행동 항목(주도성~문체)은 Astra에서 관찰된 성향이 출처 — 공식 문서도 제품군 공통 출발점으로 제시하되 모델·워크로드별 평가를 요구하므로 6.1 Sol·6.1 Terra·Luna는 측정 후 채택
 - [ ] **주도성 명시**: 질문하고 멈추는 성향이 이전 세대보다 강함 → 자율 실행이 필요하면 "bias towards action, carry the task to completion" 계열 지시 추가. "can you…/help me…"는 실행 요청으로 취급하게
 - [ ] **지시 파일 모순 감사**: 긴 지시는 잘 따르지만 문맥 모순에 민감 → AGENTS.md·스킬·시스템 프롬프트 사이의 상충·낡은 문구 제거가 감량보다 우선. 사용자 지시 > 스킬 지시 우선순위 명시
@@ -59,7 +61,7 @@ GPT-6는 2026-09-03에 Astra 한 모델로 시작했고 2026-09-22에 Sol·Luna�
 
 ## 0. GPT-6 제품군 (Sol·Terra·Luna 차이)
 
-Astra가 계속 최상위다("GPT‑6 Astra continues to be our best model across the board."). 6.1 Sol은 6 Sol의 후속이며, 발표문은 Astra에 가까운 성능을 Astra 표준 단가의 1/5로 낸다고 소개한다("nearly matches GPT‑6 Astra's intelligence on agentic coding, computer use, and professional work at one-fifth of Astra's standard input and output token prices"). 6.1 Terra(10/26)는 시각 이해·화면 조작·글쓰기용 고효율 모델이다("a fast, efficient model for visual reasoning, precise computer use, and clear, natural writing"). 공식 가이드가 5.6 Terra에서 옮기는 방법을 안내하므로 5.6 Terra의 후속 자리이고, 발표문은 가장 복잡한 코딩에는 6.1 Sol·Astra가 더 맞다고 적는다. Luna는 범위가 분명한 대량 작업용이다. 6 Sol은 폐기 공지 없이 남아 있지만 API 계약이 6.1 Sol과 다르다.
+6.2가 나오기 전까지 Astra가 최상위였다("GPT‑6 Astra continues to be our best model across the board."). 6.1 Sol은 6 Sol의 후속이며, 발표문은 Astra에 가까운 성능을 Astra 표준 단가의 1/5로 낸다고 소개한다("nearly matches GPT‑6 Astra's intelligence on agentic coding, computer use, and professional work at one-fifth of Astra's standard input and output token prices"). 6.1 Terra(10/26)는 시각 이해·화면 조작·글쓰기용 고효율 모델이다("a fast, efficient model for visual reasoning, precise computer use, and clear, natural writing"). 공식 가이드가 5.6 Terra에서 옮기는 방법을 안내하므로 5.6 Terra의 후속 자리이고, 발표문은 가장 복잡한 코딩에는 6.1 Sol·Astra가 더 맞다고 적는다. Luna는 범위가 분명한 대량 작업용이다. 6 Sol은 폐기 공지 없이 남아 있지만 API 계약이 6.1 Sol과 다르다.
 
 | 항목 | Astra | 6.1 Sol | 6 Sol | Luna | 6.1 Terra |
 |------|-------|---------|-------|------|-----------|
@@ -73,7 +75,7 @@ Astra가 계속 최상위다("GPT‑6 Astra continues to be our best model acros
 - 6.1 Terra는 `none`을 받지만 Chat Completions에서 도구를 부를 수 없다. 6 Sol·Luna의 `none` 예외를 Terra에 적용하면 도구 요청이 깨진다. 5.6 Terra에서 옮길 때의 공식 안내는 "compare both models on representative images and workflows using the same reasoning effort. If your application calls tools through Chat Completions, migrate those requests to the Responses API."이다
 - 긴 입력 할증은 다섯 모델이 같다. 입력 272K를 넘는 요청은 요청 전체가 입력·캐시 2배, 출력 1.5배다
 - effort 값은 §6에 API와 Codex로 나눠 적었다
-- 확인한 공식 문서 범위에서 Sol 전용 프롬프팅 가이드는 6.1 Sol 출시 뒤에도 없다. "Using GPT-6"는 Astra 가이드를 제품군으로 넓혔다. 원문은 "Use the following prompts as a starting point across the GPT-6 model family. They address behavior observed with GPT-6 Astra; evaluate them with your chosen model and workload."이다
+- 확인한 공식 문서 범위에서 Sol 전용 프롬프팅 가이드는 6.1 Sol 출시 뒤에도 없다. "Using GPT-6"는 Astra 가이드를 제품군으로 넓혔다. 이 가이드는 6.2 출시 뒤 고정 주소(`guides/latest-model/gpt-6-astra`)로 옮겨졌고, 버전 없는 주소는 "Using GPT-6.2"를 보여준다. 원문은 "Use the following prompts as a starting point across the GPT-6 model family. They address behavior observed with GPT-6 Astra; evaluate them with your chosen model and workload."이다
 - 같은 페이지에는 기존 가이드에 없던 문장이 두 개 있다. 모델이 스킬과 `AGENTS.md` 같은 파일 속 지시에 민감하므로 그 파일들의 감사를 "strongly recommend"한다는 문장(§2), 모델이 기본적으로 작업을 멈추지 않은 채 질문("non-blocking questions")을 던진다는 문장(§1)이다
 - Codex가 6 Sol에 주입하는 기본 지시문은 Astra 템플릿과 다르다. 연결된 산문·PR 설명·기술 소통 지시가 없고 "minimize cognitive load"가 들어갔으며, "can you..." 실행 해석 문단이 없다. 대신 사용자가 실수를 지적하면 설명보다 수정을 원한다고 가정하는 규칙과, 테스트를 "only to resolve a concrete remaining risk or satisfy a required gate"일 때만 넓히는 규칙이 있다
 - 6.1 Sol의 기본 지시문은 Astra 템플릿과 거의 같고 두 곳이 더해졌다. 하나는 하지 않을 일에 더해 무엇이 아닌지("what something is not")도 덧붙이지 말라는 문구이고, 다른 하나는 불필요한 사과와 자책을 피하라는 문단이다("Avoid unnecessary apologies and self-blame. ... Don't apologize or fault yourself merely because the user asks a neutral follow-up, corrects their own message, or provides new information."). 6 Sol의 사용자 지적 대응 문단은 빠졌다. 차이표는 상세 가이드 §0.5에 있다
@@ -188,7 +190,7 @@ Run tests appropriate to the change and complete required checks. Once those pas
 | 6 Sol | `low`~`max`, `ultra` | 현행 문서에 없음 (9/23 문서는 Medium) | `medium` |
 | Luna | `low`~`max` | High | `medium` |
 
-- 시작 권고 원문은 "For GPT-6.1 Sol, start with the reasoning effort available by default in your client and adjust based on the task. Start with High for Luna or Light for Astra."이다. 6.1 Sol·6.1 Terra의 카탈로그 기본값 `low`는 API 기본값 `medium`과 다르다. API 가이드는 Terra를 "Start with `medium`"으로 안내하지만 Codex 문서에는 Terra의 시작 권고가 없다
+- 시작 권고 원문은 6.2 출시 전 Codex 문서의 "For GPT-6.1 Sol, start with the reasoning effort available by default in your client and adjust based on the task. Start with High for Luna or Light for Astra."이다. 6.2 출시 뒤 문서도 Luna는 High, 6 Astra는 Light로 같다. 6.1 Sol·6.1 Terra의 카탈로그 기본값 `low`는 API 기본값 `medium`과 다르다. API 가이드는 Terra를 "Start with `medium`"으로 안내하지만 Codex 문서에는 Terra의 시작 권고가 없다
 - `none` 지원은 모델마다 다르다. 원문은 "GPT-6 Astra and GPT-6.1 Sol do not support the `none` reasoning effort; GPT-6.1 Terra, GPT-6 Sol, and GPT-6 Luna do."이다. Astra·6.1 Sol로 옮길 때는 낡은 설정에 남은 `reasoning_effort = "none"`을 먼저 제거한다. `minimal`은 다섯 모델 모두 받지 않으며 `low`부터 비교한다
 - 비용 격차가 크다. Simon Willison의 펠리컨 비교에서 Astra max effort 한 장이 63센트, 같은 프롬프트가 5.6 Luna에서는 1.6센트로 약 40배 차이였다 [2차]. Codex의 `ultra`는 제품 표면에만 있고 API 파라미터로는 받지 않는다
 
@@ -232,11 +234,11 @@ Astra 출시 +3일 시점의 관찰이라 표본이 얇다. 설정 기본값의 
 ## 참고
 
 - [GPT-6 Prompting Guide (full)](../../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) — 전체 가이드, 제품군 절(§0), Codex 기본 지시문 차이표, 외부 관찰
-- [Prompting guidance | OpenAI API (공식)](https://developers.openai.com/api/docs/guides/prompt-guidance)
-- [Using GPT-6 | OpenAI API (공식)](https://developers.openai.com/api/docs/guides/latest-model)
+- [Using GPT-6 | OpenAI API (공식, 6·6.1 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra) — 버전 없는 `latest-model`·`prompt-guidance` 주소는 이제 GPT-6.2 문서를 보여준다
 - 모델 카드 (공식): [gpt-6-astra](https://developers.openai.com/api/docs/models/gpt-6-astra) · [gpt-6.1-sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [gpt-6.1-terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra) · [gpt-6-sol](https://developers.openai.com/api/docs/models/gpt-6-sol) · [gpt-6-luna](https://developers.openai.com/api/docs/models/gpt-6-luna)
 - [Opus 5.5·GPT-6.1 Sol 재조사](../../../../reference/research/research-opus55-sol61.md) — 6.1 Sol의 3자 평가와 후기 [2차 포함]
 - [GPT-6.1 Terra 조사](../../../../reference/research/research-gpt61-terra.md) — Terra의 출시 근거·발표 수치·Codex 카탈로그, 같은 기간 GPT-6 제품군 변경
 - [Simon Willison — GPT-6 Astra (2026-09-03)](https://simonwillison.net/2026/Sep/3/gpt6-astra/) [2차]
 - [Artificial Analysis — Benchmarking GPT-6 Astra](https://artificialanalysis.ai/articles/benchmarking-gpt-6-astra) [2차]
+- [GPT-6.2 패턴 (다음 세대)](./gpt62-patterns.md)
 - [GPT-5.6 패턴 (이전 세대)](./gpt56-patterns.md)

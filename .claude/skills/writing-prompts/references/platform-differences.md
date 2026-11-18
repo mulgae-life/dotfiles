@@ -25,7 +25,7 @@ Gemini 열은 3.x 기준입니다. Gemini 4(Argon·Carbon·Hydrogen)는 창이 �
 ```python
 # developer role (최고 우선순위)
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input=[
         {"role": "developer", "content": "반드시 격식체 사용"},
         {"role": "user", "content": "안녕하세요"}
@@ -34,7 +34,7 @@ response = client.responses.create(
 
 # 또는 instructions 파라미터
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     instructions="반드시 격식체 사용",
     input="안녕하세요"
 )
@@ -175,7 +175,7 @@ interaction = client.interactions.create(
 #### OpenAI ⭐
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     reasoning={"effort": "high"},  # 추론 깊이
     text={"verbosity": "low"},     # 응답 길이
     instructions="...",
@@ -184,7 +184,7 @@ response = client.responses.create(
 ```
 
 **파라미터**:
-- `reasoning_effort`: 추론 깊이 — GPT-5.x·GPT-6.1 Terra·GPT-6 Sol·Luna: none/low/medium/high/xhigh/max · GPT-6 Astra·6.1 Sol: low~max(`none` 미지원)
+- `reasoning_effort`: 추론 깊이 — GPT-5.6·GPT-6.1 Terra·GPT-6 Sol·Luna: none/low/medium/high/xhigh/max · GPT-6.2 Astra·6.2 Sol·6 Astra·6.1 Sol: low~max(`none` 미지원)
 - `verbosity`: low/medium/high (응답 길이)
 
 Responses API는 `reasoning.effort`·`text.verbosity`, Chat Completions API는 `reasoning_effort`·`verbosity`를 사용합니다 (위 예제는 Responses API).
@@ -229,7 +229,7 @@ Responses API는 `reasoning.effort`·`text.verbosity`, Chat Completions API는 `
 OpenAI 버전:
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     reasoning={"effort": "high"},
     text={"verbosity": "low"},
     instructions="""

@@ -2,6 +2,7 @@
 // URL 또는 HTML 파일을 여러 뷰포트 폭으로 렌더링해 PNG와 진단 리포트를 남긴다.
 // 사용: node shoot.mjs <url|파일> [--out DIR] [--widths 1440,768,390] [--no-full]
 //       [--selector CSS] [--wait MS] [--dark] [--name PREFIX]
+//       node shoot.mjs --browser-path   (촬영 없이 Chromium 실행 파일 경로만 출력)
 
 import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
@@ -96,7 +97,22 @@ function collectDiagnostics() {
   };
 }
 
+// 같은 Chromium을 외부 도구에 넘길 때 쓴다. 표준 출력에는 실제로 있는 경로 한 줄만 내고, 없으면 실패로 끝낸다.
+function printBrowserPath() {
+  const { chromium } = loadPlaywright();
+  const path = chromium.executablePath();
+  if (!path || !existsSync(path)) {
+    console.error("Chromium 실행 파일이 없습니다. scripts/setup.sh를 먼저 실행하세요.");
+    process.exit(2);
+  }
+  console.log(path);
+}
+
 async function main() {
+  if (process.argv.slice(2).includes("--browser-path")) {
+    printBrowserPath();
+    return;
+  }
   const opts = parseArgs(process.argv.slice(2));
   const { chromium } = loadPlaywright();
   const url = toUrl(opts.target);

@@ -54,7 +54,7 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/chat")
 async def chat(message: str):
     response = openai_client.responses.create(
-        model="gpt-6-astra",
+        model="gpt-6.2-astra",
         input=message
     )
     return {"response": response.output_text}
@@ -112,7 +112,7 @@ logger = logging.getLogger(__name__)
 def call_openai(client: OpenAI, input: str) -> str:
     try:
         response = client.responses.create(
-            model="gpt-6-astra",
+            model="gpt-6.2-astra",
             input=input
         )
         return response.output_text
@@ -208,7 +208,7 @@ def retry_with_backoff(max_retries: int = 3, base_delay: float = 1.0):
 
 @retry_with_backoff(max_retries=3)
 def call_llm(client, input):
-    return client.responses.create(model="gpt-6-astra", input=input)
+    return client.responses.create(model="gpt-6.2-astra", input=input)
 ```
 
 ### tenacity 라이브러리 사용
@@ -227,7 +227,7 @@ from tenacity import (
     retry=retry_if_exception_type(RateLimitError)
 )
 def call_llm(client, input):
-    return client.responses.create(model="gpt-6-astra", input=input)
+    return client.responses.create(model="gpt-6.2-astra", input=input)
 ```
 
 ---
@@ -247,7 +247,7 @@ client = AsyncOpenAI()
 
 async def generate_stream(message: str):
     stream = await client.responses.create(
-        model="gpt-6-astra",
+        model="gpt-6.2-astra",
         input=message,
         stream=True
     )
@@ -299,7 +299,7 @@ async def generate_stream(message: str):
 async def generate_stream_safe(message: str):
     try:
         stream = await client.responses.create(
-            model="gpt-6-astra",
+            model="gpt-6.2-astra",
             input=message,
             stream=True
         )
@@ -335,7 +335,7 @@ class ExtractedData(BaseModel):
 
 def extract_structured_data(client: OpenAI, text: str) -> ExtractedData:
     response = client.responses.create(
-        model="gpt-6-astra",
+        model="gpt-6.2-astra",
         instructions="Extract structured data as JSON. Return only valid JSON.",
         input=f"Extract name, age, email from: {text}"
     )
@@ -383,7 +383,7 @@ async_openai = AsyncOpenAI()
 
 async def call_openai_async(message: str) -> str:
     response = await async_openai.responses.create(
-        model="gpt-6-astra",
+        model="gpt-6.2-astra",
         input=message
     )
     return response.output_text
@@ -455,7 +455,7 @@ from anthropic import Timeout
 
 # OpenAI
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input="...",
     timeout=httpx.Timeout(30.0, connect=5.0)  # 연결 5초, 전체 30초
 )
@@ -479,7 +479,7 @@ from pydantic_settings import BaseSettings
 class LLMSettings(BaseSettings):
     openai_api_key: str
     anthropic_api_key: str | None = None
-    default_model: str = "gpt-6-astra"
+    default_model: str = "gpt-6.2-astra"
     timeout: float = 60.0
     max_retries: int = 3
 
@@ -545,7 +545,7 @@ response = client.messages.create(
 # OpenAI는 자동 캐싱 — 별도 설정 불필요
 # 동일한 prefix를 반복 사용하면 자동으로 캐시 적용
 response = client.responses.create(
-    model="gpt-6.1-sol",
+    model="gpt-6.2-sol",
     instructions="...(긴 시스템 프롬프트, 자동 캐시)",
     input="질문"
 )
@@ -554,8 +554,9 @@ response = client.responses.create(
 print(response.usage.input_tokens_details.cached_tokens)
 ```
 
-- Cached input: 기본 입력의 **0.1배** 가격 (5.6·GPT-6 대부분 모델 — 캐시/기본 입력 단가는 Astra $1/$10, 6 Sol $0.20/$2, Luna $0.01/$0.10 per MTok). **GPT-6.1 Sol·6.1 Terra는 0.05배 = $0.10/$2, $0.05/$1**
-- Batch + Caching 조합: 최대 75% 비용 절감
+- Cached input: 기본 입력의 **0.1배** 가격 (5.6·GPT-6 대부분 모델 — 캐시/기본 입력 단가는 6 Astra $1/$10, 6 Sol $0.20/$2, Luna $0.01/$0.10 per MTok). **GPT-6.2 Astra·6.2 Sol·6.1 Sol·6.1 Terra는 0.05배 = $0.40/$8, $0.10/$2, $0.10/$2, $0.05/$1**
+- Batch와 캐시 할인은 겹쳐 적용된다 (가격표의 Batch 캐시 입력 단가가 Standard 캐시 입력의 절반). 절감률은 캐시 읽기·쓰기·출력 비중에 따라 달라지므로 가격표로 계산
+- GPT-6.2부터 대화 중간에 앞선 입력이나 `instructions`·`tools`를 고치면 바뀐 자리 뒤로는 캐시를 다시 쓰지 못하고, 그 뒤의 추론 항목도 입력에서 빠진다 → 바꿀 내용은 고치지 말고 덧붙인다 ([openai-responses-api.md](openai-responses-api.md#추론-항목-제외와-접두사-유지))
 - GPT-5.6 신규: `prompt_cache_options={"mode": "explicit", "ttl": ...}`로 명시 캐싱 가능 (기존 `prompt_cache_retention` 대체) — 단 **캐시 쓰기 총단가는 비캐시 입력의 1.25배(기본 `"30m"`) 또는 2.5배(`"12h"`)**이므로, 반복 읽기로 쓰기 비용을 회수하는지 확인
 
 ### 비용 비교
@@ -563,7 +564,7 @@ print(response.usage.input_tokens_details.cached_tokens)
 | 제공자 | 캐싱 방식 | 캐시 할인 | 레이턴시 절감 |
 |--------|----------|----------|-------------|
 | Anthropic | 수동 (`cache_control`) | 90% (Fable 5.2·5.1은 97.5%, Opus 5.5·Sonnet 5.5는 95%) | 85% |
-| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x·GPT-6 대부분, 캐시 read 0.1배; GPT-6.1 Sol·6.1 Terra는 95%; GPT-6은 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율) | 상당 |
+| OpenAI | 자동 (5.6부터 명시 옵션 추가) | 90% (GPT-5.x·GPT-6 대부분, 캐시 read 0.1배; GPT-6.2 Astra·6.2 Sol·6.1 Sol·6.1 Terra는 95%; GPT-6·6.2는 입력 272K 초과 시 요청 전체에 입력·캐시 2배, 출력 1.5배 요율) | 상당 |
 | Google | 토큰 저장 기간 기반 | 상당 | 상당 |
 
 **실제 사례**: PDF 50문서 반복 분석 — 쿼리당 $3 → 캐싱 적용 후 $0.15 (95% 절감)
@@ -591,7 +592,7 @@ class WeatherResponse(BaseModel):
     description: str
 
 response = client.responses.parse(
-    model="gpt-6.1-sol",
+    model="gpt-6.2-sol",
     input="서울 날씨 알려줘",
     text_format=WeatherResponse
 )

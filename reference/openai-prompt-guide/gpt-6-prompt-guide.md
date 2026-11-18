@@ -1,8 +1,9 @@
 # GPT-6 Prompting Guide (Astra·Sol·Terra·Luna)
 
+> GPT-6.2(2026-11) 가이드가 최신입니다: [gpt-6.2-prompt-guide.md](./gpt-6.2-prompt-guide.md). 이 문서는 6·6.1 세대용이며, 6.2 대응 모델이 없는 6.1 Terra·6 Luna에는 계속 현행입니다. 본문의 Codex 카탈로그·기본 모델 서술은 각 검증일 기준입니다.
+
 > **출처**:
-> - [Prompting guidance | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance)
-> - [Using GPT-6 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model)
+> - [Using GPT-6 | OpenAI API (6·6.1 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra) — 버전 없는 `guides/latest-model`·`guides/prompt-guidance` 주소는 6.2 출시 뒤 GPT-6.2 문서를 보여줍니다
 > - 모델 카드: [gpt-6-astra](https://developers.openai.com/api/docs/models/gpt-6-astra) · [gpt-6.1-sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [gpt-6.1-terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra) · [gpt-6-sol](https://developers.openai.com/api/docs/models/gpt-6-sol) · [gpt-6-luna](https://developers.openai.com/api/docs/models/gpt-6-luna)
 > - [Reasoning models | OpenAI API](https://developers.openai.com/api/docs/guides/reasoning) · [Pricing | OpenAI API](https://developers.openai.com/api/docs/pricing)
 > - [Introducing GPT-6 Sol and Luna | OpenAI](https://openai.com/index/introducing-gpt-6-sol-and-luna/) · [Introducing GPT-6.1 Sol | OpenAI](https://openai.com/index/introducing-gpt-6-1-sol/) · [Introducing GPT-6.1 Terra | OpenAI](https://openai.com/index/introducing-gpt-6-1-terra/)
@@ -18,7 +19,7 @@
 
 ## ⚠️ 가장 먼저 알아야 할 것 (5.6 → 6)
 
-GPT-6는 2026-09-03에 Astra 한 모델로 시작했고, 2026-09-22에 Sol과 Luna가 더해져 Astra·Sol·Luna 3티어가 됐습니다. 2026-09-29에는 Sol의 후속인 GPT-6.1 Sol이 나와 공식 문서와 Codex의 권장 Sol 자리를 넘겨받았습니다. 2026-10-26에는 5.6 Terra의 후속인 GPT-6.1 Terra가 나와 공식 대표 목록이 Astra·6.1 Sol·6.1 Terra·Luna 네 모델이 됐습니다. 5.6의 Sol·Terra·Luna는 조사 시점(11/2)에도 API 가격표에 남아 있습니다. 이 문서의 행동 축과 마이그레이션 내용은 Astra 출시 때의 공식 가이드를 기준으로 썼고, 모델별로 달라지는 API 계약과 Codex 기본 지시문은 §0에 모았습니다. 이름이 겹치므로 이 문서에서 이전 세대 모델은 항상 "5.6 Sol", "5.6 Terra", "5.6 Luna"로 적습니다. GPT-6 안에서는 `gpt-6.1-sol`을 "6.1 Sol", `gpt-6-sol`을 "6 Sol", `gpt-6.1-terra`를 "6.1 Terra"로 구분하고, "Sol"만 쓰면 두 Sol 모델에 공통인 내용입니다.
+GPT-6는 2026-09-03에 Astra 한 모델로 시작했고, 2026-09-22에 Sol과 Luna가 더해져 Astra·Sol·Luna 3티어가 됐습니다. 2026-09-29에는 Sol의 후속인 GPT-6.1 Sol이 나와 공식 문서와 Codex의 권장 Sol 자리를 넘겨받았습니다. 2026-10-26에는 5.6 Terra의 후속인 GPT-6.1 Terra가 나와 공식 대표 목록이 Astra·6.1 Sol·6.1 Terra·Luna 네 모델이 됐습니다. 5.6의 Sol·Terra·Luna는 조사 시점(11/2)에도 API 가격표에 남아 있습니다. 2026-11-17에는 GPT-6.2 Astra·6.2 Sol이 나와 대표 목록의 Astra·Sol 자리와 Codex 카탈로그의 앞 순위를 넘겨받았고, 이 문서의 Astra와 6.1 Sol은 이전 세대가 됐습니다. 이 문서의 행동 축과 마이그레이션 내용은 Astra 출시 때의 공식 가이드를 기준으로 썼고, 모델별로 달라지는 API 계약과 Codex 기본 지시문은 §0에 모았습니다. 이름이 겹치므로 이 문서에서 이전 세대 모델은 항상 "5.6 Sol", "5.6 Terra", "5.6 Luna"로 적습니다. GPT-6 안에서는 `gpt-6.1-sol`을 "6.1 Sol", `gpt-6-sol`을 "6 Sol", `gpt-6.1-terra`를 "6.1 Terra"로 구분하고, "Sol"만 쓰면 두 Sol 모델에 공통인 내용입니다.
 
 프롬프트 관점에서 이번 세대의 변화는 파라미터가 아니라 행동에 있습니다. Astra는 질문을 더 자주 던지고 그 자리에서 멈추며, 완료를 선언하기 전에 스스로 과하게 테스트하고, 기대보다 서브에이전트를 덜 씁니다. 세 가지 모두 OpenAI가 공식 문서에서 직접 인정한 성향이고, 대응 방법으로 프롬프트 스니펫을 제시합니다.
 
@@ -100,7 +101,7 @@ GPT-6는 2026-09-03에 Astra 한 모델로 시작했고, 2026-09-22에 Sol과 Lu
 
 ### 0.3 프롬프트 지침
 
-확인한 공식 문서 범위(API 문서 색인, 블로그 색인, 쿡북 색인)에서 Sol 전용 프롬프팅 가이드는 없습니다. `guides/latest-model/gpt-6-sol` 경로는 9/23 조사 시점에 404였고, 6.1 Sol 출시 뒤(10/1)에도 전용 가이드는 없습니다. 6.1 Terra 출시 뒤(11/2)에는 Using GPT-6에 Terra 절이 생겼지만, 그 절은 용도·effort·5.6 Terra 이전 절차만 다루고 Terra 전용 프롬프팅 지침은 없습니다. `guides/prompt-guidance`는 Using GPT-6와 같은 페이지입니다. [Using GPT-6](https://developers.openai.com/api/docs/guides/latest-model)는 Astra 가이드를 제품군 전체로 넓혔고, 프롬프팅 절의 도입 문장은 아래와 같습니다.
+확인한 공식 문서 범위(API 문서 색인, 블로그 색인, 쿡북 색인)에서 Sol 전용 프롬프팅 가이드는 없습니다. `guides/latest-model/gpt-6-sol` 경로는 9/23 조사 시점에 404였고, 6.1 Sol 출시 뒤(10/1)에도 전용 가이드는 없습니다. 6.1 Terra 출시 뒤(11/2)에는 Using GPT-6에 Terra 절이 생겼지만, 그 절은 용도·effort·5.6 Terra 이전 절차만 다루고 Terra 전용 프롬프팅 지침은 없습니다. 11/2 조사 시점에 `guides/prompt-guidance`는 Using GPT-6와 같은 페이지였습니다. [Using GPT-6](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra)는 Astra 가이드를 제품군 전체로 넓혔고, 프롬프팅 절의 도입 문장은 아래와 같습니다.
 
 > "Use the following prompts as a starting point across the GPT-6 model family. They address behavior observed with GPT-6 Astra; evaluate them with your chosen model and workload."
 
@@ -117,8 +118,8 @@ GPT-6는 2026-09-03에 Astra 한 모델로 시작했고, 2026-09-22에 Sol과 Lu
 ### 0.4 Codex에서의 Sol·Terra·Luna
 
 - **버전**: 6 Sol·Luna의 안정판 선택기 등재는 Codex CLI 0.156.1(2026-09-23 핫픽스)부터이고, 6.1 Sol은 0.159.1(2026-09-29)부터입니다. 릴리스 노트는 "Added GPT-6.1 Sol as the default model in the bundled catalog and Amazon Bedrock Mantle and Runtime catalogs."입니다. 6.1 Terra는 공식 문서상 "GPT-6.1 Terra requires Codex CLI 0.159.0 or later."이고, 번들 카탈로그에는 0.165.0(10/27)과 0.166.0(10/29)에서 들어갔습니다. 0.166.0 이전 클라이언트도 서버 카탈로그로 Terra를 받으므로 번들 등재일을 사용 가능일로 읽지 않습니다
-- **기본 모델의 층위**: 0.159.1부터 카탈로그 우선순위는 6.1 Sol 1, Astra 2, 6 Sol 3, Luna 4입니다(0.156.1은 Astra 1, 6 Sol 2, Luna 3). 11/2에 읽은 서버 카탈로그 캐시에서는 6.1 Sol 1, Astra 2, 6.1 Terra 3, 6 Sol 4, Luna 5이고, 0.166.0 번들 카탈로그에서는 Terra가 7입니다. 공식 서브에이전트 문서도 "For most tasks in Codex, start with gpt-6.1-sol when your signed-in account or workspace has access."라고 권하므로, 9/23에 적은 "CLI 기본은 Astra, 공식 권고는 Sol"이라는 불일치는 사라졌습니다. 다만 우선순위 1은 카탈로그 기본값일 뿐입니다. 명시 선택, `/model`로 저장한 런타임 설정, 계정·워크스페이스·클라이언트의 가용성(엔터프라이즈·에듀는 관리자가 켜기 전까지 꺼져 있음)이 실제 선택을 바꾸므로 "0.159.1 이상이면 항상 6.1 Sol로 돈다"고 쓰지 않습니다
-- **Sol 사용처**: Codex 모델 문서는 "For complex coding and agentic workflows, use GPT-6.1 Sol when available to your account and client."라고 적고, 6.1 Sol을 비용이 중요한 반복·장기 작업에("GPT-6.1 Sol, for repeated, long-running work."), Astra를 가장 까다로운 작업에 둡니다. 6.1 Terra는 "GPT-6.1 Terra, for everyday writing and visual work."에, Luna는 "specific, high-volume tasks when you know what a good result looks like"에 둡니다
+- **기본 모델의 층위**: 0.159.1부터 카탈로그 우선순위는 6.1 Sol 1, Astra 2, 6 Sol 3, Luna 4입니다(0.156.1은 Astra 1, 6 Sol 2, Luna 3). 11/2에 읽은 서버 카탈로그 캐시에서는 6.1 Sol 1, Astra 2, 6.1 Terra 3, 6 Sol 4, Luna 5이고, 0.166.0 번들 카탈로그에서는 Terra가 7입니다. 6.2 출시 전의 공식 서브에이전트 문서도 "For most tasks in Codex, start with gpt-6.1-sol when your signed-in account or workspace has access."라고 권했으므로, 9/23에 적은 "CLI 기본은 Astra, 공식 권고는 Sol"이라는 불일치는 그때 사라졌습니다. 다만 우선순위 1은 카탈로그 기본값일 뿐입니다. 명시 선택, `/model`로 저장한 런타임 설정, 계정·워크스페이스·클라이언트의 가용성(엔터프라이즈·에듀는 관리자가 켜기 전까지 꺼져 있음)이 실제 선택을 바꾸므로 "0.159.1 이상이면 항상 6.1 Sol로 돈다"고 쓰지 않습니다
+- **Sol 사용처**: 6.2 출시 전의 Codex 모델 문서는 "For complex coding and agentic workflows, use GPT-6.1 Sol when available to your account and client."라고 적고, 6.1 Sol을 비용이 중요한 반복·장기 작업에("GPT-6.1 Sol, for repeated, long-running work."), Astra를 가장 까다로운 작업에 두었습니다. 6.2 출시 뒤의 권고는 [6.2 가이드](./gpt-6.2-prompt-guide.md)에 있습니다. 6.1 Terra는 "GPT-6.1 Terra, for everyday writing and visual work."에, Luna는 "specific, high-volume tasks when you know what a good result looks like"에 둡니다
 - **effort**: 모델별 선택기 값과 시작 권고는 §1의 Codex 표에 있습니다
 - **크레딧**(Standard 속도, 1M당 입력 / 캐시 입력 / 출력): Astra 250 / 25 / 1,250, 6.1 Sol 50 / 2.5 / 250, 6.1 Terra 25 / 1.25 / 125, 6 Sol 50 / 5 / 250, Luna 2.5 / 0.25 / 12.5입니다. Codex 크레딧에는 캐시 쓰기 요금이 따로 없습니다. Fast 모드는 포함된 구독 사용량에서 2.5배, 구매 크레딧과 엔터프라이즈 종량제에서 2배입니다. Astra와 6.1 Sol의 Ultrafast는 둘 다 포함된 구독 사용량에서 8배, 구매 크레딧과 엔터프라이즈 종량제에서 6배이고 Pro $500과 일부 엔터프라이즈·에듀 플랜에서만 씁니다
 - **컨텍스트 창**: 11/2에 읽은 서버 카탈로그 캐시에서 기본 창은 Astra·6 Sol·Luna 272K, 6.1 Sol·6.1 Terra 500K이고, 최대 창은 모두 872K입니다. 6.1 Sol의 500K는 공식 문서에도 있지만("GPT-6.1 Sol uses a default context window of 500K tokens in Codex and ChatGPT Work."), 0.166.0 번들 카탈로그에는 272K가 남아 있습니다. 6.1 Terra의 500K를 설명하는 공식 문장은 찾지 못했습니다(§6)
@@ -128,7 +129,7 @@ GPT-6는 2026-09-03에 Astra 한 모델로 시작했고, 2026-09-22에 Sol과 Lu
 
 가장 구체적인 Sol 지침은 Codex가 모델 카탈로그의 `instructions_template`으로 주입하는 기본 지시문입니다. 9/23 카탈로그에서 세 모델의 `model_messages`는 이 템플릿만 다르고, 다중 에이전트 역할·승인·토큰 예산 문구는 같았습니다. 10/1 카탈로그(0.159.3)에서도 6.1 Sol을 포함한 네 모델이 이 템플릿만 다릅니다. 11/2 서버 카탈로그 캐시에서 6.1 Terra의 `model_messages`는 템플릿까지 포함해 Astra와 글자 단위로 같으므로, 아래 표의 Astra 열은 6.1 Terra에도 해당합니다. 같은 지시문을 받는다는 뜻일 뿐 행동이 같다는 뜻은 아니므로, Astra에서 나온 행동 축은 Terra에서도 측정한 뒤 채택합니다.
 
-아래 표는 6 Sol 템플릿과의 차이입니다. 현재 Codex 기본 모델인 6.1 Sol의 템플릿은 Astra와 거의 같고, 두 곳이 더해졌습니다. 하나는 부정적 대비 표현에 관한 지침으로, "Avoid adding what you won't do" 뒤에 "or what something is not"이 붙었습니다. 다른 하나는 불필요한 사과·자책에 관한 새 문단입니다.
+아래 표는 6 Sol 템플릿과의 차이입니다. 6.2 출시 전까지 Codex 카탈로그 기본 모델이던 6.1 Sol의 템플릿은 Astra와 거의 같고, 두 곳이 더해졌습니다. 하나는 부정적 대비 표현에 관한 지침으로, "Avoid adding what you won't do" 뒤에 "or what something is not"이 붙었습니다. 다른 하나는 불필요한 사과·자책에 관한 새 문단입니다.
 
 > "Avoid unnecessary apologies and self-blame. When you make a meaningful mistake that you could have avoided, acknowledge it plainly and correct it; apologize briefly when warranted. Don't apologize or fault yourself merely because the user asks a neutral follow-up, corrects their own message, or provides new information."
 
@@ -193,7 +194,7 @@ Codex 선택기에는 `none`이 없습니다. API에서 6.1 Terra·6 Sol·Luna�
 
 **상태: API와 제품 선택기의 구분.** API 모델 문서(Astra·6.1 Sol·6.1 Terra·6 Sol·Luna)와 마이그레이션 가이드는 `max`까지만 열거하고 ultra를 언급하지 않는 반면, learn.chatgpt.com 모델 문서와 로컬 Codex 캐시는 정식 단계로 싣습니다. 위 변환 코드대로라면 `ultra`는 Codex가 `xhigh`나 `max`로 바꿔 보내는 제품 선택기의 값이므로, 두 목록의 차이는 충돌이 아니라 인터페이스의 차이입니다. 실제 요청을 캡처해 확인하지는 않았습니다.
 
-**dotfiles 적용**: 레포 `.codex/config.toml`은 v2.29부터 `model`과 `model_reasoning_effort`를 비워 두고 Codex 기본값을 따릅니다(6행 주석). 0.159.1부터 그 기본값은 계정에서 쓸 수 있다면 6.1 Sol과 카탈로그 기본 effort `low`입니다. `/model`·`/effort`로 런타임 `~/.codex/config.toml`에 저장한 값은 레포 설정과 다를 수 있고, 재설치하면 레포 버전으로 돌아갑니다. `ultra`는 설정 파일에 고정하지 않고 필요할 때 세션에서 선택합니다.
+**dotfiles 적용**: 레포 `.codex/config.toml`은 v2.29부터 `model`과 `model_reasoning_effort`를 비워 두고 Codex 기본값을 따릅니다(6행 주석). 0.159.1부터 그 기본값은 계정에서 쓸 수 있다면 6.1 Sol과 카탈로그 기본 effort `low`였고, 6.2 출시 뒤에는 6.2 Sol과 `low`입니다([GPT-6.2 가이드 §4](./gpt-6.2-prompt-guide.md)). `/model`·`/effort`로 런타임 `~/.codex/config.toml`에 저장한 값은 레포 설정과 다를 수 있고, 재설치하면 레포 버전으로 돌아갑니다. `ultra`는 설정 파일에 고정하지 않고 필요할 때 세션에서 선택합니다.
 
 이 저장소는 모델·추론 수준은 고정하지 않지만, 컨텍스트 창은 800,000, 자동 압축 기준은 400,000으로 지정합니다. 이 설정이 별도 재정의 없이 적용되고 카탈로그 최대 창이 872,000·유효 비율이 95%인 GPT-6 모델에서는, Codex 0.166.0 소스 기준으로 명목 창 800,000, 사용 가능 창 760,000, 자동 압축 기준 400,000이 됩니다. 이는 설정과 소스에서 계산한 값이며 현재 세션의 실효 설정을 측정한 결과는 아닙니다. 6.1 Sol 이외 모델의 구독 사용분에 긴 입력 할증이 붙는지는 이번 조사에서 확인하지 못했고, API 키 사용의 입력 272K 초과 할증(§0.1)과는 별개입니다.
 
@@ -358,8 +359,8 @@ Structured Outputs, Programmatic Tool Calling, `reasoning.mode: "pro"`, `reasoni
 
 - **최소 버전**: Codex CLI **0.153.0** 이상이며 후속 수정 반영 기준으로는 0.153.4를 권장합니다
 - **기본 모델**: 0.153.4 릴리스 노트는 "Fixed Astra's visibility in the bundled model picker and made it the bundled default when no model is explicitly configured."라고 적습니다. 0.153.4~0.156.1에서는 `model`을 비워 둔 설정에서 Astra가 선택됐습니다
-  - **문서 간 불일치**: learn.chatgpt.com 모델 문서는 ChatGPT 계정으로 로그인한 Codex 사용자에게는 기본이 아니라고 안내합니다. 그러나 ChatGPT 로그인 계정에서 `model` 키 없이 0.153.4 TUI를 새로 띄운 세션이 `gpt-6-astra`로 돌았으므로(2026-09-06 실측) 실제로는 로그인 방식과 무관하게 Astra가 기본입니다. 엔터프라이즈는 관리 콘솔에서 별도 활성화가 필요합니다
-  - **Sol 출시 뒤**: 0.156.1까지는 `model`을 비우면 카탈로그 우선순위 1인 Astra가 잡혔습니다. 0.159.1부터는 6.1 Sol이 우선순위 1이라, 계정에서 쓸 수 있으면 6.1 Sol이 카탈로그 기본값이 되고 공식 권고와도 맞습니다(§0.4)
+  - **문서 간 불일치**: learn.chatgpt.com 모델 문서는 ChatGPT 계정으로 로그인한 Codex 사용자에게는 기본이 아니라고 안내합니다. 그러나 ChatGPT 로그인 계정에서 `model` 키 없이 0.153.4 TUI를 새로 띄운 세션이 `gpt-6-astra`로 돌았으므로(2026-09-06 실측), 그 계정과 버전에서는 안내와 달리 Astra가 기본이었습니다. 엔터프라이즈는 관리 콘솔에서 별도 활성화가 필요합니다
+  - **Sol 출시 뒤**: 0.156.1까지는 `model`을 비우면 카탈로그 우선순위 1인 Astra가 잡혔습니다. 0.159.1부터는 6.1 Sol이 우선순위 1이라, 계정에서 쓸 수 있으면 6.1 Sol이 카탈로그 기본값이 되고 공식 권고와도 맞습니다(§0.4). 6.2 출시 뒤에는 6.2 Sol이 우선순위 1입니다
 - **컨텍스트 창**: 로컬 모델 캐시는 `context_window: 272000`, `max_context_window: 872000`, 유효 95%로 API 문서의 1,050,000과 다릅니다. 11/2 서버 카탈로그 캐시에서도 Astra는 272K이고, 6.1 Sol·6.1 Terra는 500K입니다(§0.4). 기본 창은 설정으로 재정의할 수 있고, 레포 설정이 적용될 때의 계산값은 §1의 dotfiles 적용에 있습니다
 - **크레딧**: 입력 1M당 250, 출력 1M당 1,250으로 5.6 Sol(100/500) 대비 **2.5배**, 6.1 Sol·6 Sol(50/250)의 5배, 6.1 Terra(25/125)의 10배입니다
 - **ultra 실측**: `codex debug prompt-input`으로 추론 강도만 바꿔 렌더링을 비교하면 주입되는 `<multi_agent_mode>` 문구가 달라집니다. 0.156.1의 6 Sol과 0.159.3의 6.1 Sol도 글자 단위로 같은 문구를 받고, Luna는 `ultra`가 없습니다
@@ -465,8 +466,7 @@ response = client.responses.create(
 
 ## Sources
 
-- [Prompting guidance | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance) — 행동 축 5개, 권고 스니펫 원문
-- [Using GPT-6 | OpenAI API](https://developers.openai.com/api/docs/guides/latest-model) — What's new, 제품군 소개, 마이그레이션, effort 제약, 제품군 공통 프롬프트 출발점
+- [Using GPT-6 | OpenAI API (6·6.1 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra) — 행동 축 5개와 권고 스니펫 원문, What's new, 제품군 소개, 마이그레이션, effort 제약, 제품군 공통 프롬프트 출발점
 - 모델 카드 [gpt-6-astra](https://developers.openai.com/api/docs/models/gpt-6-astra) · [gpt-6.1-sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [gpt-6.1-terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra) · [gpt-6-sol](https://developers.openai.com/api/docs/models/gpt-6-sol) · [gpt-6-luna](https://developers.openai.com/api/docs/models/gpt-6-luna) — 스펙·가격·지원 도구·effort 값
 - [Reasoning models | OpenAI API](https://developers.openai.com/api/docs/guides/reasoning) — `none` 400, 제품군 기본 effort, `configuration_update` 제약, `all_turns` 지원 · [Pricing](https://developers.openai.com/api/docs/pricing) — 긴 입력 요율, Ultrafast · [API changelog](https://developers.openai.com/api/docs/changelog) · [Deprecations](https://developers.openai.com/api/docs/deprecations)
 - [Introducing GPT-6 Sol and Luna | OpenAI](https://openai.com/index/introducing-gpt-6-sol-and-luna/) — 티어 포지셔닝 · [Introducing GPT-6.1 Sol | OpenAI](https://openai.com/index/introducing-gpt-6-1-sol/) — 6.1 Sol 포지셔닝 · [Introducing GPT-6.1 Terra | OpenAI](https://openai.com/index/introducing-gpt-6-1-terra/) — 6.1 Terra 포지셔닝 · [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching#cache-lifetime) — 30분·12시간 캐시 쓰기 단가

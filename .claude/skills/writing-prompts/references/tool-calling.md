@@ -2,7 +2,11 @@
 
 Agentic 작업에서 Tool calling을 최적화하는 가이드.
 
-> **범위**: 아래 패턴의 출처는 OpenAI 공식 프롬프팅 가이드입니다. Claude 5 세대에는 절차 열거(`<workflow>` 1~N단계)와 사고 과정 서술 지시를 적용하지 마세요. 전자는 품질 저하 요인이고 후자는 `reasoning_extraction` refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md).
+> **범위**: 아래 패턴의 출처는 GPT-5·GPT-4.1 프롬프팅 가이드입니다.
+>
+> - **GPT 추론 모델(5.6·6·6.2)**: `<planning>`의 사고 과정 서술 지시, `<workflow>` 절차 열거, 일괄 `high`를 그대로 옮기지 않습니다. 결과·성공 기준·중단 조건을 적고 대상 모델 문서의 완주·테스트·effort 절을 따릅니다 → [gpt62-patterns.md](gpt62-patterns.md), [gpt6-patterns.md](gpt6-patterns.md), [gpt56-patterns.md](gpt56-patterns.md).
+>   - **GPT-6.2**: "확인을 요청하지 마세요" 대신 멈춰도 되는 경우만 남긴 완주 문장을 씁니다. 새 테스트는 요청이나 저장소 규칙, 특정 회귀가 있을 때만 더합니다 → [gpt62-patterns.md](gpt62-patterns.md) §2·§3.
+> - **Claude 5 세대**: 절차 열거(`<workflow>` 1~N단계)와 사고 과정 서술 지시를 적용하지 않습니다. 전자는 품질 저하 요인이고 후자는 `reasoning_extraction` refusal을 유발합니다 → [claude-5-specifics.md](claude-5-specifics.md).
 
 ## 핵심 패턴
 
@@ -206,14 +210,14 @@ system_prompt: |
 
 ## 체크리스트
 
-Agentic 작업 프롬프트 작성 시:
+Agentic 작업 프롬프트 작성 시 (GPT-5·GPT-4.1 기준. 이후 세대는 맨 위 범위를 먼저 적용):
 
 - [ ] Persistence 지침 추가
 - [ ] Tool Preambles 지침 추가
 - [ ] Tool 사용 예시 제공
 - [ ] Workflow 단계 명시
 - [ ] Eagerness 수준 결정 (Less/More)
-- [ ] reasoning_effort=high 설정
+- [ ] reasoning effort는 대상 모델 문서의 시작점에서 출발 (GPT-6.2 새 통합은 `medium`)
 - [ ] Planning 지침 추가
 
 ## 출처

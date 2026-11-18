@@ -224,6 +224,8 @@ Context를 마지막에 배치하여 캐싱 효율 향상.
 
 ### 패턴: 전역 low, 코드만 high
 
+GPT-6.2는 기본 문체가 간결하므로 전역 `low`와 간결화 문장을 겹쳐 쓰지 않습니다. 길이 요구가 따로 있을 때만 적용합니다 → [gpt62-patterns.md](gpt62-patterns.md) §1.
+
 ```python
 response = client.responses.create(
     model="gpt-6-astra",

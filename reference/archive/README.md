@@ -12,7 +12,7 @@
 | Claude Sonnet | 5.5 · 5 · 4.6 |
 | Claude Fable | 5.2 · 5.1 · 5 |
 | Claude Haiku | 5.5 · 4.5 |
-| GPT | 6 (Astra·6.1 Sol·6.1 Terra·6 Sol·Luna) · 5.6 · 5.5 |
+| GPT | 6.2 (Astra·Sol) · 6 (Astra·6.1 Sol·6.1 Terra·6 Sol·Luna, 6.2 대응 모델이 없는 6.1 Terra·6 Luna는 이 세대 문서가 현행) · 5.6 |
 | Gemini | 4 (Argon·Carbon, 같은 계열의 형제 모델), Flash 계열은 4 Hydrogen(3.8 Flash의 권장 업그레이드라 Flash의 최신 세대로 센다) · 3.8 · 3.7 (Cloud 제공, Gemini API는 3.8로 자동 연결), Flash-Lite 3.5 · 3.1, Pro 3.1 Preview |
 | Gemma | 4 (최신 세대만) |
 | Qwen | 3.8 (최신 세대만. 3.7은 API 전용이라 오픈웨이트 계보는 3.6 → 3.8) |
@@ -25,12 +25,12 @@
 
 | 폴더 | 내용 |
 |------|------|
-| `openai-prompt-guide/` | GPT-4.1·5·5.1·5.2·5.4 프롬프팅 가이드, GPT-5 Prompt Optimizer, gpt-4o·o1·o3·GPT-5.2 시절 플랫폼 문서 스냅샷 7종 |
+| `openai-prompt-guide/` | GPT-4.1·5·5.1·5.2·5.4·5.5 프롬프팅 가이드, GPT-5 Prompt Optimizer, gpt-4o·o1·o3·GPT-5.2 시절 플랫폼 문서 스냅샷 7종 |
 | `openai-api-guide/` | Reasoning models(GPT-5 초기), Using GPT-5.2, Using GPT-5.4 |
 | `claude-prompt-guide/` | Claude 4.x Best Practices(영문·한국어, Sonnet 4.5·Opus 4.5 시절), 응답 Prefilling(Claude 4.6 이후 모델에서 400) |
 | `google-prompt-guide/` | Gemini 3.6 Flash의 계약과 메모 (3.x 통합 가이드와 `writing-prompts` 3.x 요약에서 분리) |
 | `qwen-prompt-guide/` | Qwen 3.6 프롬프팅 풀 가이드 (§14.3의 tool call JSON 예시는 부정확 — 실제 template은 3.5부터 XML 스타일) |
-| `skills/writing-prompts/` | `writing-prompts` 스킬에서 분리한 GPT-5.4 패턴, GPT-5 파라미터, Prefilling, Qwen 3.6 패턴 |
+| `skills/writing-prompts/` | `writing-prompts` 스킬에서 분리한 GPT-5.4·5.5 패턴, GPT-5 파라미터, Prefilling, Qwen 3.6 패턴 |
 
 ## 다시 꺼낼 때
 

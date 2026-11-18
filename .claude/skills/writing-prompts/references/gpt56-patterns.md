@@ -14,7 +14,7 @@
 - [참고](#참고)
 
 
-> GPT-6 Astra(2026-09)가 최신입니다. 이 문서는 5.6 세대용이며 6에서 달라진 점은 [gpt6-patterns.md](./gpt6-patterns.md) 참조.
+> GPT-6.2(2026-11)가 최신입니다. 이 문서는 5.6 세대용이며 이후 세대에서 달라진 점은 [gpt6-patterns.md](./gpt6-patterns.md)와 [gpt62-patterns.md](./gpt62-patterns.md) 참조.
 
 GPT-5.6은 Sol/Terra/Luna **3티어 패밀리**. 마이그레이션은 모델만 먼저 교체해 기존 프롬프트·effort로 기준선을 평가한 뒤, 중복 지시와 무관한 도구를 한 그룹씩 줄이고 측정된 회귀에만 최소 지시를 추가하는 방식이다 — 공식: "Preserve the old effective reasoning effort explicitly" / "test the same setting and one lower on representative tasks" (Upgrading to GPT-5.6 Sol).
 공식 내부 평가에서 더 간결한 시스템 프롬프트가 점수 +10~15%, 총토큰 -41~66%, 비용 -33~67%를 기록했다 (prompt-guidance, 대표 작업으로 재검증 필요).
@@ -141,7 +141,7 @@ any material caveat, and the next action.
 - Structured Outputs API 강제
 - 5.4 계열 패턴 (`<output_contract>`, `<completeness_contract>` 등)
 
-5.6에서 새로 추가/변경된 것: §1~§4. 5.5 패턴 원문과 GPT-5.5 대상 작성 체크리스트는 [gpt55-patterns.md](gpt55-patterns.md).
+5.6에서 새로 추가/변경된 것: §1~§4.
 
 ---
 
@@ -175,4 +175,3 @@ any material caveat, and the next action.
 - [Upgrading to GPT-5.6 Sol (공식)](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol)
 - [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
 - [Simon Willison — The new GPT-5.6 family (2026-07-09)](https://simonwillison.net/2026/Jul/9/gpt-5-6/)
-- [GPT-5.5 패턴 (이전 세대)](gpt55-patterns.md)

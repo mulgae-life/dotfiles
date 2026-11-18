@@ -1,6 +1,6 @@
 # GPT-5.6 Prompting Guide
 
-> GPT-6 Astra(2026-09) 가이드가 최신입니다: [gpt-6-prompt-guide.md](./gpt-6-prompt-guide.md). 이 문서는 5.6 세대용이며 프롬프트 계약 구조·pro mode·reasoning.context는 6에서도 유효합니다.
+> GPT-6.2(2026-11) 가이드가 최신입니다: [gpt-6.2-prompt-guide.md](./gpt-6.2-prompt-guide.md). 그 사이 세대는 [gpt-6-prompt-guide.md](./gpt-6-prompt-guide.md)입니다. 이 문서는 5.6 세대용이며 프롬프트 계약 구조·pro mode·reasoning.context는 6에서도 유효합니다.
 
 > **출처**:
 > - [Prompting guidance for GPT-5.6 Sol | OpenAI API](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6)
@@ -11,7 +11,7 @@
 > - [The new GPT-5.6 family | Simon Willison (2026-07-09)](https://simonwillison.net/2026/Jul/9/gpt-5-6/)
 >
 > **검증일**: 2026-07-13
-> **이전 버전**: [GPT-5.5 Prompting Guide](gpt-5.5-prompt-guide.md)
+> **이전 버전**: [GPT-5.5 Prompting Guide](../archive/openai-prompt-guide/gpt-5.5-prompt-guide.md)
 
 ---
 
@@ -249,4 +249,4 @@ response = client.responses.create(
 - [Separating signal from noise in coding evaluations | OpenAI](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) — SWE-Bench Pro "30% broken" 감사
 - [Codex changelog](https://developers.openai.com/codex/changelog) — 0.144.0에서 GPT-5.6 3티어 추가 (2026-07-09)
 - Reddit 초기 후기: 개별 스레드 URL은 존재 미검증이라 인용하지 않음 — 서드파티 집계 기사로 교차 확인 (2026-07-13)
-- [GPT-5.5 Prompting Guide (이전 버전 비교)](gpt-5.5-prompt-guide.md)
+- [GPT-5.5 Prompting Guide (이전 버전 비교)](../archive/openai-prompt-guide/gpt-5.5-prompt-guide.md)

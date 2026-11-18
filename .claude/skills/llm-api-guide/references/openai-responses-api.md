@@ -14,6 +14,7 @@
 - [내장 도구·에이전트 기능](#내장-도구에이전트-기능)
 - [GPT-5.6 특화 기능](#gpt-56-특화-기능)
 - [GPT-6 특화·변경 사항 (Astra·Sol·Terra·Luna)](#gpt-6-특화변경-사항-astrasolterraluna)
+- [GPT-6.2 특화·변경 사항 (Astra·Sol)](#gpt-62-특화변경-사항-astrasol)
 - [마이그레이션 가이드](#마이그레이션-가이드)
 - [참고 자료](#참고-자료)
 
@@ -42,7 +43,7 @@ from openai import OpenAI
 client = OpenAI()
 
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",  # 일상 작업·비용 우선이면 gpt-6.2-sol
     input="Hello, world!"
 )
 
@@ -53,7 +54,7 @@ print(response.output_text)
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     instructions="You are a helpful assistant that speaks Korean formally.",
     input="What is the capital of Korea?"
 )
@@ -73,7 +74,7 @@ developer (최고) > instructions > user
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input=[
         {
             "role": "developer",
@@ -109,7 +110,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     reasoning={"effort": "high"},
     input="복잡한 수학 문제를 풀어주세요..."
 )
@@ -117,20 +118,20 @@ response = client.responses.create(
 
 | effort | 설명 | 사용 사례 |
 |--------|------|-----------|
-| `none` | 추론 없음. 5.6·GPT-6.1 Terra·GPT-6 Sol·Luna 지원. GPT-6 Astra(HTTP 400)·GPT-6.1 Sol은 미지원 | 단순 질문, 빠른 응답 |
+| `none` | 추론 없음. 5.6·GPT-6.1 Terra·GPT-6 Sol·Luna 지원. GPT-6.2 Astra·6.2 Sol·GPT-6 Astra(HTTP 400)·GPT-6.1 Sol은 미지원 | 단순 질문, 빠른 응답 |
 | `low` | 최소 추론 | 간단한 작업 |
-| `medium` | 균형 (5.6·GPT-6 기본값) | 일반적인 작업 |
+| `medium` | 균형 (5.6·GPT-6 기본값. GPT-6.2는 문서에 기본값이 없고 새 통합의 시작점으로 권함) | 일반적인 작업 |
 | `high` | 깊은 추론 | 복잡한 문제 |
 | `xhigh` | 매우 깊은 추론 (`max` 아래 단계) | 매우 어려운 문제 |
 | `max` | 5.6 신설, GPT-6 전 모델에서도 최상위 API 값 (Codex의 `ultra`는 API 값 아님). 전역 기본값 금지 | quality-first 초고난도 |
 
-> 5.6 → GPT-6 Astra·6.1 Sol: `none`/`minimal`은 `low`로. GPT-6.1 Terra·6 Sol·Luna는 `none`을 유지할 수 있고, `minimal`은 `low`부터 비교
+> 5.6 → GPT-6 Astra·6.1 Sol: `none`/`minimal`은 `low`로. GPT-6.1 Terra·6 Sol·Luna는 `none`을 유지할 수 있고, `minimal`은 `low`부터 비교. GPT-6.2 Astra·6.2 Sol도 `none`/`minimal`은 `low`로 옮기고, 값을 생략하지 말고 명시
 
 ### Reasoning Summary
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     reasoning={
         "effort": "high",
         "summary": "auto"  # 또는 "detailed", "concise"
@@ -150,7 +151,7 @@ for item in response.output:
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     text={"verbosity": "low"},  # low, medium, high
     input="..."
 )
@@ -171,14 +172,14 @@ response = client.responses.create(
 ```python
 # 첫 요청
 response1 = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     instructions="격식체 사용",
     input="안녕하세요"
 )
 
-# 후속 요청 - CoT 자동 유지
+# 후속 요청 - 이전 응답 ID로 대화 연결 (제외 조건에 걸리지 않은 추론 항목은 재사용)
 response2 = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     previous_response_id=response1.id,
     instructions="격식체 사용",  # 매번 재전송 필요!
     input="이전 내용을 요약해주세요"
@@ -187,11 +188,13 @@ response2 = client.responses.create(
 
 **주의**: `instructions`는 자동으로 유지되지 않음. 매 요청마다 재전송 필요.
 
+**GPT-6.2부터**: 앞선 대화 내용을 고치거나 끼워 넣으면 API가 그 뒤의 추론 항목을 입력에서 뺍니다. 중간에 `instructions`·`tools`·`text.format`을 바꾸거나 `safety_identifier`를 바꾸는 것도 여기에 해당합니다. 바꿔야 할 때는 [GPT-6.2 절의 덧붙이기 방식](#추론-항목-제외와-접두사-유지)을 씁니다.
+
 ### 수동 이력 관리
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input=[
         {"role": "developer", "content": "격식체 사용"},
         {"role": "user", "content": "안녕하세요"},
@@ -200,6 +203,8 @@ response = client.responses.create(
     ]
 )
 ```
+
+위 예시처럼 assistant 텍스트만 옮기면 추론 항목이 빠집니다. 추론을 이어 가야 하는 다중 턴·도구 작업에서는 이전 응답의 `output` 항목을 순서 그대로 덧붙여 보냅니다. 예시는 [GPT-6.2 절](#추론-항목-제외와-접두사-유지)에 있습니다.
 
 ---
 
@@ -232,7 +237,7 @@ tools = [
 ]
 
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input="서울 날씨 알려줘",
     tools=tools
 )
@@ -252,7 +257,7 @@ for item in response.output:
 
 if tool_outputs:
     response2 = client.responses.create(
-        model="gpt-6-astra",
+        model="gpt-6.2-astra",
         previous_response_id=response.id,   # reasoning item 포함 이전 맥락은 서버가 보존
         input=tool_outputs,
         tools=tools
@@ -273,7 +278,7 @@ tools = [
 ]
 
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input="Calculate the area of a circle with radius 5",
     tools=tools
 )
@@ -285,7 +290,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input="...",
     tools=[...],  # 모든 도구 정의
     tool_choice={
@@ -306,7 +311,7 @@ response = client.responses.create(
 
 ```python
 stream = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input="Hello",
     stream=True
 )
@@ -327,7 +332,7 @@ client = AsyncOpenAI()
 
 async def stream_response():
     stream = await client.responses.create(
-        model="gpt-6-astra",
+        model="gpt-6.2-astra",
         input="Hello",
         stream=True
     )
@@ -345,7 +350,7 @@ async def stream_response():
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input="...",
     max_output_tokens=1000
 )
@@ -372,7 +377,7 @@ if response.status == "incomplete":
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     reasoning={"effort": "high"},
     input="..."
 )
@@ -388,7 +393,7 @@ print(f"Total: {usage.total_tokens}")
 
 ## 내장 도구·에이전트 기능
 
-> GPT-6 Astra·6.1 Sol·6.1 Terra·6 Sol·Luna 공통 지원 도구(Responses): web_search, file_search, image_generation, code_interpreter, hosted_shell, apply_patch, skills, computer_use, mcp, tool_search
+> GPT-6.2 Astra·6.2 Sol·6 Astra·6.1 Sol·6.1 Terra·6 Sol·Luna 공통 지원 도구(Responses): web_search, file_search, image_generation, code_interpreter, hosted_shell, apply_patch, skills, computer_use, mcp, tool_search
 
 ### Apply Patch Tool
 
@@ -396,7 +401,7 @@ print(f"Total: {usage.total_tokens}")
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input="Add error handling to this function...",
     tools=[{"type": "apply_patch"}]
 )
@@ -408,7 +413,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     input="List files in the current directory",
     tools=[{"type": "shell"}]
 )
@@ -420,7 +425,7 @@ response = client.responses.create(
 
 ```python
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     instructions="Before calling any tool, explain why you are calling it.",
     input="...",
     tools=[...]
@@ -429,21 +434,34 @@ response = client.responses.create(
 
 ### Tool Search
 
-대규모 도구 생태계에서 런타임에 필요한 스키마만 로드:
+대규모 도구 생태계에서 런타임에 필요한 스키마만 로드. `tools`에 `tool_search`를 넣고, 나중에 불러올 함수에 `defer_loading`을 건다:
 
 ```python
+crm_namespace = {
+    "type": "namespace",
+    "name": "crm",
+    "description": "CRM tools for customer lookup and order management.",
+    "tools": [
+        {
+            "type": "function",
+            "name": "list_open_orders",
+            "description": "List open orders for a customer ID.",
+            "defer_loading": True,  # 검색으로 찾은 뒤에 불러온다
+            "parameters": {
+                "type": "object",
+                "properties": {"customer_id": {"type": "string"}},
+                "required": ["customer_id"],
+                "additionalProperties": False,
+            },
+        },
+    ],
+}
+
 response = client.responses.create(
-    model="gpt-6-astra",
-    input="서울 날씨 알려줘",
-    tools=[...],  # 전체 도구 정의
-    tool_choice={
-        "type": "allowed_tools",
-        "mode": "auto",
-        "tools": [
-            {"type": "function", "name": "get_weather"},
-            {"type": "function", "name": "search_docs"}
-        ]
-    }
+    model="gpt-6.2-astra",
+    input="List open orders for customer CUST-12345.",
+    tools=[crm_namespace, {"type": "tool_search"}],
+    parallel_tool_calls=False,
 )
 ```
 
@@ -523,13 +541,13 @@ response = client.responses.create(
 
 ### safety_identifier
 
-요청마다 안정적인 프라이버시 보존 식별자 전송 — 사용자 단위 오남용 추적.
+요청마다 안정적인 프라이버시 보존 식별자 전송 — 사용자 단위 오남용 추적. GPT-6.2부터는 한 대화 안에서 이 값이 달라지면(한쪽 요청에만 넣는 경우 포함) 앞 요청의 추론 항목이 입력에서 빠지므로, 대화의 모든 요청에 같은 값을 넣거나 모두 생략합니다.
 
 ---
 
 ## GPT-6 특화·변경 사항 (Astra·Sol·Terra·Luna)
 
-> GPT-6는 2026-09-03 `gpt-6-astra`로 시작했고, 2026-09-22 `gpt-6-sol`·`gpt-6-luna`가 더해졌습니다(각각 스냅샷 1종). 2026-09-29에는 6 Sol의 후속 `gpt-6.1-sol`이, 2026-10-26에는 5.6 Terra의 후속 `gpt-6.1-terra`가 나왔습니다. Astra가 최상위, 6.1 Sol이 Astra에 가까운 성능의 저비용 대안, 6.1 Terra가 시각 이해·화면 조작·글쓰기용의 빠르고 효율적인 모델, Luna가 범위가 분명한 대량 작업용입니다. 6 Sol은 폐기 공지 없이 남아 있지만 API 계약이 6.1 Sol과 다릅니다. 5.6 Sol/Terra/Luna는 계속 제공됩니다.
+> GPT-6는 2026-09-03 `gpt-6-astra`로 시작했고, 2026-09-22 `gpt-6-sol`·`gpt-6-luna`가 더해졌습니다(각각 스냅샷 1종). 2026-09-29에는 6 Sol의 후속 `gpt-6.1-sol`이, 2026-10-26에는 5.6 Terra의 후속 `gpt-6.1-terra`가 나왔습니다. 6.2 출시 전까지는 Astra가 최상위였고 6.1 Sol이 Astra에 가까운 성능의 저비용 대안이었습니다. 6.1 Terra는 시각 이해·화면 조작·글쓰기용의 빠르고 효율적인 모델이고, Luna는 범위가 분명한 대량 작업용입니다. 6 Sol은 폐기 공지 없이 남아 있지만 API 계약이 6.1 Sol과 다릅니다. 5.6 Sol/Terra/Luna는 계속 제공됩니다.
 
 | 항목 | Astra | 6.1 Sol | 6.1 Terra | 6 Sol | Luna |
 |------|-------|---------|-----------|-------|------|
@@ -578,7 +596,7 @@ response = client.responses.create(
 
 2026-11-02에 읽은 로컬 서버 카탈로그 캐시에서 기본 창은 Astra·6 Sol·Luna 272K, 6.1 Sol·6.1 Terra 500K이고, 이 모델들의 최대 창은 모두 872K입니다. 이는 API 명세의 1.05M과 다른 카탈로그 값이며 명시적인 설정으로 기본 창을 재정의할 수 있습니다. 6.1 Sol의 500K는 공식 문서에도 명시되어 있지만, Codex 0.166.0 번들 카탈로그에는 272K가 남아 있습니다. 확인한 공식 문서는 6.1 Sol의 구독 사용분에 긴 입력 할증이 없다고 설명하며, 이 설명을 Terra나 Astra로 확대할 근거는 미확인입니다. API 키 사용은 API 요금표의 입력 272K 초과 할증을 따릅니다.
 
-크레딧 소모(입력 / 캐시 입력 / 출력, 1M당)는 Astra 250 / 25 / 1,250으로 5.6 Sol의 2.5배이고, 6.1 Sol은 50 / 2.5 / 250, 6.1 Terra는 25 / 1.25 / 125, 6 Sol은 50 / 5 / 250, Luna는 2.5 / 0.25 / 12.5입니다. 캐시 쓰기는 따로 차감하지 않습니다("Codex credit billing has no separate cache-write charge."). Fast는 구독 포함 사용량에서 2.5배, 구매 크레딧과 엔터프라이즈 종량제에서 2배입니다. Codex 선택기의 effort는 API 값과 별개입니다. Astra·6.1 Sol·6.1 Terra·6 Sol은 `low`~`max`와 `ultra`, Luna는 `max`까지이며 `none`은 없습니다. 6.1 Terra는 Codex CLI 0.159.0 이상이 필요합니다. 0.159.1부터 번들 카탈로그의 기본 모델은 계정에서 쓸 수 있다면 6.1 Sol이고, 카탈로그 기본 effort는 `low`입니다.
+크레딧 소모(입력 / 캐시 입력 / 출력, 1M당)는 Astra 250 / 25 / 1,250으로 5.6 Sol의 2.5배이고, 6.1 Sol은 50 / 2.5 / 250, 6.1 Terra는 25 / 1.25 / 125, 6 Sol은 50 / 5 / 250, Luna는 2.5 / 0.25 / 12.5입니다. 캐시 쓰기는 따로 차감하지 않습니다("Codex credit billing has no separate cache-write charge."). Fast는 구독 포함 사용량에서 2.5배, 구매 크레딧과 엔터프라이즈 종량제에서 2배입니다. Codex 선택기의 effort는 API 값과 별개입니다. Astra·6.1 Sol·6.1 Terra·6 Sol은 `low`~`max`와 `ultra`, Luna는 `max`까지이며 `none`은 없습니다. 6.1 Terra는 Codex CLI 0.159.0 이상이 필요합니다. 0.159.1부터 0.169.0까지 번들 카탈로그의 기본 모델은 계정에서 쓸 수 있다면 6.1 Sol이었고(0.169.1부터는 6.2 Sol), 카탈로그 기본 effort는 `low`입니다.
 
 ### 공식 마이그레이션 체크리스트 (5.6 → 6)
 
@@ -590,6 +608,94 @@ response = client.responses.create(
 6. EU 데이터 레지던시에서 Fast 모드는 6.1 Sol·6.1 Terra·Luna만 가능하고 Astra·6 Sol은 불가. Ultrafast는 6.1 Sol이 미국·EU 레지던시와 글로벌 처리, Astra는 미국 레지던시와 글로벌 처리에서만
 7. 응답 사이 effort 변경은 표준 단일 에이전트 요청에서 `configuration_update`로 하고 요청 수준 `reasoning.effort`는 유지
 8. 승인 대기로 멈추는 문제는 주도성 가이던스로 대응
+
+---
+
+## GPT-6.2 특화·변경 사항 (Astra·Sol)
+
+> GPT-6.2는 2026-11-17에 `gpt-6.2-astra`와 `gpt-6.2-sol` 두 모델로 나왔습니다(공개된 날짜 스냅샷 ID 없음). 6.2 Terra·Luna는 없어서 그 자리는 6.1 Terra·6 Luna가 계속 맡습니다. 위 GPT-6 절에서 6 Astra·6.1 Sol에 해당하던 계약은 6.2에도 그대로입니다. `none`을 받지 않고, 도구 호출은 Responses에서만 되고, `temperature`·`top_p`·`top_logprobs`를 보내지 않고, 캐시는 `prompt_cache_options.ttl`로 지정하고, 272K를 넘는 요청은 전체가 할증됩니다. 이 절은 달라진 것만 적습니다.
+
+| 항목 | 6.2 Astra | 6.2 Sol |
+|------|-----------|---------|
+| 컨텍스트 / 최대 입력 / 최대 출력 | 1,050,000 / 922,000 / 128,000 | 같음 |
+| 지식 컷오프 | 2026-05-18 | 2026-06-01 |
+| 입력 | 텍스트, 이미지 (오디오·비디오 미지원) | 같음 |
+| 가격 (1M당, 입력 · 캐시 입력 · 30분 캐시 쓰기 · 12시간 캐시 쓰기 · 출력) | $8 · $0.40 · $10 · $20 · $40 | $2 · $0.10 · $2.50 · $5 · $10 |
+| `reasoning.effort` | `none`은 거절("The API rejects requests that set reasoning effort to `none`."). 모델 페이지에 허용값 목록과 기본값이 없음. API 필수는 아니지만 재현성을 위해 값을 명시하고, 새 통합은 `medium`에서 시작 | 같음 |
+| 할인·할증 | Batch 50% · Fast 2배 · Ultrafast 3배(2027-02-28까지, 이후 6배) | 같음 |
+
+- Flex 단가는 미확인입니다. 모델 릴리스 노트는 두 모델이 Flex를 지원한다고 적는데, Flex 가이드가 지원 목록으로 가리키는 가격표에는 두 모델이 없습니다. 쓰기 전에 가격표를 다시 확인하고, 이전 세대의 Flex 50%를 그대로 적용하지 않습니다
+- 백그라운드 요청(`background: true`)에 `background_options.completion_window`를 `2h`나 `8h`로 주면 모델 토큰 요율이 각각 30%, 40% 낮아집니다(공개 베타). Standard 처리에서만 되고 스트리밍은 쓸 수 없습니다. 대상은 6.2 Astra·6.2 Sol·6.1 Terra·6 Luna입니다. 이 창으로 만든 캐시는 할인 창 밖의 Standard 요청이 다시 쓰지 못합니다. 백그라운드 모드는 `store: false`나 ZDR에서도 응답 데이터를 일시 저장합니다
+- 데이터 레지던시는 Standard·Fast·Batch가 미국과 EU를 지원하고, Ultrafast는 미국만 지원합니다
+- 하위 에이전트 위임은 Responses API의 [Multi-agent 베타](https://developers.openai.com/api/docs/guides/responses-multi-agent)로 제공됩니다
+
+### 추론 항목 제외와 접두사 유지
+
+6.2부터 API는 대화 중간에 앞선 내용이 바뀐 것을 감지하면 그 뒤의 추론 항목을 요청 입력에서 뺍니다(저장된 응답을 없애는 것은 아닙니다). 추론이 빠지면 모델이 같은 추론을 다시 하느라 토큰과 지연이 늘고 품질이 떨어질 수 있습니다.
+
+> "The API removes reasoning items if you switch model families, downgrade to a less capable model, or switch organizations or users mid-conversation as one of our safeguards against distillation. Starting with 6.2, reasoning items with a `safety_identifier` change or a modified conversation history (the prefix) will also be removed."
+
+| 제외 사유 (`input_transformations`) | 조건 |
+|-------------------------------------|------|
+| `prefix_mismatch` (6.2 신규) | 추론 항목 앞의 내용을 끼워 넣거나 고침. 예: 앞선 도구 결과를 줄여 다시 씀. 항목을 통째로 지우거나 뒤에 덧붙이는 것만으로는 해당하지 않음 |
+| `end_user_mismatch` (6.2 신규) | 항목을 만든 요청과 다시 쓰는 요청의 `safety_identifier`가 다름. 한쪽에만 넣은 경우 포함 |
+| `model_mismatch` | 모델 계열을 바꾸거나 같은 계열의 낮은 모델로 내림. 같은 계열의 높은 모델로 올리면 다른 검사를 통과한 호환 추론 항목은 유지 |
+| `organization_mismatch` | 다른 조직의 항목, 또는 다른 사용자의 다른 워크스페이스에서 만든 항목을 다시 씀 |
+| `turn_boundary` | 이전 턴의 항목인데 모델이 현재 턴의 추론만 씀. 지원 모델에서는 `reasoning.context`가 이전 턴 항목을 쓸지 정함 |
+
+`instructions`·`tools`·`text.format` 같은 요청 파라미터를 바꾸는 것도 접두사 변경입니다. 설정을 바꿔야 할 때는 고치지 말고 덧붙입니다.
+
+| 바꾸려는 것 | 덧붙이는 방법 |
+|-------------|---------------|
+| 추론 수준, 출력 스키마 | 요청 수준 값은 그대로 두고 `configuration_update` 항목을 다음 사용자 메시지 앞에 덧붙임 (표준 단일 에이전트 요청에서만) |
+| 도구 목록 | `tools`는 그대로 두고 `additional_tools` 항목으로 추가, 제한은 `tool_choice`의 `allowed_tools`로 |
+| 개발자 지시 | 원래 메시지를 고치지 않고 새 `developer` 메시지를 덧붙임 |
+| 긴 도구 결과·파일·이미지 | 지난 항목을 나중에 줄이지 말고 처음 보낼 때 줄여서 보냄 |
+| 컨텍스트 압축 | OpenAI 압축(`/responses/compact`, `context_management`)은 접두사가 바뀌어도 뒤의 추론 항목을 유지함. 자체 요약 방식은 요약 항목을 최근 턴 앞이 아니라 컨텍스트 끝에 두거나, 그 뒤 추론 항목이 지워지는 것을 감수함 |
+
+`configuration_update`가 든 이력은 독립 압축 엔드포인트 `/responses/compact`와 자동 잘라내기가 거부합니다. 자동 압축(`context_management`)은 최신 설정을 이어받습니다. 독립 압축을 쓰려면 [압축 가이드](https://developers.openai.com/api/docs/guides/compaction#continue-with-configuration-updates-and-tools)대로 갱신 항목을 빼고 압축한 뒤 설정과 도구를 다시 붙입니다.
+
+서버에 응답을 저장하지 않는 구성(`store: false`나 ZDR)의 HTTP 요청에서는 응답의 `output` 항목을 암호화된 추론 항목까지 순서 그대로 다음 입력에 덧붙입니다. 응답을 저장하지 않는 구성에서도 WebSocket 모드는 같은 연결의 메모리에 남은 이전 응답을 `previous_response_id`로 이어 갑니다. 보낸 ID가 연결 메모리에 없으면 `previous_response_not_found`가 돌아오므로 `previous_response_id` 없이 전체 입력을 다시 보냅니다.
+
+```python
+from hashlib import sha256
+
+user_hash = sha256(b"user-42").hexdigest()  # 최종 사용자를 가리키는 해시 예시
+history = [{"role": "user", "content": "다음 함수에서 오류를 찾아주세요.\ndef add(a, b): return a - b"}]
+
+first = client.responses.create(
+    model="gpt-6.2-sol",
+    store=False,
+    reasoning={"effort": "medium"},
+    safety_identifier=user_hash,
+    input=history,
+)
+
+# 추론 항목을 포함한 출력 전체를 고치지 않고 덧붙인다
+history.extend(item.to_dict() for item in first.output)
+history.append({"role": "user", "content": "고친 함수를 적어주세요."})
+
+second = client.responses.create(
+    model="gpt-6.2-sol",
+    store=False,
+    reasoning={"effort": "medium"},
+    safety_identifier=user_hash,   # 앞 요청과 같은 값
+    input=history,
+)
+```
+
+추론 항목이 빠졌는지는 응답의 `input_transformations`로 확인합니다. 캐시가 어디서 끊겼는지는 `prompt_cache_options.comparison_response_id`에 이전 응답 ID를 넣어 진단하지만, 이 진단은 모델이 이전 추론 항목을 재사용했는지까지는 알려 주지 않습니다.
+
+### 공식 마이그레이션 체크리스트 (6 → 6.2)
+
+1. `model`을 `gpt-6.2-astra`나 `gpt-6.2-sol`로 교체
+2. effort — 새 통합은 `medium`에서 시작, `none`·`minimal`을 쓰던 곳은 `low`
+3. 도구 호출은 Responses API로 ("GPT-6.2 Astra and GPT-6.2 Sol support Chat Completions, but tool calling requires Responses.")
+4. Chat Completions 요청에서는 `temperature`·`top_p`·`logprobs`·`top_logprobs`를, Responses 요청에서는 `temperature`·`top_p`·`top_logprobs`를 빼고 `include`의 `message.output_text.logprobs`를 제거
+5. GPT-5.5 이하에서 옮길 때 `prompt_cache_retention` → `prompt_cache_options.ttl = "30m"`
+6. 대화 중간에 요청 파라미터나 앞선 입력을 고치는 코드를 찾아 덧붙이기 방식으로 바꾸고, `safety_identifier`를 대화 전체에서 같게 유지 (공식 마이그레이션 절 밖, 같은 가이드의 접두사 절에서 가져온 항목)
+7. ZDR에서는 `store`가 `false`로 처리되므로 다중 턴 작업에서 이전 출력 항목을 암호화된 추론 항목까지 순서대로 돌려보냄
+8. EU 데이터 레지던시에서는 Ultrafast를 쓸 수 없음 (Standard·Fast·Batch는 가능)
 
 ---
 
@@ -607,7 +713,7 @@ response = client.responses.create(
 ```python
 # Chat Completions (레거시)
 response = client.chat.completions.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     messages=[
         {"role": "system", "content": "..."},
         {"role": "user", "content": "..."}
@@ -617,7 +723,7 @@ response = client.chat.completions.create(
 
 # Responses API (권장)
 response = client.responses.create(
-    model="gpt-6-astra",
+    model="gpt-6.2-astra",
     instructions="...",
     input="...",
     reasoning={"effort": "medium"}
@@ -630,7 +736,9 @@ response = client.responses.create(
 
 - [Responses API Reference](https://platform.openai.com/docs/api-reference/responses)
 - [Reasoning Models Guide](https://platform.openai.com/docs/guides/reasoning)
-- [Using GPT-6 (공식)](https://developers.openai.com/api/docs/guides/latest-model) ⭐ 최신 — Astra·6.1 Sol·6 Sol·Luna 제품군, 마이그레이션
+- [Using GPT-6.2 (공식)](https://developers.openai.com/api/docs/guides/latest-model/gpt-6.2-astra) ⭐ 최신 — 6.2 Astra·6.2 Sol, 마이그레이션 · [Keep the prefix unchanged (공식)](https://developers.openai.com/api/docs/guides/keep-prefix-unchanged) — 접두사 변경을 덧붙이기로 바꾸는 방법
+- [GPT-6.2 풀 정리 (한국어)](../../../../reference/openai-prompt-guide/gpt-6.2-prompt-guide.md) — API 계약, 추론 항목 제외와 접두사 유지, Codex 적용
+- [Using GPT-6 (공식, 6·6.1 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra) — Astra·6.1 Sol·6.1 Terra·6 Sol·Luna 제품군, 마이그레이션
 - [GPT-6 풀 정리 (한국어)](../../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) — 제품군 API 계약 차이, effort 표, Codex 적용
 - [Using GPT-5.6 (공식)](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6) (2026-07)
 - [GPT-5.6 풀 정리 (한국어)](../../../../reference/openai-api-guide/openai_api_latest_model_gpt5.6.md) — 3티어 스펙·가격·마이그레이션

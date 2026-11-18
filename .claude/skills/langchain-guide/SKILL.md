@@ -43,16 +43,17 @@ pip install langchain langchain-openai langgraph
 
 ```python
 # 방법 1: init_chat_model (권장 - 프로바이더 독립적)
-# GPT-6에는 temperature·top_p를 보내지 않고(effort가 none이 아니면 제거 필수, none에서 허용한다는 명시는 없음),
-# 추론과 도구 호출을 함께 쓰려면 Responses API가 필요 → use_responses_api=True
+# GPT-6.2는 temperature·top_p를 받지 않고(effort `none`이 없어 이 값을 보낼 수 있는 경우가 없다),
+# 도구 호출은 Responses API에서만 된다 → use_responses_api=True
 from langchain.chat_models import init_chat_model
-model = init_chat_model("openai:gpt-6-astra", use_responses_api=True)
+model = init_chat_model("openai:gpt-6.2-astra", use_responses_api=True)
 
 # 방법 2: 프로바이더 패키지 직접 (상세 설정)
 from langchain_openai import ChatOpenAI
-model = ChatOpenAI(model="gpt-6-astra", use_responses_api=True, max_tokens=1000)
+model = ChatOpenAI(model="gpt-6.2-astra", use_responses_api=True, max_tokens=1000)
 
-# 방법 3: create_agent에 모델 인스턴스 전달 (문자열 지정은 use_responses_api를 못 넘기므로 GPT-6 도구 호출에 부적합)
+# 방법 3: create_agent에 모델 인스턴스 전달 (Responses API 사용을 명시. 문자열 지정은 use_responses_api를 못 넘기고,
+# langchain-openai 1.6.3부터는 gpt-6 계열에 일반 함수 도구만 전달해도 Responses API를 자동 선택)
 agent = create_agent(model, tools=tools)
 ```
 
@@ -75,7 +76,7 @@ def search(query: str) -> str:
 with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
     checkpointer.setup()  # 최초 1회: 체크포인트 테이블 생성
     agent = create_agent(
-        model,  # 2.1의 ChatOpenAI(model="gpt-6-astra", use_responses_api=True)
+        model,  # 2.1의 ChatOpenAI(model="gpt-6.2-astra", use_responses_api=True)
         tools=[search],
         system_prompt="You are a research assistant.",
         middleware=[ModelRetryMiddleware(max_retries=3)],

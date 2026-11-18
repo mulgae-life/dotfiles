@@ -5,6 +5,8 @@
 # 두 도구 모두 입력창이 안 보이면(질문·승인 창 등) 작업 중으로 본다. 그 창에 키를 넣으면 선택지가 대신 골라진다.
 #   Codex: 들여쓰지 않은 마지막 줄이 입력창(› )이고 그 바로 위 내용 줄이 턴 종료 줄("  Worked for …")이면 유휴.
 #          그 사이의 경고 안내(⚠ 줄, 주간 한도 안내 등)는 턴이 끝난 뒤에도 찍히므로 건너뛴다.
+#          모델이나 서비스 등급을 바꾼 안내 줄("• Model changed to …", "• Service tier set to …", "• Service tier cleared")도
+#          턴 없이 찍히므로 건너뛴다. 같은 말로 시작하는 답변 문장과 구분하려고 줄 끝까지 안내 형식인지 본다.
 #          지난 사용자 메시지도 "› "로 시작하므로 마지막 줄만 입력창으로 인정한다.
 #          작업 중 표시줄은 폭이 좁으면 잘려 "esc to interrupt"가 사라지므로 판정에 쓰지 않는다.
 #          세션 기록(rollout)의 마지막 턴 사건이 시작이면 화면과 관계없이 작업 중이다. "resume <id>"로 찾은 기록이
@@ -19,7 +21,7 @@
 # 명령이 끝나면 Claude Code가 Claude를 깨운다. 중심이 Codex면 요청을 보낸 턴 안에서 끝나기를 기다린다(유휴 상태의 Codex는
 # 깨어나지 않는다). 수신기가 꺼져 있는 동안 온 신호는 파일에 남아 다음 listen이 바로 읽는다.
 # signal은 수신기가 그 줄을 읽었는지(읽은 줄 수 파일)까지 확인한다. 중심이 파트너에 알릴 때는 send로 입력창에 넣는다.
-# 검증 버전: Codex 0.169.0, Claude Code 2.1.325 — 화면 형식이 바뀌면 codex_idle·claude_idle·input_box를 확인한다.
+# 검증 버전: Codex 0.169.1, Claude Code 2.1.327 — 화면 형식이 바뀌면 codex_idle·claude_idle·input_box를 확인한다.
 set -euo pipefail
 
 BUSY_RE='… \([0-9]+[hms] '
@@ -125,19 +127,38 @@ codex_idle() {
   [[ $rec != started ]] || return 1
   [[ ${2%% *} != id || $rec != ended ]] || trust=1
   awk -v trust="$trust" '
+    # 모델·서비스 등급 변경 안내면 1을 돌려준다. 접힌 줄을 이어 붙인 한 줄을 받는다. 모델 이름 뒤에는 Codex가 찍는 추론 수준과
+    # 서비스 등급(이 세션만 바꾼 안내에만 붙는다), 적용 범위 꼬리만 올 수 있다. 같은 말로 시작하는 답변 문장을 안내로
+    # 읽지 않도록 자리마다 아는 값만 받는다. 모르는 값이 찍힌 안내는 작업 중으로 본다
+    function notice(s,   scope, n, w, i) {
+      if (s ~ /^• Service tier (cleared|set to [a-z][a-z0-9_-]*)$/) return 1
+      if (!sub(/^• Model changed to /, "", s)) return 0
+      if (sub(/ for this session only$/, "", s)) scope = "session"
+      else if (!sub(/ for this conversation$/, "", s)) sub(/ for (Plan|Default) mode\.$/, "", s)
+      n = split(s, w, " ")
+      if (n < 1 || n > 3 || w[1] !~ "^[A-Za-z0-9][A-Za-z0-9._:/-]*[A-Za-z0-9]$" || w[1] !~ /[0-9-]/) return 0
+      i = 2
+      if (i <= n && w[i] ~ /^(default|none|minimal|low|medium|high|xhigh|max|ultra|persistent)$/) i++
+      if (i <= n && scope == "session" && w[i] ~ /^(standard|fast|flex|ultrafast)$/) i++
+      return i > n
+    }
     { line[NR] = $0 }
     /^[^ ]/ { last = NR }
     END {
       if (!last || line[last] !~ /^› /) exit 1
       if (trust) exit 0
-      # 입력창 위의 빈 줄, 백그라운드 터미널 안내줄, 경고 안내(⚠ 줄과 그 아래 들여 쓴 줄)는 건너뛴다.
-      # 경고 안내는 턴이 끝난 뒤에도 찍혀 턴 종료 줄과 입력창 사이에 끼어든다
+      # 입력창 위의 빈 줄, 백그라운드 터미널 안내줄, 경고 안내(⚠ 줄과 그 아래 들여 쓴 줄), 모델·서비스 등급 변경 안내는 건너뛴다.
+      # 이 안내들은 턴이 끝난 뒤에도 찍혀 턴 종료 줄과 입력창 사이에 끼어든다
       for (i = last - 1; i > 0; i = h - 1) {
         h = i
         if (line[i] !~ /[^ ]/ || line[i] ~ /^ +[0-9]+ background terminals? running/) continue
         if (line[i] ~ /^ *Worked for [0-9]|^■ /) exit 0
         while (h > 0 && line[h] ~ /^ +[^ ]/) h--
-        if (line[h] !~ /^⚠/) break
+        if (line[h] ~ /^⚠/) continue
+        s = line[h]
+        for (k = h + 1; k <= i; k++) { t = line[k]; sub(/^ +/, "", t); s = s " " t }
+        sub(/ +$/, "", s)
+        if (!notice(s)) break
       }
       # 대화 전 화면: 머리말이 보이고, 입력창 말고는 사용자 메시지(› 줄)가 없다
       for (j = 1; j < last; j++) {

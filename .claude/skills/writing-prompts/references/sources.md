@@ -3,15 +3,17 @@
 모델 계열별 한국어 풀 가이드와 공식 문서 링크다.
 
 ### OpenAI
-- [GPT-6 풀 가이드 (한국어)](../../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) ⭐ 최신 — Astra·6.1 Sol·6.1 Terra·6 Sol·Luna 제품군, 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
-- [Using GPT-6 — Prompt Guidance·Migration (공식)](https://developers.openai.com/api/docs/guides/latest-model) ⭐ 최신 — 제품군 공통 출발점, Astra에서 관찰된 행동 기준
+- [GPT-6.2 풀 가이드 (한국어)](../../../../reference/openai-prompt-guide/gpt-6.2-prompt-guide.md) ⭐ 최신 — 6.2 Astra·6.2 Sol의 API 계약, 접두사 유지, 행동 축 스니펫 원문, Codex 기본 지시문, 시스템 카드 요점 수록
+- [Using GPT-6.2 — Prompting·Migration (공식)](https://developers.openai.com/api/docs/guides/latest-model/gpt-6.2-astra) ⭐ 최신 · [Keep the prefix unchanged (공식)](https://developers.openai.com/api/docs/guides/keep-prefix-unchanged) · [Prompting GPT-6.2 in Codex (공식)](https://learn.chatgpt.com/guides/prompting-gpt-6-2-astra)
+- [GPT-6.2 Astra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6.2-astra) · [GPT-6.2 Sol 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6.2-sol) · [Introducing GPT-6.2 Astra and Sol (발표문)](https://openai.com/index/introducing-gpt-6-2-astra-sol/) · [시스템 카드](https://deploymentsafety.openai.com/gpt-6-2-astra-sol)
+- [GPT-6 풀 가이드 (한국어)](../../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) (이전 세대, 6.1 Terra·6 Luna는 현행) — 6 Astra·6.1 Sol·6.1 Terra·6 Sol·Luna 제품군, 행동 축 5개 스니펫 원문·API 변경·Codex 적용 수록
+- [Using GPT-6 — Prompt Guidance·Migration (공식, 6·6.1 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra) — 제품군 공통 출발점, 6 Astra에서 관찰된 행동 기준
 - [GPT-6 Astra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-astra) · [GPT-6.1 Sol 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [GPT-6.1 Terra 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6.1-terra) · [Introducing GPT-6.1 Terra (발표문)](https://openai.com/index/introducing-gpt-6-1-terra/) · [GPT-6 Sol 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-sol) · [GPT-6 Luna 모델 카드 (공식)](https://developers.openai.com/api/docs/models/gpt-6-luna)
-- [GPT-5.6 풀 가이드 (한국어)](../../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) (이전 세대) — 티어·마이그레이션·신규 파라미터 수록
+- [GPT-5.6 풀 가이드 (한국어)](../../../../reference/openai-prompt-guide/gpt-5.6-prompt-guide.md) (전전 세대) — 티어·마이그레이션·신규 파라미터 수록
 - [OpenAI Prompt Engineering](https://platform.openai.com/docs/guides/prompt-engineering)
-- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (이전 세대)
+- [GPT-5.6 Prompting Guide](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) (전전 세대)
 - [Upgrading to GPT-5.6 Sol](https://developers.openai.com/api/docs/guides/upgrading-to-gpt-5p6-sol) — 마이그레이션 공식 절차
 - [Using GPT-5.6](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6)
-- [GPT-5.5 풀 가이드 (한국어)](../../../../reference/openai-prompt-guide/gpt-5.5-prompt-guide.md) (전전 세대) · [Using GPT-5.5 (공식, 5.5 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-5.5.md)
 - [Prompt Personalities (Cookbook)](https://developers.openai.com/cookbook/examples/gpt-5/prompt_personalities)
 - [Prompt Optimizer](https://platform.openai.com/chat/edit?optimize=true) (사용자 직접 실행)
 
