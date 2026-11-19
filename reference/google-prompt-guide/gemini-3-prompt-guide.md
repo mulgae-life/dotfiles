@@ -21,7 +21,7 @@
 > **날짜**: 2026-10-01 (모든 공식 URL을 이날 원문으로 확인)
 > **갱신**: 2026-10-16 (폐기 상태와 Gemini 4 공유 범위 재확인) · 2026-11-16 (3.6 Flash를 보관소로 옮기고 폐기·종료 일정 재확인)
 > **보관한 세대**: [Gemini 3.6 Flash](../archive/google-prompt-guide/gemini-3.6-flash.md)
-> **자매 가이드**: [Gemini 4 (Argon·Carbon·Hydrogen)](./gemini-4-argon-prompt-guide.md) (이 가이드의 3.x 처방을 자동 적용하지 않음) · [Gemma 4](./gemma-4-prompt-guide.md) (Gemini와 별개 제품군인 오픈웨이트 모델)
+> **자매 가이드**: [Gemini 4 (Argon·Carbon·Hydrogen·Neon)](./gemini-4-argon-prompt-guide.md) (이 가이드의 3.x 처방을 자동 적용하지 않음) · [Gemma 4](./gemma-4-prompt-guide.md) (Gemini와 별개 제품군인 오픈웨이트 모델)
 
 Gemini 3.x API 모델용 프롬프팅 가이드입니다. 다섯 모델은 공통 프롬프팅 원칙을 공유하지만, **사고 수준·기본값·일부 도구 지원·API 방식별 이력 처리가 모델마다 다릅니다.** 한 파일로 묶되 모델별 계약은 [§2 모델 개요](#2-모델-개요)와 [§4 사고 수준](#4-사고-수준-thinking_level)의 표를 기준으로 적용합니다.
 
@@ -89,7 +89,7 @@ Gemini 3.x API 모델용 프롬프팅 가이드입니다. 다섯 모델은 공�
 - 일반 프롬프팅 문서는 "We recommend to always include few-shot examples in your prompts"라고 하지만, 그 문서의 예시는 Gemini 2.5로 만든 것이고 같은 문서도 예시가 너무 많으면 과적합한다고 경고합니다. 예시의 필요 여부와 개수는 과제별 평가로 정하고, 넣는다면 형식(XML 태그·공백·줄바꿈·구분자)을 모든 예시에서 똑같이 맞춥니다.
 - 같은 문서의 "Gemini 3" 템플릿은 사용자 프롬프트 끝에 "Remember to think step-by-step before answering."을 넣지만, 더 최근 문서인 3.5 마이그레이션은 추론 강제 프롬프트를 단순화하라고 권합니다. 사고량은 `thinking_level`로 먼저 조절합니다.
 
-**에이전트 행동 축**: 일반 프롬프팅 문서는 에이전트 프롬프트에서 조절할 축을 세 묶음으로 제시합니다. 추론·전략(논리 분해, 문제 진단, 정보 망라 정도), 실행·신뢰성(계획 고수와 즉시 전환, 자기 교정 끈기, 읽기와 쓰기의 위험 구분), 상호작용·출력(가정과 질문의 경계, 도구 호출 사이 설명량, 정밀도)입니다. 공식 시스템 지시 템플릿(9개 항목, 복잡한 규칙집을 따르는 에이전트 벤치마크에서 평가)은 [원문](https://ai.google.dev/gemini-api/docs/prompting-strategies#system-instruction-template)을 봅니다. 모든 에이전트에 그대로 붙이지 말고, 실패 축에 해당하는 항목만 가져다 평가합니다.
+**에이전트 행동 축**: 일반 프롬프팅 문서는 에이전트 프롬프트에서 조절할 축을 세 묶음으로 제시합니다. 추론·전략(논리 분해, 문제 진단, 정보 망라 정도), 실행·신뢰성(계획 고수와 즉시 전환, 자기 교정 끈기, 읽기와 쓰기의 위험 구분), 상호작용·출력(가정과 질문의 경계, 도구 호출 사이 설명량, 정밀도)입니다. 공식 시스템 지시 템플릿(9개 항목, 복잡한 규칙집을 따르는 에이전트 벤치마크에서 평가)은 [원문](https://ai.google.dev/gemini-api/docs/prompting-strategies#agentic-si-template)을 봅니다. 모든 에이전트에 그대로 붙이지 말고, 실패 축에 해당하는 항목만 가져다 평가합니다.
 
 ## 4. 사고 수준 (`thinking_level`)
 

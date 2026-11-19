@@ -178,8 +178,9 @@ WSL 없이 Claude 데스크톱 앱이나 Windows 터미널을 쓰는 경우를 �
 
 ### `writing-prompts`는 계열별 최근 세 세대를 지원한다 (v2.48)
 
-- 계열은 Claude(Opus, Sonnet, Fable, Haiku), GPT, Gemini(Argon·Carbon, Flash, Flash-Lite, Pro)로 나눈다. 공급자가 은퇴시킨 모델은 뺀다. Gemma와 Qwen은 최신 세대만 둔다.
+- 계열은 Claude(Opus, Sonnet, Fable, Haiku), GPT, Gemini(Argon·Carbon·Neon, Flash, Flash-Lite, Pro)로 나눈다. 공급자가 은퇴시킨 모델은 뺀다. Gemma와 Qwen은 최신 세대만 둔다.
 - Gemini 4 Hydrogen은 Flash 계열의 최신 세대로 센다. 공식 문서가 3.8 Flash의 권장 업그레이드로 소개하기 때문이다. 문서는 요청 스키마가 같은 Gemini 4 가이드에 둔다.
+- Gemini 4 Neon은 Argon·Carbon과 한 세대로 센다. Carbon에서 파생한 Gemini 4 모델이고 요청 스키마가 같기 때문이다. 공식 문서는 3.1 Pro Preview에서 하던 작업과 Argon의 일반 코딩·기업 추론 작업을 Neon으로 옮기도록 안내한다. Argon은 종료일이 공지되지 않아 현행으로 둔다.
 - GPT-6.2는 6·6.1과 다른 세대로 센다. 공식 프롬프팅 가이드가 새로 쓰였고 6·6.1 가이드는 고정 주소로 따로 남았기 때문이다. 6.1 Sol은 6 가이드를 그대로 쓰므로 6과 한 세대로 둔다. 6.2에 Terra·Luna가 없어 6.1 Terra·6 Luna는 6 세대 문서가 현행이다.
 - 대상 모델 ID와 API 방식을 먼저 확정한다. 패키지 이름으로 공급자를 추정하지 않는다. `openai` 라이브러리로 Gemini를 부를 수도 있기 때문이다.
 - 목록 밖 모델은 다른 모델로 바꾸지 않고, 공식 계약과 공통 기법만 적용한다.

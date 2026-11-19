@@ -210,14 +210,14 @@ npx promptfoo@latest eval  # https://github.com/promptfoo/promptfoo
 | 짧고 직접적 | **권장** | Claude/GPT보다 더 짧은 프롬프트 선호 |
 | 질문 배치 | **중요** | 데이터 컨텍스트 **뒤에** 구체적 질문 배치 |
 
-### Gemini 4 Argon · Carbon · Hydrogen (Google)
+### Gemini 4 Argon · Carbon · Hydrogen · Neon (Google)
 
 위 3.x 처방을 승계하지 않습니다. 공식 문서가 따로 강조하는 것만 적습니다 → [gemini4-argon-patterns.md](gemini4-argon-patterns.md)
 
 | 기법 | 상태 | 비고 |
 |------|------|------|
-| Argon과 Carbon 고르기 | **과제별** | 대부분의 개발·지식 작업과 빠른 반복은 Argon, 깊은 탐색과 검증이 필요한 작업은 Carbon. 토큰 단가가 같아도 Carbon은 턴당 사고를 더 써 작업 비용이 같지 않음 |
-| Hydrogen에 실행 맡기기 | **선택지** | 일상 코딩과 도구 사용, 병렬 서브에이전트 실행용. 기본 사고 수준이 `high`이고 `xhigh`는 `high`로 부족할 때만. 도구는 함수 호출로 선언 |
+| 모델 고르기 | **과제별** | 권장 구성은 Hydrogen(일상 작업의 기본 출발점)·Neon(복잡하면서 자주 실행하는 작업)·Carbon(깊은 탐색과 검증). Argon의 일반 코딩·기업 추론 작업이 옮겨 갈 모델은 Neon. Carbon은 같은 사고 수준에서도 턴당 사고를 더 써 단가만으로 작업 비용을 비교할 수 없음 |
+| Hydrogen에 실행 맡기기 | **선택지** | 일상 코딩과 도구 사용, 병렬 서브에이전트 실행용. 계획과 검증은 Neon이나 Carbon이 맡는 구성이 공식 예시. Hydrogen·Neon은 기본 사고 수준이 `high`이고 `xhigh`는 `high`로 부족할 때만. 도구는 함수 호출로 선언 |
 | 착수 전 목표·성공 조건 합의 | **권장** | Argon·Carbon 대상. 장시간 자율 작업 전제. 질문과 도구 접근 확인을 먼저 |
 | 검증 수단 제공 | **권장** | Argon·Carbon 대상. 테스트·로그·스크린샷·검증 스크립트와 기준 점수 |
 | 길이 목표 지시 | **효과 없음** | "The model does not follow length targets." 깊이는 `thinking_level`로 |

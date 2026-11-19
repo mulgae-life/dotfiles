@@ -178,7 +178,7 @@ Luna 템플릿은 6 Sol과 두 곳이 다릅니다. 권한 절에서 "Once evide
 | 6 Sol | `low`, `medium`, `high`, `xhigh`, `max`, `ultra` | 현행 문서에 없음(9/23 문서는 Medium) | `medium` |
 | Luna | `low`, `medium`, `high`, `xhigh`, `max` (`ultra` 없음) | High | `medium` |
 
-Codex 선택기에는 `none`이 없습니다. API에서 6.1 Terra·6 Sol·Luna가 `none`을 받는 것과 별개입니다. 값 목록과 기본값은 Codex 0.166.0 번들 카탈로그와 11/2 서버 카탈로그 캐시의 `supported_reasoning_levels`와 `default_reasoning_level`이고(0.159.3에서도 Terra 외 값은 같음), 시작 권고는 Codex 모델 문서의 "For GPT-6.1 Sol, start with the reasoning effort available by default in your client and adjust based on the task. Start with High for Luna or Light for Astra."입니다. 이 문장이 9/23 문서의 "Start with **Medium** for Sol"을 대체했습니다. 6.1 Sol·6.1 Terra의 카탈로그 기본값 `low`는 API 기본값 `medium`과 다르고, 카탈로그 기본값이 실제 선택과 같다는 보장도 없습니다(§0.4). API 가이드는 Terra를 "Start with `medium` and increase it if the improvement in quality is worth the added time and tokens."로 안내하지만, Codex 모델 문서에는 Terra의 시작 권고가 없습니다. 같은 문서는 "GPT-6 Luna supports reasoning efforts up to Max, but not Ultra."라고 적습니다. 3자 평가에서 6.1 Sol의 레벨별 결과는 측정 조건과 함께 [조사 문서](../research/research-opus55-sol61.md)에 있습니다.
+Codex 선택기에는 `none`이 없습니다. API에서 6.1 Terra·6 Sol·Luna가 `none`을 받는 것과 별개입니다. 값 목록과 기본값은 Codex 0.166.0 번들 카탈로그와 11/2 서버 카탈로그 캐시의 `supported_reasoning_levels`와 `default_reasoning_level`이고(0.159.3에서도 Terra 외 값은 같음), 시작 권고는 Codex 모델 문서의 "For GPT-6.1 Sol, start with the reasoning effort available by default in your client and adjust based on the task. Start with High for Luna or Light for Astra."입니다. 이 문장이 9/23 문서의 "Start with **Medium** for Sol"을 대체했습니다. 6.1 Sol·6.1 Terra의 카탈로그 기본값 `low`는 API 기본값 `medium`과 다르고, 카탈로그 기본값이 실제 선택과 같다는 보장도 없습니다(§0.4). API 가이드는 Terra를 "Start with `medium` and increase it if the improvement in quality is worth the added time and tokens."로 안내하지만, Codex 모델 문서에는 Terra의 시작 권고가 없습니다. 같은 문서는 "GPT-6 Luna supports reasoning efforts up to Max, but not Ultra."라고 적습니다. 제3자 평가에서 6.1 Sol의 레벨별 결과는 측정 조건과 함께 [조사 문서](../research/research-opus55-sol61.md)에 있습니다.
 
 ### ultra의 정체
 
@@ -228,7 +228,7 @@ Codex 선택기에는 `none`이 없습니다. API에서 6.1 Terra·6 Sol·Luna�
 
 **비용 감각** (2차): Simon Willison의 펠리컨 비교에서 Astra max effort 한 장이 출력 12,638토큰에 63.21센트였고, 같은 프롬프트가 5.6 Luna에서는 1.57센트였습니다. 약 40배 차이입니다. Artificial Analysis 실측으로는 Astra max effort 작업당 비용이 5.6 Sol 대비 약 75% 비쌉니다.
 
-**dotfiles 적용**: 레포 `.codex/config.toml`에는 `model_reasoning_effort`도 `plan_mode_reasoning_effort`도 없어 두 값 모두 Codex 기본값을 따릅니다. 런타임 설정에 저장한 값은 레포와 다를 수 있습니다. `max`·`ultra`는 설정 파일에 넣지 않습니다. 3자 평가 결과는 전역 `max` 고정의 근거가 되지 않습니다([조사 문서](../research/research-opus55-sol61.md)).
+**dotfiles 적용**: 레포 `.codex/config.toml`에는 `model_reasoning_effort`도 `plan_mode_reasoning_effort`도 없어 두 값 모두 Codex 기본값을 따릅니다. 런타임 설정에 저장한 값은 레포와 다를 수 있습니다. `max`·`ultra`는 설정 파일에 넣지 않습니다. 제3자 평가 결과는 전역 `max` 고정의 근거가 되지 않습니다([조사 문서](../research/research-opus55-sol61.md)).
 
 ---
 
@@ -390,9 +390,9 @@ Structured Outputs, Programmatic Tool Calling, `reasoning.mode: "pro"`, `reasoni
 
 ## 8. 외부 관찰 (2차, 출시 +3일이라 표본이 얇음)
 
-아래는 Astra 출시 직후 관찰이고, 비교 대상 Sol·Luna는 모두 5.6 세대입니다. GPT-6 Sol·Luna의 3자 평가와 후기는 [research-opus55-gpt6-sol.md](../research/research-opus55-gpt6-sol.md) 4·5절에, GPT-6.1 Sol의 3자 평가와 후기는 [research-opus55-sol61.md](../research/research-opus55-sol61.md) 4·5절에 있습니다. Artificial Analysis는 09-07에 지능 지수를 v4.3으로 개정했으므로 아래 지수와 그 문서의 지수를 섞어 비교하지 않습니다.
+아래는 Astra 출시 직후 관찰이고, 비교 대상 Sol·Luna는 모두 5.6 세대입니다. GPT-6 Sol·Luna의 제3자 평가와 후기는 [research-opus55-gpt6-sol.md](../research/research-opus55-gpt6-sol.md) 4·5절에, GPT-6.1 Sol의 제3자 평가와 후기는 [research-opus55-sol61.md](../research/research-opus55-sol61.md) 4·5절에 있습니다. Artificial Analysis는 09-07에 지능 지수를 v4.3으로 개정했으므로 아래 지수와 그 문서의 지수를 섞어 비교하지 않습니다.
 
-**Artificial Analysis** (3자 실측)
+**Artificial Analysis** (제3자 실측)
 
 | 지표 | Astra | 비교 |
 |------|-------|------|

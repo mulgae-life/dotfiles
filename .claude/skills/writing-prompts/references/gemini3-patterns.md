@@ -17,7 +17,7 @@
 >
 > 본 문서는 패턴 요약. 풀 가이드: [`reference/google-prompt-guide/gemini-3-prompt-guide.md`](../../../../reference/google-prompt-guide/gemini-3-prompt-guide.md)
 >
-> `gemini-4-argon`·`gemini-4-carbon`·`gemini-4-hydrogen`은 [Gemini 4 (Argon·Carbon·Hydrogen) 패턴](gemini4-argon-patterns.md)을 본다. 아래 3.x 처방을 세 모델에 자동 적용하지 않는다.
+> `gemini-4-argon`·`gemini-4-carbon`·`gemini-4-hydrogen`·`gemini-4-neon`은 [Gemini 4 (Argon·Carbon·Hydrogen·Neon) 패턴](gemini4-argon-patterns.md)을 본다. 아래 3.x 처방을 네 모델에 자동 적용하지 않는다.
 
 ---
 

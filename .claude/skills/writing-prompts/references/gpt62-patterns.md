@@ -289,5 +289,5 @@ End early only if the user asks you to stop or no authorized step can advance th
 - [Keep the prefix unchanged | OpenAI API (공식)](https://developers.openai.com/api/docs/guides/keep-prefix-unchanged)
 - 모델 카드 (공식): [gpt-6.2-astra](https://developers.openai.com/api/docs/models/gpt-6.2-astra) · [gpt-6.2-sol](https://developers.openai.com/api/docs/models/gpt-6.2-sol)
 - [GPT-6.2 Astra and Sol 시스템 카드 (공식)](https://deploymentsafety.openai.com/gpt-6-2-astra-sol)
-- [GPT-6.2 Astra·Sol 조사](../../../../reference/research/research-gpt62.md) — 출시 근거, 발표 수치, Codex 카탈로그와 기본 지시문, 3자 평가와 후기 [2차 포함]
+- [GPT-6.2 Astra·Sol 조사](../../../../reference/research/research-gpt62.md) — 출시 근거, 발표 수치, Codex 카탈로그와 기본 지시문, 제3자 평가와 후기 [2차 포함]
 - [GPT-6 패턴 (이전 세대, 6.1 Terra·6 Luna 현행)](./gpt6-patterns.md)

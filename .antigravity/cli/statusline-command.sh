@@ -61,7 +61,7 @@ rate_color() {
   fi
 }
 
-# 버킷 선택: Gemini 모델과 Orchestrator(Argon·Carbon이 계획하고 Hydrogen이 실행)는 gemini-*, Claude·GPT 모델은 3p-*
+# 버킷 선택: Gemini 모델과 Orchestrator(Neon·Carbon·Argon이 계획하고 Hydrogen이 실행)는 gemini-*, Claude·GPT 모델은 3p-*
 case "$model" in
   Gemini*|Orchestrator*) bucket="gemini" ;;
   *)       bucket="3p" ;;
@@ -97,7 +97,7 @@ sep="\033[1;90m│\033[00m"
 limit_parts=$(quota_segment "" "$bucket-5h" "$bucket-weekly")
 
 # Argon: Pro 요금제는 별도 주간 버킷(gemini-argon-*-weekly, 5시간 한도 없음)을 쓴다.
-# Orchestrator의 실행 모델과 하위 에이전트는 Gemini 그룹(Hydrogen·Flash) 버킷을 쓰므로 그 버킷을 옆에 같이 보인다.
+# Argon이나 Orchestrator (Argon)을 고르면 그 옆에 Gemini 버킷을 함께 표시한다. Orchestrator의 실행 모델(Hydrogen)이 Gemini 그룹(Neon·Hydrogen·Flash)에 속한다.
 # Ultra는 Argon이 gemini 버킷에 포함돼 별도 버킷이 없으므로 위 gemini 묶음만 보인다
 case "$model" in
   *Argon*)

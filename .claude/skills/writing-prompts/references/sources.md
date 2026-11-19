@@ -41,7 +41,8 @@
 - [Claude Prompt Engineering Overview](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview)
 
 ### Google Gemini
-- [Gemini 4 (Argon·Carbon·Hydrogen) 풀 가이드 (한국어)](../../../../reference/google-prompt-guide/gemini-4-argon-prompt-guide.md) ⭐ 최신 — 세 모델의 계약과 선택 기준·운용 팁 5가지·통합 창과 장문 출력·서비스별 계약·agy 이용 조건
+- [Gemini 4 (Argon·Carbon·Hydrogen·Neon) 풀 가이드 (한국어)](../../../../reference/google-prompt-guide/gemini-4-argon-prompt-guide.md) ⭐ 최신 — 네 모델의 계약과 선택 기준·운용 팁 5가지·통합 창과 장문 출력·서비스별 계약·agy 이용 조건
+- [What's new in Gemini 4 Neon (공식)](https://aistudio.google.com/docs/whats-new-gemini-4-neon) · [Developer's guide to Gemini 4 Neon (Cloud)](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/guides/gemini-4-neon) · [Choosing a model (공식)](https://aistudio.google.com/docs/choosing-a-model)
 - [What's new in Gemini 4 Hydrogen (공식)](https://aistudio.google.com/docs/whats-new-gemini-4-hydrogen) · [Developer's guide to Gemini 4 Hydrogen (Cloud)](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/guides/gemini-4-hydrogen)
 - [What's new in Gemini 4 Argon (공식)](https://aistudio.google.com/docs/whats-new-gemini-4-argon) · [Gemini 4 Argon: Developer Guide (AI Studio)](https://aistudio.google.com/learn/gemini-4-argon-developer-guide)
 - [What's new in Gemini 4 Carbon (공식)](https://aistudio.google.com/docs/whats-new-gemini-4-carbon) · [Gemini 4 Carbon: Developer Guide (AI Studio)](https://aistudio.google.com/learn/gemini-4-carbon-developer-guide)

@@ -2,6 +2,11 @@
 
 버전마다 무엇이 바뀌었는지 적는다. 결정의 이유는 [docs/DECISIONS.md](docs/DECISIONS.md)에 있고, 공개 레포의 [릴리즈 노트](https://github.com/mulgae-life/dotfiles/releases)는 같은 버전 절의 내용이다.
 
+## v2.79 — Gemini 4 Neon을 더하고 모델 문서의 용어와 사고 서명 안내를 고침
+- `writing-prompts`의 Gemini 4 문서에 Neon 추가. API 계약은 Hydrogen과 같고 요율(`$3 / $15`)과 제공 조건(유료 등급 전용)이 다름. Argon·Carbon과 한 세대로 세어 보관소로 옮긴 문서 없음
+- Gemini 4 가이드의 사고 서명 안내 교체. Cloud 문서에서 `prefix_mismatch_behavior`가 없어져, 이력을 고치면 요청은 처리되고 맞지 않는 사고가 컨텍스트에서 빠진다는 현행 규칙으로 적음. Hydrogen의 Antigravity 요금제 갱신, 네 모델의 지식 마감일을 표에 정리, 낮게 고정한 출력 한도 권고를 모델별로 구분
+- 모델 문서의 용어 정비(전경 → 포그라운드, 3자 → 제3자, 도입가 → 출시 할인가 등). agy README와 상태줄 주석에 Neon·`Orchestrator (Neon)` 반영. 검증 버전을 Claude Code 2.1.328, agy 1.5.12로 갱신
+
 ## v2.78 — 파일에 남기는 글의 글쓰기 규칙을 더하고 검증 버전을 올림
 - 글쓰기 규칙 `rules/writing.md` 추가. 코드 주석, 문서, 스킬·규칙 문장은 개조식·개괄식으로 군더더기 없이 작성. 대화 응답은 `communication.md` 그대로
 - Codex와 Antigravity 지침, `work-verify` 점검표에 같은 기준 반영

@@ -236,7 +236,7 @@ Astra 출시 +3일 시점의 관찰이라 표본이 얇다. 설정 기본값의 
 - [GPT-6 Prompting Guide (full)](../../../../reference/openai-prompt-guide/gpt-6-prompt-guide.md) — 전체 가이드, 제품군 절(§0), Codex 기본 지시문 차이표, 외부 관찰
 - [Using GPT-6 | OpenAI API (공식, 6·6.1 전용 원문)](https://developers.openai.com/api/docs/guides/latest-model/gpt-6-astra) — 버전 없는 `latest-model`·`prompt-guidance` 주소는 이제 GPT-6.2 문서를 보여준다
 - 모델 카드 (공식): [gpt-6-astra](https://developers.openai.com/api/docs/models/gpt-6-astra) · [gpt-6.1-sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol) · [gpt-6.1-terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra) · [gpt-6-sol](https://developers.openai.com/api/docs/models/gpt-6-sol) · [gpt-6-luna](https://developers.openai.com/api/docs/models/gpt-6-luna)
-- [Opus 5.5·GPT-6.1 Sol 재조사](../../../../reference/research/research-opus55-sol61.md) — 6.1 Sol의 3자 평가와 후기 [2차 포함]
+- [Opus 5.5·GPT-6.1 Sol 재조사](../../../../reference/research/research-opus55-sol61.md) — 6.1 Sol의 제3자 평가와 후기 [2차 포함]
 - [GPT-6.1 Terra 조사](../../../../reference/research/research-gpt61-terra.md) — Terra의 출시 근거·발표 수치·Codex 카탈로그, 같은 기간 GPT-6 제품군 변경
 - [Simon Willison — GPT-6 Astra (2026-09-03)](https://simonwillison.net/2026/Sep/3/gpt6-astra/) [2차]
 - [Artificial Analysis — Benchmarking GPT-6 Astra](https://artificialanalysis.ai/articles/benchmarking-gpt-6-astra) [2차]

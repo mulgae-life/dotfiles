@@ -13,7 +13,7 @@
 | Claude Fable | 5.2 · 5.1 · 5 |
 | Claude Haiku | 5.5 · 4.5 |
 | GPT | 6.2 (Astra·Sol) · 6 (Astra·6.1 Sol·6.1 Terra·6 Sol·Luna, 6.2 대응 모델이 없는 6.1 Terra·6 Luna는 이 세대 문서가 현행) · 5.6 |
-| Gemini | 4 (Argon·Carbon, 같은 계열의 형제 모델), Flash 계열은 4 Hydrogen(3.8 Flash의 권장 업그레이드라 Flash의 최신 세대로 센다) · 3.8 · 3.7 (Cloud 제공, Gemini API는 3.8로 자동 연결), Flash-Lite 3.5 · 3.1, Pro 3.1 Preview |
+| Gemini | 4 (Argon·Carbon·Neon, 같은 계열의 형제 모델), Flash 계열은 4 Hydrogen(3.8 Flash의 권장 업그레이드라 Flash의 최신 세대로 센다) · 3.8 · 3.7 (Cloud 제공, Gemini API는 3.8로 자동 연결), Flash-Lite 3.5 · 3.1, Pro 3.1 Preview |
 | Gemma | 4 (최신 세대만) |
 | Qwen | 3.8 (최신 세대만. 3.7은 API 전용이라 오픈웨이트 계보는 3.6 → 3.8) |
 
